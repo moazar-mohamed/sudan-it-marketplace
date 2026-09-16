@@ -73,6 +73,35 @@ service cloud.firestore {
         && signedInUser().companyId == companyId;
     }
 
+    function isTechnician() {
+      return signedInUserExists()
+        && signedInUser().role == 'technician';
+    }
+
+    // A technician reads their own technician record, matched by the
+    // company + email already on their user profile (technician accounts
+    // are provisioned outside the app, same as company_admin accounts).
+    function isSelfTechnicianRecord(companyId, email) {
+      return isTechnician()
+        && signedInUser().keys().hasAny(['companyId'])
+        && signedInUser().companyId == companyId
+        && signedInUser().email == email;
+    }
+
+    function assignedTechnician(technicianId) {
+      return get(/databases/$(database)/documents/technicians/$(technicianId)).data;
+    }
+
+    // True when the order is assigned to the signed-in technician's own
+    // technician record.
+    function isMyAssignedOrder() {
+      return isTechnician()
+        && resource.data.technicianId is string
+        && resource.data.technicianId.size() > 0
+        && assignedTechnician(resource.data.technicianId).companyId == signedInUser().companyId
+        && assignedTechnician(resource.data.technicianId).email == signedInUser().email;
+    }
+
     function catalogServiceExists(serviceId) {
       return exists(/databases/$(database)/documents/services/$(serviceId));
     }
@@ -356,6 +385,20 @@ service cloud.firestore {
           || isValidTechnicianAssignment());
     }
 
+    // A technician may only move an assigned order forward through
+    // Processing -> Out for Delivery -> Completed; they cannot touch
+    // payment status or reassignment.
+    function isTechnicianOrderStatusUpdate() {
+      return isMyAssignedOrder()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['orderStatus', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+        && isAllowedOrderStatusTransition(
+          resource.data.orderStatus,
+          request.resource.data.orderStatus
+        );
+    }
+
     function hasValidProductKeys() {
       return request.resource.data.keys().hasOnly([
         'id',
@@ -450,7 +493,9 @@ service cloud.firestore {
 
     match /technicians/{technicianId} {
       allow get, list: if isSignedIn()
-        && (isPlatformAdmin() || isCompanyAdminOf(resource.data.companyId));
+        && (isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId)
+          || isSelfTechnicianRecord(resource.data.companyId, resource.data.email));
 
       allow create: if isCompanyAdminOf(request.resource.data.companyId)
         && request.resource.data.id == technicianId
@@ -529,12 +574,14 @@ service cloud.firestore {
       allow get: if isSignedIn()
         && (resource.data.customerId == request.auth.uid
           || isPlatformAdmin()
-          || isCompanyAdminOf(resource.data.companyId));
+          || isCompanyAdminOf(resource.data.companyId)
+          || isMyAssignedOrder());
 
       allow list: if isSignedIn()
         && (resource.data.customerId == request.auth.uid
           || isPlatformAdmin()
-          || isCompanyAdminOf(resource.data.companyId));
+          || isCompanyAdminOf(resource.data.companyId)
+          || isMyAssignedOrder());
 
       allow create: if isSignedIn()
         && request.resource.data.id == orderId
@@ -544,7 +591,8 @@ service cloud.firestore {
         && (isPlatformAdmin()
           || (isCompanyAdminOf(resource.data.companyId)
             && isCompanyOrderManagementUpdate())
-          || isCustomerReceiptAttachment(orderId));
+          || isCustomerReceiptAttachment(orderId)
+          || isTechnicianOrderStatusUpdate());
 
       allow delete: if false;
     }

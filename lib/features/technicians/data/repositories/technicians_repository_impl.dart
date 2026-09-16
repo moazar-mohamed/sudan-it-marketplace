@@ -12,6 +12,13 @@ class TechniciansRepositoryImpl implements TechniciansRepository {
       _remoteDataSource.watchCompanyTechnicians(companyId);
 
   @override
+  Stream<Technician?> watchSelfTechnician({
+    required String companyId,
+    required String email,
+  }) =>
+      _remoteDataSource.watchSelfTechnician(companyId: companyId, email: email);
+
+  @override
   String newTechnicianId() => _remoteDataSource.newTechnicianId();
 
   @override

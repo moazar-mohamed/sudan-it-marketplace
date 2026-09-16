@@ -39,3 +39,13 @@ final companyOrdersStreamProvider =
   }
   return ref.watch(ordersRepositoryProvider).watchCompanyOrders(companyId);
 });
+
+final technicianOrdersStreamProvider =
+    StreamProvider.family<List<OrderEntity>, String>((ref, technicianId) {
+  if (technicianId.isEmpty) {
+    return Stream.value(const []);
+  }
+  return ref
+      .watch(ordersRepositoryProvider)
+      .watchTechnicianOrders(technicianId);
+});

@@ -14,6 +14,8 @@ abstract interface class OrdersRemoteDataSource {
 
   Stream<List<OrderModel>> watchCompanyOrders(String companyId);
 
+  Stream<List<OrderModel>> watchTechnicianOrders(String technicianId);
+
   Future<void> updateOrderStatus({
     required String orderId,
     required String orderStatus,

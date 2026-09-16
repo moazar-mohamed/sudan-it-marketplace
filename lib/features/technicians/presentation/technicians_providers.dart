@@ -24,3 +24,16 @@ final companyTechniciansStreamProvider =
       .watch(techniciansRepositoryProvider)
       .watchCompanyTechnicians(companyId);
 });
+
+/// Looks up the technician record for the signed-in technician user, matched
+/// by their company and email.
+final technicianSelfProvider = StreamProvider.family<Technician?,
+    ({String companyId, String email})>((ref, args) {
+  if (args.companyId.isEmpty || args.email.isEmpty) {
+    return Stream.value(null);
+  }
+  return ref.watch(techniciansRepositoryProvider).watchSelfTechnician(
+        companyId: args.companyId,
+        email: args.email,
+      );
+});

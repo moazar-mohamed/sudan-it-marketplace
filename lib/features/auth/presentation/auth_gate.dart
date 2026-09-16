@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../company_admin/presentation/company_admin_shell.dart';
 import '../../customer_dashboard/presentation/customer_dashboard_screen.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
+import '../../technician/presentation/technician_shell.dart';
+import '../../technicians/presentation/technicians_providers.dart';
 import '../domain/entities/user_role.dart';
 import 'auth_controller.dart';
 import 'auth_state.dart';
@@ -57,12 +59,67 @@ class _RoleRouter extends ConsumerWidget {
               message:
                   'Platform administration is managed separately and is not available in this app.',
             ),
-          UserRole.technician => const _AccessMessageScreen(
-              title: 'Technician account',
-              message:
-                  'Technician access is not available in this app yet. Please contact your company administrator.',
-            ),
+          UserRole.technician =>
+            (profile.companyId == null || profile.companyId!.isEmpty)
+                ? const _AccessMessageScreen(
+                    title: 'Company not linked',
+                    message:
+                        'Your technician account is not linked to a company yet. Please contact your company administrator.',
+                  )
+                : _TechnicianRoleRouter(
+                    companyId: profile.companyId!,
+                    email: profile.email,
+                  ),
         };
+      },
+    );
+  }
+}
+
+/// Resolves the signed-in technician's own `technicians/{id}` record (by
+/// company + email, since technician accounts are provisioned outside the
+/// app the same way company_admin accounts are) before entering the
+/// Technician experience.
+class _TechnicianRoleRouter extends ConsumerWidget {
+  const _TechnicianRoleRouter({required this.companyId, required this.email});
+
+  final String companyId;
+  final String email;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final technicianAsync = ref.watch(
+      technicianSelfProvider((companyId: companyId, email: email)),
+    );
+
+    return technicianAsync.when(
+      loading: () => const _SessionLoadingScreen(),
+      error: (_, __) => const _AccessMessageScreen(
+        title: 'Technician account',
+        message:
+            'Could not load your technician record. Please try again or contact your company administrator.',
+      ),
+      data: (technician) {
+        if (technician == null) {
+          return const _AccessMessageScreen(
+            title: 'Technician account',
+            message:
+                'Your technician account is not yet set up. Please contact your company administrator.',
+          );
+        }
+        if (!technician.isActive) {
+          return const _AccessMessageScreen(
+            title: 'Technician account',
+            message:
+                'Your technician account has been deactivated. Please contact your company administrator.',
+          );
+        }
+        return TechnicianShell(
+          companyId: technician.companyId,
+          technicianId: technician.id,
+          technicianName: technician.fullName,
+          technicianPhone: technician.phone,
+        );
       },
     );
   }

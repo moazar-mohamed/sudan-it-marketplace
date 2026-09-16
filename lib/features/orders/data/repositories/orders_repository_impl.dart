@@ -89,6 +89,13 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
+  Stream<List<OrderEntity>> watchTechnicianOrders(String technicianId) {
+    return _remoteDataSource
+        .watchTechnicianOrders(technicianId)
+        .map((models) => models.map((m) => m.toEntity()).toList());
+  }
+
+  @override
   Future<void> updateOrderStatus({
     required String orderId,
     required OrderStatus orderStatus,

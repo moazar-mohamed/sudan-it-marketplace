@@ -20,7 +20,8 @@ class UserProfile {
   final bool isActive;
   final String? phone;
 
-  /// Set only for company_admin users; links the user to their company.
+  /// Set only for company_admin and technician users; links the user to
+  /// their company.
   final String? companyId;
 
   UserProfile copyWith({

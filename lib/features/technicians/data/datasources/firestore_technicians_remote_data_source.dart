@@ -34,6 +34,24 @@ class FirestoreTechniciansRemoteDataSource
   }
 
   @override
+  Stream<Technician?> watchSelfTechnician({
+    required String companyId,
+    required String email,
+  }) {
+    if (companyId.isEmpty || email.isEmpty) {
+      return Stream.value(null);
+    }
+    return _technicians
+        .where('companyId', isEqualTo: companyId)
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.isEmpty
+            ? null
+            : TechnicianModel.fromFirestore(snapshot.docs.first));
+  }
+
+  @override
   String newTechnicianId() => _technicians.doc().id;
 
   @override

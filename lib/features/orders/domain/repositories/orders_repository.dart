@@ -33,6 +33,10 @@ abstract interface class OrdersRepository {
 
   Stream<List<OrderEntity>> watchCompanyOrders(String companyId);
 
+  /// Watches only the orders whose installation add-on is assigned to this
+  /// technician.
+  Stream<List<OrderEntity>> watchTechnicianOrders(String technicianId);
+
   Future<void> updateOrderStatus({
     required String orderId,
     required OrderStatus orderStatus,

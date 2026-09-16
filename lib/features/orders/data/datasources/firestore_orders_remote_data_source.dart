@@ -161,6 +161,22 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
   }
 
   @override
+  Stream<List<OrderModel>> watchTechnicianOrders(String technicianId) {
+    if (technicianId.isEmpty) {
+      return Stream.value(const []);
+    }
+    return _firestore
+        .collection(_ordersCollection)
+        .where('technicianId', isEqualTo: technicianId)
+        .snapshots()
+        .map((snapshot) {
+      final list = snapshot.docs.map(OrderModel.fromFirestore).toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
+    });
+  }
+
+  @override
   Future<void> updateOrderStatus({
     required String orderId,
     required String orderStatus,
