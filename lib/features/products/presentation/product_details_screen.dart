@@ -121,9 +121,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       color: AppColors.primary,
                     ),
                   ),
-                  Positioned(
+                  PositionedDirectional(
                     top: 14,
-                    left: 14,
+                    start: 14,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -286,28 +286,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           ),
                         ),
                         if (matchedCompany != null) ...[
-                          Flexible(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    'View Company',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.arrow_forward_ios_rounded,
-                                  size: 12,
-                                  color: AppColors.primary,
-                                ),
-                              ],
-                            ),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: AppColors.primary,
                           ),
                         ],
                       ],

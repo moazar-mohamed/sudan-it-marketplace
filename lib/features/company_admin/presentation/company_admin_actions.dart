@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../companies/domain/entities/company.dart';
 import '../../companies/presentation/companies_providers.dart';
+import '../../notifications/presentation/notification_events.dart';
+import '../../notifications/presentation/notifications_providers.dart';
 import '../../orders/domain/entities/order_entity.dart';
 import '../../orders/presentation/orders_providers.dart';
 import '../../products/domain/entities/product.dart';
@@ -42,18 +44,45 @@ class CompanyAdminActions {
   }
 
   Future<String?> advanceOrderStatus(OrderEntity order, OrderStatus status) {
-    return _guard(
-      () => _ref.read(ordersRepositoryProvider).updateOrderStatus(
+    return _guard(() async {
+      await _ref.read(ordersRepositoryProvider).updateOrderStatus(
             orderId: order.id,
             orderStatus: status,
-          ),
-    );
+          );
+      await _notifyCustomerOfStatus(order, status);
+    });
   }
 
   Future<String?> confirmPayment(OrderEntity order) {
-    return _guard(
-      () => _ref.read(ordersRepositoryProvider).confirmPayment(order.id),
+    return _guard(() async {
+      await _ref.read(ordersRepositoryProvider).confirmPayment(order.id);
+      final notifications = _ref.read(notificationsRepositoryProvider);
+      await notifications.createNotification(
+        NotificationEvents.paymentConfirmed(
+          id: notifications.newNotificationId(),
+          orderId: order.id,
+          customerId: order.customerId,
+          productName: order.productName,
+        ),
+      );
+    });
+  }
+
+  Future<void> _notifyCustomerOfStatus(
+    OrderEntity order,
+    OrderStatus status,
+  ) async {
+    final notifications = _ref.read(notificationsRepositoryProvider);
+    final event = NotificationEvents.forOrderStatusChange(
+      id: notifications.newNotificationId(),
+      status: status,
+      orderId: order.id,
+      customerId: order.customerId,
+      productName: order.productName,
     );
+    if (event != null) {
+      await notifications.createNotification(event);
+    }
   }
 
   Future<String?> updateCompanyProfile(Company company) {
@@ -90,13 +119,22 @@ class CompanyAdminActions {
     required String technicianId,
     required String technicianName,
   }) {
-    return _guard(
-      () => _ref.read(ordersRepositoryProvider).assignTechnician(
+    return _guard(() async {
+      await _ref.read(ordersRepositoryProvider).assignTechnician(
             orderId: order.id,
             technicianId: technicianId,
             technicianName: technicianName,
-          ),
-    );
+          );
+      final notifications = _ref.read(notificationsRepositoryProvider);
+      await notifications.createNotification(
+        NotificationEvents.technicianAssigned(
+          id: notifications.newNotificationId(),
+          orderId: order.id,
+          technicianId: technicianId,
+          productName: order.productName,
+        ),
+      );
+    });
   }
 
   Future<String?> _guard(Future<void> Function() action) async {

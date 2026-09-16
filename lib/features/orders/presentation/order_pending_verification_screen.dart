@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../customer_dashboard/presentation/customer_dashboard_screen.dart';
 import '../domain/entities/order_entity.dart';
 import 'order_details_screen.dart';
+import 'widgets/price_summary_row.dart';
 
 class OrderPendingVerificationScreen extends StatelessWidget {
   const OrderPendingVerificationScreen({
@@ -117,7 +118,6 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Order Reference',
@@ -125,11 +125,17 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Text(
-                        '#${order.id}',
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '#${order.id}',
+                          textAlign: TextAlign.end,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
                     ],
@@ -221,23 +227,16 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   const Divider(),
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total Amount',
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        '${_formatPrice(order.totalAmount)} SDG',
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
+                  PriceSummaryRow(
+                    label: 'Total Amount',
+                    value: '${_formatPrice(order.totalAmount)} SDG',
+                    labelStyle: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    valueStyle: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ],
               ),

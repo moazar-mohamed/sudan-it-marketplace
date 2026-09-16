@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../notifications/presentation/notification_events.dart';
+import '../../notifications/presentation/notifications_providers.dart';
 import '../domain/entities/order_entity.dart';
 import '../domain/repositories/orders_repository.dart';
 import 'orders_providers.dart';
@@ -78,6 +80,15 @@ class OrdersController extends Notifier<OrderActionState> {
         receiptFileName: receiptFileName,
       );
       state = OrderActionSuccess(order);
+      final notifications = ref.read(notificationsRepositoryProvider);
+      await notifications.createNotification(
+        NotificationEvents.newOrder(
+          id: notifications.newNotificationId(),
+          orderId: order.id,
+          companyId: order.companyId,
+          productName: order.productName,
+        ),
+      );
       return order;
     } catch (e) {
       state = OrderActionError(_errorMessage(e));

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../domain/entities/order_entity.dart';
+import 'widgets/price_summary_row.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
   const OrderDetailsScreen({
@@ -135,23 +136,15 @@ class OrderDetailsScreen extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Unit: ${_formatPrice(order.unitPrice)} SDG',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
-                                  ),
-                                ),
-                                Text(
-                                  'Qty: ${order.quantity}',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
+                            PriceSummaryRow(
+                              label: 'Unit: ${_formatPrice(order.unitPrice)} SDG',
+                              value: 'Qty: ${order.quantity}',
+                              labelStyle: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurface.withValues(alpha: 0.6),
+                              ),
+                              valueStyle: textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -311,69 +304,50 @@ class OrderDetailsScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Product Subtotal', style: textTheme.bodyMedium),
-                      Text(
-                        '${_formatPrice(order.productSubtotal)} SDG',
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  PriceSummaryRow(
+                    label: 'Product Subtotal',
+                    value: '${_formatPrice(order.productSubtotal)} SDG',
+                    labelStyle: textTheme.bodyMedium,
+                    valueStyle: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   if (order.installationSelected) ...[
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Installation Fee', style: textTheme.bodyMedium),
-                        Text(
-                          '+${_formatPrice(order.installationFee)} SDG',
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
+                    PriceSummaryRow(
+                      label: 'Installation Fee',
+                      value: '+${_formatPrice(order.installationFee)} SDG',
+                      labelStyle: textTheme.bodyMedium,
+                      valueStyle: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ],
                   if (order.deliveryMethod == DeliveryMethod.delivery) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Delivery Fee', style: textTheme.bodyMedium),
-                      Text(
-                        '${_formatPrice(order.deliveryFee)} SDG',
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                    const SizedBox(height: 8),
+                    PriceSummaryRow(
+                      label: 'Delivery Fee',
+                      value: '${_formatPrice(order.deliveryFee)} SDG',
+                      labelStyle: textTheme.bodyMedium,
+                      valueStyle: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                  ),
+                    ),
                   ],
                   const SizedBox(height: 12),
                   const Divider(),
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total',
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        '${_formatPrice(order.totalAmount)} SDG',
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
+                  PriceSummaryRow(
+                    label: 'Total',
+                    value: '${_formatPrice(order.totalAmount)} SDG',
+                    labelStyle: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    valueStyle: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ],
               ),

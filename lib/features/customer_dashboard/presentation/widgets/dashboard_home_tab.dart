@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/arabic_text.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../companies/presentation/widgets/company_card.dart';
 import '../../../products/presentation/products_providers.dart';
@@ -27,7 +28,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
 
   void _onSearchChanged(String value) {
     setState(() {
-      _searchQuery = value.trim().toLowerCase();
+      _searchQuery = normalizeSearchText(value);
     });
   }
 
@@ -50,14 +51,14 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
         ? mockCompanies
         : mockCompanies
             .where((company) =>
-                company.name.toLowerCase().contains(_searchQuery))
+                normalizeSearchText(company.name).contains(_searchQuery))
             .toList();
 
     final filteredProducts = _searchQuery.isEmpty
         ? mockProducts
         : mockProducts
             .where((product) =>
-                product.name.toLowerCase().contains(_searchQuery))
+                normalizeSearchText(product.name).contains(_searchQuery))
             .toList();
 
     return ListView(

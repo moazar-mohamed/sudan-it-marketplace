@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../orders/presentation/customer_orders_screen.dart';
+import 'customer_notifications_screen.dart';
 import 'customer_profile_screen.dart';
 import 'widgets/dashboard_home_tab.dart';
 
@@ -49,6 +50,19 @@ class _CustomerDashboardScreenState
           2 => 'Profile',
           _ => 'Sudan IT Marketplace',
         }),
+        actions: [
+          IconButton(
+            tooltip: 'Notifications',
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const CustomerNotificationsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _currentIndex,

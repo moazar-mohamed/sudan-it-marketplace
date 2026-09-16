@@ -511,6 +511,106 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    function notificationOrder(orderId) {
+      return get(/databases/$(database)/documents/orders/$(orderId)).data;
+    }
+
+    // The company_admin notification for a new order may only be created by
+    // the customer who owns that order, targeting the order's own company.
+    function isValidCompanyAdminNotificationCreate() {
+      let order = notificationOrder(request.resource.data.orderId);
+      return order.companyId == request.resource.data.recipientId
+        && order.customerId == request.auth.uid;
+    }
+
+    // A customer notification may only be created by the company admin of
+    // that order, or by the technician currently assigned to it.
+    function isValidCustomerNotificationCreate() {
+      let order = notificationOrder(request.resource.data.orderId);
+      return order.customerId == request.resource.data.recipientId
+        && (isCompanyAdminOf(order.companyId)
+          || (isTechnician()
+            && order.technicianId is string
+            && order.technicianId.size() > 0
+            && assignedTechnician(order.technicianId).companyId == signedInUser().companyId
+            && assignedTechnician(order.technicianId).email == signedInUser().email));
+    }
+
+    // A technician notification may only be created by the company admin
+    // who assigned that technician to the order.
+    function isValidTechnicianNotificationCreate() {
+      let order = notificationOrder(request.resource.data.orderId);
+      return order.technicianId == request.resource.data.recipientId
+        && isCompanyAdminOf(order.companyId);
+    }
+
+    function hasRequiredNotificationKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'recipientType',
+        'recipientId',
+        'orderId',
+        'type',
+        'title',
+        'body',
+        'isRead',
+        'createdAt'
+      ]);
+    }
+
+    function isValidNotificationCreate(notificationId) {
+      return hasRequiredNotificationKeys()
+        && request.resource.data.id == notificationId
+        && request.resource.data.recipientType in ['customer', 'company_admin', 'technician']
+        && request.resource.data.recipientId is string
+        && request.resource.data.recipientId.size() > 0
+        && request.resource.data.orderId is string
+        && request.resource.data.orderId.size() > 0
+        && request.resource.data.type is string
+        && request.resource.data.type.size() > 0
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.isRead == false
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.createdAt == request.time;
+    }
+
+    // A notification's recipient may read it: the customer themself, any
+    // admin of the target company, or the technician it was assigned to.
+    function isNotificationRecipient() {
+      return (resource.data.recipientType == 'customer'
+          && resource.data.recipientId == request.auth.uid)
+        || (resource.data.recipientType == 'company_admin'
+          && isCompanyAdminOf(resource.data.recipientId))
+        || (resource.data.recipientType == 'technician'
+          && isTechnician()
+          && assignedTechnician(resource.data.recipientId).companyId == signedInUser().companyId
+          && assignedTechnician(resource.data.recipientId).email == signedInUser().email);
+    }
+
+    match /notifications/{notificationId} {
+      allow get, list: if isSignedIn()
+        && (isPlatformAdmin() || isNotificationRecipient());
+
+      allow create: if isSignedIn()
+        && isValidNotificationCreate(notificationId)
+        && ((request.resource.data.recipientType == 'company_admin'
+              && isValidCompanyAdminNotificationCreate())
+          || (request.resource.data.recipientType == 'customer'
+              && isValidCustomerNotificationCreate())
+          || (request.resource.data.recipientType == 'technician'
+              && isValidTechnicianNotificationCreate()));
+
+      allow update: if isSignedIn()
+        && (isPlatformAdmin() || isNotificationRecipient())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead'])
+        && request.resource.data.isRead is bool;
+
+      allow delete: if false;
+    }
+
     function isCompanyProfileUpdate() {
       let data = request.resource.data;
       return data.diff(resource.data).affectedKeys().hasOnly([

@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function signedInUser() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isCompanyAdminOf(companyId) {
+      return isSignedIn()
+        && signedInUser().role == 'company_admin'
+        && signedInUser().companyId == companyId;
+    }
+
+    function isPlatformAdmin() {
+      return isSignedIn() && signedInUser().role == 'platform_admin';
+    }
+
+    // Payment transfer receipts: only the customer who owns the order may
+    // upload one, and only they, the order's company admin, or the
+    // platform admin may view it.
+    match /receipts/{companyId}/{customerId}/{fileName} {
+      allow read: if isSignedIn()
+        && (request.auth.uid == customerId
+          || isCompanyAdminOf(companyId)
+          || isPlatformAdmin());
+
+      allow write: if isSignedIn()
+        && request.auth.uid == customerId
+        && request.resource.size < 8 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+
+      allow delete: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

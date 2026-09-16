@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../notifications/presentation/notification_events.dart';
+import '../../notifications/presentation/notifications_providers.dart';
 import '../../orders/domain/entities/order_entity.dart';
 import '../../orders/presentation/orders_providers.dart';
 
@@ -15,12 +17,23 @@ class TechnicianActions {
   final Ref _ref;
 
   Future<String?> advanceJobStatus(OrderEntity order, OrderStatus status) {
-    return _guard(
-      () => _ref.read(ordersRepositoryProvider).updateOrderStatus(
+    return _guard(() async {
+      await _ref.read(ordersRepositoryProvider).updateOrderStatus(
             orderId: order.id,
             orderStatus: status,
-          ),
-    );
+          );
+      final notifications = _ref.read(notificationsRepositoryProvider);
+      final event = NotificationEvents.forOrderStatusChange(
+        id: notifications.newNotificationId(),
+        status: status,
+        orderId: order.id,
+        customerId: order.customerId,
+        productName: order.productName,
+      );
+      if (event != null) {
+        await notifications.createNotification(event);
+      }
+    });
   }
 
   Future<String?> _guard(Future<void> Function() action) async {

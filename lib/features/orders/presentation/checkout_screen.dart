@@ -12,6 +12,7 @@ import '../../products/domain/entities/product.dart';
 import '../domain/entities/checkout_order_draft.dart';
 import '../domain/entities/order_entity.dart';
 import 'manual_payment_screen.dart';
+import 'widgets/price_summary_row.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
@@ -586,83 +587,57 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Product Subtotal (${widget.quantity} items)',
-                          style: textTheme.bodyMedium,
-                        ),
-                        Text(
+                    PriceSummaryRow(
+                      label: 'Product Subtotal (${widget.quantity} items)',
+                      value:
                           '${_formatPrice(productSubtotal)} ${widget.product.currency}',
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                      labelStyle: textTheme.bodyMedium,
+                      valueStyle: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     if (_installationEligible) ...[
                       const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Installation Service',
-                            style: textTheme.bodyMedium,
-                          ),
-                          Text(
-                            _includeInstallation
-                                ? '+${_formatPrice(installationPrice)} ${widget.product.currency}'
-                                : 'Not included',
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: _includeInstallation
-                                  ? AppColors.primary
-                                  : colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                            ),
-                          ),
-                        ],
+                      PriceSummaryRow(
+                        label: 'Installation Service',
+                        value: _includeInstallation
+                            ? '+${_formatPrice(installationPrice)} ${widget.product.currency}'
+                            : 'Not included',
+                        labelStyle: textTheme.bodyMedium,
+                        valueStyle: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: _includeInstallation
+                              ? AppColors.primary
+                              : colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
                       ),
                     ],
                     if (_useDelivery) ...[
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Delivery Fee',
-                          style: textTheme.bodyMedium,
+                      const SizedBox(height: 10),
+                      PriceSummaryRow(
+                        label: 'Delivery Fee',
+                        value:
+                            '${_formatPrice(_deliveryFee)} ${widget.product.currency}',
+                        labelStyle: textTheme.bodyMedium,
+                        valueStyle: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
-                        Text(
-                          '${_formatPrice(_deliveryFee)} ${widget.product.currency}',
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
                     ],
                     const SizedBox(height: 14),
                     const Divider(),
                     const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Final Total',
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
+                    PriceSummaryRow(
+                      label: 'Final Total',
+                      value:
                           '${_formatPrice(finalTotal)} ${widget.product.currency}',
-                          style: textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
+                      labelStyle: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                      valueStyle: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ],
                 ),
