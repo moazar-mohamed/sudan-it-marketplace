@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "442723121540",
+    "project_id": "sudan-it-marketplace",
+    "storage_bucket": "sudan-it-marketplace.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:442723121540:android:252596fce3cff33aaa05d1",
+        "android_client_info": {
+          "package_name": "com.example.sudan_it_marketplace"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABPe74RmgFdwR526Rnk8f8Us550ogDD0Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

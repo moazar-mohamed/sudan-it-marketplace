@@ -1,0 +1,552 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function hasRequiredUserKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'fullName',
+        'email',
+        'role',
+        'isActive',
+        'createdAt'
+      ]);
+    }
+
+    function isValidCustomerCreate() {
+      return hasRequiredUserKeys()
+        && request.resource.data.id == request.auth.uid
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() > 0
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && request.resource.data.role == 'customer'
+        && request.resource.data.isActive == true
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.createdAt == request.time;
+    }
+
+    function isSafeCustomerProfileUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['fullName', 'phone', 'updatedAt'])
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() > 0
+        && (!request.resource.data.keys().hasAny(['phone'])
+          || request.resource.data.phone is string)
+        && (!request.resource.data.keys().hasAny(['updatedAt'])
+          || request.resource.data.updatedAt is timestamp)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.isActive == resource.data.isActive
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function signedInUserExists() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function signedInUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isPlatformAdmin() {
+      return signedInUserExists()
+        && signedInUser().role == 'platform_admin';
+    }
+
+    function isCompanyAdminOf(companyId) {
+      return signedInUserExists()
+        && signedInUser().role == 'company_admin'
+        && signedInUser().keys().hasAny(['companyId'])
+        && signedInUser().companyId is string
+        && signedInUser().companyId.size() > 0
+        && signedInUser().companyId == companyId;
+    }
+
+    function catalogServiceExists(serviceId) {
+      return exists(/databases/$(database)/documents/services/$(serviceId));
+    }
+
+    function hasRequiredCategoryKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'name',
+        'description',
+        'iconName',
+        'isActive',
+        'createdAt'
+      ]);
+    }
+
+    function isValidCategoryWrite(categoryId) {
+      return hasRequiredCategoryKeys()
+        && request.resource.data.id == categoryId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.description is string
+        && request.resource.data.iconName is string
+        && request.resource.data.isActive is bool
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function isValidCategoryCreate(categoryId) {
+      return isValidCategoryWrite(categoryId)
+        && request.resource.data.isActive == true
+        && request.resource.data.createdAt == request.time;
+    }
+
+    function isSafeCategoryUpdate(categoryId) {
+      return isValidCategoryWrite(categoryId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['name', 'description', 'iconName', 'isActive']);
+    }
+
+    function hasRequiredServiceKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'categoryId',
+        'name',
+        'description',
+        'isActive',
+        'createdAt'
+      ]);
+    }
+
+    function isValidServiceWrite(serviceId) {
+      return hasRequiredServiceKeys()
+        && request.resource.data.id == serviceId
+        && request.resource.data.categoryId is string
+        && request.resource.data.categoryId.size() > 0
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.description is string
+        && request.resource.data.isActive is bool
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function isValidServiceCreate(serviceId) {
+      return isValidServiceWrite(serviceId)
+        && request.resource.data.isActive == true
+        && request.resource.data.createdAt == request.time;
+    }
+
+    function isSafeServiceUpdate(serviceId) {
+      return isValidServiceWrite(serviceId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['categoryId', 'name', 'description', 'isActive']);
+    }
+
+    function hasRequiredCompanyServiceKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'companyId',
+        'serviceId',
+        'isActive',
+        'createdAt'
+      ]);
+    }
+
+    function isValidCompanyServiceWrite(companyServiceId) {
+      return hasRequiredCompanyServiceKeys()
+        && request.resource.data.id == companyServiceId
+        && request.resource.data.companyId is string
+        && request.resource.data.companyId.size() > 0
+        && request.resource.data.serviceId is string
+        && request.resource.data.serviceId.size() > 0
+        && request.resource.data.isActive is bool
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function isValidCompanyServiceCreate(companyServiceId) {
+      return isValidCompanyServiceWrite(companyServiceId)
+        && request.resource.data.isActive == true
+        && request.resource.data.createdAt == request.time
+        && catalogServiceExists(request.resource.data.serviceId);
+    }
+
+    function isSafeCompanyServiceUpdate(companyServiceId) {
+      return isValidCompanyServiceWrite(companyServiceId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.companyId == resource.data.companyId
+        && request.resource.data.serviceId == resource.data.serviceId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['isActive']);
+    }
+
+    match /users/{uid} {
+      allow get: if isOwner(uid);
+
+      allow list: if false;
+
+      allow create: if isOwner(uid)
+        && request.auth.uid == uid
+        && request.resource.data.id == uid
+        && isValidCustomerCreate();
+
+      allow update: if isOwner(uid)
+        && isSafeCustomerProfileUpdate();
+
+      allow delete: if false;
+    }
+
+    match /categories/{categoryId} {
+      allow get, list: if isSignedIn();
+
+      allow create: if isPlatformAdmin()
+        && request.resource.data.id == categoryId
+        && isValidCategoryCreate(categoryId);
+
+      allow update: if isPlatformAdmin()
+        && isSafeCategoryUpdate(categoryId);
+
+      allow delete: if false;
+    }
+
+    match /services/{serviceId} {
+      allow get, list: if isSignedIn();
+
+      allow create: if isPlatformAdmin()
+        && request.resource.data.id == serviceId
+        && isValidServiceCreate(serviceId);
+
+      allow update: if isPlatformAdmin()
+        && isSafeServiceUpdate(serviceId);
+
+      allow delete: if false;
+    }
+
+    function hasRequiredOrderKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'customerId',
+        'companyId',
+        'companyName',
+        'productId',
+        'productName',
+        'quantity',
+        'unitPrice',
+        'productSubtotal',
+        'installationSelected',
+        'installationFee',
+        'deliveryFee',
+        'totalAmount',
+        'deliveryAddress',
+        'contactPhone',
+        'deliveryMethod',
+        'customerName',
+        'paymentStatus',
+        'orderStatus',
+        'receiptFileName',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    function isValidOrderCreate(orderId) {
+      return hasRequiredOrderKeys()
+        && request.resource.data.id == orderId
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.companyId is string
+        && request.resource.data.companyId.size() > 0
+        && (!request.resource.data.keys().hasAny(['companyName']) || (request.resource.data.companyName is string && request.resource.data.companyName.size() > 0))
+        && request.resource.data.productId is string
+        && request.resource.data.productId.size() > 0
+        && request.resource.data.productName is string
+        && request.resource.data.productName.size() > 0
+        && request.resource.data.quantity is int
+        && request.resource.data.quantity > 0
+        && request.resource.data.unitPrice is number
+        && request.resource.data.unitPrice >= 0
+        && request.resource.data.productSubtotal is number
+        && request.resource.data.productSubtotal >= 0
+        && request.resource.data.installationSelected is bool
+        && request.resource.data.installationFee is number
+        && request.resource.data.installationFee >= 0
+        && request.resource.data.deliveryFee is number
+        && request.resource.data.deliveryFee >= 0
+        && request.resource.data.totalAmount is number
+        && request.resource.data.totalAmount > 0
+        && request.resource.data.deliveryAddress is string
+        && request.resource.data.deliveryAddress.size() > 0
+        && request.resource.data.contactPhone is string
+        && request.resource.data.contactPhone.size() > 0
+        && (!request.resource.data.keys().hasAny(['deliveryMethod'])
+          || request.resource.data.deliveryMethod in ['delivery', 'pickup'])
+        && (request.resource.data.get('deliveryMethod', 'delivery') != 'pickup'
+          || request.resource.data.deliveryFee == 0)
+        && (!request.resource.data.keys().hasAny(['customerName'])
+          || request.resource.data.customerName is string)
+        && request.resource.data.paymentStatus == 'pending_verification'
+        && request.resource.data.orderStatus == 'processing'
+        && (request.resource.data.receiptFileName == null || request.resource.data.receiptFileName is string)
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function isCustomerReceiptAttachment(orderId) {
+      return resource.data.customerId == request.auth.uid
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.customerId == resource.data.customerId
+        && request.resource.data.companyId == resource.data.companyId
+        && request.resource.data.productId == resource.data.productId
+        && request.resource.data.productName == resource.data.productName
+        && request.resource.data.quantity == resource.data.quantity
+        && request.resource.data.unitPrice == resource.data.unitPrice
+        && request.resource.data.productSubtotal == resource.data.productSubtotal
+        && request.resource.data.installationSelected == resource.data.installationSelected
+        && request.resource.data.installationFee == resource.data.installationFee
+        && request.resource.data.deliveryFee == resource.data.deliveryFee
+        && request.resource.data.totalAmount == resource.data.totalAmount
+        && request.resource.data.deliveryAddress == resource.data.deliveryAddress
+        && request.resource.data.contactPhone == resource.data.contactPhone
+        && request.resource.data.paymentStatus == resource.data.paymentStatus
+        && request.resource.data.orderStatus == resource.data.orderStatus
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['receiptFileName', 'updatedAt'])
+        && request.resource.data.receiptFileName is string
+        && request.resource.data.receiptFileName.size() > 0;
+    }
+
+    function isAllowedOrderStatusTransition(fromStatus, toStatus) {
+      return fromStatus == toStatus
+        || (fromStatus == 'processing'
+          && toStatus in ['out_for_delivery', 'completed'])
+        || (fromStatus == 'out_for_delivery' && toStatus == 'completed');
+    }
+
+    function isValidTechnicianAssignment() {
+      return resource.data.installationSelected == true
+        && request.resource.data.technicianId is string
+        && request.resource.data.technicianId.size() > 0
+        && request.resource.data.technicianName is string
+        && request.resource.data.technicianName.size() > 0;
+    }
+
+    // Company admins may only move an order forward through
+    // Processing -> Out for Delivery -> Completed, confirm payment, and
+    // assign a technician to the order's installation add-on.
+    function isCompanyOrderManagementUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['orderStatus', 'paymentStatus', 'technicianId', 'technicianName', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.paymentStatus in ['pending_verification', 'confirmed']
+        && (resource.data.paymentStatus != 'confirmed'
+          || request.resource.data.paymentStatus == 'confirmed')
+        && isAllowedOrderStatusTransition(
+          resource.data.orderStatus,
+          request.resource.data.orderStatus
+        )
+        && (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['technicianId', 'technicianName'])
+          || isValidTechnicianAssignment());
+    }
+
+    function hasValidProductKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'companyId',
+        'companyName',
+        'name',
+        'imageUrl',
+        'price',
+        'currency',
+        'stockCount',
+        'inStock',
+        'description',
+        'specifications',
+        'isDeliveryAvailable',
+        'isInstallationAvailable',
+        'installationPrice',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    function isValidProductData() {
+      let data = request.resource.data;
+      return hasValidProductKeys()
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.companyName is string
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 200
+        && data.imageUrl is string
+        && data.price is number
+        && data.price > 0
+        && data.currency == 'SDG'
+        && data.stockCount is int
+        && data.stockCount >= 0
+        && data.inStock is bool
+        && data.description is string
+        && data.specifications is map
+        && data.isDeliveryAvailable is bool
+        && data.isInstallationAvailable is bool
+        && ((data.isInstallationAvailable == true
+            && data.installationPrice is number
+            && data.installationPrice > 0)
+          || (data.isInstallationAvailable == false
+            && data.installationPrice == null))
+        && data.updatedAt == request.time;
+    }
+
+    match /products/{productId} {
+      allow get, list: if isSignedIn();
+
+      allow create: if isCompanyAdminOf(request.resource.data.companyId)
+        && request.resource.data.id == productId
+        && request.resource.data.createdAt == request.time
+        && isValidProductData();
+
+      allow update: if isCompanyAdminOf(resource.data.companyId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.companyId == resource.data.companyId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && isValidProductData();
+
+      allow delete: if isCompanyAdminOf(resource.data.companyId);
+    }
+
+    function hasRequiredTechnicianKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'companyId',
+        'fullName',
+        'phone',
+        'email',
+        'isActive',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    function isValidTechnicianData() {
+      let data = request.resource.data;
+      return hasRequiredTechnicianKeys()
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.phone is string
+        && (data.email == null || data.email is string)
+        && data.isActive is bool
+        && data.updatedAt == request.time;
+    }
+
+    match /technicians/{technicianId} {
+      allow get, list: if isSignedIn()
+        && (isPlatformAdmin() || isCompanyAdminOf(resource.data.companyId));
+
+      allow create: if isCompanyAdminOf(request.resource.data.companyId)
+        && request.resource.data.id == technicianId
+        && request.resource.data.createdAt == request.time
+        && isValidTechnicianData();
+
+      allow update: if isCompanyAdminOf(resource.data.companyId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.companyId == resource.data.companyId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && isValidTechnicianData();
+
+      allow delete: if false;
+    }
+
+    function isCompanyProfileUpdate() {
+      let data = request.resource.data;
+      return data.diff(resource.data).affectedKeys().hasOnly([
+          'name',
+          'logoUrl',
+          'description',
+          'city',
+          'address',
+          'phone',
+          'email',
+          'pickupAddress',
+          'updatedAt'
+        ])
+        && data.name is string
+        && data.name.size() > 0
+        && data.logoUrl is string
+        && data.description is string
+        && data.city is string
+        && data.address is string
+        && data.phone is string
+        && data.email is string
+        && data.pickupAddress is string
+        && data.updatedAt == request.time;
+    }
+
+    match /companies/{companyId} {
+      allow get, list: if isSignedIn();
+
+      allow create: if isPlatformAdmin();
+
+      allow update: if isPlatformAdmin()
+        || (isCompanyAdminOf(companyId) && isCompanyProfileUpdate());
+
+      allow delete: if false;
+    }
+
+    match /company_services/{companyServiceId} {
+      allow get: if isSignedIn()
+        && (resource.data.isActive == true
+          || isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId));
+
+      allow list: if isSignedIn()
+        && (resource.data.isActive == true
+          || isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId));
+
+      allow create: if (isPlatformAdmin()
+          || isCompanyAdminOf(request.resource.data.companyId))
+        && request.resource.data.id == companyServiceId
+        && isValidCompanyServiceCreate(companyServiceId);
+
+      allow update: if (isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId))
+        && isSafeCompanyServiceUpdate(companyServiceId);
+
+      allow delete: if false;
+    }
+
+    match /orders/{orderId} {
+      allow get: if isSignedIn()
+        && (resource.data.customerId == request.auth.uid
+          || isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId));
+
+      allow list: if isSignedIn()
+        && (resource.data.customerId == request.auth.uid
+          || isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId));
+
+      allow create: if isSignedIn()
+        && request.resource.data.id == orderId
+        && isValidOrderCreate(orderId);
+
+      allow update: if isSignedIn()
+        && (isPlatformAdmin()
+          || (isCompanyAdminOf(resource.data.companyId)
+            && isCompanyOrderManagementUpdate())
+          || isCustomerReceiptAttachment(orderId));
+
+      allow delete: if false;
+    }
+  }
+}

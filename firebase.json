@@ -1,0 +1,24 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "sudan-it-marketplace",
+          "appId": "1:442723121540:android:252596fce3cff33aaa05d1",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "sudan-it-marketplace",
+          "configurations": {
+            "android": "1:442723121540:android:252596fce3cff33aaa05d1"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}
