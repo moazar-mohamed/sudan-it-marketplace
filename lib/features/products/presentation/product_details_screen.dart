@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../companies/domain/entities/company.dart';
+import '../../companies/presentation/companies_providers.dart';
 import '../../companies/presentation/company_details_screen.dart';
 import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../orders/presentation/checkout_screen.dart';
 import '../domain/entities/product.dart';
 
-class ProductDetailsScreen extends StatefulWidget {
+class ProductDetailsScreen extends ConsumerStatefulWidget {
   const ProductDetailsScreen({
     super.key,
     required this.product,
@@ -18,10 +20,10 @@ class ProductDetailsScreen extends StatefulWidget {
   final bool openedFromCompany;
 
   @override
-  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+  ConsumerState<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
 }
 
-class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
   int _quantity = 1;
 
   String _formatPrice(double price) {
@@ -30,16 +32,23 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     return parts[0].replaceAllMapped(regExp, (Match m) => '${m[1]},');
   }
 
+  // Resolves the real Firestore company first (matching the seller shown at
+  // checkout), falling back to the demo catalog only when the product has no
+  // companyId or the id isn't found anywhere.
   Company? _resolveCompany() {
-    for (final company in mockCompanies) {
-      if (widget.product.companyId != null &&
-          company.id == widget.product.companyId) {
-        return company;
+    final companyId = widget.product.companyId;
+    if (companyId != null) {
+      final resolved = ref.watch(resolvedCompanyProvider(companyId));
+      if (resolved != null) {
+        return resolved;
       }
-      if (widget.product.companyName != null &&
-          company.name.toLowerCase() ==
-              widget.product.companyName!.toLowerCase()) {
-        return company;
+    }
+    if (widget.product.companyName != null) {
+      for (final company in mockCompanies) {
+        if (company.name.toLowerCase() ==
+            widget.product.companyName!.toLowerCase()) {
+          return company;
+        }
       }
     }
     return null;
