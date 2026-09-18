@@ -20,7 +20,7 @@ class TechnicianNotificationsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Notifications')),
       body: notificationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => TechnicianErrorState(
+        error: (_, _) => TechnicianErrorState(
           message: 'Could not load notifications.',
           onRetry: () => ref
               .invalidate(technicianNotificationsStreamProvider(technicianId)),
@@ -39,7 +39,7 @@ class TechnicianNotificationsScreen extends ConsumerWidget {
           return ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: items.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final notification = items[index];
               return NotificationTile(

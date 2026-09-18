@@ -48,7 +48,7 @@ class _CustomerDashboardScreenState
         title: Text(switch (_currentIndex) {
           1 => 'My Orders',
           2 => 'Profile',
-          _ => 'Sudan IT Marketplace',
+          _ => 'Sudan ICT Marketplace',
         }),
         actions: [
           IconButton(

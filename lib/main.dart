@@ -28,7 +28,7 @@ class SudanITMarketplaceApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Sudan IT Marketplace',
+      title: 'Sudan ICT Marketplace',
       theme: AppTheme.light,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

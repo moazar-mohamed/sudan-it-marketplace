@@ -79,6 +79,38 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  /// Re-sends Firebase's verification email to the signed-in user. Returns
+  /// null on success, or an error message to show.
+  Future<String?> resendVerificationEmail() async {
+    try {
+      await _repository.sendEmailVerification();
+      return null;
+    } on AuthException catch (error) {
+      return error.message;
+    } catch (_) {
+      return 'Could not send the verification email. Please try again.';
+    }
+  }
+
+  /// Reloads the signed-in Firebase user and updates [state] so a freshly
+  /// verified email is reflected. Returns whether the email is now verified.
+  Future<bool> refreshEmailVerification() async {
+    try {
+      final user = await _repository.reloadCurrentUser();
+      if (user == null) {
+        state = const AuthUnauthenticated();
+        return false;
+      }
+      state = AuthAuthenticated(user);
+      return user.emailVerified;
+    } on AuthException catch (error) {
+      state = AuthError(error.message);
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> signOut() async {
     state = const AuthLoading();
     try {

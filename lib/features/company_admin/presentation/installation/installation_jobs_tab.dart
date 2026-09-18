@@ -18,7 +18,7 @@ class InstallationJobsTab extends ConsumerWidget {
 
     return ordersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => AdminErrorState(
+      error: (_, _) => AdminErrorState(
         message: 'Could not load installation jobs.',
         onRetry: () => ref.invalidate(companyOrdersStreamProvider(companyId)),
       ),
@@ -38,7 +38,7 @@ class InstallationJobsTab extends ConsumerWidget {
         return ListView.separated(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           itemCount: jobs.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
           itemBuilder: (context, index) => CompanyOrderTile(
             order: jobs[index],
             showInstallationStatus: true,

@@ -18,7 +18,7 @@ class TechnicianJobsTab extends ConsumerWidget {
 
     return jobsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => TechnicianErrorState(
+      error: (_, _) => TechnicianErrorState(
         message: 'Could not load your jobs.',
         onRetry: () =>
             ref.invalidate(technicianOrdersStreamProvider(technicianId)),
@@ -37,7 +37,7 @@ class TechnicianJobsTab extends ConsumerWidget {
         return ListView.separated(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           itemCount: jobs.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
           itemBuilder: (context, index) => TechnicianJobTile(
             order: jobs[index],
             onTap: () => Navigator.of(context).push(

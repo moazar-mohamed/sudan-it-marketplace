@@ -62,7 +62,17 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
         email: email.trim(),
         password: password,
       );
-      return _requireUser(credential.user);
+      final user = _requireUser(credential.user);
+      try {
+        await credential.user?.sendEmailVerification();
+      } on FirebaseAuthException catch (error) {
+        // The account exists either way; the verification screen offers a
+        // "Resend" action, so a failed send here must not fail sign-up.
+        // ignore: avoid_print
+        print('[DIAG][FirebaseAuthDS] sendEmailVerification on sign-up failed: '
+            '${error.code} ${error.message}');
+      }
+      return user;
     });
   }
 
@@ -109,6 +119,32 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
         return;
       }
       await user.delete();
+    });
+  }
+
+  @override
+  Future<void> sendEmailVerification() {
+    return _run(() async {
+      final user = _firebaseAuth.currentUser;
+      if (user == null) {
+        throw const AuthException(
+          'You are not signed in. Please sign in and try again.',
+          code: 'no-current-user',
+        );
+      }
+      await user.sendEmailVerification();
+    });
+  }
+
+  @override
+  Future<AuthUserModel?> reloadCurrentUser() {
+    return _run(() async {
+      final user = _firebaseAuth.currentUser;
+      if (user == null) {
+        return null;
+      }
+      await user.reload();
+      return _mapUser(_firebaseAuth.currentUser);
     });
   }
 

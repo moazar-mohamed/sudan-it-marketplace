@@ -188,7 +188,7 @@ class _TechnicianAssignmentCardState
         const SizedBox(height: 10),
         techniciansAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => Text(
+          error: (_, _) => Text(
             'Could not load technicians.',
             style: textTheme.bodySmall,
           ),

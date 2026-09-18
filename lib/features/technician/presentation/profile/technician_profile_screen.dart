@@ -81,7 +81,7 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
 
     return profileAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const TechnicianErrorState(
+      error: (_, _) => const TechnicianErrorState(
         message: 'Could not load your profile.',
       ),
       data: (profile) {

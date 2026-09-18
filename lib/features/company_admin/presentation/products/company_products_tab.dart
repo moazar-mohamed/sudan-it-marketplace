@@ -37,7 +37,7 @@ class CompanyProductsTab extends ConsumerWidget {
       ),
       body: productsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => AdminErrorState(
+        error: (_, _) => AdminErrorState(
           message: 'Could not load your products.',
           onRetry: () =>
               ref.invalidate(companyProductsStreamProvider(companyId)),
@@ -57,7 +57,7 @@ class CompanyProductsTab extends ConsumerWidget {
           return ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
             itemCount: products.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) => _CompanyProductTile(
               product: products[index],
               onTap: () => Navigator.of(context).push(

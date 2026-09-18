@@ -43,6 +43,12 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() => throw UnimplementedError();
+
+  @override
+  Future<void> sendEmailVerification() => throw UnimplementedError();
+
+  @override
+  Future<AuthUser?> reloadCurrentUser() => throw UnimplementedError();
 }
 
 void main() {

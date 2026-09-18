@@ -1,4 +1,4 @@
-# Sudan IT Marketplace & Support App
+# Sudan ICT Marketplace & Support App
 
 A Flutter application connecting customers with IT service companies and technicians across Sudan, covering service requests, orders, and company management. Built with a feature-based Clean Architecture, Riverpod for state management, and Firebase as the backend.
 

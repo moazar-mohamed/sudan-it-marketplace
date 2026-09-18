@@ -94,6 +94,26 @@ class CompanyAdminActions {
   String newTechnicianId() =>
       _ref.read(techniciansRepositoryProvider).newTechnicianId();
 
+  /// Creates a pending technician invitation under the Company Admin's own
+  /// (trusted) companyId. No Firebase Auth account is created here — the
+  /// technician claims the invitation themself by registering with the
+  /// invited email through the normal Register screen.
+  Future<String?> createTechnicianInvite({
+    required String companyId,
+    required String fullName,
+    required String phone,
+    required String email,
+  }) {
+    return _guard(
+      () => _ref.read(techniciansRepositoryProvider).createInvite(
+            companyId: companyId,
+            fullName: fullName,
+            phone: phone,
+            email: email,
+          ),
+    );
+  }
+
   Future<String?> createTechnician(Technician technician) {
     return _guard(
       () => _ref.read(techniciansRepositoryProvider).createTechnician(technician),

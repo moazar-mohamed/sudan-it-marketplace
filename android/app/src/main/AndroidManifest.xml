@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="sudan_it_marketplace"
+        android:label="Sudan ICT Marketplace"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -26,7 +26,7 @@ class TechnicianDashboardTab extends ConsumerWidget {
 
     return jobsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => TechnicianErrorState(
+      error: (_, _) => TechnicianErrorState(
         message: 'Could not load your dashboard.',
         onRetry: () =>
             ref.invalidate(technicianOrdersStreamProvider(technicianId)),

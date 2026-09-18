@@ -31,7 +31,7 @@ class CompanyCard extends StatelessWidget {
     return Image.network(
       logoUrl,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => fallback,
+      errorBuilder: (_, _, _) => fallback,
     );
   }
 
@@ -40,6 +40,10 @@ class CompanyCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isCompact = screenWidth < 360;
+    final avatarSize = isCompact ? 44.0 : 52.0;
+    final cardPadding = isCompact ? 12.0 : 14.0;
 
     return Material(
       color: colorScheme.surface,
@@ -54,7 +58,7 @@ class CompanyCard extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(cardPadding),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
@@ -64,8 +68,8 @@ class CompanyCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 52,
-                height: 52,
+                width: avatarSize,
+                height: avatarSize,
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
@@ -76,7 +80,7 @@ class CompanyCard extends StatelessWidget {
                 clipBehavior: Clip.antiAlias,
                 child: _buildLogo(textTheme),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,6 +126,7 @@ class CompanyCard extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 4),
               Icon(
                 Icons.chevron_right_rounded,
                 color: colorScheme.onSurface.withValues(alpha: 0.35),

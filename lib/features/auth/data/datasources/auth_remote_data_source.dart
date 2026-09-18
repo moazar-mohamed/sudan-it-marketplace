@@ -24,4 +24,11 @@ abstract class AuthRemoteDataSource {
   Future<void> signOut();
 
   Future<void> deleteCurrentUser();
+
+  /// Sends (or re-sends) Firebase's verification email to the signed-in user.
+  Future<void> sendEmailVerification();
+
+  /// Reloads the signed-in Firebase user so a freshly verified email is
+  /// reflected, returning the refreshed user (null when signed out).
+  Future<AuthUserModel?> reloadCurrentUser();
 }

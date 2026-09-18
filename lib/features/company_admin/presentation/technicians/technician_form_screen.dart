@@ -6,7 +6,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../technicians/domain/entities/technician.dart';
 import '../company_admin_actions.dart';
 
-/// Add Technician and Edit Technician share this form.
+/// Add Technician (creates a pending invitation) and Edit Technician share
+/// this form.
 class TechnicianFormScreen extends ConsumerStatefulWidget {
   const TechnicianFormScreen.add({super.key, required this.companyId})
       : technician = null;
@@ -63,19 +64,31 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
     final existing = widget.technician;
     final email = _emailController.text.trim();
 
-    final technician = Technician(
-      id: existing?.id ?? actions.newTechnicianId(),
-      companyId: widget.companyId,
-      fullName: _fullNameController.text.trim(),
-      phone: _phoneController.text.trim(),
-      email: email.isEmpty ? null : email,
-      isActive: _isActive,
-    );
-
     setState(() => _isSaving = true);
-    final error = existing == null
-        ? await actions.createTechnician(technician)
-        : await actions.updateTechnician(technician);
+    final String? error;
+    if (existing == null) {
+      // Adding a technician only creates a pending invitation; the
+      // technician claims it themself by registering with this same email
+      // through the normal Register screen. The company admin never
+      // creates the technician's Firebase Auth account directly.
+      error = await actions.createTechnicianInvite(
+        companyId: widget.companyId,
+        fullName: _fullNameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        email: email,
+      );
+    } else {
+      final technician = Technician(
+        id: existing.id,
+        companyId: widget.companyId,
+        fullName: _fullNameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        email: email.isEmpty ? null : email,
+        uid: existing.uid,
+        isActive: _isActive,
+      );
+      error = await actions.updateTechnician(technician);
+    }
     if (!mounted) {
       return;
     }
@@ -90,7 +103,9 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          existing == null ? 'Technician added.' : 'Technician updated.',
+          existing == null
+              ? 'Invitation created. The technician can now register with this email.'
+              : 'Technician updated.',
         ),
       ),
     );
@@ -115,6 +130,19 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
               MediaQuery.viewInsetsOf(context).bottom + 24,
             ),
             children: [
+              if (!widget.isEditing) ...[
+                Text(
+                  'This creates an invitation. The technician sets their own '
+                  'password by registering with this email.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.65),
+                      ),
+                ),
+                const SizedBox(height: 14),
+              ],
               TextFormField(
                 controller: _fullNameController,
                 enabled: !_isSaving,
@@ -151,16 +179,18 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
               const SizedBox(height: 14),
               TextFormField(
                 controller: _emailController,
-                enabled: !_isSaving,
+                enabled: !_isSaving && !widget.isEditing,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                  labelText: 'Email (optional)',
+                  labelText: 'Email',
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
                 validator: (value) {
                   final text = value?.trim() ?? '';
                   if (text.isEmpty) {
-                    return null;
+                    return widget.isEditing
+                        ? null
+                        : 'Technician email is required.';
                   }
                   return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(text)
                       ? null
@@ -193,7 +223,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
                           color: AppColors.onPrimary,
                         ),
                       )
-                    : Text(widget.isEditing ? 'Save Changes' : 'Add Technician'),
+                    : Text(widget.isEditing ? 'Save Changes' : 'Send Invitation'),
               ),
             ],
           ),

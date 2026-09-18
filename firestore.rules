@@ -34,6 +34,51 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time;
     }
 
+    // The authenticated user's own Firebase Auth email, normalized to
+    // lowercase to match technicianInvites document ids.
+    function callerEmail() {
+      return request.auth.token.email != null
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    function pendingInviteForCaller() {
+      return get(/databases/$(database)/documents/technicianInvites/$(callerEmail())).data;
+    }
+
+    function hasRequiredTechnicianUserKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'fullName',
+        'email',
+        'role',
+        'companyId',
+        'phone',
+        'isActive',
+        'createdAt'
+      ]);
+    }
+
+    // A user may create their own users/{uid} profile as a technician only
+    // by claiming a pending invitation created by a company_admin. The role
+    // and companyId always come from that trusted invitation, never from
+    // anything the registering client supplies directly.
+    function isValidTechnicianClaimCreate(uid) {
+      let invite = pendingInviteForCaller();
+      return request.resource.data.id == uid
+        && hasRequiredTechnicianUserKeys()
+        && request.resource.data.role == 'technician'
+        && request.resource.data.isActive == true
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.createdAt == request.time
+        && invite.status == 'pending'
+        && invite.email == callerEmail()
+        && request.resource.data.email == invite.email
+        && request.resource.data.companyId == invite.companyId
+        && request.resource.data.fullName == invite.fullName
+        && request.resource.data.phone == invite.phone;
+    }
+
     function isSafeCustomerProfileUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['fullName', 'phone', 'updatedAt'])
@@ -85,7 +130,7 @@ service cloud.firestore {
       return isTechnician()
         && signedInUser().keys().hasAny(['companyId'])
         && signedInUser().companyId == companyId
-        && signedInUser().email == email;
+        && request.auth.token.email == email;
     }
 
     function assignedTechnician(technicianId) {
@@ -99,7 +144,8 @@ service cloud.firestore {
         && resource.data.technicianId is string
         && resource.data.technicianId.size() > 0
         && assignedTechnician(resource.data.technicianId).companyId == signedInUser().companyId
-        && assignedTechnician(resource.data.technicianId).email == signedInUser().email;
+        && assignedTechnician(resource.data.technicianId).email == signedInUser().email
+        && assignedTechnician(resource.data.technicianId).isActive == true;
     }
 
     function catalogServiceExists(serviceId) {
@@ -225,7 +271,7 @@ service cloud.firestore {
       allow create: if isOwner(uid)
         && request.auth.uid == uid
         && request.resource.data.id == uid
-        && isValidCustomerCreate();
+        && (isValidCustomerCreate() || isValidTechnicianClaimCreate(uid));
 
       allow update: if isOwner(uid)
         && isSafeCustomerProfileUpdate();
@@ -292,7 +338,7 @@ service cloud.firestore {
         && request.resource.data.customerId == request.auth.uid
         && request.resource.data.companyId is string
         && request.resource.data.companyId.size() > 0
-        && (!request.resource.data.keys().hasAny(['companyName']) || (request.resource.data.companyName is string && request.resource.data.companyName.size() > 0))
+        && (!request.resource.data.keys().hasAny(['companyName']) || request.resource.data.companyName is string)
         && request.resource.data.productId is string
         && request.resource.data.productId.size() > 0
         && request.resource.data.productName is string
@@ -363,7 +409,12 @@ service cloud.firestore {
         && request.resource.data.technicianId is string
         && request.resource.data.technicianId.size() > 0
         && request.resource.data.technicianName is string
-        && request.resource.data.technicianName.size() > 0;
+        && request.resource.data.technicianName.size() > 0
+        // The assigned technician must belong to the same company as the
+        // order and must currently be active, even if a tampered client
+        // sends a different technicianId.
+        && assignedTechnician(request.resource.data.technicianId).companyId == resource.data.companyId
+        && assignedTechnician(request.resource.data.technicianId).isActive == true;
     }
 
     // Company admins may only move an order forward through
@@ -468,6 +519,7 @@ service cloud.firestore {
     function hasRequiredTechnicianKeys() {
       return request.resource.data.keys().hasOnly([
         'id',
+        'uid',
         'companyId',
         'fullName',
         'phone',
@@ -487,26 +539,114 @@ service cloud.firestore {
         && data.fullName.size() > 0
         && data.phone is string
         && (data.email == null || data.email is string)
+        && (!data.keys().hasAny(['uid']) || data.uid is string)
         && data.isActive is bool
         && data.updatedAt == request.time;
+    }
+
+    // A technician may create their own technicians/{uid} record (doc id ==
+    // their own Firebase Auth uid) only by claiming a pending invitation;
+    // companyId/fullName/phone/email always come from that trusted
+    // invitation.
+    function isValidTechnicianClaimRecordCreate(technicianId) {
+      let invite = pendingInviteForCaller();
+      return technicianId == request.auth.uid
+        && hasRequiredTechnicianKeys()
+        && request.resource.data.id == technicianId
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.isActive == true
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && invite.status == 'pending'
+        && invite.email == callerEmail()
+        && request.resource.data.email == invite.email
+        && request.resource.data.companyId == invite.companyId
+        && request.resource.data.fullName == invite.fullName
+        && request.resource.data.phone == invite.phone;
     }
 
     match /technicians/{technicianId} {
       allow get, list: if isSignedIn()
         && (isPlatformAdmin()
           || isCompanyAdminOf(resource.data.companyId)
-          || isSelfTechnicianRecord(resource.data.companyId, resource.data.email));
+          || isSelfTechnicianRecord(resource.data.companyId, resource.data.email)
+          || (isTechnician() && technicianId == request.auth.uid));
 
-      allow create: if isCompanyAdminOf(request.resource.data.companyId)
-        && request.resource.data.id == technicianId
-        && request.resource.data.createdAt == request.time
-        && isValidTechnicianData();
+      allow create: if (isCompanyAdminOf(request.resource.data.companyId)
+          && request.resource.data.id == technicianId
+          && request.resource.data.createdAt == request.time
+          && isValidTechnicianData())
+        || isValidTechnicianClaimRecordCreate(technicianId);
 
       allow update: if isCompanyAdminOf(resource.data.companyId)
         && request.resource.data.id == resource.data.id
         && request.resource.data.companyId == resource.data.companyId
         && request.resource.data.createdAt == resource.data.createdAt
         && isValidTechnicianData();
+
+      allow delete: if false;
+    }
+
+    function hasRequiredInviteKeys() {
+      return request.resource.data.keys().hasOnly([
+        'email',
+        'fullName',
+        'phone',
+        'companyId',
+        'status',
+        'createdAt'
+      ]);
+    }
+
+    function isValidTechnicianInviteCreate(inviteId) {
+      return hasRequiredInviteKeys()
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && request.resource.data.email == request.resource.data.email.lower()
+        && request.resource.data.email == inviteId
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() > 0
+        && request.resource.data.phone is string
+        && request.resource.data.companyId is string
+        && request.resource.data.companyId.size() > 0
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.createdAt == request.time;
+    }
+
+    // The invited person claims their own invitation exactly once: only the
+    // status/claimedAt/claimedBy fields may change, the invite must still be
+    // pending, and the authenticated email must match the invite.
+    function isValidInviteClaim(inviteId) {
+      return resource.data.status == 'pending'
+        && resource.data.email == callerEmail()
+        && inviteId == resource.data.email
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'claimedAt', 'claimedBy'])
+        && request.resource.data.status == 'claimed'
+        && request.resource.data.claimedBy == request.auth.uid
+        && request.resource.data.claimedAt == request.time;
+    }
+
+    match /technicianInvites/{inviteId} {
+      // A nonexistent invite (resource == null) is readable so a company
+      // admin can check for a free email before inviting, and so a
+      // registering user can check whether their email was invited at all,
+      // without leaking any other company's invitation data.
+      allow get: if isSignedIn()
+        && (resource == null
+          || isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId)
+          || resource.data.email == callerEmail());
+
+      allow list: if isSignedIn()
+        && (isPlatformAdmin() || isCompanyAdminOf(resource.data.companyId));
+
+      allow create: if isCompanyAdminOf(request.resource.data.companyId)
+        && isValidTechnicianInviteCreate(inviteId);
+
+      allow update: if isSignedIn() && isValidInviteClaim(inviteId);
 
       allow delete: if false;
     }

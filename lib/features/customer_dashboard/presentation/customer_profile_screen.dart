@@ -255,7 +255,21 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
     final profileAsync = ref.watch(profileControllerProvider);
 
     return profileAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 24),
+            TextButton.icon(
+              onPressed: () =>
+                  ref.read(authControllerProvider.notifier).signOut(),
+              icon: const Icon(Icons.logout),
+              label: const Text('Sign out'),
+            ),
+          ],
+        ),
+      ),
       error: (error, _) => _ProfileFailure(
         message: error is AuthException
             ? error.message

@@ -16,7 +16,7 @@ class AuthenticatedPlaceholderScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sudan IT Marketplace'),
+        title: const Text('Sudan ICT Marketplace'),
       ),
       body: Center(
         child: Padding(

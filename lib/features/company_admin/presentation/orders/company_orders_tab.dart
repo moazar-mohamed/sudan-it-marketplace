@@ -27,7 +27,7 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
 
     return ordersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => AdminErrorState(
+      error: (_, _) => AdminErrorState(
         message: 'Could not load your orders.',
         onRetry: () =>
             ref.invalidate(companyOrdersStreamProvider(widget.companyId)),

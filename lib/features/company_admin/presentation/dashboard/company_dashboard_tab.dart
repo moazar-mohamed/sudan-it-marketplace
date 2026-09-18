@@ -129,7 +129,7 @@ class CompanyDashboardTab extends ConsumerWidget {
               padding: EdgeInsets.all(24),
               child: Center(child: CircularProgressIndicator()),
             ),
-            error: (_, __) => AdminErrorState(
+            error: (_, _) => AdminErrorState(
               message: 'Could not load orders.',
               onRetry: () =>
                   ref.invalidate(companyOrdersStreamProvider(companyId)),

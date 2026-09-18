@@ -1,4 +1,4 @@
-# AI Rules — Sudan IT Marketplace & Support App
+# AI Rules — Sudan ICT Marketplace & Support App
 
 Shared development rules for AI coding assistants (Cursor, Claude, and similar). Follow this file unless the human explicitly approves an exception.
 

@@ -112,7 +112,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Join Sudan IT Marketplace',
+                            'Join Sudan ICT Marketplace',
                             textAlign: TextAlign.center,
                             style: textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w700,

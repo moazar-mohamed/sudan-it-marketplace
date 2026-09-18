@@ -29,7 +29,7 @@ class CompanyProfileTab extends ConsumerWidget {
 
     return companyAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => ListView(
+      error: (_, _) => ListView(
         padding: const EdgeInsets.all(16),
         children: [
           AdminErrorState(

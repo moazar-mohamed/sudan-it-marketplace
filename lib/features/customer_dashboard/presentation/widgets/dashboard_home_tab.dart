@@ -18,11 +18,16 @@ class DashboardHomeTab extends ConsumerStatefulWidget {
 
 class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
   final TextEditingController _searchController = TextEditingController();
+
+  // Owned by this tab so it never binds to the ambient PrimaryScrollController,
+  // which the sibling IndexedStack tabs also attach to.
+  final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -44,6 +49,8 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final horizontalPadding = screenWidth < 360 ? 12.0 : 16.0;
     final mockCompanies = ref.watch(marketplaceCompaniesProvider);
     final mockProducts = ref.watch(marketplaceProductsProvider);
 
@@ -62,13 +69,21 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             .toList();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      controller: _scrollController,
+      primary: false,
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        16,
+        horizontalPadding,
+        16,
+      ),
       children: [
         TextField(
           controller: _searchController,
           onChanged: _onSearchChanged,
           decoration: InputDecoration(
             hintText: 'Search companies or products...',
+            hintMaxLines: 1,
             prefixIcon: const Icon(Icons.search),
             suffixIcon: _searchQuery.isNotEmpty
                 ? IconButton(
@@ -80,7 +95,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             fillColor: colorScheme.surface,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         Text(
           'Companies',
           style: textTheme.titleMedium?.copyWith(
@@ -111,7 +126,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
               ],
             ],
           ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 20),
         Text(
           'Products',
           style: textTheme.titleMedium?.copyWith(

@@ -1,3 +1,4 @@
+import '../../../technicians/domain/repositories/technicians_repository.dart';
 import '../../domain/entities/auth_user.dart';
 import '../../domain/exceptions/auth_exception.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -5,10 +6,15 @@ import '../../domain/repositories/user_profile_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl(this._remoteDataSource, this._userProfileRepository);
+  AuthRepositoryImpl(
+    this._remoteDataSource,
+    this._userProfileRepository,
+    this._techniciansRepository,
+  );
 
   final AuthRemoteDataSource _remoteDataSource;
   final UserProfileRepository _userProfileRepository;
+  final TechniciansRepository _techniciansRepository;
 
   @override
   Stream<AuthUser?> authStateChanges() {
@@ -47,12 +53,28 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
       );
+      final accountEmail = (user.email ?? email).trim();
       try {
-        await _userProfileRepository.createCustomerProfile(
-          id: user.id,
-          fullName: fullName.trim(),
-          email: (user.email ?? email).trim(),
+        // A company admin may have invited this email as a technician
+        // before this person registered. If so, claim that invitation
+        // instead of creating an ordinary customer profile: the technician
+        // role and companyId only ever come from the trusted invitation,
+        // never from anything the registering user supplies.
+        final invite = await _techniciansRepository.fetchPendingInvite(
+          accountEmail,
         );
+        if (invite != null) {
+          await _techniciansRepository.claimInvite(
+            uid: user.id,
+            invite: invite,
+          );
+        } else {
+          await _userProfileRepository.createCustomerProfile(
+            id: user.id,
+            fullName: fullName.trim(),
+            email: accountEmail,
+          );
+        }
       } catch (error) {
         // The profile screen may already have created the profile for this
         // new account a moment earlier. In that case keep the account and
@@ -97,8 +119,11 @@ class AuthRepositoryImpl implements AuthRepository {
               : (user.email ?? 'Customer'),
           email: user.email ?? '',
         );
-      } catch (_) {
-        // The profile screen retries and surfaces any remaining error.
+      } catch (error) {
+        // The profile screen retries and surfaces any remaining error; log
+        // here so a persistent failure is still diagnosable.
+        // ignore: avoid_print
+        print('[DIAG][AuthRepoImpl.signInWithGoogle] profile creation failed: $error');
       }
       return user.toEntity();
     });
@@ -107,6 +132,19 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut() {
     return _run(_remoteDataSource.signOut);
+  }
+
+  @override
+  Future<void> sendEmailVerification() {
+    return _run(_remoteDataSource.sendEmailVerification);
+  }
+
+  @override
+  Future<AuthUser?> reloadCurrentUser() {
+    return _run(() async {
+      final user = await _remoteDataSource.reloadCurrentUser();
+      return user?.toEntity();
+    });
   }
 
   Future<Object?> _existingProfile(String userId) async {

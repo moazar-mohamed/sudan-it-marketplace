@@ -247,7 +247,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             _buildAccountCard(
               context: context,
               bankName: 'Bank of Khartoum (Bankak)',
-              accountName: 'Sudan IT Marketplace Ltd',
+              accountName: 'Sudan ICT Marketplace Ltd',
               accountNumber: '1984205',
               phoneNumber: '+249 912 345 678',
               icon: Icons.account_balance_outlined,
@@ -258,7 +258,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             _buildAccountCard(
               context: context,
               bankName: 'Faisal Islamic Bank (Fawry)',
-              accountName: 'Sudan IT Marketplace Ltd',
+              accountName: 'Sudan ICT Marketplace Ltd',
               accountNumber: '0849201',
               phoneNumber: '+249 923 456 789',
               icon: Icons.account_balance_wallet_outlined,
@@ -491,7 +491,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Beneficiary: Sudan IT Marketplace Ltd',
+                            'Beneficiary: Sudan ICT Marketplace Ltd',
                             style: textTheme.bodySmall?.copyWith(
                               color: Colors.grey.shade800,
                               fontWeight: FontWeight.w500,

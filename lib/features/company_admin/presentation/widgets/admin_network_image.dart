@@ -38,7 +38,7 @@ class AdminNetworkImage extends StatelessWidget {
           : Image.network(
               imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => fallback,
+              errorBuilder: (_, _, _) => fallback,
             ),
     );
   }

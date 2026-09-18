@@ -57,8 +57,16 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       return existing;
     }
     if (email.trim().isEmpty) {
-      // Security rules require an email to create a customer profile.
-      return null;
+      // Security rules require a non-empty email to create a customer
+      // profile, and there is none on the signed-in Firebase Auth account
+      // (e.g. a provider that didn't share it). Surface this instead of
+      // silently returning null, which the UI cannot distinguish from a
+      // genuine lookup failure.
+      throw const AuthException(
+        'Your account has no email on file, so a profile could not be '
+        'created. Please contact support.',
+        code: 'profile-missing-email',
+      );
     }
     try {
       await _remoteDataSource.createCustomerProfile(
@@ -68,7 +76,12 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       );
     } on AuthException {
       // Another flow (sign-up / Google sign-in) may have created it at the
-      // same moment; read again below before reporting a missing profile.
+      // same moment; only swallow this if that turns out to be true.
+      final createdConcurrently = await fetchProfile(userId);
+      if (createdConcurrently != null) {
+        return createdConcurrently;
+      }
+      rethrow;
     }
     return fetchProfile(userId);
   }

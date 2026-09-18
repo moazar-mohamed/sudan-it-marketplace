@@ -114,7 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Sudan IT Marketplace',
+                            'Sudan ICT Marketplace',
                             textAlign: TextAlign.center,
                             style: textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w700,

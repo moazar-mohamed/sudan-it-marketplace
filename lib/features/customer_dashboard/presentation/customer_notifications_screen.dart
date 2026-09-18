@@ -38,7 +38,7 @@ class CustomerNotificationsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Notifications')),
       body: notificationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(
+        error: (_, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -86,7 +86,7 @@ class CustomerNotificationsScreen extends ConsumerWidget {
           return ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: items.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final notification = items[index];
               return NotificationTile(

@@ -12,7 +12,20 @@
           "package_name": "com.example.sudan_it_marketplace"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "442723121540-9sqqkrjm46gl17198tpmqou9fnrtndeo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sudan_it_marketplace",
+            "certificate_hash": "a9aadd4ed350d2e1238448a8d9d9da3467e0b144"
+          }
+        },
+        {
+          "client_id": "442723121540-goimshsfq84ig1knd2ikl1hs46pupjrr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyABPe74RmgFdwR526Rnk8f8Us550ogDD0Q"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "442723121540-goimshsfq84ig1knd2ikl1hs46pupjrr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "442723121540-22kd394dnaguvn75iqvtmps0k59a0nva.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.sudanItMarketplace"
+              }
+            }
+          ]
         }
       }
     }
