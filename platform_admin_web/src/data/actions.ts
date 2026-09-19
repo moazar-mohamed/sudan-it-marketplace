@@ -1,16 +1,19 @@
 import {
   collection,
   doc,
-  getDocs,
-  query,
   serverTimestamp,
   setDoc,
   updateDoc,
-  where,
-  writeBatch,
 } from 'firebase/firestore';
-import { db } from '../firebase';
-import { toGeoPoint } from './location';
+import { db, firebaseConfig } from '../firebase';
+import type { ImageSelection } from './imageRules';
+import { resolveImageSelection } from './imageUpload';
+import { deleteCompanyCascade } from './deleteCompany';
+import {
+  createCompanyWithAdminAccount,
+  secondaryAppProvisioner,
+  type NewCompanyInput,
+} from './provisionCompany';
 import type { CompanyStatus } from './types';
 
 /*
@@ -38,56 +41,27 @@ export interface CompanyInput {
   phone: string;
   email: string;
   pickupAddress: string;
+  /** Optional logo: a picked file (uploaded to Storage), a URL, or none. */
+  logo?: ImageSelection;
 }
-
-/** Adds an active, unrated company. Its company-admin account is linked separately. */
-export async function createCompany(input: CompanyInput): Promise<void> {
-  const ref = doc(collection(db, 'companies'));
-  // Coordinates are saved as numbers and only when a real point was picked;
-  // a text-only company simply has no latitude/longitude fields.
-  const point = toGeoPoint(input.latitude, input.longitude);
-  await setDoc(ref, {
-    name: input.name.trim(),
-    logoUrl: '',
-    description: input.description.trim(),
-    city: input.city.trim(),
-    address: input.address.trim(),
-    ...(point ? { latitude: point.latitude, longitude: point.longitude } : {}),
-    phone: input.phone.trim(),
-    email: input.email.trim(),
-    pickupAddress: input.pickupAddress.trim(),
-    rating: 0,
-    reviewCount: 0,
-    status: 'active',
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
-}
-
-// Firestore allows 500 writes per batch.
-const BATCH_LIMIT = 500;
 
 /**
- * Deletes a company together with its products. The company goes in the first
- * batch, and the security rules only let Platform Admin delete a product in a
- * batch that also removes its company (or after it is gone). Orders are never
- * touched: they keep their own copy of the company and product names.
+ * Adds an active, unrated company together with its company-admin login (see
+ * provisionCompany.ts): the account is created in Firebase Authentication with
+ * the given initial password and linked to the new company by its exact id.
  */
-export async function deleteCompany(companyId: string): Promise<void> {
-  const products = await getDocs(query(collection(db, 'products'), where('companyId', '==', companyId)));
-  const refs = products.docs.map((d) => d.ref);
+export const createCompany = (input: NewCompanyInput) =>
+  createCompanyWithAdminAccount(input, {
+    db,
+    provisionAccount: secondaryAppProvisioner(firebaseConfig),
+    resolveLogo: resolveImageSelection,
+  });
 
-  const first = writeBatch(db);
-  first.delete(doc(db, 'companies', companyId));
-  refs.slice(0, BATCH_LIMIT - 1).forEach((ref) => first.delete(ref));
-  await first.commit();
-
-  for (let i = BATCH_LIMIT - 1; i < refs.length; i += BATCH_LIMIT) {
-    const batch = writeBatch(db);
-    refs.slice(i, i + BATCH_LIMIT).forEach((ref) => batch.delete(ref));
-    await batch.commit();
-  }
-}
+/**
+ * Deletes a company together with its admin, employees, invitations, products
+ * and other company-owned data, keeping every order (see deleteCompany.ts).
+ */
+export const deleteCompany = (companyId: string) => deleteCompanyCascade(db, companyId);
 
 // Deactivate / reactivate writes isActive and nothing else. The account and
 // every order stay exactly as they are.

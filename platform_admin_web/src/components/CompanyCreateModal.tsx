@@ -1,12 +1,16 @@
 import { useState, type FormEvent } from 'react';
-import { createCompany, type CompanyInput } from '../data/actions';
+import { createCompany } from '../data/actions';
+import { isValidEmail, passwordProblem } from '../data/companyAccount';
+import { NO_IMAGE } from '../data/imageRules';
+import type { NewCompanyInput } from '../data/provisionCompany';
 import { useI18n } from '../i18n/I18nProvider';
 import { useRunner } from './feedback';
+import { ImagePickerField } from './ImagePickerField';
 import { LocationField } from './LocationField';
 import { MapPicker } from './MapPicker';
 import { Modal } from './ui';
 
-const EMPTY: CompanyInput = {
+const EMPTY: NewCompanyInput = {
   name: '',
   description: '',
   city: '',
@@ -16,25 +20,32 @@ const EMPTY: CompanyInput = {
   phone: '',
   email: '',
   pickupAddress: '',
+  initialPassword: '',
+  logo: NO_IMAGE,
 };
 
 export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
   const { t } = useI18n();
   const { busy, run } = useRunner();
-  const [form, setForm] = useState<CompanyInput>(EMPTY);
+  const [form, setForm] = useState<NewCompanyInput>(EMPTY);
+  const [showPassword, setShowPassword] = useState(false);
   const [showError, setShowError] = useState(false);
   const [picking, setPicking] = useState(false);
-  const set = (key: 'name' | 'description' | 'city' | 'address' | 'phone' | 'email' | 'pickupAddress') =>
+  const set = (
+    key: 'name' | 'description' | 'city' | 'address' | 'phone' | 'email' | 'pickupAddress' | 'initialPassword',
+  ) =>
     (value: string) => setForm((prev) => ({ ...prev, [key]: value }));
   const point =
     form.latitude !== null && form.longitude !== null
       ? { latitude: form.latitude, longitude: form.longitude }
       : null;
   const nameMissing = !form.name.trim();
+  const emailInvalid = !isValidEmail(form.email);
+  const passwordIssue = passwordProblem(form.initialPassword);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (nameMissing) {
+    if (nameMissing || emailInvalid || passwordIssue) {
       setShowError(true);
       return;
     }
@@ -62,6 +73,12 @@ export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal title={t('companies.addTitle')} onClose={onClose}>
       <form onSubmit={onSubmit} noValidate>
+        <ImagePickerField
+          value={form.logo ?? NO_IMAGE}
+          onChange={(logo) => setForm((prev) => ({ ...prev, logo }))}
+          disabled={busy === 'create'}
+          uploading={busy === 'create' && form.logo?.kind === 'file'}
+        />
         <label className="field">
           <span>{t('col.name')}</span>
           <input
@@ -109,9 +126,42 @@ export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
               value={form.email}
               onChange={(e) => set('email')(e.target.value)}
               dir="ltr"
+              autoComplete="off"
+              aria-invalid={showError && emailInvalid}
             />
+            {showError && emailInvalid && (
+              <small className="field__error">{t('companies.emailRequired')}</small>
+            )}
           </label>
         </div>
+        <label className="field">
+          <span>{t('companies.password')}</span>
+          <div className="field-row">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={form.initialPassword}
+              onChange={(e) => set('initialPassword')(e.target.value)}
+              dir="ltr"
+              autoComplete="new-password"
+              aria-invalid={showError && passwordIssue !== null}
+            />
+            <button
+              type="button"
+              className="btn"
+              onClick={() => setShowPassword((shown) => !shown)}
+            >
+              {showPassword ? t('companies.passwordHide') : t('companies.passwordShow')}
+            </button>
+          </div>
+          {showError && passwordIssue && (
+            <small className="field__error">
+              {passwordIssue === 'required'
+                ? t('companies.passwordRequired')
+                : t('companies.passwordTooShort')}
+            </small>
+          )}
+          <small className="note">{t('companies.passwordHint')}</small>
+        </label>
         <label className="field">
           <span>{t('company.pickup')}</span>
           <input

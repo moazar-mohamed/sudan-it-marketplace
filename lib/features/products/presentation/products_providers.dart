@@ -20,7 +20,7 @@ final productsRepositoryProvider = Provider<ProductsRepository>((ref) {
 
 /// Products published by companies in Firestore.
 final firestoreProductsStreamProvider = StreamProvider<List<Product>>((ref) {
-  return ref.watch(productsRepositoryProvider).watchAllProducts();
+  return ref.watch(productsRepositoryProvider).watchMarketplaceProducts();
 });
 
 /// Keeps only products a customer may see: those of an active company.
@@ -47,15 +47,51 @@ List<Product> productsOfActiveCompanies(
   }).toList();
 }
 
-/// Customer-facing catalogue: products of active companies followed by the
-/// existing demo catalogue. Falls back to the demo catalogue if Firestore
-/// cannot be read so the customer home never breaks.
+/// Drops products with no units left. The marketplace query already filters
+/// on the server; this keeps the rule in one testable place and covers any
+/// stale or cached snapshot.
+List<Product> productsWithStock(List<Product> products) =>
+    products.where((product) => product.hasStock).toList();
+
+/// Customer-facing catalogue: in-stock products of active companies followed
+/// by the existing demo catalogue. Falls back to the demo catalogue if
+/// Firestore cannot be read so the customer home never breaks.
 final marketplaceProductsProvider = Provider<List<Product>>((ref) {
   final remote = ref.watch(firestoreProductsStreamProvider).asData?.value ??
       const <Product>[];
   final companies = ref.watch(firestoreCompaniesStreamProvider).asData?.value;
-  return [...productsOfActiveCompanies(remote, companies), ...mockProducts];
+  return [
+    ...productsWithStock(productsOfActiveCompanies(remote, companies)),
+    ...mockProducts,
+  ];
 });
+
+/// The product as the marketplace currently stands, for a screen that was
+/// opened earlier (a stale card or a direct link).
+///
+/// Once the catalogue has loaded, a real product that is no longer listed
+/// (sold out, or its company went inactive) is treated as out of stock so it
+/// cannot be bought from an old screen; a listed product takes its latest
+/// stock. Demo products, and any state where the catalogue has not loaded,
+/// keep the snapshot. The order transaction still re-checks stock on submit.
+Product resolveLiveProduct(
+  Product snapshot,
+  AsyncValue<List<Product>> catalogue,
+) {
+  if (mockProducts.any((product) => product.id == snapshot.id)) {
+    return snapshot;
+  }
+  final listed = catalogue.asData?.value;
+  if (listed == null) {
+    return snapshot;
+  }
+  for (final product in listed) {
+    if (product.id == snapshot.id) {
+      return product;
+    }
+  }
+  return snapshot.withStockCount(0);
+}
 
 final companyProductsStreamProvider =
     StreamProvider.family<List<Product>, String>((ref, companyId) {

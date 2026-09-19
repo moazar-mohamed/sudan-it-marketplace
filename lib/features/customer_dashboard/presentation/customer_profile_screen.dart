@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/image_upload_service.dart';
+import '../../../core/widgets/image_picker_field.dart';
+import '../../../core/widgets/image_picker_strings.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../auth/presentation/auth_state.dart';
 import '../../auth/domain/entities/user_profile.dart';
 import '../../auth/domain/exceptions/auth_exception.dart';
 import 'profile_controller.dart';
@@ -19,6 +23,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   final _profileFormKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _photoController = ImagePickerController();
 
   bool _isEditing = false;
   bool _isSaving = false;
@@ -28,6 +33,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _photoController.dispose();
     super.dispose();
   }
 
@@ -40,25 +46,45 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
     _hasLoadedFormValues = true;
   }
 
-  void _startEditing(String fullName, String? phone) {
-    _nameController.text = fullName;
-    _phoneController.text = phone ?? '';
+  void _startEditing(UserProfile profile) {
+    _nameController.text = profile.fullName;
+    _phoneController.text = profile.phone ?? '';
+    _photoController.reset(profile.photoUrl);
     setState(() => _isEditing = true);
   }
 
-  void _cancelEditing() {
+  void _cancelEditing(UserProfile profile) {
+    _photoController.reset(profile.photoUrl);
     setState(() => _isEditing = false);
   }
 
-  Future<void> _saveProfile() async {
+  Future<void> _saveProfile(UserProfile profile) async {
     if (_isSaving || !(_profileFormKey.currentState?.validate() ?? false)) {
       return;
     }
 
     setState(() => _isSaving = true);
+
+    final String photoUrl;
+    try {
+      photoUrl = await _photoController.resolveUrl(
+        ref.read(imageUploadServiceProvider),
+        folder: 'profile-images/${profile.id}',
+      );
+    } on ImageUploadException {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isSaving = false);
+      _showMessage(ImagePickerStrings.of(context).uploadFailed, isError: true);
+      return;
+    }
+
     final error = await ref.read(profileControllerProvider.notifier).updateProfile(
           fullName: _nameController.text,
           phone: _phoneController.text,
+          // Only written when the picture actually changed ('' removes it).
+          photoUrl: photoUrl == (profile.photoUrl ?? '') ? null : photoUrl,
         );
     if (!mounted) {
       return;
@@ -253,6 +279,9 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileControllerProvider);
+    // "Nobody is signed in" and "signed in, but this user has no profile" are
+    // different things; the profile provider reports both as no profile.
+    final isSignedIn = ref.watch(authControllerProvider) is AuthAuthenticated;
 
     return profileAsync.when(
       loading: () => Center(
@@ -279,6 +308,11 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       ),
       data: (profile) {
         if (profile == null) {
+          if (!isSignedIn) {
+            // Signed out (the app is on its way to the login screen): there is
+            // no profile to find, so do not claim one is missing.
+            return const SizedBox.shrink();
+          }
           return _ProfileFailure(
             message: 'Your profile could not be found.',
             onRetry: () => ref.invalidate(profileControllerProvider),
@@ -292,11 +326,12 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
           formKey: _profileFormKey,
           nameController: _nameController,
           phoneController: _phoneController,
+          photoController: _photoController,
           isEditing: _isEditing,
           isSaving: _isSaving,
-          onEdit: () => _startEditing(profile.fullName, profile.phone),
-          onCancel: _cancelEditing,
-          onSave: _saveProfile,
+          onEdit: () => _startEditing(profile),
+          onCancel: () => _cancelEditing(profile),
+          onSave: () => _saveProfile(profile),
           onChangePassword: _showChangePasswordSheet,
           onSignOut: () => ref.read(authControllerProvider.notifier).signOut(),
         );
@@ -311,6 +346,7 @@ class _ProfileContent extends StatelessWidget {
     required this.formKey,
     required this.nameController,
     required this.phoneController,
+    required this.photoController,
     required this.isEditing,
     required this.isSaving,
     required this.onEdit,
@@ -324,6 +360,7 @@ class _ProfileContent extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
   final TextEditingController phoneController;
+  final ImagePickerController photoController;
   final bool isEditing;
   final bool isSaving;
   final VoidCallback onEdit;
@@ -340,14 +377,15 @@ class _ProfileContent extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Center(
-          child: CircleAvatar(
-            radius: 36,
-            backgroundColor: colorScheme.primary.withValues(alpha: 0.12),
-            foregroundColor: colorScheme.primary,
-            child: const Icon(Icons.person_outline, size: 40),
-          ),
-        ),
+        if (isEditing)
+          ImagePickerField(
+            controller: photoController,
+            enabled: !isSaving,
+            shape: ImagePickerShape.circle,
+            fallbackIcon: Icons.person_outline,
+          )
+        else
+          Center(child: _ProfileAvatar(photoUrl: profile.photoUrl)),
         const SizedBox(height: 12),
         Text(
           'My profile',
@@ -461,6 +499,36 @@ class _ProfileContent extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({required this.photoUrl});
+
+  final String? photoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final fallback = ColoredBox(
+      color: colorScheme.primary.withValues(alpha: 0.12),
+      child: Center(
+        child: Icon(Icons.person_outline, size: 40, color: colorScheme.primary),
+      ),
+    );
+    final url = photoUrl?.trim() ?? '';
+    return SizedBox.square(
+      dimension: 72,
+      child: ClipOval(
+        child: url.isEmpty
+            ? fallback
+            : Image.network(
+                url,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => fallback,
+              ),
+      ),
     );
   }
 }

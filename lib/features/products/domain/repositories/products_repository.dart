@@ -1,7 +1,7 @@
 import '../entities/product.dart';
 
 abstract interface class ProductsRepository {
-  Stream<List<Product>> watchAllProducts();
+  Stream<List<Product>> watchMarketplaceProducts();
 
   Stream<List<Product>> watchCompanyProducts(String companyId);
 

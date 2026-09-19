@@ -84,10 +84,28 @@ class FirestoreUserProfileRemoteDataSource
   }
 
   @override
+  Future<void> markPasswordChanged(String userId) async {
+    try {
+      // The security rules allow exactly this edit: true -> false on the
+      // user's own profile, with nothing else changed.
+      await _firestore.collection(_usersCollection).doc(userId).update({
+        'mustChangePassword': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (error) {
+      throw AuthException(
+        'Could not finish setting up your account. Please try again.',
+        code: error.code,
+      );
+    }
+  }
+
+  @override
   Future<void> updateProfile({
     required String userId,
     required String fullName,
     String? phone,
+    String? photoUrl,
   }) async {
     try {
       final data = <String, dynamic>{
@@ -96,6 +114,10 @@ class FirestoreUserProfileRemoteDataSource
       };
       if (phone != null) {
         data['phone'] = phone;
+      }
+      // An empty string clears the picture.
+      if (photoUrl != null) {
+        data['photoUrl'] = photoUrl;
       }
       await _firestore
           .collection(_usersCollection)

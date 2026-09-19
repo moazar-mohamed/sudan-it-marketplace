@@ -49,6 +49,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   /// order is collected from the company's pickup location.
   late bool _useDelivery = widget.product.isDeliveryAvailable;
 
+  /// Checkout is only reachable for a priced product: Buy Now is disabled while
+  /// a product has no price, and a missing price is never treated as 0.
+  double get _unitPrice => widget.product.price!;
+
   double get _deliveryFee => _useDelivery ? _standardDeliveryFee : 0.0;
 
   /// Installation is only offered when the product supports it AND the
@@ -114,7 +118,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       return;
     }
 
-    final productSubtotal = widget.product.price * widget.quantity;
+    final productSubtotal = _unitPrice * widget.quantity;
     final installationCharge = (_installationEligible && _includeInstallation)
         ? (widget.product.installationPrice ?? 0.0)
         : 0.0;
@@ -129,12 +133,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final draft = CheckoutOrderDraft(
       orderId: DateTime.now().microsecondsSinceEpoch.toRadixString(36),
       customerId: customerId,
-      companyId: widget.product.companyId ?? 'c1',
+      // Never a made-up company: a product with no company id cannot be
+      // ordered (the security rules reject an empty companyId).
+      companyId: widget.product.companyId ?? '',
       companyName: widget.product.companyName ?? '',
       productId: widget.product.id,
       productName: widget.product.name,
       quantity: widget.quantity,
-      unitPrice: widget.product.price,
+      unitPrice: _unitPrice,
       productSubtotal: productSubtotal,
       installationSelected: _installationEligible && _includeInstallation,
       installationFee: installationCharge,
@@ -172,7 +178,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ref.watch(resolvedCompanyProvider(productCompanyId));
     }
 
-    final productSubtotal = widget.product.price * widget.quantity;
+    final productSubtotal = _unitPrice * widget.quantity;
     final installationPrice = widget.product.installationPrice ?? 0.0;
     final installationCharge = (_installationEligible && _includeInstallation)
         ? installationPrice
@@ -240,7 +246,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Unit: ${_formatPrice(widget.product.price)} ${widget.product.currency}',
+                                'Unit: ${_formatPrice(_unitPrice)} ${widget.product.currency}',
                                 style: textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurface
                                       .withValues(alpha: 0.6),

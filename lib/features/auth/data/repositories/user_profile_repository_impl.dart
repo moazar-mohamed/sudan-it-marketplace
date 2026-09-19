@@ -87,16 +87,32 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   }
 
   @override
+  Future<void> markPasswordChanged(String userId) async {
+    try {
+      await _remoteDataSource.markPasswordChanged(userId);
+    } on AuthException {
+      rethrow;
+    } catch (_) {
+      throw const AuthException(
+        'Could not finish setting up your account. Please try again.',
+        code: 'password-flag-update-failed',
+      );
+    }
+  }
+
+  @override
   Future<void> updateProfile({
     required String userId,
     required String fullName,
     String? phone,
+    String? photoUrl,
   }) async {
     try {
       await _remoteDataSource.updateProfile(
         userId: userId,
         fullName: fullName,
         phone: phone,
+        photoUrl: photoUrl,
       );
     } on AuthException {
       rethrow;

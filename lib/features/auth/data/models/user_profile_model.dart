@@ -11,6 +11,8 @@ class UserProfileModel extends UserProfile {
     required super.isActive,
     super.phone,
     super.companyId,
+    super.photoUrl,
+    super.mustChangePassword,
   });
 
   factory UserProfileModel.customer({
@@ -76,6 +78,9 @@ class UserProfileModel extends UserProfile {
       isActive: rawIsActive is bool ? rawIsActive : true,
       phone: text('phone') ?? text('phoneNumber'),
       companyId: text('companyId'),
+      photoUrl: text('photoUrl'),
+      // Only a real `true` counts; a missing or malformed value never locks anyone.
+      mustChangePassword: map['mustChangePassword'] == true,
     );
   }
 
@@ -87,6 +92,7 @@ class UserProfileModel extends UserProfile {
       'role': role.firestoreValue,
       'isActive': isActive,
       if (phone != null) 'phone': phone,
+      if (photoUrl != null) 'photoUrl': photoUrl,
     };
   }
 }

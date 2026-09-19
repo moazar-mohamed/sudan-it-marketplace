@@ -2,7 +2,7 @@ class Product {
   const Product({
     required this.id,
     required this.name,
-    required this.price,
+    this.price,
     this.currency = 'SDG',
     this.imageUrl,
     this.companyId,
@@ -19,7 +19,10 @@ class Product {
 
   final String id;
   final String name;
-  final double price;
+
+  /// Optional. `null` means "price on request" and is never treated as 0,
+  /// because 0 is a real price.
+  final double? price;
   final String currency;
   final String? imageUrl;
   final String? companyId;
@@ -35,6 +38,35 @@ class Product {
   final double? installationPrice;
   final DateTime? createdAt;
 
+  bool get hasPrice => price != null;
+
+  /// Units remain. Products with no stock are hidden from customers (they stay
+  /// visible to their company so it can restock).
+  bool get hasStock => stockCount > 0;
+
   /// Available to buy only when marked in stock and stock remains.
-  bool get isAvailable => inStock && stockCount > 0;
+  bool get isAvailable => inStock && hasStock;
+
+  /// The most a customer may order right now: every remaining unit, or none
+  /// when the product cannot be bought.
+  int get maxOrderQuantity => isAvailable ? stockCount : 0;
+
+  /// This product as it stands with [stockCount] units left.
+  Product withStockCount(int stockCount) => Product(
+        id: id,
+        name: name,
+        price: price,
+        currency: currency,
+        imageUrl: imageUrl,
+        companyId: companyId,
+        companyName: companyName,
+        description: description,
+        inStock: inStock,
+        stockCount: stockCount,
+        specifications: specifications,
+        isDeliveryAvailable: isDeliveryAvailable,
+        isInstallationAvailable: isInstallationAvailable,
+        installationPrice: installationPrice,
+        createdAt: createdAt,
+      );
 }

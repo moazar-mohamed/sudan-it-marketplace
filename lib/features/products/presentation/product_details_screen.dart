@@ -8,6 +8,8 @@ import '../../companies/presentation/company_details_screen.dart';
 import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../orders/presentation/checkout_screen.dart';
 import '../domain/entities/product.dart';
+import 'product_price_strings.dart';
+import 'products_providers.dart';
 
 class ProductDetailsScreen extends ConsumerStatefulWidget {
   const ProductDetailsScreen({
@@ -67,23 +69,53 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
   }
 
   void _decrementQuantity() {
-    if (_quantity > 1) {
-      setState(() => _quantity--);
+    final current = _effectiveQuantity(_liveProduct);
+    if (current > 1) {
+      setState(() => _quantity = current - 1);
     }
   }
 
+  /// The product as the marketplace stands right now. This screen can be
+  /// opened from a stale card or a direct link, so stock is never taken from
+  /// the snapshot it was opened with once the live catalogue is known.
+  Product get _liveProduct => resolveLiveProduct(
+        widget.product,
+        ref.read(firestoreProductsStreamProvider),
+      );
+
+  /// The chosen quantity, kept within what is left (1 when nothing is).
+  int _effectiveQuantity(Product product) {
+    final max = product.maxOrderQuantity;
+    return max < 1 ? 1 : _quantity.clamp(1, max);
+  }
+
   void _incrementQuantity() {
-    if (_quantity < widget.product.stockCount) {
-      setState(() => _quantity++);
+    final product = _liveProduct;
+    final current = _effectiveQuantity(product);
+    if (current < product.maxOrderQuantity) {
+      setState(() => _quantity = current + 1);
     }
   }
 
   void _onBuyNow(BuildContext context) {
+    final product = _liveProduct;
+    if (!product.hasPrice) {
+      return;
+    }
+    if (!product.isAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${product.name} is out of stock.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => CheckoutScreen(
-          product: widget.product,
-          quantity: _quantity,
+          product: product,
+          quantity: _effectiveQuantity(product),
         ),
       ),
     );
@@ -95,7 +127,13 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
     final matchedCompany = _resolveCompany();
-    final totalPrice = widget.product.price * _quantity;
+    final stock = resolveLiveProduct(
+      widget.product,
+      ref.watch(firestoreProductsStreamProvider),
+    );
+    final quantity = _effectiveQuantity(stock);
+    final unitPrice = stock.price;
+    final totalPrice = unitPrice == null ? null : unitPrice * quantity;
 
     return Scaffold(
       appBar: AppBar(
@@ -139,12 +177,12 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: widget.product.isAvailable
+                        color: stock.isAvailable
                             ? AppColors.success.withValues(alpha: 0.12)
                             : AppColors.error.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: widget.product.isAvailable
+                          color: stock.isAvailable
                               ? AppColors.success
                               : AppColors.error,
                         ),
@@ -153,21 +191,21 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            widget.product.isAvailable
+                            stock.isAvailable
                                 ? Icons.check_circle_rounded
                                 : Icons.cancel_rounded,
                             size: 14,
-                            color: widget.product.isAvailable
+                            color: stock.isAvailable
                                 ? AppColors.success
                                 : AppColors.error,
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            widget.product.isAvailable
-                                ? 'In Stock (${widget.product.stockCount})'
+                            stock.isAvailable
+                                ? 'In Stock (${stock.stockCount})'
                                 : 'Out of Stock',
                             style: textTheme.labelSmall?.copyWith(
-                              color: widget.product.isAvailable
+                              color: stock.isAvailable
                                   ? AppColors.success
                                   : AppColors.error,
                               fontWeight: FontWeight.w700,
@@ -192,7 +230,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             const SizedBox(height: 8),
             // Price
             Text(
-              '${_formatPrice(widget.product.price)} ${widget.product.currency}',
+              unitPrice == null
+                  ? ProductPriceStrings.priceOnRequest(context)
+                  : '${_formatPrice(unitPrice)} ${widget.product.currency}',
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: AppColors.primary,
@@ -495,7 +535,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                         child: Icon(
                           Icons.remove,
                           size: 18,
-                          color: _quantity > 1
+                          color: quantity > 1
                               ? colorScheme.onSurface
                               : colorScheme.onSurface.withValues(alpha: 0.3),
                         ),
@@ -504,7 +544,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Text(
-                        '$_quantity',
+                        '$quantity',
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -523,7 +563,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                         child: Icon(
                           Icons.add,
                           size: 18,
-                          color: _quantity < widget.product.stockCount
+                          color: quantity < stock.maxOrderQuantity
                               ? colorScheme.onSurface
                               : colorScheme.onSurface.withValues(alpha: 0.3),
                         ),
@@ -536,14 +576,18 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
               // Buy Now Button
               Expanded(
                 child: ElevatedButton(
-                  onPressed: widget.product.isAvailable
+                  // Without a price there is nothing to charge, so it cannot be
+                  // bought online; the customer contacts the company instead.
+                  onPressed: stock.isAvailable && stock.hasPrice
                       ? () => _onBuyNow(context)
                       : null,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
                   ),
                   child: Text(
-                    'Buy Now • ${_formatPrice(totalPrice)} ${widget.product.currency}',
+                    totalPrice == null
+                        ? ProductPriceStrings.priceOnRequest(context)
+                        : 'Buy Now • ${_formatPrice(totalPrice)} ${widget.product.currency}',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../customer_dashboard/presentation/customer_dashboard_screen.dart';
+import '../../auth/presentation/auth_gate.dart';
 import '../domain/entities/order_entity.dart';
 import 'order_details_screen.dart';
 import 'widgets/order_location_widgets.dart';
@@ -258,12 +258,13 @@ class OrderPendingVerificationScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Back to Marketplace Button
+            // Both buttons restart from the AuthGate, not from a bare dashboard:
+            // a dashboard with no gate above it cannot return to the login
+            // screen when the customer signs out.
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const CustomerDashboardScreen(),
-                  ),
+                  MaterialPageRoute<void>(builder: (_) => const AuthGate()),
                   (route) => false,
                 );
               },
@@ -274,8 +275,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute<void>(
-                    builder: (_) =>
-                        const CustomerDashboardScreen(initialTabIndex: 1),
+                    builder: (_) => const AuthGate(customerInitialTab: 1),
                   ),
                   (route) => false,
                 );

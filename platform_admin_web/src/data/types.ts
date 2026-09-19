@@ -52,7 +52,8 @@ export interface Product {
   companyName: string;
   name: string;
   imageUrl: string;
-  price: number;
+  /** null = the company left the price out ("price on request"), never 0. */
+  price: number | null;
   currency: string;
   stockCount: number;
   inStock: boolean;

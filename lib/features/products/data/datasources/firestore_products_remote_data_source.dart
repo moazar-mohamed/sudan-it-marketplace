@@ -24,9 +24,16 @@ class FirestoreProductsRemoteDataSource implements ProductsRemoteDataSource {
     return list;
   }
 
+  /// Products a customer can see: only those with units left. A product at
+  /// `stockCount == 0` (or with no stock field) is left out here but stays in
+  /// Firestore and in the company's own list, and reappears the moment the
+  /// company restocks it. A single-field range filter needs no composite index.
   @override
-  Stream<List<Product>> watchAllProducts() {
-    return _products.snapshots().map(_sorted);
+  Stream<List<Product>> watchMarketplaceProducts() {
+    return _products
+        .where('stockCount', isGreaterThan: 0)
+        .snapshots()
+        .map(_sorted);
   }
 
   @override

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
+import '../../../products/presentation/product_price_strings.dart';
 import '../company_admin_format.dart';
 import '../widgets/admin_network_image.dart';
 import '../widgets/admin_section_card.dart';
@@ -123,7 +124,12 @@ class _CompanyProductTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      CompanyAdminFormat.price(product.price, product.currency),
+                      product.price == null
+                          ? ProductPriceStrings.priceOnRequest(context)
+                          : CompanyAdminFormat.price(
+                              product.price!,
+                              product.currency,
+                            ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.bodyMedium?.copyWith(
@@ -139,7 +145,9 @@ class _CompanyProductTile extends StatelessWidget {
                         StatusBadge(
                           label: product.isAvailable
                               ? 'In stock: ${product.stockCount}'
-                              : 'Unavailable',
+                              : product.hasStock
+                                  ? 'Unavailable'
+                                  : 'Out of stock',
                           color: product.isAvailable
                               ? AppColors.success
                               : AppColors.error,

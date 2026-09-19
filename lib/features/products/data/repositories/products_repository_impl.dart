@@ -8,8 +8,8 @@ class ProductsRepositoryImpl implements ProductsRepository {
   final ProductsRemoteDataSource _remoteDataSource;
 
   @override
-  Stream<List<Product>> watchAllProducts() =>
-      _remoteDataSource.watchAllProducts();
+  Stream<List<Product>> watchMarketplaceProducts() =>
+      _remoteDataSource.watchMarketplaceProducts();
 
   @override
   Stream<List<Product>> watchCompanyProducts(String companyId) =>

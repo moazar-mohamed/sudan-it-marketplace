@@ -9,9 +9,13 @@ abstract class UserProfileRemoteDataSource {
 
   Future<UserProfile?> fetchProfile(String userId);
 
+  /// Clears the temporary-password flag after the user chose their own.
+  Future<void> markPasswordChanged(String userId);
+
   Future<void> updateProfile({
     required String userId,
     required String fullName,
     String? phone,
+    String? photoUrl,
   });
 }

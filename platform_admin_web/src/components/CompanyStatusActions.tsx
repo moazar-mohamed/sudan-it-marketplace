@@ -1,4 +1,5 @@
 import { deleteCompany, setCompanyStatus } from '../data/actions';
+import type { CompanyDeletionSummary } from '../data/deleteCompany';
 import { useProducts } from '../data/hooks';
 import type { Company, CompanyStatus } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
@@ -45,20 +46,39 @@ export function CompanyStatusActions({
 
   const remove = async () => {
     const count = products.data.filter((p) => p.companyId === company.id).length;
+    const isActive = company.status === 'active';
     const ok = await confirm({
       title: t('companies.confirmDelete.title'),
-      body: t('companies.confirmDelete.body', { name: company.name, count }),
+      body:
+        t('companies.confirmDelete.body', { name: company.name, count }) +
+        (isActive ? '\n\n' + t('companies.confirmDelete.activeNote') : ''),
       confirmLabel: t('companies.delete'),
       danger: true,
     });
     if (!ok) return;
-    const done = await run(company.id, () => deleteCompany(company.id), t('companies.deleted'));
+    // Only an inactive company can be deleted, so an active one is deactivated
+    // first (a step the rules already allow); the cascade then removes it and
+    // everything it owns. Orders are never part of it.
+    const cascade = async () => {
+      if (isActive) await setCompanyStatus(company.id, 'inactive');
+      return deleteCompany(company.id);
+    };
+    const done = await run(company.id, cascade, (r: CompanyDeletionSummary) =>
+      t('companies.deletedCascade', {
+        admins: r.admins,
+        technicians: r.technicians,
+        invites: r.invites,
+        products: r.products,
+        other: r.other,
+        orders: r.ordersKept === null ? t('companies.ordersKeptUnknown') : t('companies.ordersKept', { count: r.ordersKept }),
+      }),
+    );
     if (done) onDeleted?.();
   };
 
   const disabled = busy === company.id;
   const deleteButton = (
-    <button className="btn btn--danger-ghost btn--sm" disabled={disabled} onClick={() => void remove()}>
+    <button className="btn btn--danger btn--sm" disabled={disabled} onClick={() => void remove()}>
       {t('companies.delete')}
     </button>
   );
@@ -88,6 +108,7 @@ export function CompanyStatusActions({
   if (company.status === 'active') {
     return (
       <div className="btn-group">
+        {deleteButton}
         <button
           className="btn btn--danger-ghost btn--sm"
           disabled={disabled}

@@ -578,11 +578,21 @@ describe('Customers', () => {
   it('customer can still update own name/phone', async () => {
     await assertSucceeds(updateDoc(doc(as('cust1'), 'users', 'cust1'), { fullName: 'New', updatedAt: serverTimestamp() }));
   });
+  it('customer can set or clear their own profile picture, but only as a short string', async () => {
+    const own = () => doc(as('cust1'), 'users', 'cust1');
+    await assertSucceeds(updateDoc(own(), { fullName: 'N', photoUrl: 'https://img.test/a.jpg', updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(own(), { fullName: 'N', photoUrl: '', updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(own(), { fullName: 'N', photoUrl: 42, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(own(), { fullName: 'N', photoUrl: 'x'.repeat(2049), updatedAt: serverTimestamp() }));
+    // Not a way to change anything else, or to touch another customer.
+    await assertFails(updateDoc(own(), { fullName: 'N', photoUrl: 'https://img.test/a.jpg', role: 'platform_admin' }));
+    await assertFails(updateDoc(doc(as('cust1'), 'users', 'cust2'), { fullName: 'N', photoUrl: 'https://img.test/a.jpg' }));
+  });
 });
 
 describe('A deactivated customer cannot use the customer app', () => {
   const order = (uid: string) => ({
-    id: 'o_dead', customerId: uid, companyId: 'c_active', companyName: 'C', productId: 'p1', productName: 'Router',
+    id: 'o_dead', customerId: uid, companyId: 'c_active', companyName: 'C', productId: 'p_demo', productName: 'Router',
     quantity: 1, unitPrice: 10, productSubtotal: 10, installationSelected: false, installationFee: 0,
     deliveryFee: 0, totalAmount: 10, deliveryAddress: 'x', contactPhone: '1', deliveryMethod: 'delivery',
     customerName: 'N', paymentStatus: 'pending_verification', orderStatus: 'processing',
@@ -654,7 +664,7 @@ describe('Orders (read-only)', () => {
     await assertFails(deleteDoc(doc(admin(), 'orders', 'o1')));
   });
   const newOrder = (customerId: string) => ({
-    id: 'o2', customerId, companyId: 'c_active', companyName: 'C', productId: 'p1', productName: 'Router',
+    id: 'o2', customerId, companyId: 'c_active', companyName: 'C', productId: 'p_demo', productName: 'Router',
     quantity: 1, unitPrice: 100, productSubtotal: 100, installationSelected: false, installationFee: 0,
     deliveryFee: 0, totalAmount: 100, deliveryAddress: 'x', contactPhone: '1', deliveryMethod: 'delivery',
     customerName: 'N', paymentStatus: 'pending_verification', orderStatus: 'processing',

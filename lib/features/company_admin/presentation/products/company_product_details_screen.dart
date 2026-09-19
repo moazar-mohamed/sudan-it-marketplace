@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
+import '../../../products/presentation/product_price_strings.dart';
 import '../company_admin_actions.dart';
 import '../company_admin_format.dart';
 import '../widgets/admin_network_image.dart';
@@ -159,7 +160,9 @@ class _ProductDetailsBody extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          CompanyAdminFormat.price(product.price, product.currency),
+          product.price == null
+              ? ProductPriceStrings.priceOnRequest(context)
+              : CompanyAdminFormat.price(product.price!, product.currency),
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w800,
             color: AppColors.primary,
@@ -171,7 +174,11 @@ class _ProductDetailsBody extends StatelessWidget {
           children: [
             AdminInfoRow(
               label: 'Status',
-              value: product.isAvailable ? 'Available' : 'Unavailable',
+              value: product.isAvailable
+                  ? 'Available'
+                  : product.hasStock
+                      ? 'Unavailable'
+                      : 'Out of stock',
               valueColor:
                   product.isAvailable ? AppColors.success : AppColors.error,
             ),

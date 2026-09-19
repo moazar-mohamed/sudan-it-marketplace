@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState, type MouseEvent } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CompanyCreateModal } from '../components/CompanyCreateModal';
 import { CompanyStatusActions } from '../components/CompanyStatusActions';
 import { CompanyStatusBadge } from '../components/StatusBadges';
@@ -20,6 +20,7 @@ import { joinLocation, matchesQuery } from '../utils';
 export function CompaniesPage() {
   const { t, number, date } = useI18n();
   const companies = useCompanies();
+  const navigate = useNavigate();
   // The filter lives in the URL (?status=active) so a dashboard card can link
   // straight to the list it counted.
   const [params, setParams] = useSearchParams();
@@ -30,6 +31,13 @@ export function CompaniesPage() {
     setParams(next === 'all' ? {} : { status: next }, { replace: true });
   const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
+
+  // The whole row opens the company. Clicks that belong to a link or a button
+  // inside it (the name link, Deactivate, Delete...) are theirs, not the row's.
+  const openCompany = (id: string) => (e: MouseEvent<HTMLTableRowElement>) => {
+    if ((e.target as HTMLElement).closest('a, button')) return;
+    navigate(`/companies/${id}`);
+  };
 
   const visible = companies.data.filter(
     (c) =>
@@ -89,7 +97,7 @@ export function CompaniesPage() {
                 </thead>
                 <tbody>
                   {visible.map((c) => (
-                    <tr key={c.id}>
+                    <tr key={c.id} className="row--clickable" onClick={openCompany(c.id)}>
                       <td>
                         <Thumb src={c.logoUrl} />
                       </td>
@@ -107,13 +115,8 @@ export function CompaniesPage() {
                         <CompanyStatusBadge status={c.status} />
                       </td>
                       <td className="nowrap">{date(c.createdAt)}</td>
-                      <td>
-                        <div className="btn-group">
-                          <Link to={`/companies/${c.id}`} className="btn btn--sm">
-                            {t('common.view')}
-                          </Link>
-                          <CompanyStatusActions company={c} />
-                        </div>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <CompanyStatusActions company={c} />
                       </td>
                     </tr>
                   ))}

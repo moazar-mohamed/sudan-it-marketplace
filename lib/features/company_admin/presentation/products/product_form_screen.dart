@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/image_picker_field.dart';
+import '../../../../core/widgets/image_picker_strings.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../company_admin_actions.dart';
-import '../widgets/admin_network_image.dart';
 
 /// Add Product and Edit Product share this form and its rules:
 /// installation price is only shown and required when installation is on.
@@ -43,7 +45,7 @@ class _SpecRow {
 class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
-  late final TextEditingController _imageUrlController;
+  late final ImagePickerController _imageController;
   late final TextEditingController _priceController;
   late final TextEditingController _stockController;
   late final TextEditingController _descriptionController;
@@ -60,9 +62,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     super.initState();
     final product = widget.product;
     _nameController = TextEditingController(text: product?.name ?? '');
-    _imageUrlController = TextEditingController(text: product?.imageUrl ?? '');
+    _imageController = ImagePickerController(url: product?.imageUrl);
     _priceController = TextEditingController(
-      text: product == null ? '' : _numberText(product.price),
+      text: product?.price == null ? '' : _numberText(product!.price!),
     );
     _stockController = TextEditingController(
       text: product == null ? '' : '${product.stockCount}',
@@ -86,7 +88,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _imageUrlController.dispose();
+    _imageController.dispose();
     _priceController.dispose();
     _stockController.dispose();
     _descriptionController.dispose();
@@ -118,6 +120,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     return null;
   }
 
+  /// The price may be left empty; when given it must still be greater than 0.
+  String? _validateOptionalPrice(String? value) {
+    if ((value?.trim() ?? '').isEmpty) {
+      return null;
+    }
+    return _validatePositiveNumber(value, 'price');
+  }
+
   void _addSpecRow() {
     setState(() => _specRows.add(_SpecRow()));
   }
@@ -146,6 +156,28 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       }
     }
 
+    setState(() => _isSaving = true);
+
+    final String imageUrl;
+    try {
+      imageUrl = await _imageController.resolveUrl(
+        ref.read(imageUploadServiceProvider),
+        folder: 'product-images/${widget.companyId}',
+      );
+    } on ImageUploadException {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ImagePickerStrings.of(context).uploadFailed),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     final actions = ref.read(companyAdminActionsProvider);
     final existing = widget.product;
     final companyName = existing?.companyName ??
@@ -157,8 +189,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       companyId: widget.companyId,
       companyName: companyName,
       name: _nameController.text.trim(),
-      imageUrl: _imageUrlController.text.trim(),
-      price: double.parse(_priceController.text.trim()),
+      imageUrl: imageUrl,
+      // Optional: an empty field saves no price (null), never 0.
+      price: double.tryParse(_priceController.text.trim()),
       currency: existing?.currency ?? 'SDG',
       stockCount: int.parse(_stockController.text.trim()),
       inStock: _inStock,
@@ -171,7 +204,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           : null,
     );
 
-    setState(() => _isSaving = true);
     final error = existing == null
         ? await actions.createProduct(product)
         : await actions.updateProduct(product);
@@ -238,42 +270,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     : null,
               ),
               const SizedBox(height: 14),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _imageUrlController,
-                    builder: (context, value, _) => AdminNetworkImage(
-                      url: value.text,
-                      fallbackIcon: Icons.image_outlined,
-                      size: 56,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _imageUrlController,
-                      enabled: !_isSaving,
-                      keyboardType: TextInputType.url,
-                      decoration: const InputDecoration(
-                        labelText: 'Product Image URL',
-                        hintText: 'https://…',
-                      ),
-                      validator: (value) {
-                        final text = value?.trim() ?? '';
-                        if (text.isEmpty) {
-                          return null;
-                        }
-                        final uri = Uri.tryParse(text);
-                        if (uri == null ||
-                            !(uri.scheme == 'http' || uri.scheme == 'https')) {
-                          return 'Enter a valid image link (http/https).';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
+              ImagePickerField(
+                controller: _imageController,
+                enabled: !_isSaving,
               ),
               const SizedBox(height: 14),
               TextFormField(
@@ -283,10 +282,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [_decimalFormatter],
                 decoration: const InputDecoration(
-                  labelText: 'Price (SDG)',
+                  labelText: 'Price (SDG) - optional',
                   prefixIcon: Icon(Icons.payments_outlined),
                 ),
-                validator: (value) => _validatePositiveNumber(value, 'price'),
+                validator: _validateOptionalPrice,
               ),
               sectionTitle('Stock / Availability'),
               TextFormField(

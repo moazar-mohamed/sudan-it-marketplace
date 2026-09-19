@@ -81,9 +81,12 @@ service cloud.firestore {
 
     function isSafeCustomerProfileUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['fullName', 'phone', 'updatedAt'])
+          .hasOnly(['fullName', 'phone', 'photoUrl', 'updatedAt'])
         && request.resource.data.fullName is string
         && request.resource.data.fullName.size() > 0
+        && (!request.resource.data.keys().hasAny(['photoUrl'])
+          || (request.resource.data.photoUrl is string
+            && request.resource.data.photoUrl.size() <= 2048))
         && (!request.resource.data.keys().hasAny(['phone'])
           || request.resource.data.phone is string)
         && (!request.resource.data.keys().hasAny(['updatedAt'])
@@ -134,6 +137,87 @@ service cloud.firestore {
         && (!changed.hasAny(['fullName', 'phone'])
           || data.updatedAt == request.time)
         && (!changed.hasAny(['updatedAt']) || data.updatedAt == request.time);
+    }
+
+    // True when the company no longer exists once this write (or batch) has
+    // been applied: it is deleted in the same batch, or was deleted before.
+    // Every Platform Admin delete of company-owned data is tied to this, so a
+    // live company's data can never be removed on its own.
+    function companyIsGoneAfter(companyId) {
+      return companyId is string
+        && companyId.size() > 0
+        && !existsAfter(/databases/$(database)/documents/companies/$(companyId));
+    }
+
+    // A company_admin / technician profile whose company document does not exist.
+    function isOrphanedStaffProfile() {
+      let companyId = resource.data.get('companyId', '');
+      return resource.data.get('role', '') in ['company_admin', 'technician']
+        && companyId is string
+        && companyId.size() > 0
+        && !exists(/databases/$(database)/documents/companies/$(companyId));
+    }
+
+    // Platform Admin may create a company_admin profile ONLY in the same batch
+    // that creates its company. The profile's companyId must be the id of that
+    // brand-new company document, so a hand-typed or differently-cased id can
+    // never be linked, and an existing company can never gain an admin this
+    // way. The account starts with mustChangePassword: true, and its email is
+    // the company's login email. No password is stored anywhere in Firestore:
+    // it lives only in Firebase Authentication.
+    function isPlatformAdminCompanyAdminCreate(uid) {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.keys().hasOnly([
+          'id',
+          'fullName',
+          'email',
+          'role',
+          'companyId',
+          'isActive',
+          'mustChangePassword',
+          'createdAt'
+        ])
+        && data.keys().hasAll([
+          'id',
+          'fullName',
+          'email',
+          'role',
+          'companyId',
+          'isActive',
+          'mustChangePassword',
+          'createdAt'
+        ])
+        && data.id == uid
+        && data.role == 'company_admin'
+        && data.isActive == true
+        && data.mustChangePassword == true
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.fullName.size() <= 120
+        && data.email is string
+        && data.email.size() > 0
+        && data.createdAt == request.time
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && !exists(/databases/$(database)/documents/companies/$(data.companyId))
+        && existsAfter(/databases/$(database)/documents/companies/$(data.companyId))
+        && getAfter(/databases/$(database)/documents/companies/$(data.companyId))
+          .data.get('email', '').lower() == data.email;
+    }
+
+    // The one edit a company admin may make to the flag: clearing it after
+    // choosing their own password. It can only go from true to false, and
+    // nothing else in the profile may change with it. (Rules cannot see the
+    // password, so this is the app's first-login gate, not a proof.)
+    function isPasswordChangeCompletion() {
+      let data = request.resource.data;
+      return resource.data.role == 'company_admin'
+        && resource.data.get('mustChangePassword', false) == true
+        && data.diff(resource.data).affectedKeys()
+          .hasOnly(['mustChangePassword', 'updatedAt'])
+        && data.mustChangePassword == false
+        && data.get('updatedAt', null) == request.time;
     }
 
     // A deactivated account (isActive == false) can no longer place orders or
@@ -300,23 +384,33 @@ service cloud.firestore {
 
     match /users/{uid} {
       // Owners read their own profile. Platform Admin can additionally read
-      // customer profiles (queries must filter on role == 'customer').
+      // customer profiles (queries must filter on role == 'customer'), and the
+      // company_admin / technician profiles of a company that NO LONGER EXISTS,
+      // so those left-over profiles can be cleaned up. The profiles of a live
+      // company's people stay unreadable to Platform Admin.
       allow get: if isOwner(uid)
-        || (isPlatformAdmin() && resource.data.role == 'customer');
+        || (isPlatformAdmin()
+          && (resource.data.role == 'customer' || isOrphanedStaffProfile()));
 
       allow list: if isPlatformAdmin()
-        && resource.data.role == 'customer';
+        && (resource.data.role == 'customer' || isOrphanedStaffProfile());
 
-      allow create: if isOwner(uid)
-        && request.auth.uid == uid
-        && request.resource.data.id == uid
-        && (isValidCustomerCreate() || isValidTechnicianClaimCreate(uid));
+      allow create: if (isOwner(uid)
+          && request.auth.uid == uid
+          && request.resource.data.id == uid
+          && (isValidCustomerCreate() || isValidTechnicianClaimCreate(uid)))
+        || isPlatformAdminCompanyAdminCreate(uid);
 
       allow update: if (isOwner(uid)
           && isSafeCustomerProfileUpdate())
+        || (isOwner(uid) && isPasswordChangeCompletion())
         || isPlatformAdminCustomerUpdate();
 
-      allow delete: if false;
+      // Only the company_admin / technician profile of a company that is gone.
+      // Customers, Platform Admins and every profile of a live company stay.
+      allow delete: if isPlatformAdmin()
+        && resource.data.get('role', '') in ['company_admin', 'technician']
+        && companyIsGoneAfter(resource.data.get('companyId', ''));
     }
 
     match /categories/{categoryId} {
@@ -521,6 +615,52 @@ service cloud.firestore {
         );
     }
 
+    // Stock is consumed when an order is placed. An order for a product that
+    // has a document must be created in the same transaction that lowers that
+    // product's stockCount by exactly the ordered quantity (and records the
+    // order id in lastOrderId), and only while enough stock remains. Products
+    // with no document (the built-in demo catalogue) have no stock to reserve.
+    function orderReservesStock(orderId, productId, quantity) {
+      let productPath = /databases/$(database)/documents/products/$(productId);
+      return !exists(productPath)
+        || (get(productPath).data.get('inStock', true) == true
+          // A product without a price cannot be ordered through checkout.
+          && get(productPath).data.get('price', null) != null
+          && get(productPath).data.stockCount is int
+          && get(productPath).data.stockCount >= quantity
+          && getAfter(productPath).data.lastOrderId == orderId
+          && getAfter(productPath).data.stockCount
+            == get(productPath).data.stockCount - quantity);
+    }
+
+    // The other half of orderReservesStock: a customer (not only the owning
+    // company) may lower a product's stockCount, but only alongside a brand-new
+    // order of their own for that product, by exactly that order's quantity,
+    // and never below zero. Nothing else on the product can change.
+    function isStockReservation(productId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      return isSignedIn()
+        && after.diff(before).affectedKeys()
+          .hasOnly(['stockCount', 'lastOrderId', 'updatedAt'])
+        && after.updatedAt == request.time
+        && after.lastOrderId is string
+        && after.lastOrderId.size() > 0
+        && !exists(/databases/$(database)/documents/orders/$(after.lastOrderId))
+        && existsAfter(/databases/$(database)/documents/orders/$(after.lastOrderId))
+        && getAfter(/databases/$(database)/documents/orders/$(after.lastOrderId))
+          .data.customerId == request.auth.uid
+        && getAfter(/databases/$(database)/documents/orders/$(after.lastOrderId))
+          .data.productId == productId
+        && before.get('inStock', true) == true
+        && before.stockCount is int
+        && after.stockCount is int
+        && after.stockCount >= 0
+        && after.stockCount == before.stockCount
+          - getAfter(/databases/$(database)/documents/orders/$(after.lastOrderId))
+            .data.quantity;
+    }
+
     function hasValidProductKeys() {
       return request.resource.data.keys().hasOnly([
         'id',
@@ -532,6 +672,7 @@ service cloud.firestore {
         'currency',
         'stockCount',
         'inStock',
+        'lastOrderId',
         'description',
         'specifications',
         'isDeliveryAvailable',
@@ -552,8 +693,10 @@ service cloud.firestore {
         && data.name.size() > 0
         && data.name.size() <= 200
         && data.imageUrl is string
-        && data.price is number
-        && data.price > 0
+        // Optional: absent/null means "price on request". A given price must
+        // still be a positive number; 0 is never stored as a stand-in.
+        && (data.get('price', null) == null
+          || (data.price is number && data.price > 0))
         && data.currency == 'SDG'
         && data.stockCount is int
         && data.stockCount >= 0
@@ -578,11 +721,12 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && isValidProductData();
 
-      allow update: if isCompanyAdminOf(resource.data.companyId)
-        && request.resource.data.id == resource.data.id
-        && request.resource.data.companyId == resource.data.companyId
-        && request.resource.data.createdAt == resource.data.createdAt
-        && isValidProductData();
+      allow update: if (isCompanyAdminOf(resource.data.companyId)
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.companyId == resource.data.companyId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && isValidProductData())
+        || isStockReservation(productId);
 
       // A company admin deletes their own products. Platform Admin can remove
       // a product only in the same batch that deletes (or after it has
@@ -666,7 +810,9 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && isValidTechnicianData();
 
-      allow delete: if false;
+      // Removed together with a deleted company (never on their own).
+      allow delete: if isPlatformAdmin()
+        && companyIsGoneAfter(resource.data.get('companyId', ''));
     }
 
     function hasRequiredInviteKeys() {
@@ -729,7 +875,8 @@ service cloud.firestore {
 
       allow update: if isSignedIn() && isValidInviteClaim(inviteId);
 
-      allow delete: if false;
+      allow delete: if isPlatformAdmin()
+        && companyIsGoneAfter(resource.data.get('companyId', ''));
     }
 
     function notificationOrder(orderId) {
@@ -829,7 +976,17 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead'])
         && request.resource.data.isRead is bool;
 
-      allow delete: if false;
+      // Only what was addressed to a deleted company's admin, or to one of its
+      // technicians once that technician is gone. A customer's notifications
+      // are never deletable.
+      allow delete: if isPlatformAdmin()
+        && ((resource.data.recipientType == 'company_admin'
+            && companyIsGoneAfter(resource.data.recipientId))
+          || (resource.data.recipientType == 'technician'
+            && resource.data.recipientId is string
+            && resource.data.recipientId.size() > 0
+            && !existsAfter(
+              /databases/$(database)/documents/technicians/$(resource.data.recipientId))));
     }
 
     function isCompanyProfileUpdate() {
@@ -966,7 +1123,8 @@ service cloud.firestore {
           || isCompanyAdminOf(resource.data.companyId))
         && isSafeCompanyServiceUpdate(companyServiceId);
 
-      allow delete: if false;
+      allow delete: if isPlatformAdmin()
+        && companyIsGoneAfter(resource.data.get('companyId', ''));
     }
 
     match /orders/{orderId} {
@@ -990,7 +1148,11 @@ service cloud.firestore {
         && request.resource.data.id == orderId
         && isValidOrderCreate(orderId)
         && callerIsNotDeactivated()
-        && companyAcceptsOrders(request.resource.data.companyId);
+        && companyAcceptsOrders(request.resource.data.companyId)
+        && orderReservesStock(
+          orderId,
+          request.resource.data.productId,
+          request.resource.data.quantity);
 
       allow update: if isSignedIn()
         && ((isCompanyAdminOf(resource.data.companyId)
@@ -998,13 +1160,17 @@ service cloud.firestore {
           || isCustomerReceiptAttachment(orderId)
           || isTechnicianOrderStatusUpdate());
 
+      // Order history is permanent: nobody, including Platform Admin and a
+      // company cascade delete, can ever delete an order.
       allow delete: if false;
     }
 
     // Reviews are visible to Platform Admin only, and read-only.
     match /reviews/{reviewId} {
       allow get, list: if isPlatformAdmin();
-      allow create, update, delete: if false;
+      allow create, update: if false;
+      allow delete: if isPlatformAdmin()
+        && companyIsGoneAfter(resource.data.get('companyId', ''));
     }
   }
 }

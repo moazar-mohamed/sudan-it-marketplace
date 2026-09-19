@@ -37,6 +37,37 @@ service firebase.storage {
       allow delete: if false;
     }
 
+    // Images uploaded from the apps. Each upload is a new file (no overwrite
+    // or delete), limited to common image types under 5 MB. Files are shown
+    // through their download URLs, so reads only need to work for signed-in
+    // users.
+    function isImageUpload() {
+      return request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+    }
+
+    // Company logos: the company's own admin, or Platform Admin when adding
+    // a company.
+    match /company-logos/{companyId}/{fileName} {
+      allow read: if isSignedIn();
+      allow create: if (isCompanyAdminOf(companyId) || isPlatformAdmin())
+        && isImageUpload();
+    }
+
+    // Product pictures: only the owning company's admin.
+    match /product-images/{companyId}/{fileName} {
+      allow read: if isSignedIn();
+      allow create: if isCompanyAdminOf(companyId) && isImageUpload();
+    }
+
+    // Profile pictures: only the user themself.
+    match /profile-images/{userId}/{fileName} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && isImageUpload();
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

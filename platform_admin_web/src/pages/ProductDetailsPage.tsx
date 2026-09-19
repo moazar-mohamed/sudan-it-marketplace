@@ -54,7 +54,7 @@ export function ProductDetailsPage() {
               </Card>
               <Card title={t('product.section.pricing')}>
                 <dl className="kv-list">
-                  <KeyValue label={t('col.price')}>{money(product.price, product.currency)}</KeyValue>
+                  <KeyValue label={t('col.price')}>{product.price === null ? t('product.priceOnRequest') : money(product.price, product.currency)}</KeyValue>
                   <KeyValue label={t('product.stockCount')}>{number(product.stockCount)}</KeyValue>
                   <KeyValue label={t('col.delivery')}>
                     {product.isDeliveryAvailable ? t('common.available') : t('common.pickupOnly')}

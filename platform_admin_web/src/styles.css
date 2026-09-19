@@ -560,6 +560,11 @@ table.data tbody tr:hover {
   background: #fafbfd;
 }
 
+/* A row that opens its details when clicked (its buttons and links keep their own action). */
+table.data tbody tr.row--clickable {
+  cursor: pointer;
+}
+
 table.data tbody tr:last-child td {
   border-bottom: 0;
 }
@@ -915,6 +920,8 @@ table.data tbody tr:last-child td {
 
 .modal__text {
   margin-bottom: 18px;
+  /* confirmation texts may list items on separate lines */
+  white-space: pre-line;
 }
 
 .modal__actions {
@@ -1214,4 +1221,117 @@ table.data tbody tr:last-child td {
 
 .map-picker__actions {
   flex-wrap: wrap;
+}
+
+/* ---------- Image picker (Add Image) ---------- */
+
+.image-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.image-field__label {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.image-field__add {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  border: 1.5px dashed var(--primary);
+  border-radius: var(--radius);
+  color: var(--primary);
+  font-weight: 600;
+  background: var(--primary-soft);
+  cursor: pointer;
+}
+
+.image-field__add:hover:not(:disabled) {
+  border-style: solid;
+}
+
+.image-field__add:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.image-field__preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 180px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: var(--neutral-soft);
+}
+
+.image-field__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-field__uploading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 600;
+  background: rgba(16, 24, 40, 0.55);
+}
+
+.image-field__actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.image-source__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  border-block: 1px solid var(--border);
+  padding-block: 8px;
+}
+
+.image-source__option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text);
+  font-weight: 600;
+  text-align: start;
+  background: transparent;
+  cursor: pointer;
+}
+
+.image-source__option:hover {
+  background: var(--neutral-soft);
+}
+
+.image-source__message {
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.image-source__video {
+  width: 100%;
+  max-height: 320px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background: #000;
 }

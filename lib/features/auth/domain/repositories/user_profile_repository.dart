@@ -19,9 +19,13 @@ abstract class UserProfileRepository {
     required String email,
   });
 
+  /// Clears `mustChangePassword` once the user has chosen their own password.
+  Future<void> markPasswordChanged(String userId);
+
   Future<void> updateProfile({
     required String userId,
     required String fullName,
     String? phone,
+    String? photoUrl,
   });
 }

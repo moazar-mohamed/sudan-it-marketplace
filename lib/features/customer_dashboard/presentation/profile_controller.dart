@@ -29,6 +29,14 @@ final class ProfileError extends ProfileState {
 
 // ── Profile controller ─────────────────────────────────────────────────────────
 
+/// The Firebase account that is signed in right now (null when signed out).
+/// It follows the app's auth state, and is its own provider so the profile
+/// logic can be tested without a Firebase app.
+final signedInFirebaseUserProvider = Provider<User?>((ref) {
+  ref.watch(authControllerProvider);
+  return FirebaseAuth.instance.currentUser;
+});
+
 final profileControllerProvider =
     AsyncNotifierProvider<ProfileController, UserProfile?>(
       ProfileController.new,
@@ -45,7 +53,7 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
     if (userId == null) return null;
     final repo = ref.read(userProfileRepositoryProvider);
 
-    final firebaseUser = FirebaseAuth.instance.currentUser;
+    final firebaseUser = ref.watch(signedInFirebaseUserProvider);
     final accountEmail = firebaseUser?.uid == userId
         ? (firebaseUser?.email ?? '')
         : '';
@@ -68,6 +76,7 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
   Future<String?> updateProfile({
     required String fullName,
     String? phone,
+    String? photoUrl,
   }) async {
     final authState = ref.read(authControllerProvider);
     final userId = switch (authState) {
@@ -84,6 +93,7 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
         userId: userId,
         fullName: fullName.trim(),
         phone: trimmedPhone,
+        photoUrl: photoUrl,
       );
       // Optimistically update state
       final current = state.asData?.value;
@@ -92,6 +102,7 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
           current.copyWith(
             fullName: fullName.trim(),
             phone: trimmedPhone,
+            photoUrl: photoUrl,
           ),
         );
       } else {
@@ -102,6 +113,32 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
       return e.message;
     } catch (_) {
       return 'Could not update profile. Please try again.';
+    }
+  }
+
+  /// Clears the temporary-password flag once the user has chosen their own
+  /// password. Returns null on success, or an error message string.
+  Future<String?> markPasswordChanged() async {
+    final authState = ref.read(authControllerProvider);
+    final userId = switch (authState) {
+      AuthAuthenticated(:final user) => user.id,
+      _ => null,
+    };
+    if (userId == null) return 'Not authenticated.';
+
+    try {
+      await ref.read(userProfileRepositoryProvider).markPasswordChanged(userId);
+      final current = state.asData?.value;
+      if (current != null) {
+        state = AsyncData(current.copyWith(mustChangePassword: false));
+      } else {
+        ref.invalidateSelf();
+      }
+      return null;
+    } on AuthException catch (e) {
+      return e.message;
+    } catch (_) {
+      return 'Could not finish setting up your account. Please try again.';
     }
   }
 

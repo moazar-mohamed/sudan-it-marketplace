@@ -117,16 +117,26 @@ export function useRunner() {
   const [busy, setBusy] = useState<string | null>(null);
 
   const run = useCallback(
-    async (key: string, action: () => Promise<unknown>, successMessage: string) => {
+    async <R,>(key: string, action: () => Promise<R>, successMessage: string | ((result: R) => string)) => {
       setBusy(key);
       try {
-        await action();
-        toast(successMessage, 'success');
+        const result = await action();
+        toast(typeof successMessage === 'function' ? successMessage(result) : successMessage, 'success');
         return true;
       } catch (error) {
         const code = (error as { code?: string } | null)?.code;
         toast(
-          code === 'permission-denied' ? t('error.actionPermission') : t('error.action'),
+          code === 'permission-denied'
+            ? t('error.actionPermission')
+            : code === 'image-upload-failed'
+              ? t('image.uploadFailed')
+              : code === 'company-account/email-in-use'
+                ? t('companies.error.emailInUse')
+                : code === 'company-account/invalid-email'
+                  ? t('companies.emailRequired')
+                  : code === 'company-account/weak-password'
+                    ? t('companies.error.weakPassword')
+                    : t('error.action'),
           'error',
         );
         return false;

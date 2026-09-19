@@ -91,7 +91,7 @@ export function mapProduct(id: string, d: DocumentData): Product {
     companyName: str(d.companyName),
     name: str(d.name),
     imageUrl: str(d.imageUrl),
-    price: num(d.price),
+    price: typeof d.price === 'number' && isFinite(d.price) ? d.price : null,
     currency: str(d.currency) || 'SDG',
     stockCount: num(d.stockCount),
     inStock: typeof d.inStock === 'boolean' ? d.inStock : true,

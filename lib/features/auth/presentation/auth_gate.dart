@@ -10,10 +10,16 @@ import '../../technicians/presentation/technicians_providers.dart';
 import '../domain/entities/user_role.dart';
 import 'auth_controller.dart';
 import 'auth_state.dart';
+import 'force_password_change_screen.dart';
 import 'login_screen.dart';
 
 class AuthGate extends ConsumerWidget {
-  const AuthGate({super.key});
+  /// [customerInitialTab] is the dashboard tab a signed-in customer starts on
+  /// (0 Home, 1 Orders, 2 Profile). Screens that return the customer to the app
+  /// go through the gate, so a later sign-out always lands on the login screen.
+  const AuthGate({super.key, this.customerInitialTab = 0});
+
+  final int customerInitialTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,7 +27,7 @@ class AuthGate extends ConsumerWidget {
 
     return switch (authState) {
       AuthLoading() => const _SessionLoadingScreen(),
-      AuthAuthenticated() => const _RoleRouter(),
+      AuthAuthenticated() => _RoleRouter(customerInitialTab: customerInitialTab),
       AuthUnauthenticated() || AuthError() => const LoginScreen(),
     };
   }
@@ -29,7 +35,9 @@ class AuthGate extends ConsumerWidget {
 
 /// Sends a signed-in user to the experience that matches their stored role.
 class _RoleRouter extends ConsumerWidget {
-  const _RoleRouter();
+  const _RoleRouter({this.customerInitialTab = 0});
+
+  final int customerInitialTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,7 +57,7 @@ class _RoleRouter extends ConsumerWidget {
       if (authUser != null && !authUser.emailVerified) {
         return _EmailVerificationRequiredScreen(email: authUser.email ?? '');
       }
-      return const CustomerDashboardScreen();
+      return CustomerDashboardScreen(initialTabIndex: customerInitialTab);
     }
 
     final profileAsync = ref.watch(profileControllerProvider);
@@ -77,6 +85,10 @@ class _RoleRouter extends ConsumerWidget {
                   message:
                       'Your account has been deactivated. Please contact support to have it reactivated.',
                 ),
+          // A company admin still on the temporary password set by the
+          // Platform Admin must choose their own before anything else.
+          UserRole.companyAdmin when profile.requiresPasswordChange =>
+            const ForcePasswordChangeScreen(),
           UserRole.companyAdmin =>
             (profile.companyId == null || profile.companyId!.isEmpty)
                 ? const _AccessMessageScreen(

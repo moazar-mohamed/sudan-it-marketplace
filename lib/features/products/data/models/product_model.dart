@@ -18,7 +18,7 @@ class ProductModel {
     return Product(
       id: doc.id,
       name: map['name'] as String? ?? '',
-      price: (map['price'] as num?)?.toDouble() ?? 0,
+      price: (map['price'] as num?)?.toDouble(),
       currency: map['currency'] as String? ?? 'SDG',
       imageUrl: map['imageUrl'] as String?,
       companyId: map['companyId'] as String?,
@@ -43,6 +43,7 @@ class ProductModel {
       'companyName': product.companyName ?? '',
       'name': product.name,
       'imageUrl': product.imageUrl ?? '',
+      // null (not 0) when the company left the price out.
       'price': product.price,
       'currency': product.currency,
       'stockCount': product.stockCount,

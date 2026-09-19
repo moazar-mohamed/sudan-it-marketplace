@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/product.dart';
 import '../product_details_screen.dart';
+import '../product_price_strings.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({
@@ -103,7 +104,9 @@ class ProductCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${_formatPrice(product.price)} ${product.currency}',
+                      product.price == null
+                          ? ProductPriceStrings.priceOnRequest(context)
+                          : '${_formatPrice(product.price!)} ${product.currency}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.bodyMedium?.copyWith(

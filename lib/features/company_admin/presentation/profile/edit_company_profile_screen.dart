@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/image_picker_field.dart';
+import '../../../../core/widgets/image_picker_strings.dart';
 import '../../../companies/domain/entities/company.dart';
 import '../../../location/domain/geo_location.dart';
 import '../../../location/presentation/widgets/location_field.dart';
 import '../company_admin_actions.dart';
-import '../widgets/admin_network_image.dart';
 
 class EditCompanyProfileScreen extends ConsumerStatefulWidget {
   const EditCompanyProfileScreen({super.key, required this.company});
@@ -22,7 +24,7 @@ class EditCompanyProfileScreen extends ConsumerStatefulWidget {
 class _EditCompanyProfileScreenState
     extends ConsumerState<EditCompanyProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _logoController;
+  late final ImagePickerController _logoController;
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
@@ -38,7 +40,7 @@ class _EditCompanyProfileScreenState
     super.initState();
     final c = widget.company;
     _coordinates = c.coordinates;
-    _logoController = TextEditingController(text: c.logoUrl ?? '');
+    _logoController = ImagePickerController(url: c.logoUrl);
     _nameController = TextEditingController(text: c.name);
     _phoneController = TextEditingController(text: c.phone ?? '');
     _emailController = TextEditingController(text: c.email ?? '');
@@ -70,8 +72,30 @@ class _EditCompanyProfileScreenState
       return;
     }
     FocusScope.of(context).unfocus();
+    setState(() => _isSaving = true);
+
+    final String logoUrl;
+    try {
+      logoUrl = await _logoController.resolveUrl(
+        ref.read(imageUploadServiceProvider),
+        folder: 'company-logos/${widget.company.id}',
+      );
+    } on ImageUploadException {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ImagePickerStrings.of(context).uploadFailed),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     final updated = widget.company.copyWith(
-      logoUrl: _logoController.text.trim(),
+      logoUrl: logoUrl,
       name: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
       email: _emailController.text.trim(),
@@ -83,7 +107,6 @@ class _EditCompanyProfileScreenState
       description: _descriptionController.text.trim(),
     );
 
-    setState(() => _isSaving = true);
     final error = await ref
         .read(companyAdminActionsProvider)
         .updateCompanyProfile(updated);
@@ -144,35 +167,12 @@ class _EditCompanyProfileScreenState
             MediaQuery.viewInsetsOf(context).bottom + 24,
           ),
           children: [
-            Center(
-              child: ValueListenableBuilder<TextEditingValue>(
-                valueListenable: _logoController,
-                builder: (context, value, _) => AdminNetworkImage(
-                  url: value.text,
-                  fallbackIcon: Icons.business_outlined,
-                  size: 88,
-                  radius: 20,
-                ),
-              ),
+            ImagePickerField(
+              controller: _logoController,
+              enabled: !_isSaving,
+              fallbackIcon: Icons.business_outlined,
             ),
             const SizedBox(height: 16),
-            _field(
-              _logoController,
-              'Company Logo URL',
-              Icons.image_outlined,
-              keyboardType: TextInputType.url,
-              validator: (value) {
-                final text = value?.trim() ?? '';
-                if (text.isEmpty) {
-                  return null;
-                }
-                final uri = Uri.tryParse(text);
-                return (uri == null ||
-                        !(uri.scheme == 'http' || uri.scheme == 'https'))
-                    ? 'Enter a valid image link (http/https).'
-                    : null;
-              },
-            ),
             _field(
               _nameController,
               'Company Name',

@@ -10,6 +10,8 @@ class UserProfile {
     required this.isActive,
     this.phone,
     this.companyId,
+    this.photoUrl,
+    this.mustChangePassword = false,
   });
 
   final String id;
@@ -24,6 +26,19 @@ class UserProfile {
   /// their company.
   final String? companyId;
 
+  /// Profile picture URL (customers). Absent when no picture was set.
+  final String? photoUrl;
+
+  /// True while a company admin is still on the temporary password the
+  /// Platform Admin set when creating the company. Absent (false) on every
+  /// account that predates the flag. The password itself is never stored here.
+  final bool mustChangePassword;
+
+  /// A company admin on a temporary password must choose their own before
+  /// using the app.
+  bool get requiresPasswordChange =>
+      role == UserRole.companyAdmin && mustChangePassword;
+
   UserProfile copyWith({
     String? id,
     String? fullName,
@@ -33,6 +48,8 @@ class UserProfile {
     bool? isActive,
     String? phone,
     String? companyId,
+    String? photoUrl,
+    bool? mustChangePassword,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -43,6 +60,8 @@ class UserProfile {
       isActive: isActive ?? this.isActive,
       phone: phone ?? this.phone,
       companyId: companyId ?? this.companyId,
+      photoUrl: photoUrl ?? this.photoUrl,
+      mustChangePassword: mustChangePassword ?? this.mustChangePassword,
     );
   }
 }

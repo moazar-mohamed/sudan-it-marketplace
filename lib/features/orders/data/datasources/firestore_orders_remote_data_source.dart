@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../customer_dashboard/data/mock_marketplace_data.dart';
+import '../../../products/data/models/product_model.dart';
+import '../../../products/domain/stock_reservation.dart';
 import '../../domain/entities/order_entity.dart';
 import '../models/order_model.dart';
 import 'orders_remote_data_source.dart';
@@ -11,10 +14,22 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const _ordersCollection = 'orders';
+  static const _productsCollection = 'products';
   static const _writeAcknowledgementTimeout = Duration(seconds: 20);
   static const _reconciliationTimeout = Duration(seconds: 10);
+  static const _maxReservationAttempts = 4;
   final FirebaseFirestore _firestore;
 
+  /// Creates the order and reserves its stock in one transaction.
+  ///
+  /// The product's `stockCount` is read, checked against the ordered
+  /// quantity and lowered by exactly that quantity together with the order
+  /// write, so two customers racing for the last units cannot both succeed.
+  /// The loser's commit is refused (its read is stale); it then re-reads the
+  /// product and is either rejected as out of stock or retried against the
+  /// new stock. Stock is consumed when the order is placed (orders start as
+  /// Processing / Pending Verification and the app has no cancel or reject
+  /// step to give it back).
   @override
   Future<String> createOrder(OrderModel order) async {
     try {
@@ -26,26 +41,137 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
         ...order.toFirestoreCreateMap(),
         'id': docRef.id,
       };
+      final productRef =
+          _firestore.collection(_productsCollection).doc(order.productId);
 
-      try {
-        await docRef.set(data).timeout(_writeAcknowledgementTimeout);
-      } on TimeoutException {
-        final wasWritten = await _matchesExpectedOrder(docRef, order);
-        if (!wasWritten) {
-          throw Exception(
-            'Your order could not be confirmed. Check your connection and try again.',
-          );
+      for (var attempt = 1;; attempt++) {
+        try {
+          await _firestore
+              .runTransaction(
+                (transaction) => _reserveStockAndCreate(
+                  transaction,
+                  productRef,
+                  docRef,
+                  order,
+                  data,
+                ),
+              )
+              .timeout(_writeAcknowledgementTimeout);
+          return docRef.id;
+        } on TimeoutException {
+          await _confirmOrderWasWritten(docRef, order);
+          return docRef.id;
+        } on FirebaseException catch (error) {
+          // A commit whose acknowledgement was lost (or a retry of an order
+          // that already went through) must not be reported as a failure, or
+          // as a second reservation.
+          if (await _matchesExpectedOrder(docRef, order)) {
+            return docRef.id;
+          }
+          final lostRace =
+              error.code == 'permission-denied' || error.code == 'aborted';
+          if (lostRace) {
+            await _throwIfStockRanOut(productRef, order);
+            if (attempt < _maxReservationAttempts) {
+              continue; // stock remains: retry with a fresh read
+            }
+          }
+          throw Exception(_createOrderErrorMessage(error));
         }
       }
-      return docRef.id;
-    } on FirebaseException catch (error) {
-      throw Exception(_createOrderErrorMessage(error));
     } on Exception {
       rethrow;
     } catch (error) {
       throw Exception('Unexpected error creating order: $error');
     }
   }
+
+  Future<void> _reserveStockAndCreate(
+    Transaction transaction,
+    DocumentReference<Map<String, dynamic>> productRef,
+    DocumentReference<Map<String, dynamic>> orderRef,
+    OrderModel order,
+    Map<String, dynamic> orderData,
+  ) async {
+    final productSnapshot = await transaction.get(productRef);
+    if (!productSnapshot.exists) {
+      // Only the built-in demo catalogue has no product document.
+      if (!_isDemoProduct(order.productId)) {
+        throw const StockUnavailableException(
+          message: 'This product is no longer available.',
+          available: 0,
+          requested: 0,
+        );
+      }
+      transaction.set(orderRef, orderData);
+      return;
+    }
+
+    final product = ProductModel.fromFirestore(productSnapshot);
+    // A product without a price has nothing to charge, so it cannot be ordered
+    // through checkout (the company may also have removed the price after the
+    // customer opened the screen).
+    if (!product.hasPrice) {
+      throw Exception(
+        '${order.productName} has no listed price yet. '
+        'Please contact the company to order it.',
+      );
+    }
+    final remaining = StockReservation.remainingAfter(
+      available: product.isAvailable ? product.stockCount : 0,
+      requested: order.quantity,
+      productName: order.productName,
+    );
+    transaction.update(productRef, {
+      'stockCount': remaining,
+      'lastOrderId': orderRef.id,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    transaction.set(orderRef, orderData);
+  }
+
+  Future<void> _confirmOrderWasWritten(
+    DocumentReference<Map<String, dynamic>> docRef,
+    OrderModel order,
+  ) async {
+    if (!await _matchesExpectedOrder(docRef, order)) {
+      throw Exception(
+        'Your order could not be confirmed. Check your connection and try again.',
+      );
+    }
+  }
+
+  /// When another customer takes units between our read and our commit, the
+  /// rules refuse the commit (`permission-denied`) because the stock they
+  /// check is already lower. Re-read the product: if there is no longer enough,
+  /// tell the customer it is out of stock instead of showing a permissions
+  /// error. Returns normally when enough stock remains (or the read fails).
+  Future<void> _throwIfStockRanOut(
+    DocumentReference<Map<String, dynamic>> productRef,
+    OrderModel order,
+  ) async {
+    try {
+      final snapshot = await productRef
+          .get(const GetOptions(source: Source.server))
+          .timeout(_reconciliationTimeout);
+      if (!snapshot.exists) {
+        return;
+      }
+      final product = ProductModel.fromFirestore(snapshot);
+      StockReservation.remainingAfter(
+        available: product.isAvailable ? product.stockCount : 0,
+        requested: order.quantity,
+        productName: order.productName,
+      );
+    } on TimeoutException {
+      return;
+    } on FirebaseException {
+      return;
+    }
+  }
+
+  bool _isDemoProduct(String productId) =>
+      mockProducts.any((product) => product.id == productId);
 
   Future<bool> _matchesExpectedOrder(
     DocumentReference<Map<String, dynamic>> docRef,

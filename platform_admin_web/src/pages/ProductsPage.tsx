@@ -105,7 +105,7 @@ export function ProductsPage() {
                       <td>
                         <Text>{p.companyName || '—'}</Text>
                       </td>
-                      <td className="nowrap">{money(p.price, p.currency)}</td>
+                      <td className="nowrap">{p.price === null ? t('product.priceOnRequest') : money(p.price, p.currency)}</td>
                       <td>{number(p.stockCount)}</td>
                       <td>{p.isDeliveryAvailable ? t('common.available') : t('common.pickupOnly')}</td>
                       <td>

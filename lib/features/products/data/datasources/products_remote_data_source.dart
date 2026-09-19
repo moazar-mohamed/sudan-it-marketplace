@@ -1,7 +1,7 @@
 import '../../domain/entities/product.dart';
 
 abstract interface class ProductsRemoteDataSource {
-  Stream<List<Product>> watchAllProducts();
+  Stream<List<Product>> watchMarketplaceProducts();
 
   Stream<List<Product>> watchCompanyProducts(String companyId);
 
