@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../customer_dashboard/data/mock_marketplace_data.dart';
+import '../../location/presentation/location_strings.dart';
 import '../domain/entities/order_entity.dart';
+import 'widgets/order_location_widgets.dart';
 import 'widgets/price_summary_row.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
@@ -186,7 +188,18 @@ class OrderDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _buildRow('Address', order.deliveryAddress, textTheme, colorScheme),
+                  _buildRow(
+                    'Address',
+                    orderDeliveryLabel(context, order),
+                    textTheme,
+                    colorScheme,
+                  ),
+                  const SizedBox(height: 8),
+                  OrderLocationButton(
+                    order: order,
+                    label: LocationStrings.of(context).openDeliveryLocation,
+                  ),
+                  PickupCompanyLocationButton(order: order),
                   const SizedBox(height: 8),
                   _buildRow('Contact Phone', order.contactPhone, textTheme, colorScheme),
                   const SizedBox(height: 8),

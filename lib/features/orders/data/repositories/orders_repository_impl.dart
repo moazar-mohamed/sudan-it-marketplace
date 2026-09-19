@@ -28,6 +28,8 @@ class OrdersRepositoryImpl implements OrdersRepository {
     DeliveryMethod deliveryMethod = DeliveryMethod.delivery,
     String customerName = '',
     String? receiptFileName,
+    double? deliveryLatitude,
+    double? deliveryLongitude,
   }) async {
     final model = OrderModel(
       id: orderId,
@@ -50,6 +52,8 @@ class OrdersRepositoryImpl implements OrdersRepository {
       paymentStatus: PaymentStatus.pendingVerification,
       orderStatus: OrderStatus.processing,
       receiptFileName: receiptFileName,
+      deliveryLatitude: deliveryLatitude,
+      deliveryLongitude: deliveryLongitude,
       createdAt: DateTime.now(),
     );
 

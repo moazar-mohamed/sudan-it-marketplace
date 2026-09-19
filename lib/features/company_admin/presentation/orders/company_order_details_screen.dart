@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../orders/domain/entities/order_entity.dart';
+import '../../../location/presentation/location_strings.dart';
 import '../../../orders/presentation/orders_providers.dart';
+import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../company_admin_format.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/order_status_actions.dart';
@@ -93,13 +95,21 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                       label: order.deliveryMethod == DeliveryMethod.pickup
                           ? 'Pickup Location'
                           : 'Delivery Address',
-                      value: order.deliveryAddress,
+                      value: orderDeliveryLabel(context, order),
                     ),
                     if (order.deliveryMethod == DeliveryMethod.delivery)
                       AdminInfoRow(
                         label: 'Delivery Fee',
                         value: CompanyAdminFormat.price(order.deliveryFee),
                       ),
+                    // Read-only: the customer's saved delivery point, or the
+                    // company's own location for a pickup order.
+                    const SizedBox(height: 8),
+                    OrderLocationButton(
+                      order: order,
+                      label: LocationStrings.of(context).openDeliveryLocation,
+                    ),
+                    PickupCompanyLocationButton(order: order),
                   ],
                 ),
                 const SizedBox(height: 12),

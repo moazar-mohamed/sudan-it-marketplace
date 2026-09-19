@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../companies/domain/entities/company.dart';
+import '../../../location/domain/geo_location.dart';
+import '../../../location/presentation/widgets/location_field.dart';
 import '../company_admin_actions.dart';
 import '../widgets/admin_network_image.dart';
 
@@ -28,12 +30,14 @@ class _EditCompanyProfileScreenState
   late final TextEditingController _addressController;
   late final TextEditingController _pickupController;
   late final TextEditingController _descriptionController;
+  GeoLocation? _coordinates;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     final c = widget.company;
+    _coordinates = c.coordinates;
     _logoController = TextEditingController(text: c.logoUrl ?? '');
     _nameController = TextEditingController(text: c.name);
     _phoneController = TextEditingController(text: c.phone ?? '');
@@ -73,6 +77,8 @@ class _EditCompanyProfileScreenState
       email: _emailController.text.trim(),
       city: _cityController.text.trim(),
       address: _addressController.text.trim(),
+      coordinates: _coordinates,
+      clearCoordinates: _coordinates == null,
       pickupAddress: _pickupController.text.trim(),
       description: _descriptionController.text.trim(),
     );
@@ -208,11 +214,15 @@ class _EditCompanyProfileScreenState
               },
             ),
             _field(_cityController, 'City', Icons.location_city_outlined),
-            _field(
-              _addressController,
-              'Address',
-              Icons.location_on_outlined,
-              maxLines: 2,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: LocationField(
+                textController: _addressController,
+                location: _coordinates,
+                enabled: !_isSaving,
+                onLocationChanged: (value) =>
+                    setState(() => _coordinates = value),
+              ),
             ),
             _field(
               _pickupController,

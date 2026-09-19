@@ -68,7 +68,15 @@ class _RoleRouter extends ConsumerWidget {
         print('[DIAG][RoleRouter] role=${profile.role} '
             'companyId=${profile.companyId} authEmail=$authEmail');
         return switch (profile.role) {
-          UserRole.customer => customerEntry(),
+          // A customer deactivated by the platform admin keeps their account
+          // and history but cannot use the app until reactivated.
+          UserRole.customer => profile.isActive
+              ? customerEntry()
+              : const _AccessMessageScreen(
+                  title: 'Account deactivated',
+                  message:
+                      'Your account has been deactivated. Please contact support to have it reactivated.',
+                ),
           UserRole.companyAdmin =>
             (profile.companyId == null || profile.companyId!.isEmpty)
                 ? const _AccessMessageScreen(

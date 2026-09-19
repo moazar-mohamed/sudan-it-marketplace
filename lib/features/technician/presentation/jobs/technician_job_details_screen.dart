@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../orders/domain/entities/order_entity.dart';
+import '../../../location/presentation/location_strings.dart';
 import '../../../orders/presentation/orders_providers.dart';
+import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../technician_format.dart';
 import '../widgets/technician_widgets.dart';
 import 'technician_job_status_actions.dart';
@@ -86,8 +88,16 @@ class TechnicianJobDetailsScreen extends ConsumerWidget {
                           ? 'Installation Address'
                           : 'Location',
                       value: job.deliveryMethod == DeliveryMethod.delivery
-                          ? job.deliveryAddress
+                          ? orderDeliveryLabel(context, job)
                           : 'Customer pickup — confirm the installation location by phone',
+                    ),
+                    // The customer's/order location saved at checkout. The
+                    // company's own location is intentionally not offered
+                    // here; a technician sees it only in their Company section.
+                    const SizedBox(height: 8),
+                    OrderLocationButton(
+                      order: job,
+                      label: LocationStrings.of(context).openOrderLocation,
                     ),
                   ],
                 ),

@@ -6,6 +6,9 @@ import '../../../auth/domain/entities/user_profile.dart';
 import '../../../auth/presentation/auth_controller.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../customer_dashboard/presentation/profile_controller.dart';
+import '../../../location/domain/geo_location.dart';
+import '../../../location/presentation/location_strings.dart';
+import '../../../location/presentation/widgets/open_location_button.dart';
 import '../widgets/technician_widgets.dart';
 
 class TechnicianProfileScreen extends ConsumerStatefulWidget {
@@ -94,6 +97,8 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
         return _TechnicianProfileContent(
           profile: profile,
           companyName: company?.name ?? '—',
+          companyLocationText: company?.locationText,
+          companyCoordinates: company?.coordinates,
           phone: widget.technicianPhone,
           formKey: _formKey,
           nameController: _nameController,
@@ -113,6 +118,8 @@ class _TechnicianProfileContent extends StatelessWidget {
   const _TechnicianProfileContent({
     required this.profile,
     required this.companyName,
+    required this.companyLocationText,
+    required this.companyCoordinates,
     required this.phone,
     required this.formKey,
     required this.nameController,
@@ -126,6 +133,11 @@ class _TechnicianProfileContent extends StatelessWidget {
 
   final UserProfile profile;
   final String companyName;
+
+  /// Read-only company location, shown only here in the technician's own
+  /// Company section (never derived from an order).
+  final String? companyLocationText;
+  final GeoLocation? companyCoordinates;
   final String phone;
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
@@ -157,6 +169,15 @@ class _TechnicianProfileContent extends StatelessWidget {
           title: 'Company',
           children: [
             TechnicianInfoRow(label: 'Company', value: companyName),
+            if (companyLocationText != null || companyCoordinates != null) ...[
+              const SizedBox(height: 8),
+              CompanyLocationBlock(
+                text: companyLocationText,
+                coordinates: companyCoordinates,
+                actionLabel: LocationStrings.of(context).viewCompanyLocation,
+                viewerTitle: companyName,
+              ),
+            ],
           ],
         ),
         const SizedBox(height: 12),

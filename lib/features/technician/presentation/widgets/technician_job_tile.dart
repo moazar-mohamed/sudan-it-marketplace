@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../orders/domain/entities/order_entity.dart';
+import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../technician_format.dart';
 import 'technician_widgets.dart';
 
@@ -78,7 +79,7 @@ class TechnicianJobTile extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 order.deliveryMethod == DeliveryMethod.delivery
-                    ? order.deliveryAddress
+                    ? orderDeliveryLabel(context, order)
                     : 'Customer pickup — confirm the location by phone',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,

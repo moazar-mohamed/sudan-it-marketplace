@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../orders/domain/entities/order_entity.dart';
+import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../company_admin_format.dart';
 import 'status_badge.dart';
 
@@ -92,7 +93,7 @@ class CompanyOrderTile extends StatelessWidget {
                     child: Text(
                       showInstallationStatus
                           ? (order.deliveryMethod == DeliveryMethod.delivery
-                              ? order.deliveryAddress
+                              ? orderDeliveryLabel(context, order)
                               : 'Customer pickup')
                           : CompanyAdminFormat.price(order.totalAmount),
                       maxLines: 1,

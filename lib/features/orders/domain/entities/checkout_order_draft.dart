@@ -19,6 +19,8 @@ class CheckoutOrderDraft {
     required this.contactPhone,
     this.deliveryMethod = DeliveryMethod.delivery,
     this.customerName = '',
+    this.deliveryLatitude,
+    this.deliveryLongitude,
   });
 
   final String orderId;
@@ -38,4 +40,8 @@ class CheckoutOrderDraft {
   final String contactPhone;
   final DeliveryMethod deliveryMethod;
   final String customerName;
+
+  /// Exact delivery point chosen on the map (delivery orders only).
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
 }

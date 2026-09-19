@@ -20,6 +20,8 @@ abstract interface class OrdersRepository {
     DeliveryMethod deliveryMethod = DeliveryMethod.delivery,
     String customerName = '',
     String? receiptFileName,
+    double? deliveryLatitude,
+    double? deliveryLongitude,
   });
 
   Future<void> attachReceipt({

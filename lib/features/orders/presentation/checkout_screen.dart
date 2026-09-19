@@ -8,6 +8,10 @@ import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/auth_state.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
+import '../../location/domain/geo_location.dart';
+import '../../location/presentation/location_strings.dart';
+import '../../location/presentation/widgets/location_field.dart';
+import '../../location/presentation/widgets/open_location_button.dart';
 import '../../products/domain/entities/product.dart';
 import '../domain/entities/checkout_order_draft.dart';
 import '../domain/entities/order_entity.dart';
@@ -32,6 +36,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
+
+  /// Optional exact delivery point picked on the map. The typed address and
+  /// the map point are independent: either one, or both, satisfies checkout.
+  GeoLocation? _deliveryLocation;
+  String? _locationError;
 
   bool _includeInstallation = false;
   static const double _standardDeliveryFee = 15000.0;
@@ -63,6 +72,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Typing an address satisfies the "address or map" requirement.
+    _addressController.addListener(() {
+      if (_locationError != null && _addressController.text.trim().isNotEmpty) {
+        setState(() => _locationError = null);
+      }
+    });
+  }
+
+  GeoLocation? _pickupCoordinates() {
+    final companyId = widget.product.companyId;
+    return companyId == null
+        ? null
+        : ref.read(resolvedCompanyProvider(companyId))?.coordinates;
+  }
+
+  @override
   void dispose() {
     _addressController.dispose();
     _phoneController.dispose();
@@ -76,7 +103,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Future<void> _onConfirmOrder() async {
-    if (!(_formKey.currentState?.validate() ?? false)) {
+    final formValid = _formKey.currentState?.validate() ?? false;
+    if (_useDelivery &&
+        _addressController.text.trim().isEmpty &&
+        _deliveryLocation == null) {
+      setState(() => _locationError = LocationStrings.of(context).locationRequired);
+      return;
+    }
+    if (!formValid) {
       return;
     }
 
@@ -109,6 +143,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       deliveryAddress: _useDelivery
           ? _addressController.text.trim()
           : 'Pickup: ${_pickupLocation()}',
+      // Pickup uses the company's own location, so no delivery point is saved.
+      deliveryLatitude: _useDelivery ? _deliveryLocation?.latitude : null,
+      deliveryLongitude: _useDelivery ? _deliveryLocation?.longitude : null,
       contactPhone: _phoneController.text.trim(),
       deliveryMethod:
           _useDelivery ? DeliveryMethod.delivery : DeliveryMethod.pickup,
@@ -130,7 +167,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final textTheme = theme.textTheme;
 
     final productCompanyId = widget.product.companyId;
-    if (productCompanyId != null && !widget.product.isDeliveryAvailable) {
+    if (productCompanyId != null) {
       // Keep the pickup location up to date while checkout is open.
       ref.watch(resolvedCompanyProvider(productCompanyId));
     }
@@ -314,6 +351,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                         .withValues(alpha: 0.75),
                                   ),
                                 ),
+                                if (_pickupCoordinates() != null) ...[
+                                  const SizedBox(height: 8),
+                                  OpenLocationButton(
+                                    label: LocationStrings.of(context).viewOnMap,
+                                    viewerTitle: 'Pickup Location',
+                                    coordinates: _pickupCoordinates(),
+                                    text: _pickupLocation(),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -323,21 +369,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     ],
                     // Delivery Address Field
                     if (_useDelivery) ...[
-                    TextFormField(
-                      controller: _addressController,
-                      maxLines: 2,
-                      decoration: const InputDecoration(
-                        labelText: 'Delivery Address',
-                        hintText: 'Street name, building/house, neighborhood, city',
-                        prefixIcon: Icon(Icons.location_on_outlined),
-                        alignLabelWithHint: true,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your delivery address';
-                        }
-                        return null;
-                      },
+                    LocationField(
+                      textController: _addressController,
+                      location: _deliveryLocation,
+                      textHint: 'Street name, building/house, neighborhood, city',
+                      errorText: _locationError,
+                      onLocationChanged: (value) => setState(() {
+                        _deliveryLocation = value;
+                        _locationError = null;
+                      }),
                     ),
                     const SizedBox(height: 16),
                     ],

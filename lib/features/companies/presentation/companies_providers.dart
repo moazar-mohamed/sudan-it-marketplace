@@ -20,14 +20,21 @@ final firestoreCompaniesStreamProvider = StreamProvider<List<Company>>((ref) {
   return ref.watch(companiesRepositoryProvider).watchAllCompanies();
 });
 
-/// Customer-facing company list: Firestore companies plus the demo companies
-/// whose ids are not already present in Firestore.
+/// Companies customers may see: only active ones. Pending, rejected and
+/// deactivated companies stay in Firestore but leave the marketplace.
+List<Company> activeCompanies(List<Company> companies) =>
+    companies.where((company) => company.isActive).toList();
+
+/// Customer-facing company list: active Firestore companies plus the demo
+/// companies whose ids are not already present in Firestore.
 final marketplaceCompaniesProvider = Provider<List<Company>>((ref) {
   final remote = ref.watch(firestoreCompaniesStreamProvider).asData?.value ??
       const <Company>[];
+  // Ids of every Firestore company (whatever its status), so a deactivated
+  // company is never replaced by a same-id demo entry.
   final remoteIds = remote.map((company) => company.id).toSet();
   return [
-    ...remote,
+    ...activeCompanies(remote),
     ...mockCompanies.where((company) => !remoteIds.contains(company.id)),
   ];
 });

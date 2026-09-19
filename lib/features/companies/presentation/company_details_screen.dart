@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../location/presentation/location_strings.dart';
+import '../../location/presentation/widgets/open_location_button.dart';
 import '../../products/domain/entities/product.dart';
 import '../../products/presentation/products_providers.dart';
 import '../../products/presentation/widgets/product_card.dart';
@@ -175,6 +177,27 @@ class CompanyDetailsScreen extends ConsumerWidget {
                         color: colorScheme.onSurface.withValues(alpha: 0.8),
                         height: 1.45,
                       ),
+                    ),
+                  ],
+                  if (company.locationText != null || company.hasCoordinates) ...[
+                    const SizedBox(height: 14),
+                    const Divider(),
+                    const SizedBox(height: 10),
+                    Text(
+                      LocationStrings.of(context).location,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Exact map action only when coordinates exist; a
+                    // text-only company just shows its written location.
+                    CompanyLocationBlock(
+                      text: company.locationText,
+                      coordinates: company.coordinates,
+                      actionLabel: LocationStrings.of(context).viewOnMap,
+                      viewerTitle: company.name,
                     ),
                   ],
                   if (company.phone != null && company.phone!.isNotEmpty) ...[

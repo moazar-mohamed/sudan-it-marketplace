@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../location/domain/geo_location.dart';
 import '../../domain/entities/order_entity.dart';
 
 class OrderModel {
@@ -24,6 +25,8 @@ class OrderModel {
     required this.paymentStatus,
     required this.orderStatus,
     this.receiptFileName,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
     this.technicianId,
     this.technicianName,
     required this.createdAt,
@@ -43,6 +46,10 @@ class OrderModel {
       if (val is String) return DateTime.tryParse(val) ?? DateTime.now();
       return DateTime.now();
     }
+
+    // Older orders have no coordinates; a non-numeric value is ignored.
+    final delivery =
+        GeoLocation.tryCreate(map['deliveryLatitude'], map['deliveryLongitude']);
 
     return OrderModel(
       id: docId,
@@ -65,6 +72,8 @@ class OrderModel {
       paymentStatus: PaymentStatus.fromValue(map['paymentStatus'] as String?),
       orderStatus: OrderStatus.fromValue(map['orderStatus'] as String?),
       receiptFileName: map['receiptFileName'] as String?,
+      deliveryLatitude: delivery?.latitude,
+      deliveryLongitude: delivery?.longitude,
       technicianId: map['technicianId'] as String?,
       technicianName: map['technicianName'] as String?,
       createdAt: parseTimestamp(map['createdAt']),
@@ -92,12 +101,15 @@ class OrderModel {
   final PaymentStatus paymentStatus;
   final OrderStatus orderStatus;
   final String? receiptFileName;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
   final String? technicianId;
   final String? technicianName;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
   Map<String, dynamic> toFirestoreCreateMap() {
+    final delivery = GeoLocation.tryCreate(deliveryLatitude, deliveryLongitude);
     return {
       'id': id,
       'customerId': customerId,
@@ -119,6 +131,12 @@ class OrderModel {
       'paymentStatus': paymentStatus.value,
       'orderStatus': orderStatus.value,
       'receiptFileName': receiptFileName,
+      // Only written when the customer picked a point on the map; stored as
+      // numbers, never strings.
+      if (delivery != null) ...{
+        'deliveryLatitude': delivery.latitude,
+        'deliveryLongitude': delivery.longitude,
+      },
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -146,6 +164,8 @@ class OrderModel {
       paymentStatus: paymentStatus,
       orderStatus: orderStatus,
       receiptFileName: receiptFileName,
+      deliveryLatitude: deliveryLatitude,
+      deliveryLongitude: deliveryLongitude,
       technicianId: technicianId,
       technicianName: technicianName,
       createdAt: createdAt,

@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/auth_controller.dart';
 import '../../../companies/presentation/companies_providers.dart';
+import '../../../location/presentation/location_strings.dart';
+import '../../../location/presentation/widgets/map_widgets.dart';
+import '../../../location/presentation/widgets/open_location_button.dart';
 import '../widgets/admin_network_image.dart';
 import '../widgets/admin_section_card.dart';
 import 'edit_company_profile_screen.dart';
@@ -100,6 +103,17 @@ class CompanyProfileTab extends ConsumerWidget {
                   label: 'Pickup Location',
                   value: _orDash(company.pickupAddress),
                 ),
+                if (company.coordinates != null) ...[
+                  const SizedBox(height: 6),
+                  CoordinatesText(location: company.coordinates!),
+                  const SizedBox(height: 10),
+                  OpenLocationButton(
+                    label: LocationStrings.of(context).viewOnMap,
+                    viewerTitle: company.name,
+                    coordinates: company.coordinates,
+                    text: company.locationText,
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 20),

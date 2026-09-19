@@ -16,6 +16,8 @@ class DashboardHomeTab extends ConsumerStatefulWidget {
   ConsumerState<DashboardHomeTab> createState() => _DashboardHomeTabState();
 }
 
+enum _HomeTab { products, companies }
+
 class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
   final TextEditingController _searchController = TextEditingController();
 
@@ -23,6 +25,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
   // which the sibling IndexedStack tabs also attach to.
   final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
+  _HomeTab _selectedTab = _HomeTab.products;
 
   @override
   void dispose() {
@@ -42,6 +45,11 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
     setState(() {
       _searchQuery = '';
     });
+  }
+
+  void _selectTab(_HomeTab tab) {
+    if (_selectedTab == tab) return;
+    setState(() => _selectedTab = tab);
   }
 
   @override
@@ -68,6 +76,8 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
                 normalizeSearchText(product.name).contains(_searchQuery))
             .toList();
 
+    final isProductsTab = _selectedTab == _HomeTab.products;
+
     return ListView(
       controller: _scrollController,
       primary: false,
@@ -82,7 +92,9 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           controller: _searchController,
           onChanged: _onSearchChanged,
           decoration: InputDecoration(
-            hintText: 'Search companies or products...',
+            hintText: isProductsTab
+                ? 'Search products...'
+                : 'Search companies...',
             hintMaxLines: 1,
             prefixIcon: const Icon(Icons.search),
             suffixIcon: _searchQuery.isNotEmpty
@@ -95,16 +107,50 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             fillColor: colorScheme.surface,
           ),
         ),
-        const SizedBox(height: 20),
-        Text(
-          'Companies',
-          style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: colorScheme.onSurface,
-          ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _HomeTabButton(
+                label: 'Products',
+                selected: isProductsTab,
+                onTap: () => _selectTab(_HomeTab.products),
+              ),
+            ),
+            Expanded(
+              child: _HomeTabButton(
+                label: 'Companies',
+                selected: !isProductsTab,
+                onTap: () => _selectTab(_HomeTab.companies),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        if (filteredCompanies.isEmpty)
+        const SizedBox(height: 16),
+        if (isProductsTab)
+          if (filteredProducts.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'No products found',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
+            )
+          else
+            Column(
+              children: [
+                for (int i = 0; i < filteredProducts.length; i++) ...[
+                  ProductCard(product: filteredProducts[i]),
+                  if (i < filteredProducts.length - 1)
+                    const SizedBox(height: 10),
+                ],
+              ],
+            )
+        else if (filteredCompanies.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(
@@ -126,38 +172,55 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
               ],
             ],
           ),
-        const SizedBox(height: 20),
-        Text(
-          'Products',
-          style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (filteredProducts.isEmpty)
+      ],
+    );
+  }
+}
+
+class _HomeTabButton extends StatelessWidget {
+  const _HomeTabButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Center(
-              child: Text(
-                'No products found',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected
+                    ? colorScheme.primary
+                    : colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
-          )
-        else
-          Column(
-            children: [
-              for (int i = 0; i < filteredProducts.length; i++) ...[
-                ProductCard(product: filteredProducts[i]),
-                if (i < filteredProducts.length - 1)
-                  const SizedBox(height: 10),
-              ],
-            ],
           ),
-      ],
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            height: 3,
+            decoration: BoxDecoration(
+              color: selected ? colorScheme.primary : Colors.transparent,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

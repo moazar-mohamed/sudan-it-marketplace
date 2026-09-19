@@ -95,6 +95,8 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             deliveryMethod: widget.draft.deliveryMethod,
             customerName: widget.draft.customerName,
             receiptFileName: _selectedReceiptName!,
+            deliveryLatitude: widget.draft.deliveryLatitude,
+            deliveryLongitude: widget.draft.deliveryLongitude,
           );
 
       if (!mounted) return;

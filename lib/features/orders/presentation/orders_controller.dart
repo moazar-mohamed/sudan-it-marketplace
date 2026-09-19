@@ -56,6 +56,8 @@ class OrdersController extends Notifier<OrderActionState> {
     DeliveryMethod deliveryMethod = DeliveryMethod.delivery,
     String customerName = '',
     String? receiptFileName,
+    double? deliveryLatitude,
+    double? deliveryLongitude,
   }) async {
     state = const OrderActionLoading();
     try {
@@ -78,6 +80,8 @@ class OrdersController extends Notifier<OrderActionState> {
         deliveryMethod: deliveryMethod,
         customerName: customerName,
         receiptFileName: receiptFileName,
+        deliveryLatitude: deliveryLatitude,
+        deliveryLongitude: deliveryLongitude,
       );
       state = OrderActionSuccess(order);
       final notifications = ref.read(notificationsRepositoryProvider);

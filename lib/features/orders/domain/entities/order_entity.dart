@@ -1,3 +1,5 @@
+import '../../../location/domain/geo_location.dart';
+
 enum OrderStatus {
   processing('processing', 'Processing'),
   outForDelivery('out_for_delivery', 'Out for Delivery'),
@@ -70,6 +72,8 @@ class OrderEntity {
     this.paymentStatus = PaymentStatus.pendingVerification,
     this.orderStatus = OrderStatus.processing,
     this.receiptFileName,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
     this.technicianId,
     this.technicianName,
     required this.createdAt,
@@ -97,6 +101,11 @@ class OrderEntity {
   final OrderStatus orderStatus;
   final String? receiptFileName;
 
+  /// Exact delivery point the customer chose on the map at checkout. Optional
+  /// (text-only and pickup orders have none) and never changed afterwards.
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
+
   /// Set only when this order's installation add-on has been assigned to a
   /// technician by the company admin.
   final String? technicianId;
@@ -105,6 +114,19 @@ class OrderEntity {
   final DateTime? updatedAt;
 
   String get shortId => id.length > 8 ? id.substring(0, 8) : id;
+
+  /// The delivery point saved with this order, or null when the customer only
+  /// typed an address (or the order is a pickup / legacy order).
+  GeoLocation? get deliveryCoordinates =>
+      GeoLocation.tryCreate(deliveryLatitude, deliveryLongitude);
+
+  bool get hasDeliveryCoordinates => deliveryCoordinates != null;
+
+  /// The written delivery address, null when empty (map-only orders).
+  String? get deliveryText {
+    final text = deliveryAddress.trim();
+    return text.isEmpty ? null : text;
+  }
 
   OrderEntity copyWith({
     String? id,
@@ -127,6 +149,8 @@ class OrderEntity {
     PaymentStatus? paymentStatus,
     OrderStatus? orderStatus,
     String? receiptFileName,
+    double? deliveryLatitude,
+    double? deliveryLongitude,
     String? technicianId,
     String? technicianName,
     DateTime? createdAt,
@@ -153,6 +177,8 @@ class OrderEntity {
       paymentStatus: paymentStatus ?? this.paymentStatus,
       orderStatus: orderStatus ?? this.orderStatus,
       receiptFileName: receiptFileName ?? this.receiptFileName,
+      deliveryLatitude: deliveryLatitude ?? this.deliveryLatitude,
+      deliveryLongitude: deliveryLongitude ?? this.deliveryLongitude,
       technicianId: technicianId ?? this.technicianId,
       technicianName: technicianName ?? this.technicianName,
       createdAt: createdAt ?? this.createdAt,

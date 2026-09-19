@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../customer_dashboard/presentation/customer_dashboard_screen.dart';
 import '../domain/entities/order_entity.dart';
 import 'order_details_screen.dart';
+import 'widgets/order_location_widgets.dart';
 import 'widgets/price_summary_row.dart';
 
 class OrderPendingVerificationScreen extends StatelessWidget {
@@ -170,7 +171,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   _buildDetailRow(
                     'Delivery Address',
-                    order.deliveryAddress,
+                    orderDeliveryLabel(context, order),
                     textTheme,
                     colorScheme,
                   ),

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../orders/domain/entities/order_entity.dart';
+import '../../../location/presentation/location_strings.dart';
 import '../../../orders/presentation/orders_providers.dart';
+import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../../../technicians/domain/entities/technician.dart';
 import '../../../technicians/presentation/technicians_providers.dart';
 import '../company_admin_actions.dart';
@@ -81,8 +83,13 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
                           ? 'Installation Address'
                           : 'Location',
                       value: order.deliveryMethod == DeliveryMethod.delivery
-                          ? order.deliveryAddress
+                          ? orderDeliveryLabel(context, order)
                           : 'Customer pickup — confirm the installation location by phone',
+                    ),
+                    const SizedBox(height: 8),
+                    OrderLocationButton(
+                      order: order,
+                      label: LocationStrings.of(context).openDeliveryLocation,
                     ),
                   ],
                 ),
