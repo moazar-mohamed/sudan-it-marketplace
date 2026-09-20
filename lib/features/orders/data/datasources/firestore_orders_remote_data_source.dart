@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../core/errors/app_exception.dart';
 import '../../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../../products/data/models/product_model.dart';
 import '../../../products/domain/stock_reservation.dart';
@@ -76,13 +77,13 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
               continue; // stock remains: retry with a fresh read
             }
           }
-          throw Exception(_createOrderErrorMessage(error));
+          throw _createOrderError(error);
         }
       }
     } on Exception {
       rethrow;
     } catch (error) {
-      throw Exception('Unexpected error creating order: $error');
+      throw AppException(AppErrorCode.orderCreateFailed, detail: '$error');
     }
   }
 
@@ -112,9 +113,9 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
     // through checkout (the company may also have removed the price after the
     // customer opened the screen).
     if (!product.hasPrice) {
-      throw Exception(
-        '${order.productName} has no listed price yet. '
-        'Please contact the company to order it.',
+      throw AppException(
+        AppErrorCode.orderProductNoPrice,
+        productName: order.productName,
       );
     }
     final remaining = StockReservation.remainingAfter(
@@ -135,9 +136,7 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
     OrderModel order,
   ) async {
     if (!await _matchesExpectedOrder(docRef, order)) {
-      throw Exception(
-        'Your order could not be confirmed. Check your connection and try again.',
-      );
+      throw const AppException(AppErrorCode.orderNotConfirmed);
     }
   }
 
@@ -215,15 +214,18 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
     }
   }
 
-  String _createOrderErrorMessage(FirebaseException error) {
+  AppException _createOrderError(FirebaseException error) {
     switch (error.code) {
       case 'permission-denied':
-        return 'You do not have permission to place this order. Please sign in again and try again.';
+        return const AppException(AppErrorCode.orderCreateDenied);
       case 'unavailable':
       case 'network-request-failed':
-        return 'The order could not be confirmed. Check your internet connection and try again.';
+        return const AppException(AppErrorCode.orderCreateNetwork);
       default:
-        return 'Failed to create order: ${error.message ?? error.code}';
+        return AppException(
+          AppErrorCode.orderCreateFailed,
+          detail: '${error.code}: ${error.message}',
+        );
     }
   }
 
@@ -238,9 +240,15 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (error) {
-      throw Exception('Failed to attach receipt: ${error.message ?? error.code}');
+      throw AppException(
+        AppErrorCode.orderAttachReceiptFailed,
+        detail: '${error.code}: ${error.message}',
+      );
     } catch (error) {
-      throw Exception('Unexpected error attaching receipt: $error');
+      throw AppException(
+        AppErrorCode.orderAttachReceiptFailed,
+        detail: '$error',
+      );
     }
   }
 
@@ -254,9 +262,12 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
       }
       return OrderModel.fromFirestore(doc);
     } on FirebaseException catch (error) {
-      throw Exception('Failed to fetch order: ${error.message ?? error.code}');
+      throw AppException(
+        AppErrorCode.orderFetchFailed,
+        detail: '${error.code}: ${error.message}',
+      );
     } catch (error) {
-      throw Exception('Unexpected error fetching order: $error');
+      throw AppException(AppErrorCode.orderFetchFailed, detail: '$error');
     }
   }
 
@@ -313,7 +324,11 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (error) {
-      throw Exception(_companyUpdateErrorMessage(error, 'update order status'));
+      throw _companyUpdateError(
+        error,
+        AppErrorCode.orderUpdateStatusDenied,
+        AppErrorCode.orderUpdateStatusFailed,
+      );
     }
   }
 
@@ -325,7 +340,11 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (error) {
-      throw Exception(_companyUpdateErrorMessage(error, 'confirm payment'));
+      throw _companyUpdateError(
+        error,
+        AppErrorCode.orderConfirmPaymentDenied,
+        AppErrorCode.orderConfirmPaymentFailed,
+      );
     }
   }
 
@@ -342,14 +361,22 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (error) {
-      throw Exception(_companyUpdateErrorMessage(error, 'assign a technician'));
+      throw _companyUpdateError(
+        error,
+        AppErrorCode.orderAssignTechnicianDenied,
+        AppErrorCode.orderAssignTechnicianFailed,
+      );
     }
   }
 
-  String _companyUpdateErrorMessage(FirebaseException error, String action) {
+  AppException _companyUpdateError(
+    FirebaseException error,
+    AppErrorCode denied,
+    AppErrorCode failed,
+  ) {
     if (error.code == 'permission-denied') {
-      return 'You do not have permission to $action for this order.';
+      return AppException(denied);
     }
-    return 'Could not $action: ${error.message ?? error.code}';
+    return AppException(failed, detail: '${error.code}: ${error.message}');
   }
 }

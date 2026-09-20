@@ -4,6 +4,8 @@ import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../company_admin_format.dart';
 import 'status_badge.dart';
+import '../../../../core/localization/l10n_extension.dart';
+import '../../../orders/presentation/order_labels.dart';
 
 class CompanyOrderTile extends StatelessWidget {
   const CompanyOrderTile({
@@ -47,7 +49,9 @@ class CompanyOrderTile extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      '${showInstallationStatus ? 'Job' : 'Order'} #${order.shortId}',
+                      showInstallationStatus
+                          ? context.l10n.adminJobTitleNumber(order.shortId)
+                          : context.l10n.orderTitleNumber(order.shortId),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.labelLarge?.copyWith(
@@ -59,8 +63,8 @@ class CompanyOrderTile extends StatelessWidget {
                   Flexible(
                     child: StatusBadge(
                       label: showInstallationStatus
-                          ? CompanyAdminFormat.installationJobStatus(order)
-                          : order.orderStatus.displayName,
+                          ? CompanyAdminFormat.installationJobStatus(order, context.l10n)
+                          : order.orderStatus.label(context.l10n),
                       color: statusColor,
                     ),
                   ),
@@ -78,8 +82,8 @@ class CompanyOrderTile extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 showInstallationStatus
-                    ? '${CompanyAdminFormat.customer(order)} • ${order.contactPhone}'
-                    : '${CompanyAdminFormat.customer(order)} • Qty ${order.quantity}',
+                    ? '${CompanyAdminFormat.customer(order, context.l10n)} • ${order.contactPhone}'
+                    : '${CompanyAdminFormat.customer(order, context.l10n)} • ${context.l10n.adminQtyShort(order.quantity)}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.bodySmall?.copyWith(
@@ -94,7 +98,7 @@ class CompanyOrderTile extends StatelessWidget {
                       showInstallationStatus
                           ? (order.deliveryMethod == DeliveryMethod.delivery
                               ? orderDeliveryLabel(context, order)
-                              : 'Customer pickup')
+                              : context.l10n.adminCustomerPickup)
                           : CompanyAdminFormat.price(order.totalAmount),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -110,7 +114,7 @@ class CompanyOrderTile extends StatelessWidget {
                   if (!showInstallationStatus)
                     Flexible(
                       child: StatusBadge(
-                        label: order.paymentStatus.displayName,
+                        label: order.paymentStatus.label(context.l10n),
                         color: CompanyAdminFormat.paymentStatusColor(
                           order.paymentStatus,
                         ),

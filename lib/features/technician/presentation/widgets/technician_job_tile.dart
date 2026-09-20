@@ -4,6 +4,7 @@ import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../technician_format.dart';
 import 'technician_widgets.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 /// A single assigned installation job row, used by the Jobs tab and the
 /// Dashboard tab.
@@ -41,7 +42,7 @@ class TechnicianJobTile extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Job #${order.shortId}',
+                      context.l10n.adminJobTitleNumber(order.shortId),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.labelLarge?.copyWith(
@@ -52,7 +53,7 @@ class TechnicianJobTile extends StatelessWidget {
                   const SizedBox(width: 8),
                   Flexible(
                     child: TechnicianStatusBadge(
-                      label: TechnicianFormat.jobStatusLabel(order),
+                      label: TechnicianFormat.jobStatusLabel(order, context.l10n),
                       color: statusColor,
                     ),
                   ),
@@ -69,7 +70,7 @@ class TechnicianJobTile extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${TechnicianFormat.customer(order)} • ${order.contactPhone}',
+                '${TechnicianFormat.customer(order, context.l10n)} • ${order.contactPhone}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.bodySmall?.copyWith(
@@ -80,7 +81,7 @@ class TechnicianJobTile extends StatelessWidget {
               Text(
                 order.deliveryMethod == DeliveryMethod.delivery
                     ? orderDeliveryLabel(context, order)
-                    : 'Customer pickup — confirm the location by phone',
+                    : context.l10n.adminCustomerPickupConfirmShort,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.bodyMedium?.copyWith(

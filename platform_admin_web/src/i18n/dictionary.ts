@@ -11,6 +11,7 @@ export const en = {
   'nav.reviews': 'Reviews',
   'nav.analytics': 'Analytics',
   'nav.profile': 'Profile',
+  'nav.settings': 'Settings',
 
   'common.loading': 'Loading…',
   'common.retry': 'Try again',
@@ -220,6 +221,7 @@ export const en = {
   'location.permissionDenied':
     'Location permission was denied. You can still click the map or type an address.',
   'location.unavailable': 'Could not get your current location. You can still click the map.',
+  'company.name': 'Name',
   'company.email': 'Email',
   'company.phone': 'Phone',
   'company.productsCount': 'Products',
@@ -362,6 +364,14 @@ export const en = {
   'profile.email': 'Email',
   'profile.role': 'Role',
   'profile.roleValue': 'Platform Admin',
+
+  'settings.title': 'Settings',
+  'settings.subtitle': 'Preferences for your account',
+  'settings.languageHint': 'Choose the language of the dashboard.',
+  'settings.languageEnglish': 'English',
+  'settings.languageArabic': 'العربية',
+  'settings.languageSaveFailed':
+    'The language was changed here, but could not be saved to your account yet.',
 } as const;
 
 export type TranslationKey = keyof typeof en;
@@ -379,6 +389,7 @@ export const ar: Record<TranslationKey, string> = {
   'nav.reviews': 'التقييمات',
   'nav.analytics': 'التحليلات',
   'nav.profile': 'الملف الشخصي',
+  'nav.settings': 'الإعدادات',
 
   'common.loading': 'جارٍ التحميل…',
   'common.retry': 'إعادة المحاولة',
@@ -500,10 +511,10 @@ export const ar: Record<TranslationKey, string> = {
   'companies.approve': 'موافقة',
   'companies.reject': 'رفض',
   'companies.activate': 'تفعيل',
-  'companies.deactivate': 'تعطيل',
+  'companies.deactivate': 'إلغاء التفعيل',
   'companies.confirmReject.title': 'رفض هذه الشركة؟',
   'companies.confirmReject.body': 'سيتم تحديد {name} كشركة مرفوضة.',
-  'companies.confirmDeactivate.title': 'تعطيل هذه الشركة؟',
+  'companies.confirmDeactivate.title': 'إلغاء تفعيل هذه الشركة؟',
   'companies.confirmDeactivate.body': 'سيتم تحديد {name} كشركة غير نشطة.',
   'companies.updated': 'تم تحديث حالة الشركة.',
   'companies.add': 'إضافة شركة',
@@ -528,13 +539,13 @@ export const ar: Record<TranslationKey, string> = {
   'companies.confirmDelete.body':
     'حذف {name} سيؤدي إلى حذف ما يلي نهائياً:\n• الشركة\n• مدير الشركة\n• موظفيها / الفنيين\n• دعوات الفنيين\n• {count} منتج/منتجات وبقية بيانات الشركة\n\nالطلبات وسجل الطلبات لن تُحذف.\n\nيجب حذف حسابات الدخول بشكل منفصل من Firebase Authentication. لا يمكن التراجع عن ذلك.',
   'companies.confirmDelete.activeNote':
-    'هذه الشركة نشطة، لذا سيتم تعطيلها أولاً.',
+    'هذه الشركة نشطة، لذا سيتم إلغاء تفعيلها أولاً.',
   'companies.deletedCascade':
     'تم حذف الشركة مع مديرها ({admins}) وموظفيها ({technicians}) ودعواتها ({invites}) ومنتجاتها ({products}) و{other} سجل آخر. {orders}',
   'companies.ordersKept': 'تم الاحتفاظ بـ {count} طلب.',
   'companies.ordersKeptUnknown': 'تم الاحتفاظ بالطلبات.',
   'companies.statusNote':
-    'الشركات النشطة فقط (ومنتجاتها) ظاهرة للعملاء. عطّل الشركة لإخفائها وإخفاء منتجاتها، وأعد تفعيلها لإظهارها من جديد. الشركة النشطة تُعطَّل أولاً عند حذفها.',
+    'الشركات النشطة فقط (ومنتجاتها) ظاهرة للعملاء. ألغِ تفعيل الشركة لإخفائها وإخفاء منتجاتها، وأعد تفعيلها لإظهارها من جديد. يتم إلغاء تفعيل الشركة النشطة أولاً عند حذفها.',
   'company.details': 'تفاصيل الشركة',
   'company.section.info': 'معلومات أساسية',
   'company.section.contact': 'التواصل',
@@ -587,7 +598,8 @@ export const ar: Record<TranslationKey, string> = {
   'location.permissionDenied':
     'تم رفض إذن الموقع. يمكنك الضغط على الخريطة أو كتابة العنوان.',
   'location.unavailable': 'تعذر الحصول على موقعك الحالي. يمكنك الضغط على الخريطة.',
-  'company.email': 'البريد الإلكتروني',
+  'company.name': 'اسم الشركة',
+  'company.email': 'البريد الإلكتروني للشركة',
   'company.phone': 'الهاتف',
   'company.productsCount': 'المنتجات',
   'company.ordersCount': 'الطلبات',
@@ -615,26 +627,26 @@ export const ar: Record<TranslationKey, string> = {
     'تعذر إعداد الحساب فلم يتم إنشاؤه. رفضت قواعد أمان Firestore الملف الشخصي.',
   'customers.error.generic': 'تعذر إنشاء حساب العميل. يرجى المحاولة مرة أخرى.',
   'customers.deleteNote':
-    'لا يمكن حذف العملاء من هنا: الحذف الحقيقي يتطلب إزالة حساب الدخول أيضاً وهذا لا يمكن تنفيذه بأمان من المتصفح. عطّل العميل بدلاً من ذلك؛ تبقى بياناته وطلباته.',
+    'لا يمكن حذف العملاء من هنا: الحذف الحقيقي يتطلب إزالة حساب الدخول أيضاً وهذا لا يمكن تنفيذه بأمان من المتصفح. ألغِ تفعيل العميل بدلاً من ذلك؛ تبقى بياناته وطلباته.',
   'customer.details': 'تفاصيل العميل',
   'customer.section.profile': 'الملف الشخصي',
   'customer.orderHistory': 'سجل الطلبات',
   'customer.noOrders': 'لا توجد طلبات لهذا العميل بعد.',
   'customer.activate': 'تفعيل العميل',
-  'customer.deactivate': 'تعطيل العميل',
-  'customer.confirmDeactivate.title': 'تعطيل هذا العميل؟',
+  'customer.deactivate': 'إلغاء تفعيل العميل',
+  'customer.confirmDeactivate.title': 'إلغاء تفعيل هذا العميل؟',
   'customer.confirmDeactivate.body': 'سيتم تحديد {name} كحساب غير نشط.',
   'customer.updated': 'تم تحديث حالة العميل.',
-  'customer.deactivated': 'تم تعطيل العميل.',
+  'customer.deactivated': 'تم إلغاء تفعيل العميل.',
   'customer.reactivated': 'تمت إعادة تفعيل العميل.',
-  'customer.deactivateShort': 'تعطيل',
+  'customer.deactivateShort': 'إلغاء التفعيل',
   'customer.activateShort': 'تفعيل',
   'customer.editTitle': 'تعديل العميل',
   'customer.nameRequired': 'الاسم مطلوب.',
   'customer.emailLocked': 'البريد مرتبط بحساب الدخول ولا يمكن تغييره من هنا.',
   'customer.profileUpdated': 'تم تحديث بيانات العميل.',
   'customer.note':
-    'يمكنك تعديل الاسم والهاتف وتفعيل الحساب أو تعطيله. لا يمكن تغيير البريد أو الدور أو الشركة أو بيانات الدخول من هنا. العميل المعطّل لا يستطيع استخدام التطبيق، وتبقى بياناته وطلباته.',
+    'يمكنك تعديل الاسم والهاتف وتفعيل الحساب أو إلغاء تفعيله. لا يمكن تغيير البريد أو الدور أو الشركة أو بيانات الدخول من هنا. العميل الذي أُلغي تفعيله لا يستطيع استخدام التطبيق، وتبقى بياناته وطلباته.',
 
   'products.title': 'المنتجات',
   'products.subtitle': 'منتجات جميع الشركات',
@@ -693,10 +705,10 @@ export const ar: Record<TranslationKey, string> = {
   'categories.addTitle': 'إضافة فئة',
   'categories.saved': 'تم حفظ الفئة.',
   'categories.updated': 'تم تحديث الفئة.',
-  'categories.confirmDeactivate.title': 'تعطيل هذه الفئة؟',
+  'categories.confirmDeactivate.title': 'إلغاء تفعيل هذه الفئة؟',
   'categories.confirmDeactivate.body': 'سيتم تحديد {name} كفئة غير نشطة.',
   'categories.activate': 'تفعيل',
-  'categories.deactivate': 'تعطيل',
+  'categories.deactivate': 'إلغاء التفعيل',
   'categories.nameLabel': 'الاسم',
   'categories.nameHint':
     'تحتوي الفئات حالياً على حقل اسم واحد، ويمكن كتابته بالإنجليزية أو بالعربية.',
@@ -727,4 +739,11 @@ export const ar: Record<TranslationKey, string> = {
   'profile.email': 'البريد الإلكتروني',
   'profile.role': 'الدور',
   'profile.roleValue': 'مدير المنصة',
+
+  'settings.title': 'الإعدادات',
+  'settings.subtitle': 'تفضيلات حسابك',
+  'settings.languageHint': 'اختر لغة لوحة التحكم.',
+  'settings.languageEnglish': 'English',
+  'settings.languageArabic': 'العربية',
+  'settings.languageSaveFailed': 'تم تغيير اللغة هنا، لكن تعذر حفظها في حسابك حاليًا.',
 };

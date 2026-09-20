@@ -5,6 +5,8 @@ import '../../orders/presentation/customer_orders_screen.dart';
 import 'customer_notifications_screen.dart';
 import 'customer_profile_screen.dart';
 import 'widgets/dashboard_home_tab.dart';
+import '../../../core/localization/l10n_extension.dart';
+import '../../settings/presentation/settings_screen.dart';
 
 class CustomerDashboardScreen extends ConsumerStatefulWidget {
   const CustomerDashboardScreen({
@@ -46,13 +48,14 @@ class _CustomerDashboardScreenState
     return Scaffold(
       appBar: AppBar(
         title: Text(switch (_currentIndex) {
-          1 => 'My Orders',
-          2 => 'Profile',
-          _ => 'Sudan ICT Marketplace',
+          1 => context.l10n.navMyOrders,
+          2 => context.l10n.navProfile,
+          _ => context.l10n.appName,
         }),
         actions: [
+          const SettingsButton(),
           IconButton(
-            tooltip: 'Notifications',
+            tooltip: context.l10n.commonNotifications,
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
               Navigator.of(context).push(
@@ -73,21 +76,21 @@ class _CustomerDashboardScreenState
         onDestinationSelected: _onSelectTab,
         backgroundColor: colorScheme.surface,
         indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: 'Home',
+            label: context.l10n.navHome,
           ),
           NavigationDestination(
             icon: Icon(Icons.shopping_bag_outlined),
             selectedIcon: Icon(Icons.shopping_bag),
-            label: 'Orders',
+            label: context.l10n.navOrders,
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            label: context.l10n.navProfile,
           ),
         ],
       ),

@@ -9,6 +9,7 @@ import '../../../location/presentation/widgets/open_location_button.dart';
 import '../widgets/admin_network_image.dart';
 import '../widgets/admin_section_card.dart';
 import 'edit_company_profile_screen.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class CompanyProfileTab extends ConsumerWidget {
   const CompanyProfileTab({super.key, required this.companyId});
@@ -27,7 +28,7 @@ class CompanyProfileTab extends ConsumerWidget {
     final signOutButton = OutlinedButton.icon(
       onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
       icon: Icon(Icons.logout, color: colorScheme.error),
-      label: Text('Sign out', style: TextStyle(color: colorScheme.error)),
+      label: Text(context.l10n.commonSignOut, style: TextStyle(color: colorScheme.error)),
     );
 
     return companyAsync.when(
@@ -36,7 +37,7 @@ class CompanyProfileTab extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           AdminErrorState(
-            message: 'Could not load your company profile.',
+            message: context.l10n.adminCompanyLoadFailed,
             onRetry: () => ref.invalidate(companyStreamProvider(companyId)),
           ),
           signOutButton,
@@ -47,10 +48,10 @@ class CompanyProfileTab extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              const AdminEmptyState(
+              AdminEmptyState(
                 icon: Icons.business_outlined,
                 message:
-                    'Your company record was not found. Please contact the platform administrator.',
+                    context.l10n.adminCompanyNotFound,
               ),
               signOutButton,
             ],
@@ -87,20 +88,20 @@ class CompanyProfileTab extends ConsumerWidget {
             ],
             const SizedBox(height: 16),
             AdminSectionCard(
-              title: 'Contact',
+              title: context.l10n.adminContact,
               children: [
-                AdminInfoRow(label: 'Phone', value: _orDash(company.phone)),
-                AdminInfoRow(label: 'Email', value: _orDash(company.email)),
+                AdminInfoRow(label: context.l10n.adminPhone, value: _orDash(company.phone)),
+                AdminInfoRow(label: context.l10n.authEmail, value: _orDash(company.email)),
               ],
             ),
             const SizedBox(height: 12),
             AdminSectionCard(
-              title: 'Location',
+              title: context.l10n.adminLocation,
               children: [
-                AdminInfoRow(label: 'City', value: _orDash(company.city)),
-                AdminInfoRow(label: 'Address', value: _orDash(company.address)),
+                AdminInfoRow(label: context.l10n.adminCity, value: _orDash(company.city)),
+                AdminInfoRow(label: context.l10n.orderAddress, value: _orDash(company.address)),
                 AdminInfoRow(
-                  label: 'Pickup Location',
+                  label: context.l10n.checkoutPickupLocation,
                   value: _orDash(company.pickupAddress),
                 ),
                 if (company.coordinates != null) ...[
@@ -124,7 +125,7 @@ class CompanyProfileTab extends ConsumerWidget {
                 ),
               ),
               icon: const Icon(Icons.edit_outlined),
-              label: const Text('Edit Company Profile'),
+              label: Text(context.l10n.adminEditCompanyProfile),
             ),
             const SizedBox(height: 12),
             signOutButton,

@@ -10,6 +10,7 @@ import '../../../companies/domain/entities/company.dart';
 import '../../../location/domain/geo_location.dart';
 import '../../../location/presentation/widgets/location_field.dart';
 import '../company_admin_actions.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class EditCompanyProfileScreen extends ConsumerStatefulWidget {
   const EditCompanyProfileScreen({super.key, required this.company});
@@ -116,7 +117,7 @@ class _EditCompanyProfileScreenState
     setState(() => _isSaving = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(error ?? 'Company profile updated.'),
+        content: Text(error ?? context.l10n.adminCompanyProfileUpdated),
         backgroundColor: error == null ? null : AppColors.error,
       ),
     );
@@ -156,7 +157,7 @@ class _EditCompanyProfileScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Company Profile')),
+      appBar: AppBar(title: Text(context.l10n.adminEditCompanyProfile)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -175,15 +176,15 @@ class _EditCompanyProfileScreenState
             const SizedBox(height: 16),
             _field(
               _nameController,
-              'Company Name',
+              context.l10n.adminCompanyName,
               Icons.business_outlined,
               validator: (value) => (value?.trim().isEmpty ?? true)
-                  ? 'Company name is required.'
+                  ? context.l10n.adminCompanyNameRequired
                   : null,
             ),
             _field(
               _phoneController,
-              'Phone',
+              context.l10n.adminPhone,
               Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               inputFormatters: [
@@ -195,12 +196,12 @@ class _EditCompanyProfileScreenState
                 if (digits.isEmpty) {
                   return null;
                 }
-                return digits.length < 9 ? 'Enter a valid phone number.' : null;
+                return digits.length < 9 ? context.l10n.commonPhoneInvalid : null;
               },
             ),
             _field(
               _emailController,
-              'Email',
+              context.l10n.authEmail,
               Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
@@ -210,10 +211,10 @@ class _EditCompanyProfileScreenState
                 }
                 return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(text)
                     ? null
-                    : 'Enter a valid email address.';
+                    : context.l10n.authEmailInvalid;
               },
             ),
-            _field(_cityController, 'City', Icons.location_city_outlined),
+            _field(_cityController, context.l10n.adminCity, Icons.location_city_outlined),
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: LocationField(
@@ -226,13 +227,13 @@ class _EditCompanyProfileScreenState
             ),
             _field(
               _pickupController,
-              'Pickup Location / Address',
+              context.l10n.adminPickupAddress,
               Icons.storefront_outlined,
               maxLines: 2,
             ),
             _field(
               _descriptionController,
-              'Short Description',
+              context.l10n.adminShortDescription,
               Icons.notes_outlined,
               maxLines: 4,
             ),
@@ -248,7 +249,7 @@ class _EditCompanyProfileScreenState
                         color: AppColors.onPrimary,
                       ),
                     )
-                  : const Text('Save Changes'),
+                  : Text(context.l10n.commonSaveChanges),
             ),
           ],
         ),

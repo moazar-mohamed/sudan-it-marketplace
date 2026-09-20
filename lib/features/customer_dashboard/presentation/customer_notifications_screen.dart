@@ -9,6 +9,7 @@ import '../../notifications/presentation/widgets/notification_tile.dart';
 import '../../orders/domain/entities/order_entity.dart';
 import '../../orders/presentation/order_details_screen.dart';
 import '../../orders/presentation/orders_providers.dart';
+import '../../../core/localization/l10n_extension.dart';
 
 OrderEntity? _findOrder(List<OrderEntity>? orders, String orderId) {
   for (final order in orders ?? const <OrderEntity>[]) {
@@ -35,7 +36,7 @@ class CustomerNotificationsScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(title: Text(context.l10n.commonNotifications)),
       body: notificationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => Center(
@@ -47,12 +48,12 @@ class CustomerNotificationsScreen extends ConsumerWidget {
                 Icon(Icons.error_outline_rounded,
                     size: 48, color: colorScheme.error),
                 const SizedBox(height: 12),
-                const Text('Could not load notifications.'),
+                Text(context.l10n.notificationsLoadFailed),
                 const SizedBox(height: 16),
                 OutlinedButton(
                   onPressed: () => ref
                       .invalidate(customerNotificationsStreamProvider(customerId)),
-                  child: const Text('Try again'),
+                  child: Text(context.l10n.commonRetry),
                 ),
               ],
             ),
@@ -73,7 +74,7 @@ class CustomerNotificationsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No notifications yet.',
+                      context.l10n.notificationsEmpty,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: colorScheme.onSurface.withValues(alpha: 0.6),
                           ),

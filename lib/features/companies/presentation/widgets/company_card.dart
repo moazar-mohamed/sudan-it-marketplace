@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/company.dart';
 import '../company_details_screen.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class CompanyCard extends StatelessWidget {
   const CompanyCard({
@@ -113,7 +114,7 @@ class CompanyCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
-                            '(${company.reviewCount} reviews)',
+                            context.l10n.reviewsCount(company.reviewCount),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: textTheme.bodySmall?.copyWith(

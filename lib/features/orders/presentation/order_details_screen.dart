@@ -6,6 +6,8 @@ import '../../location/presentation/location_strings.dart';
 import '../domain/entities/order_entity.dart';
 import 'widgets/order_location_widgets.dart';
 import 'widgets/price_summary_row.dart';
+import 'order_labels.dart';
+import '../../../core/localization/l10n_extension.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
   const OrderDetailsScreen({
@@ -51,7 +53,7 @@ class OrderDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}'),
+        title: Text(context.l10n.orderTitleNumber(order.id.length > 8 ? order.id.substring(0, 8) : order.id)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
@@ -76,7 +78,7 @@ class OrderDetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Item Ordered',
+                    context.l10n.orderItemOrdered,
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -139,8 +141,8 @@ class OrderDetailsScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 6),
                             PriceSummaryRow(
-                              label: 'Unit: ${_formatPrice(order.unitPrice)} SDG',
-                              value: 'Qty: ${order.quantity}',
+                              label: context.l10n.orderUnitLine(_formatPrice(order.unitPrice)),
+                              value: context.l10n.orderQtyLine(order.quantity),
                               labelStyle: textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
@@ -150,7 +152,7 @@ class OrderDetailsScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Subtotal: ${_formatPrice(order.productSubtotal)} SDG',
+                              context.l10n.orderSubtotalLine(_formatPrice(order.productSubtotal)),
                               style: textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.primary,
@@ -181,15 +183,15 @@ class OrderDetailsScreen extends StatelessWidget {
                 children: [
                   Text(
                     order.deliveryMethod == DeliveryMethod.pickup
-                        ? 'Pickup Details'
-                        : 'Delivery Details',
+                        ? context.l10n.orderPickupDetails
+                        : context.l10n.orderDeliveryDetails,
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 12),
                   _buildRow(
-                    'Address',
+                    context.l10n.orderAddress,
                     orderDeliveryLabel(context, order),
                     textTheme,
                     colorScheme,
@@ -201,12 +203,12 @@ class OrderDetailsScreen extends StatelessWidget {
                   ),
                   PickupCompanyLocationButton(order: order),
                   const SizedBox(height: 8),
-                  _buildRow('Contact Phone', order.contactPhone, textTheme, colorScheme),
+                  _buildRow(context.l10n.orderContactPhone, order.contactPhone, textTheme, colorScheme),
                   const SizedBox(height: 8),
                   if (order.installationSelected) ...[
                     _buildRow(
-                      'Order Type',
-                      'Product + Installation (+${_formatPrice(order.installationFee)} SDG)',
+                      context.l10n.orderType,
+                      context.l10n.orderTypeInstallation(_formatPrice(order.installationFee)),
                       textTheme,
                       colorScheme,
                       valueColor: AppColors.primary,
@@ -215,7 +217,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   ],
                   if (order.deliveryMethod == DeliveryMethod.delivery) ...[
                     _buildRow(
-                      'Delivery Fee',
+                      context.l10n.orderDeliveryFee,
                       '${_formatPrice(order.deliveryFee)} SDG',
                       textTheme,
                       colorScheme,
@@ -223,7 +225,7 @@ class OrderDetailsScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                   ],
                   _buildRow(
-                    'Ordered At',
+                    context.l10n.orderOrderedAt,
                     _formatDate(order.createdAt),
                     textTheme,
                     colorScheme,
@@ -247,7 +249,7 @@ class OrderDetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Payment Status',
+                    context.l10n.orderPaymentStatus,
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -257,7 +259,7 @@ class OrderDetailsScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Status',
+                        context.l10n.orderStatusLabel,
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
@@ -279,7 +281,7 @@ class OrderDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          order.paymentStatus.displayName,
+                          order.paymentStatus.label(context.l10n),
                           style: textTheme.labelSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: order.paymentStatus == PaymentStatus.confirmed
@@ -293,7 +295,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   if (order.receiptFileName != null) ...[
                     const SizedBox(height: 8),
                     _buildRow(
-                      'Receipt Attached',
+                      context.l10n.orderReceiptAttached,
                       order.receiptFileName!,
                       textTheme,
                       colorScheme,
@@ -318,7 +320,7 @@ class OrderDetailsScreen extends StatelessWidget {
               child: Column(
                 children: [
                   PriceSummaryRow(
-                    label: 'Product Subtotal',
+                    label: context.l10n.orderProductSubtotal,
                     value: '${_formatPrice(order.productSubtotal)} SDG',
                     labelStyle: textTheme.bodyMedium,
                     valueStyle: textTheme.bodyMedium?.copyWith(
@@ -328,7 +330,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   if (order.installationSelected) ...[
                     const SizedBox(height: 8),
                     PriceSummaryRow(
-                      label: 'Installation Fee',
+                      label: context.l10n.orderInstallationFee,
                       value: '+${_formatPrice(order.installationFee)} SDG',
                       labelStyle: textTheme.bodyMedium,
                       valueStyle: textTheme.bodyMedium?.copyWith(
@@ -340,7 +342,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   if (order.deliveryMethod == DeliveryMethod.delivery) ...[
                     const SizedBox(height: 8),
                     PriceSummaryRow(
-                      label: 'Delivery Fee',
+                      label: context.l10n.orderDeliveryFee,
                       value: '${_formatPrice(order.deliveryFee)} SDG',
                       labelStyle: textTheme.bodyMedium,
                       valueStyle: textTheme.bodyMedium?.copyWith(
@@ -352,7 +354,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   const Divider(),
                   const SizedBox(height: 8),
                   PriceSummaryRow(
-                    label: 'Total',
+                    label: context.l10n.orderTotal,
                     value: '${_formatPrice(order.totalAmount)} SDG',
                     labelStyle: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
@@ -404,7 +406,7 @@ class OrderDetailsScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Order Status',
+                context.l10n.orderOrderStatus,
                 style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -416,7 +418,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  order.orderStatus.displayName,
+                  order.orderStatus.label(context.l10n),
                   style: textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.primary,
@@ -453,7 +455,7 @@ class OrderDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        steps[i].displayName,
+                        steps[i].label(context.l10n),
                         textAlign: TextAlign.center,
                         style: textTheme.labelSmall?.copyWith(
                           fontWeight: i == currentIndex

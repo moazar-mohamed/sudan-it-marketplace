@@ -1,0 +1,852 @@
+{
+  "@@locale": "en",
+  "appName": "Sudan ICT Marketplace",
+  "commonCancel": "Cancel",
+  "commonConfirm": "Confirm",
+  "commonSave": "Save",
+  "commonSaveChanges": "Save changes",
+  "commonEdit": "Edit",
+  "commonDelete": "Delete",
+  "commonDeactivate": "Deactivate",
+  "commonRetry": "Try again",
+  "commonLoading": "Loading…",
+  "commonSearch": "Search",
+  "commonDone": "Done",
+  "commonOr": "OR",
+  "commonOptional": "Optional",
+  "commonRemove": "Remove",
+  "commonSignOut": "Sign out",
+  "commonNotifications": "Notifications",
+  "commonShowPassword": "Show password",
+  "commonHidePassword": "Hide password",
+  "commonLanguage": "Language",
+  "settingsTitle": "Settings",
+  "settingsLanguageSubtitle": "Choose the language of the app",
+  "languageEnglish": "English",
+  "languageArabic": "العربية",
+  "settingsLanguageSyncFailed": "The language was changed on this device, but could not be saved to your account yet.",
+  "authWelcomeBack": "Welcome back. Sign in to continue.",
+  "authEmail": "Email",
+  "authPassword": "Password",
+  "authLogin": "Login",
+  "authRegister": "Register",
+  "authForgotPassword": "Forgot password?",
+  "authForgotPasswordSoon": "Forgot password will be available soon.",
+  "authContinueWithGoogle": "Continue with Google",
+  "authNoAccount": "Don't have an account?",
+  "authHaveAccount": "Already have an account?",
+  "authCreateAccount": "Create account",
+  "authJoinTitle": "Join Sudan ICT Marketplace",
+  "authCreateAccountSubtitle": "Create an account to get started.",
+  "authFullName": "Full Name",
+  "authConfirmPassword": "Confirm Password",
+  "authPasswordHelper": "At least 6 characters.",
+  "authEmailRequired": "Email is required.",
+  "authEmailInvalid": "Enter a valid email address.",
+  "authPasswordRequired": "Password is required.",
+  "authFullNameRequired": "Full name is required.",
+  "authFullNameInvalid": "Full name may only contain letters and spaces.",
+  "authPasswordTooShort": "Password must be at least 6 characters.",
+  "authConfirmPasswordRequired": "Confirm password is required.",
+  "authPasswordsMismatch": "Passwords do not match.",
+  "authAccountDeactivatedTitle": "Account deactivated",
+  "authAccountDeactivatedMessage": "Your account has been deactivated. Please contact support to have it reactivated.",
+  "authCompanyNotLinkedTitle": "Company not linked",
+  "authCompanyAdminNotLinked": "Your company admin account is not linked to a company yet. Please contact the platform administrator.",
+  "authTechnicianNotLinked": "Your technician account is not linked to a company yet. Please contact your company administrator.",
+  "authPlatformAdminTitle": "Platform Admin",
+  "authPlatformAdminMessage": "Platform administration is managed separately and is not available in this app.",
+  "authTechnicianAccountTitle": "Technician account",
+  "authTechnicianNotSetUp": "Your technician account is not yet set up. Please contact your company administrator.",
+  "authTechnicianDeactivated": "Your technician account has been deactivated. Please contact your company administrator.",
+  "authTechnicianLoadFailed": "Could not load your technician record. Please try again or contact your company administrator.",
+  "authVerifyEmailTitle": "Verify your email",
+  "authVerifyEmailGeneric": "Please verify your email address before continuing.",
+  "authVerifyEmailSent": "We sent a verification link to {email}. Please verify your email before continuing.",
+  "@authVerifyEmailSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authVerifyEmailResent": "Verification email sent. Please check your inbox.",
+  "authVerifyEmailStillNot": "Still not verified. Please tap the link in the email, then try again.",
+  "authVerifiedMyEmail": "I've verified my email",
+  "authResendVerification": "Resend verification email",
+  "authSignedInTitle": "You are signed in",
+  "authDashboardLater": "Customer dashboard will be added later.",
+  "authErrorEmailInUse": "This email is already registered.",
+  "authErrorWeakPassword": "Choose a stronger password.",
+  "authErrorInvalidCredentials": "Invalid email or password.",
+  "authErrorUserDisabled": "This account has been disabled.",
+  "authErrorTooManyRequests": "Too many attempts. Please wait and try again.",
+  "authErrorNetwork": "Network error. Check your connection and try again.",
+  "authErrorOperationNotAllowed": "Email and password sign-in is not enabled.",
+  "authErrorCancelled": "Sign-in was cancelled.",
+  "authErrorDifferentCredential": "An account already exists with a different sign-in method for this email.",
+  "authErrorGoogleFailed": "Google sign-in failed. Please try again.",
+  "authErrorGeneric": "Authentication failed. Please try again.",
+  "authErrorSendVerification": "Could not send the verification email. Please try again.",
+  "authErrorNotAuthenticated": "Not authenticated.",
+  "errorProfileSave": "Could not save your profile. Please try again.",
+  "errorProfileLoad": "Could not load your profile. Please try again.",
+  "errorProfileLoadDenied": "Could not load your profile: access was denied by the server. Make sure the latest Firestore rules are deployed.",
+  "errorProfileLoadOffline": "Could not load your profile. Check your internet connection and try again.",
+  "errorProfileUpdate": "Could not update your profile. Please try again.",
+  "errorProfileNoEmail": "Your account has no email on file, so a profile could not be created. Please contact support.",
+  "errorProfileNotFound": "Your profile could not be found.",
+  "errorSetupAccount": "Could not finish setting up your account. Please try again.",
+  "errorGeneric": "Something went wrong. Please try again.",
+  "errorPermissionDenied": "You do not have permission to do this.",
+  "errorNetwork": "Check your internet connection and try again.",
+  "passwordChangeTitle": "Choose a new password",
+  "passwordChangeIntro": "You signed in with a temporary password. Choose your own password to continue.",
+  "passwordChangeTemporary": "Temporary password",
+  "passwordChangeNew": "New password",
+  "passwordChangeConfirm": "Confirm new password",
+  "passwordChangeSubmit": "Change password",
+  "passwordChangeCurrentRequired": "Enter your temporary password.",
+  "passwordChangeNewRequired": "Enter a new password.",
+  "passwordChangeTooShort": "The password must be at least {min} characters.",
+  "@passwordChangeTooShort": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "passwordChangeMismatch": "The passwords do not match.",
+  "passwordErrorCurrentWrong": "Current password is incorrect.",
+  "passwordErrorNewWeak": "New password is too weak. Use at least 6 characters.",
+  "passwordErrorRecentLogin": "Please sign out and sign back in before changing your password.",
+  "passwordErrorGeneric": "Could not change password. Please try again.",
+  "imageLabel": "Image",
+  "imageAdd": "Add Image",
+  "imageChange": "Change Image",
+  "imageChooseFromDevice": "Choose from device",
+  "imageTakePhoto": "Take a photo",
+  "imageUseUrl": "Use image URL",
+  "imageUrl": "Image URL",
+  "imageUploading": "Uploading image",
+  "imageUploadFailed": "Failed to upload image",
+  "imageEmptyUrl": "Enter the image URL.",
+  "imageInvalidUrl": "Enter a valid image link (http/https).",
+  "imageUnsupported": "Unsupported image. Use a JPG, PNG, WebP or GIF file.",
+  "imageTooLarge": "This image is too large. The maximum size is 5 MB.",
+  "imageCameraDenied": "Camera permission was denied. Allow camera access in settings to take a photo.",
+  "imageGalleryDenied": "Photo access was denied. Allow photo access in settings to choose an image.",
+  "imageCameraUnavailable": "The camera is not available on this device.",
+  "imagePickFailed": "Could not open the image. Please try again.",
+  "locationTitle": "Location",
+  "locationEnterAddress": "Enter address",
+  "locationSelectOnMap": "Select on Map",
+  "locationUseCurrent": "Use My Current Location",
+  "locationConfirm": "Confirm Location",
+  "locationChange": "Change Location",
+  "locationRemoveMap": "Remove map location",
+  "locationViewOnMap": "View on Map",
+  "locationOpenOrder": "Open Order Location",
+  "locationOpenCompany": "Open Company Location",
+  "locationViewCompany": "View Company Location",
+  "locationOpenDelivery": "Open Delivery Location",
+  "locationSearchAddress": "Search Address on Map",
+  "locationOpenInMaps": "Open in Maps app",
+  "locationSelected": "Location selected",
+  "locationLatShort": "Lat",
+  "locationLngShort": "Lng",
+  "locationTapToSelect": "Tap the map to choose the exact point. Tap again to move it.",
+  "locationPinned": "Pinned on map",
+  "locationAddressApproximate": "Written address only (no exact map point)",
+  "locationRequired": "Enter an address or select a location on the map.",
+  "locationCouldNotOpenMaps": "Could not open the maps app.",
+  "locationServiceOff": "Location services are turned off. You can still tap the map.",
+  "locationPermissionDenied": "Location permission was denied. You can still tap the map or type an address.",
+  "locationPermissionDeniedForever": "Location permission is blocked in settings. You can still tap the map.",
+  "locationCurrentUnavailable": "Could not get your current location. You can still tap the map.",
+  "productPriceOnRequest": "Price on request",
+  "orderCreateDenied": "You do not have permission to place this order. Please sign in again and try again.",
+  "orderCreateNetwork": "The order could not be confirmed. Check your internet connection and try again.",
+  "orderCreateFailed": "Failed to create the order. Please try again.",
+  "orderNotConfirmed": "Your order could not be confirmed. Check your connection and try again.",
+  "orderProductNoPrice": "{productName} has no listed price yet. Please contact the company to order it.",
+  "@orderProductNoPrice": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "orderAttachReceiptFailed": "Could not attach the receipt. Please try again.",
+  "orderFetchFailed": "Could not load the order. Please try again.",
+  "orderUpdateStatusDenied": "You do not have permission to update the status of this order.",
+  "orderUpdateStatusFailed": "Could not update the order status. Please try again.",
+  "orderConfirmPaymentDenied": "You do not have permission to confirm the payment for this order.",
+  "orderConfirmPaymentFailed": "Could not confirm the payment. Please try again.",
+  "orderAssignTechnicianDenied": "You do not have permission to assign a technician to this order.",
+  "orderAssignTechnicianFailed": "Could not assign the technician. Please try again.",
+  "stockNoLongerAvailable": "This product is no longer available.",
+  "stockChooseAtLeastOne": "Choose at least one unit to order.",
+  "stockOutOfStock": "{productName} is out of stock.",
+  "@stockOutOfStock": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "stockOnlyLeft": "Only {available} of {productName} left in stock. Please reduce the quantity.",
+  "@stockOnlyLeft": {
+    "placeholders": {
+      "available": {
+        "type": "int"
+      },
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "productSaveDenied": "You do not have permission to save this product.",
+  "productSaveFailed": "Could not save the product. Please try again.",
+  "productUpdateDenied": "You do not have permission to update this product.",
+  "productUpdateFailed": "Could not update the product. Please try again.",
+  "productDeleteDenied": "You do not have permission to delete this product.",
+  "productDeleteFailed": "Could not delete the product. Please try again.",
+  "technicianSaveDenied": "You do not have permission to save this technician.",
+  "technicianSaveFailed": "Could not save the technician. Please try again.",
+  "technicianUpdateDenied": "You do not have permission to update this technician.",
+  "technicianUpdateFailed": "Could not update the technician. Please try again.",
+  "technicianDeactivateDenied": "You do not have permission to deactivate this technician.",
+  "technicianDeactivateFailed": "Could not deactivate the technician. Please try again.",
+  "companyUpdateDenied": "You do not have permission to edit this company.",
+  "companyUpdateFailed": "Could not update the company profile. Please try again.",
+  "navHome": "Home",
+  "navDashboard": "Dashboard",
+  "navProducts": "Products",
+  "navCompanies": "Companies",
+  "navOrders": "Orders",
+  "navProfile": "Profile",
+  "navMyOrders": "My Orders",
+  "reviewsCount": "({count, plural, =0{no reviews} =1{1 review} other{{count} reviews}})",
+  "@reviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonPhoneInvalid": "Enter a valid phone number.",
+  "commonViewOrderStatus": "View Order Status",
+  "homeSearchProducts": "Search products...",
+  "homeSearchCompanies": "Search companies...",
+  "homeNoProducts": "No products found",
+  "homeNoCompanies": "No companies found",
+  "productInStockCount": "In Stock ({count})",
+  "@productInStockCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "productOutOfStock": "Out of Stock",
+  "productVerifiedSeller": "Verified Seller",
+  "productInstallationAvailable": "Professional Installation Available",
+  "productInstallationNote": "Installation price: {price} {currency}. On-site setup option is selected during checkout.",
+  "@productInstallationNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "productDescription": "Description",
+  "productSpecifications": "Specifications",
+  "productBuyNow": "Buy Now",
+  "productBuyNowPrice": "Buy Now • {price} {currency}",
+  "@productBuyNowPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "companyAbout": "About Company",
+  "companyProductsCount": "Products ({count})",
+  "@companyProductsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "companyNoProducts": "No products listed by this company yet.",
+  "checkoutTitle": "Checkout",
+  "checkoutUnit": "Unit: {price} {currency}",
+  "@checkoutUnit": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutQty": "Qty: {count}",
+  "@checkoutQty": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutSubtotal": "Subtotal: {price} {currency}",
+  "@checkoutSubtotal": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutDeliveryContact": "Delivery & Contact",
+  "checkoutPickupContact": "Pickup & Contact",
+  "checkoutDelivery": "Delivery",
+  "checkoutPickup": "Pickup",
+  "checkoutPickupLocation": "Pickup Location",
+  "checkoutPickupFallback": "Company pickup location (the company will confirm by phone)",
+  "checkoutAddressHint": "Street name, building/house, neighborhood, city",
+  "checkoutContactPhone": "Contact Phone Number",
+  "checkoutContactPhoneHelper": "The company will call this number to coordinate delivery",
+  "checkoutPhoneRequired": "Please enter a contact phone number",
+  "checkoutInstallationOption": "Installation Option",
+  "checkoutInstallationTitle": "On-site Professional Installation",
+  "checkoutInstallationNote": "Certified technician setup available for {price} {currency}.",
+  "@checkoutInstallationNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutProductOnly": "Product Only",
+  "checkoutProductInstallation": "Product + Installation",
+  "checkoutPriceSummary": "Price Summary",
+  "checkoutProductSubtotal": "Product Subtotal ({count} items)",
+  "@checkoutProductSubtotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutInstallationService": "Installation Service",
+  "checkoutNotIncluded": "Not included",
+  "checkoutDeliveryFee": "Delivery Fee",
+  "checkoutFinalTotal": "Final Total",
+  "checkoutConfirmOrder": "Confirm Order • {price} {currency}",
+  "@checkoutConfirmOrder": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentTitle": "Manual Payment",
+  "paymentCopied": "{label} copied to clipboard",
+  "@paymentCopied": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentAccountNumberLabel": "Account number",
+  "paymentPhoneNumberLabel": "Phone number",
+  "paymentReceiptRequired": "Please upload or select a transfer receipt image before submitting.",
+  "paymentSubmitFailed": "Could not submit your receipt. Please try again.",
+  "paymentAmountToTransfer": "Amount to Transfer",
+  "paymentOrderCreatedAfter": "Your order will be created after receipt submission.",
+  "paymentInstructions": "Please transfer the exact amount externally using your mobile banking app (Bankak, Fawry, etc.) or cash transfer. After completing the payment, upload a screenshot of your transfer receipt below.",
+  "paymentAccounts": "Payment Accounts",
+  "paymentUploadReceipt": "Upload Transfer Receipt",
+  "paymentUploadHint": "Upload a clear screenshot or photo of your transfer notification slip.",
+  "paymentTapToUpload": "Tap to Upload Receipt / Screenshot",
+  "paymentSupports": "Supports JPG, PNG, or screenshot from Bankak/Fawry",
+  "paymentReceiptSelected": "Receipt Selected",
+  "paymentSlipPreview": "TRANSFER SLIP PREVIEW",
+  "paymentSlipCompleted": "COMPLETED",
+  "paymentSlipAmount": "Amount: {amount} SDG",
+  "@paymentSlipAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentSlipBeneficiary": "Beneficiary: {name}",
+  "@paymentSlipBeneficiary": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentSlipRef": "Ref: {ref}",
+  "@paymentSlipRef": {
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentReplace": "Replace",
+  "paymentPendingNote": "Submitting this receipt stores the transfer reference in Firestore under \"Pending Verification\". Payment will be marked Confirmed after admin/company verification.",
+  "paymentSubmitting": "Submitting to Firestore...",
+  "paymentSubmit": "Submit Receipt for Verification",
+  "paymentAccountName": "Account Name",
+  "paymentAccountMban": "Account / MBAN",
+  "paymentPhoneIdentifier": "Phone Identifier",
+  "ordersLoadFailed": "Could not load orders",
+  "ordersRetry": "Retry",
+  "ordersEmptyTitle": "No Orders Yet",
+  "ordersEmptyBody": "When you purchase IT hardware or products from the marketplace, your orders and their live status will be tracked here.",
+  "orderTitleNumber": "Order #{id}",
+  "@orderTitleNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTotalAmount": "Total Amount",
+  "orderDetailsButton": "Details",
+  "orderItemOrdered": "Item Ordered",
+  "orderUnitLine": "Unit: {price} SDG",
+  "@orderUnitLine": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "orderQtyLine": "Qty: {count}",
+  "@orderQtyLine": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "orderSubtotalLine": "Subtotal: {price} SDG",
+  "@orderSubtotalLine": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "orderPickupDetails": "Pickup Details",
+  "orderDeliveryDetails": "Delivery Details",
+  "orderAddress": "Address",
+  "orderContactPhone": "Contact Phone",
+  "orderType": "Order Type",
+  "orderTypeInstallation": "Product + Installation (+{fee} SDG)",
+  "@orderTypeInstallation": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "orderDeliveryFee": "Delivery Fee",
+  "orderOrderedAt": "Ordered At",
+  "orderPaymentStatus": "Payment Status",
+  "orderStatusLabel": "Status",
+  "orderReceiptAttached": "Receipt Attached",
+  "orderProductSubtotal": "Product Subtotal",
+  "orderInstallationFee": "Installation Fee",
+  "orderTotal": "Total",
+  "orderOrderStatus": "Order Status",
+  "pendingBanner": "PENDING VERIFICATION",
+  "pendingTitle": "Receipt Submitted for Verification",
+  "pendingBody": "Your transfer receipt reference has been stored in Firestore. It is awaiting confirmation from the finance team. Payment will be marked Confirmed only after manual verification.",
+  "pendingOrderReference": "Order Reference",
+  "pendingDeliveryAddress": "Delivery Address",
+  "pendingInstallation": "Installation",
+  "pendingInstallationIncluded": "Included ({fee} SDG)",
+  "@pendingInstallationIncluded": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "pendingUploaded": "Uploaded",
+  "pendingTotalAmount": "Total Amount",
+  "pendingBackToMarketplace": "Back to Marketplace",
+  "pendingViewInMyOrders": "View in My Orders",
+  "orderStatusProcessing": "Processing",
+  "orderStatusOutForDelivery": "Out for Delivery",
+  "orderStatusCompleted": "Completed",
+  "paymentStatusPending": "Pending Verification",
+  "paymentStatusConfirmed": "Confirmed",
+  "deliveryMethodDelivery": "Delivery",
+  "deliveryMethodPickup": "Pickup",
+  "jobStatusPending": "Pending",
+  "jobStatusInProgress": "In Progress",
+  "customerFallback": "Customer {id}",
+  "@customerFallback": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "profileMyProfile": "My profile",
+  "profileFullName": "Full name",
+  "profilePhoneNumber": "Phone number",
+  "profileFullNameRequired": "Enter your full name.",
+  "profileEdit": "Edit profile",
+  "profileUpdated": "Profile updated successfully.",
+  "profileChangePassword": "Change password",
+  "profileChangePasswordSubtitle": "Update your account password",
+  "profileCurrentPassword": "Current password",
+  "profileCurrentPasswordRequired": "Enter your current password.",
+  "profilePasswordMin": "Use at least 6 characters.",
+  "profileConfirmPasswordRequired": "Confirm your new password.",
+  "profileUpdatePassword": "Update password",
+  "profilePasswordChanged": "Password changed successfully.",
+  "notificationsLoadFailed": "Could not load notifications.",
+  "notificationsEmpty": "No notifications yet.",
+  "notifNewOrderTitle": "New order received",
+  "notifNewOrderBody": "A new order for \"{product}\" was placed and is awaiting payment verification.",
+  "@notifNewOrderBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPaymentConfirmedTitle": "Payment confirmed",
+  "notifPaymentConfirmedBody": "Your payment for \"{product}\" has been confirmed.",
+  "@notifPaymentConfirmedBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifOutForDeliveryTitle": "Order out for delivery",
+  "notifOutForDeliveryBody": "Your order \"{product}\" is out for delivery.",
+  "@notifOutForDeliveryBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifOrderCompletedTitle": "Order completed",
+  "notifOrderCompletedBody": "Your order has been completed.",
+  "notifTechnicianAssignedTitle": "New installation job assigned",
+  "notifTechnicianAssignedBody": "You have been assigned to install \"{product}\".",
+  "@notifTechnicianAssignedBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "navTechnicians": "Technicians",
+  "adminInstallationJobs": "Installation Jobs",
+  "adminNavInstallations": "Installations",
+  "adminCompanyProfile": "Company Profile",
+  "adminCompanyDashboard": "Company Dashboard",
+  "techShellDashboard": "Technician Dashboard",
+  "techShellJobs": "My Jobs",
+  "techNavJobs": "Jobs",
+  "adminWelcome": "Welcome",
+  "adminDashboardOverview": "Overview of your products and orders",
+  "adminTotalProducts": "Total Products",
+  "adminTotalOrders": "Total Orders",
+  "adminPendingOrders": "Pending Orders",
+  "adminRecentOrders": "Recent Orders",
+  "adminViewAll": "View all",
+  "adminOrdersLoadFailedShort": "Could not load orders.",
+  "adminNoOrdersYet": "No orders yet.",
+  "orderDetailsTitle": "Order Details",
+  "adminOrderNotFound": "This order was not found.",
+  "adminJobNotFound": "This job was not found.",
+  "adminProductNotFound": "This product was not found.",
+  "adminOrdersLoadFailed": "Could not load your orders.",
+  "adminFilterAll": "All ({count})",
+  "@adminFilterAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminFilterStatus": "{status} ({count})",
+  "@adminFilterStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminNoOrdersToShow": "No orders to show.",
+  "adminQtyShort": "Qty {count}",
+  "@adminQtyShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCustomer": "Customer",
+  "adminName": "Name",
+  "adminProduct": "Product",
+  "adminQuantity": "Quantity",
+  "adminUnitPrice": "Unit Price",
+  "adminMethod": "Method",
+  "adminSelection": "Selection",
+  "adminJobStatus": "Job Status",
+  "adminPayment": "Payment",
+  "adminReceiptReference": "Receipt Reference",
+  "adminNotProvided": "Not provided",
+  "adminOrderInformation": "Order Information",
+  "adminOrderNumber": "Order Number",
+  "adminCreated": "Created",
+  "adminLastUpdated": "Last Updated",
+  "adminCurrentStatus": "Current Status",
+  "adminManageOrder": "Manage Order",
+  "adminVerifyReceipt": "Verify the transfer receipt before processing this order.",
+  "adminConfirmPaymentTitle": "Confirm payment",
+  "adminConfirmPaymentBody": "Mark the payment for order #{id} as confirmed?",
+  "@adminConfirmPaymentBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "adminPaymentConfirmed": "Payment confirmed.",
+  "adminConfirmPaymentButton": "Confirm Payment",
+  "adminOrderCompleted": "This order is completed.",
+  "adminMarkCompletedHint": "Mark completed once the technician has finished the installation.",
+  "adminUpdateOrderStatus": "Update order status",
+  "adminChangeOrderStatusBody": "Change order #{id} to \"{status}\"? This cannot be undone.",
+  "@adminChangeOrderStatusBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "adminOrderMarked": "Order marked {status}.",
+  "@adminOrderMarked": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "adminMarkOutForDelivery": "Mark Out for Delivery",
+  "adminMarkCompletedInstalled": "Mark Completed (Installed)",
+  "adminMarkCompleted": "Mark Completed",
+  "adminMarkProcessing": "Mark Processing",
+  "adminInstallationJobsLoadFailed": "Could not load installation jobs.",
+  "adminInstallationJobsEmpty": "No installation jobs yet.\nOrders with Product + Installation appear here.",
+  "adminInstallationJob": "Installation Job",
+  "adminJobTitleNumber": "Job #{id}",
+  "@adminJobTitleNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "adminJobDetails": "Job Details",
+  "adminJobOrderNumber": "Job / Order Number",
+  "adminCustomerLocation": "Customer & Location",
+  "adminInstallationAddress": "Installation Address",
+  "adminLocation": "Location",
+  "adminCustomerPickupConfirm": "Customer pickup — confirm the installation location by phone",
+  "adminCustomerPickupConfirmShort": "Customer pickup — confirm the location by phone",
+  "adminCustomerPickup": "Customer pickup",
+  "adminViewFullOrder": "View full order",
+  "adminTechnicianAssigned": "Technician assigned.",
+  "adminAssignTechnician": "Assign Technician",
+  "adminChangeTechnician": "Change Technician",
+  "adminTechnicianSection": "Technician",
+  "adminAssignedTo": "Assigned to",
+  "adminNotAssigned": "Not assigned",
+  "adminTechniciansLoadFailedShort": "Could not load technicians.",
+  "adminAddTechnicianFirst": "Add a technician first to assign this job.",
+  "adminAddProduct": "Add Product",
+  "adminEditProduct": "Edit Product",
+  "adminProductsLoadFailed": "Could not load your products.",
+  "adminProductsEmpty": "You have not added any products yet.\nTap \"Add Product\" to create your first one.",
+  "adminInStock": "In stock: {count}",
+  "@adminInStock": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminUnavailable": "Unavailable",
+  "adminOutOfStock": "Out of stock",
+  "adminInstallationBadge": "Installation",
+  "adminPickupOnlyBadge": "Pickup only",
+  "adminDeleteProduct": "Delete product",
+  "adminDeleteProductBody": "Delete \"{name}\"? This cannot be undone.",
+  "@adminDeleteProductBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminProductDeleted": "Product deleted.",
+  "adminProductDetails": "Product Details",
+  "adminEditProductTooltip": "Edit product",
+  "adminAvailability": "Availability",
+  "adminStatus": "Status",
+  "adminAvailable": "Available",
+  "adminNotAvailable": "Not available",
+  "adminNotAvailablePickup": "Not available (pickup only)",
+  "adminStock": "Stock",
+  "adminDeliveryInstallation": "Delivery & Installation",
+  "adminInstallationPrice": "Installation Price",
+  "formProductAdded": "Product added.",
+  "formProductUpdated": "Product updated.",
+  "formProductName": "Product Name",
+  "formProductNameRequired": "Product name is required.",
+  "formPriceOptional": "Price (SDG) - optional",
+  "formPriceInvalid": "Enter a valid price greater than 0.",
+  "formInstallationPriceRequired": "Installation price is required.",
+  "formInstallationPriceInvalid": "Enter a valid installation price greater than 0.",
+  "formStockSection": "Stock / Availability",
+  "formStockQuantity": "Stock Quantity",
+  "formStockRequired": "Enter the stock quantity (0 or more).",
+  "formAvailableForSale": "Available for sale",
+  "formAvailableHint": "Customers can buy this product while it has stock.",
+  "formSpecName": "Name",
+  "formSpecValue": "Value",
+  "formAddSpec": "Add specification",
+  "formDeliveryAvailable": "Delivery Available",
+  "formDeliveryOn": "Customers can choose delivery at checkout.",
+  "formDeliveryOff": "Customers collect this product from your pickup location.",
+  "formInstallationAvailable": "Installation Available",
+  "formInstallationOn": "Customers can choose Product + Installation.",
+  "formInstallationOff": "Customers will not see any installation option.",
+  "formInstallationPrice": "Installation Price (SDG)",
+  "adminCompanyLoadFailed": "Could not load your company profile.",
+  "adminCompanyNotFound": "Your company record was not found. Please contact the platform administrator.",
+  "adminContact": "Contact",
+  "adminPhone": "Phone",
+  "adminCity": "City",
+  "adminEditCompanyProfile": "Edit Company Profile",
+  "adminCompanyProfileUpdated": "Company profile updated.",
+  "adminCompanyName": "Company Name",
+  "adminCompanyNameRequired": "Company name is required.",
+  "adminPickupAddress": "Pickup Location / Address",
+  "adminShortDescription": "Short Description",
+  "adminAddTechnician": "Add Technician",
+  "adminEditTechnician": "Edit Technician",
+  "adminDeactivateTechnician": "Deactivate technician",
+  "adminDeactivateTechnicianBody": "Deactivate \"{name}\"? They will no longer be available for new installation jobs.",
+  "@adminDeactivateTechnicianBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminTechnicianDeactivated": "Technician deactivated.",
+  "adminTechniciansLoadFailed": "Could not load your technicians.",
+  "adminTechniciansEmpty": "You have not added any technicians yet.\nTap \"Add Technician\" to invite your first one.",
+  "adminInvitedPending": "Invited (pending)",
+  "adminActive": "Active",
+  "adminInactive": "Inactive",
+  "adminInvitationCreated": "Invitation created. The technician can now register with this email.",
+  "adminTechnicianUpdated": "Technician updated.",
+  "adminInviteNote": "This creates an invitation. The technician sets their own password by registering with this email.",
+  "adminTechnicianNameRequired": "Technician name is required.",
+  "adminPhoneRequired": "Phone number is required.",
+  "adminTechnicianEmailRequired": "Technician email is required.",
+  "adminInactiveTechnicianNote": "Inactive technicians cannot be assigned to new jobs.",
+  "adminSendInvitation": "Send Invitation",
+  "techDashboardLoadFailed": "Could not load your dashboard.",
+  "techWelcome": "Welcome, {name}",
+  "@techWelcome": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "techTotalJobs": "Total Jobs",
+  "techUpcomingJobs": "Upcoming Jobs",
+  "techNoPendingJobs": "No pending jobs right now.",
+  "techJobsLoadFailed": "Could not load your jobs.",
+  "techNoJobsAssigned": "No installation jobs assigned to you yet.",
+  "techJobCompleted": "This job is completed.",
+  "techUpdateJobStatus": "Update job status",
+  "techChangeJobBody": "Change job #{id} to \"{status}\"? This cannot be undone.",
+  "@techChangeJobBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "techJobMarked": "Job marked {status}.",
+  "@techJobMarked": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "techMarkInstallationCompleted": "Mark Installation Completed",
+  "techProfileLoadFailed": "Could not load your profile.",
+  "techCompany": "Company",
+  "techMyDetails": "My Details",
+  "techEditName": "Edit name",
+  "comingSoonTitle": "{title} is coming soon",
+  "@comingSoonTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "comingSoonBody": "This section will be available in a later update."
+}

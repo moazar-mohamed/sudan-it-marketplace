@@ -16,6 +16,9 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { resetStores } from '../data/store';
+import { readStoredLocale, useI18n } from '../i18n/I18nProvider';
+import { reconcileLanguage } from '../i18n/reconcile';
+import { isLanguagePending, saveLanguage } from '../i18n/saveLanguage';
 import { evaluateAccess, type AccessDenialReason, type AdminProfile } from './access';
 
 export type AccessNotice = AccessDenialReason | 'error';
@@ -34,6 +37,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { setLocale } = useI18n();
   const [state, setState] = useState<AuthState>({ status: 'loading' });
   // Why the last sign-in was rejected; shown on the login page once the
   // forced sign-out completes.
@@ -61,6 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (decision.ok) {
             noticeRef.current = null;
             setState({ status: 'authorized', profile: decision.profile });
+            // The account's language wins; else this browser's choice is
+            // saved to the account. Nothing was read before sign-in.
+            const plan = reconcileLanguage(
+              decision.profile.language,
+              readStoredLocale(),
+              isLanguagePending(),
+            );
+            if (plan.adopt) setLocale(plan.adopt);
+            else if (plan.push) void saveLanguage(decision.profile.uid, plan.push);
             return;
           }
           notice = decision.reason;
@@ -74,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await firebaseSignOut(auth);
       })();
     });
-  }, []);
+  }, [setLocale]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     noticeRef.current = null;

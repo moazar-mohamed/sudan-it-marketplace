@@ -80,7 +80,7 @@ export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
           uploading={busy === 'create' && form.logo?.kind === 'file'}
         />
         <label className="field">
-          <span>{t('col.name')}</span>
+          <span>{t('company.name')}</span>
           <input
             value={form.name}
             onChange={(e) => set('name')(e.target.value)}

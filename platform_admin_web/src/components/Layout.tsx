@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useI18n } from '../i18n/I18nProvider';
 import type { TranslationKey } from '../i18n/dictionary';
+import { useChangeLanguage } from '../i18n/useChangeLanguage';
 import { Icon, type IconName } from './Icon';
 
 const NAV: { to: string; key: TranslationKey; icon: IconName; end?: boolean }[] = [
@@ -15,14 +16,16 @@ const NAV: { to: string; key: TranslationKey; icon: IconName; end?: boolean }[] 
   { to: '/reviews', key: 'nav.reviews', icon: 'reviews' },
   { to: '/analytics', key: 'nav.analytics', icon: 'analytics' },
   { to: '/profile', key: 'nav.profile', icon: 'profile' },
+  { to: '/settings', key: 'nav.settings', icon: 'settings' },
 ];
 
 export function LanguageToggle() {
-  const { locale, setLocale, t } = useI18n();
+  const { locale, t } = useI18n();
+  const changeLanguage = useChangeLanguage();
   return (
     <button
       className="btn btn--ghost btn--sm"
-      onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
+      onClick={() => void changeLanguage(locale === 'ar' ? 'en' : 'ar')}
       aria-label={t('common.language')}
       title={t('common.language')}
     >
@@ -85,6 +88,14 @@ export function Layout() {
           <span className="topbar__title">{current ? t(current.key) : t('app.name')}</span>
           <div className="topbar__end">
             <LanguageToggle />
+            <Link
+              to="/settings"
+              className="icon-btn"
+              aria-label={t('nav.settings')}
+              title={t('nav.settings')}
+            >
+              <Icon name="settings" size={18} />
+            </Link>
             {profile && (
               <div className="userchip">
                 <span className="userchip__avatar">

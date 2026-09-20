@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/locale_controller.dart';
 import '../../auth/domain/entities/user_profile.dart';
 import '../../auth/domain/exceptions/auth_exception.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../auth/presentation/auth_error_messages.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../../auth/presentation/auth_state.dart';
 
@@ -83,7 +85,8 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
       AuthAuthenticated(:final user) => user.id,
       _ => null,
     };
-    if (userId == null) return 'Not authenticated.';
+    final l10n = ref.read(appLocalizationsProvider);
+    if (userId == null) return l10n.authErrorNotAuthenticated;
 
     try {
       final repo = ref.read(userProfileRepositoryProvider);
@@ -110,9 +113,9 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
       }
       return null;
     } on AuthException catch (e) {
-      return e.message;
+      return authErrorMessage(l10n, e.code);
     } catch (_) {
-      return 'Could not update profile. Please try again.';
+      return l10n.errorProfileUpdate;
     }
   }
 
@@ -124,7 +127,8 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
       AuthAuthenticated(:final user) => user.id,
       _ => null,
     };
-    if (userId == null) return 'Not authenticated.';
+    final l10n = ref.read(appLocalizationsProvider);
+    if (userId == null) return l10n.authErrorNotAuthenticated;
 
     try {
       await ref.read(userProfileRepositoryProvider).markPasswordChanged(userId);
@@ -136,9 +140,9 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
       }
       return null;
     } on AuthException catch (e) {
-      return e.message;
+      return authErrorMessage(l10n, e.code);
     } catch (_) {
-      return 'Could not finish setting up your account. Please try again.';
+      return l10n.errorSetupAccount;
     }
   }
 
@@ -147,9 +151,10 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
     required String currentPassword,
     required String newPassword,
   }) async {
+    final l10n = ref.read(appLocalizationsProvider);
     try {
       final firebaseUser = FirebaseAuth.instance.currentUser;
-      if (firebaseUser == null) return 'Not authenticated.';
+      if (firebaseUser == null) return l10n.authErrorNotAuthenticated;
 
       // Re-authenticate before changing password
       final credential = EmailAuthProvider.credential(
@@ -160,25 +165,18 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
       await firebaseUser.updatePassword(newPassword);
       return null;
     } on FirebaseAuthException catch (e) {
-      return _messageForCode(e.code);
+      return passwordChangeErrorMessage(l10n, e.code);
     } catch (_) {
-      return 'Could not change password. Please try again.';
+      return l10n.passwordErrorGeneric;
     }
   }
 
-  static String _messageForCode(String code) {
-    switch (code) {
-      case 'wrong-password':
-      case 'invalid-credential':
-        return 'Current password is incorrect.';
-      case 'weak-password':
-        return 'New password is too weak. Use at least 6 characters.';
-      case 'requires-recent-login':
-        return 'Please sign out and sign back in before changing your password.';
-      case 'too-many-requests':
-        return 'Too many attempts. Please wait and try again.';
-      default:
-        return 'Could not change password. Please try again.';
+  /// Reflects a language the user just chose (and saved) in the loaded
+  /// profile, so a later profile refresh does not read back the old one.
+  void applyLanguage(String language) {
+    final current = state.asData?.value;
+    if (current != null && current.language != language) {
+      state = AsyncData(current.copyWith(language: language));
     }
   }
 }

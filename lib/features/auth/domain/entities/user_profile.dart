@@ -12,6 +12,7 @@ class UserProfile {
     this.companyId,
     this.photoUrl,
     this.mustChangePassword = false,
+    this.language,
   });
 
   final String id;
@@ -34,6 +35,10 @@ class UserProfile {
   /// account that predates the flag. The password itself is never stored here.
   final bool mustChangePassword;
 
+  /// The language the user chose ('en' or 'ar'). Absent on every account that
+  /// predates the setting; the app then falls back to the device preference.
+  final String? language;
+
   /// A company admin on a temporary password must choose their own before
   /// using the app.
   bool get requiresPasswordChange =>
@@ -50,6 +55,7 @@ class UserProfile {
     String? companyId,
     String? photoUrl,
     bool? mustChangePassword,
+    String? language,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -62,6 +68,7 @@ class UserProfile {
       companyId: companyId ?? this.companyId,
       photoUrl: photoUrl ?? this.photoUrl,
       mustChangePassword: mustChangePassword ?? this.mustChangePassword,
+      language: language ?? this.language,
     );
   }
 }

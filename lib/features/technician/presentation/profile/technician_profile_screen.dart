@@ -10,6 +10,7 @@ import '../../../location/domain/geo_location.dart';
 import '../../../location/presentation/location_strings.dart';
 import '../../../location/presentation/widgets/open_location_button.dart';
 import '../widgets/technician_widgets.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class TechnicianProfileScreen extends ConsumerStatefulWidget {
   const TechnicianProfileScreen({
@@ -71,7 +72,7 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(error ?? 'Profile updated successfully.'),
+          content: Text(error ?? context.l10n.profileUpdated),
           backgroundColor: error == null ? null : AppColors.error,
         ),
       );
@@ -84,13 +85,13 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
 
     return profileAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, _) => const TechnicianErrorState(
-        message: 'Could not load your profile.',
+      error: (_, _) => TechnicianErrorState(
+        message: context.l10n.techProfileLoadFailed,
       ),
       data: (profile) {
         if (profile == null) {
-          return const TechnicianErrorState(
-            message: 'Your profile could not be found.',
+          return TechnicianErrorState(
+            message: context.l10n.errorProfileNotFound,
           );
         }
         _loadFormValues(profile.fullName);
@@ -166,9 +167,9 @@ class _TechnicianProfileContent extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         TechnicianSectionCard(
-          title: 'Company',
+          title: context.l10n.techCompany,
           children: [
-            TechnicianInfoRow(label: 'Company', value: companyName),
+            TechnicianInfoRow(label: context.l10n.techCompany, value: companyName),
             if (companyLocationText != null || companyCoordinates != null) ...[
               const SizedBox(height: 8),
               CompanyLocationBlock(
@@ -184,26 +185,26 @@ class _TechnicianProfileContent extends StatelessWidget {
         Form(
           key: formKey,
           child: TechnicianSectionCard(
-            title: 'My Details',
+            title: context.l10n.techMyDetails,
             children: [
               TextFormField(
                 controller: nameController,
                 enabled: isEditing && !isSaving,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Full name',
+                decoration: InputDecoration(
+                  labelText: context.l10n.profileFullName,
                   prefixIcon: Icon(Icons.person_outline),
                 ),
                 validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Enter your full name.'
+                    ? context.l10n.profileFullNameRequired
                     : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 initialValue: profile.email,
                 enabled: false,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                  labelText: context.l10n.authEmail,
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
               ),
@@ -211,8 +212,8 @@ class _TechnicianProfileContent extends StatelessWidget {
               TextFormField(
                 initialValue: phone,
                 enabled: false,
-                decoration: const InputDecoration(
-                  labelText: 'Phone',
+                decoration: InputDecoration(
+                  labelText: context.l10n.adminPhone,
                   prefixIcon: Icon(Icons.phone_outlined),
                 ),
               ),
@@ -226,7 +227,7 @@ class _TechnicianProfileContent extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: isSaving ? null : onCancel,
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.commonCancel),
                 ),
               ),
               const SizedBox(width: 12),
@@ -239,7 +240,7 @@ class _TechnicianProfileContent extends StatelessWidget {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save changes'),
+                      : Text(context.l10n.commonSaveChanges),
                 ),
               ),
             ],
@@ -248,13 +249,13 @@ class _TechnicianProfileContent extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onEdit,
             icon: const Icon(Icons.edit_outlined),
-            label: const Text('Edit name'),
+            label: Text(context.l10n.techEditName),
           ),
         const SizedBox(height: 20),
         OutlinedButton.icon(
           onPressed: onSignOut,
           icon: Icon(Icons.logout, color: colorScheme.error),
-          label: Text('Sign out', style: TextStyle(color: colorScheme.error)),
+          label: Text(context.l10n.commonSignOut, style: TextStyle(color: colorScheme.error)),
         ),
       ],
     );

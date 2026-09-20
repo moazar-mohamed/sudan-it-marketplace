@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/l10n_extension.dart';
 import '../domain/entities/auth_user.dart';
 import 'auth_controller.dart';
 
@@ -16,7 +17,7 @@ class AuthenticatedPlaceholderScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sudan ICT Marketplace'),
+        title: Text(context.l10n.appName),
       ),
       body: Center(
         child: Padding(
@@ -33,7 +34,7 @@ class AuthenticatedPlaceholderScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'You are signed in',
+                  context.l10n.authSignedInTitle,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -47,7 +48,7 @@ class AuthenticatedPlaceholderScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Customer dashboard will be added later.',
+                  context.l10n.authDashboardLater,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
@@ -58,7 +59,7 @@ class AuthenticatedPlaceholderScreen extends ConsumerWidget {
                   onPressed: () {
                     ref.read(authControllerProvider.notifier).signOut();
                   },
-                  child: const Text('Sign out'),
+                  child: Text(context.l10n.commonSignOut),
                 ),
               ],
             ),

@@ -5,6 +5,8 @@ import 'dashboard/technician_dashboard_tab.dart';
 import 'jobs/technician_jobs_tab.dart';
 import 'notifications/technician_notifications_screen.dart';
 import 'profile/technician_profile_screen.dart';
+import '../../../core/localization/l10n_extension.dart';
+import '../../settings/presentation/settings_screen.dart';
 
 /// Entry point of the Technician experience for a signed-in technician.
 /// Fully separate from CompanyAdminShell: technicians never see Company
@@ -54,14 +56,15 @@ class _TechnicianShellState extends ConsumerState<TechnicianShell> {
       appBar: AppBar(
         title: Text(
           switch (_currentIndex) {
-            1 => 'My Jobs',
-            2 => 'Profile',
-            _ => 'Technician Dashboard',
+            1 => context.l10n.techShellJobs,
+            2 => context.l10n.navProfile,
+            _ => context.l10n.techShellDashboard,
           },
         ),
         actions: [
+          const SettingsButton(),
           IconButton(
-            tooltip: 'Notifications',
+            tooltip: context.l10n.commonNotifications,
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
               Navigator.of(context).push(
@@ -82,21 +85,21 @@ class _TechnicianShellState extends ConsumerState<TechnicianShell> {
         backgroundColor: colorScheme.surface,
         indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            label: context.l10n.navDashboard,
           ),
           NavigationDestination(
             icon: Icon(Icons.handyman_outlined),
             selectedIcon: Icon(Icons.handyman),
-            label: 'Jobs',
+            label: context.l10n.techNavJobs,
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            label: context.l10n.navProfile,
           ),
         ],
       ),

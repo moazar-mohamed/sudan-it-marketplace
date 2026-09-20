@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/product.dart';
 import '../models/product_model.dart';
 import 'products_remote_data_source.dart';
+import '../../../../core/errors/app_exception.dart';
 
 class FirestoreProductsRemoteDataSource implements ProductsRemoteDataSource {
   FirestoreProductsRemoteDataSource({FirebaseFirestore? firestore})
@@ -56,7 +57,7 @@ class FirestoreProductsRemoteDataSource implements ProductsRemoteDataSource {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (error) {
-      throw Exception(_message(error, 'save'));
+      throw _failure(error, AppErrorCode.productSaveDenied, AppErrorCode.productSaveFailed);
     }
   }
 
@@ -71,7 +72,7 @@ class FirestoreProductsRemoteDataSource implements ProductsRemoteDataSource {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (error) {
-      throw Exception(_message(error, 'update'));
+      throw _failure(error, AppErrorCode.productUpdateDenied, AppErrorCode.productUpdateFailed);
     }
   }
 
@@ -80,14 +81,18 @@ class FirestoreProductsRemoteDataSource implements ProductsRemoteDataSource {
     try {
       await _products.doc(productId).delete();
     } on FirebaseException catch (error) {
-      throw Exception(_message(error, 'delete'));
+      throw _failure(error, AppErrorCode.productDeleteDenied, AppErrorCode.productDeleteFailed);
     }
   }
 
-  String _message(FirebaseException error, String action) {
+  AppException _failure(
+    FirebaseException error,
+    AppErrorCode denied,
+    AppErrorCode failed,
+  ) {
     if (error.code == 'permission-denied') {
-      return 'You do not have permission to $action this product.';
+      return AppException(denied);
     }
-    return 'Could not $action the product: ${error.message ?? error.code}';
+    return AppException(failed, detail: '${error.code}: ${error.message}');
   }
 }

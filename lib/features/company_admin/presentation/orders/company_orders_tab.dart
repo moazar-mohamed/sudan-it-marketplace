@@ -6,6 +6,8 @@ import '../../../orders/presentation/orders_providers.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/company_order_tile.dart';
 import 'company_order_details_screen.dart';
+import '../../../../core/localization/l10n_extension.dart';
+import '../../../orders/presentation/order_labels.dart';
 
 class CompanyOrdersTab extends ConsumerStatefulWidget {
   const CompanyOrdersTab({super.key, required this.companyId});
@@ -28,7 +30,7 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
     return ordersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => AdminErrorState(
-        message: 'Could not load your orders.',
+        message: context.l10n.adminOrdersLoadFailed,
         onRetry: () =>
             ref.invalidate(companyOrdersStreamProvider(widget.companyId)),
       ),
@@ -43,20 +45,22 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _chip('All (${orders.length})', null),
+                _chip(context.l10n.adminFilterAll(orders.length), null),
                 for (final status in OrderStatus.values)
                   _chip(
-                    '${status.displayName} '
-                    '(${orders.where((o) => o.orderStatus == status).length})',
+                    context.l10n.adminFilterStatus(
+                      status.label(context.l10n),
+                      orders.where((o) => o.orderStatus == status).length,
+                    ),
                     status,
                   ),
               ],
             ),
             const SizedBox(height: 12),
             if (visible.isEmpty)
-              const AdminEmptyState(
+              AdminEmptyState(
                 icon: Icons.receipt_long_outlined,
-                message: 'No orders to show.',
+                message: context.l10n.adminNoOrdersToShow,
               )
             else
               for (final order in visible) ...[

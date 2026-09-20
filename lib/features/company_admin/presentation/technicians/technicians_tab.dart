@@ -9,6 +9,7 @@ import '../company_admin_actions.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/status_badge.dart';
 import 'technician_form_screen.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class TechniciansTab extends ConsumerWidget {
   const TechniciansTab({super.key, required this.companyId});
@@ -31,20 +32,19 @@ class TechniciansTab extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Deactivate technician'),
+        title: Text(context.l10n.adminDeactivateTechnician),
         content: Text(
-          'Deactivate "${technician.fullName}"? '
-          'They will no longer be available for new installation jobs.',
+          context.l10n.adminDeactivateTechnicianBody(technician.fullName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Deactivate'),
+            child: Text(context.l10n.commonDeactivate),
           ),
         ],
       ),
@@ -61,7 +61,7 @@ class TechniciansTab extends ConsumerWidget {
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(error ?? 'Technician deactivated.'),
+        content: Text(error ?? context.l10n.adminTechnicianDeactivated),
         backgroundColor: error == null ? null : AppColors.error,
       ),
     );
@@ -79,12 +79,12 @@ class TechniciansTab extends ConsumerWidget {
         heroTag: 'company_add_technician',
         onPressed: () => _openAdd(context),
         icon: const Icon(Icons.add),
-        label: const Text('Add Technician'),
+        label: Text(context.l10n.adminAddTechnician),
       ),
       body: techniciansAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => AdminErrorState(
-          message: 'Could not load your technicians.',
+          message: context.l10n.adminTechniciansLoadFailed,
           onRetry: () =>
               ref.invalidate(companyTechniciansStreamProvider(companyId)),
         ),
@@ -92,11 +92,11 @@ class TechniciansTab extends ConsumerWidget {
           final invites = invitesAsync.asData?.value ?? const [];
           if (technicians.isEmpty && invites.isEmpty) {
             return ListView(
-              children: const [
+              children: [
                 AdminEmptyState(
                   icon: Icons.engineering_outlined,
                   message:
-                      'You have not added any technicians yet.\nTap "Add Technician" to invite your first one.',
+                      context.l10n.adminTechniciansEmpty,
                 ),
               ],
             );
@@ -178,7 +178,7 @@ class _PendingInviteTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const StatusBadge(label: 'Invited (pending)', color: Colors.orange),
+                StatusBadge(label: context.l10n.adminInvitedPending, color: Colors.orange),
               ],
             ),
           ),
@@ -252,7 +252,7 @@ class _TechnicianTile extends StatelessWidget {
                     ],
                     const SizedBox(height: 6),
                     StatusBadge(
-                      label: technician.isActive ? 'Active' : 'Inactive',
+                      label: technician.isActive ? context.l10n.adminActive : context.l10n.adminInactive,
                       color: technician.isActive
                           ? AppColors.success
                           : AppColors.error,
@@ -262,7 +262,7 @@ class _TechnicianTile extends StatelessWidget {
               ),
               if (onDeactivate != null)
                 IconButton(
-                  tooltip: 'Deactivate technician',
+                  tooltip: context.l10n.adminDeactivateTechnician,
                   icon: Icon(Icons.person_off_outlined, color: AppColors.error),
                   onPressed: onDeactivate,
                 )

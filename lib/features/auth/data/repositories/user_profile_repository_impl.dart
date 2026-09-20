@@ -101,6 +101,26 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   }
 
   @override
+  Future<void> updateLanguage({
+    required String userId,
+    required String language,
+  }) async {
+    try {
+      await _remoteDataSource.updateLanguage(
+        userId: userId,
+        language: language,
+      );
+    } on AuthException {
+      rethrow;
+    } catch (_) {
+      throw const AuthException(
+        'Could not save your language. Please try again.',
+        code: 'language-update-failed',
+      );
+    }
+  }
+
+  @override
   Future<void> updateProfile({
     required String userId,
     required String fullName,

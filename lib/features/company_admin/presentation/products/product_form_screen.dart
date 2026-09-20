@@ -9,6 +9,7 @@ import '../../../../core/widgets/image_picker_strings.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../company_admin_actions.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 /// Add Product and Edit Product share this form and its rules:
 /// installation price is only shown and required when installation is on.
@@ -108,14 +109,18 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   static final _decimalFormatter =
       FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'));
 
-  String? _validatePositiveNumber(String? value, String field) {
+  String? _validatePositiveNumber(
+    String? value, {
+    required String requiredMessage,
+    required String invalidMessage,
+  }) {
     final text = value?.trim() ?? '';
     if (text.isEmpty) {
-      return '$field is required.';
+      return requiredMessage;
     }
     final number = double.tryParse(text);
     if (number == null || number <= 0) {
-      return 'Enter a valid $field greater than 0.';
+      return invalidMessage;
     }
     return null;
   }
@@ -125,7 +130,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     if ((value?.trim() ?? '').isEmpty) {
       return null;
     }
-    return _validatePositiveNumber(value, 'price');
+    return _validatePositiveNumber(
+      value,
+      requiredMessage: context.l10n.formPriceInvalid,
+      invalidMessage: context.l10n.formPriceInvalid,
+    );
   }
 
   void _addSpecRow() {
@@ -220,7 +229,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(existing == null ? 'Product added.' : 'Product updated.'),
+        content: Text(existing == null ? context.l10n.formProductAdded : context.l10n.formProductUpdated),
       ),
     );
     Navigator.of(context).pop();
@@ -242,7 +251,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Edit Product' : 'Add Product'),
+        title: Text(widget.isEditing ? context.l10n.adminEditProduct : context.l10n.adminAddProduct),
       ),
       body: SafeArea(
         top: false,
@@ -256,17 +265,17 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               MediaQuery.viewInsetsOf(context).bottom + 24,
             ),
             children: [
-              sectionTitle('Product'),
+              sectionTitle(context.l10n.adminProduct),
               TextFormField(
                 controller: _nameController,
                 enabled: !_isSaving,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Product Name',
+                decoration: InputDecoration(
+                  labelText: context.l10n.formProductName,
                   prefixIcon: Icon(Icons.inventory_2_outlined),
                 ),
                 validator: (value) => (value?.trim().isEmpty ?? true)
-                    ? 'Product name is required.'
+                    ? context.l10n.formProductNameRequired
                     : null,
               ),
               const SizedBox(height: 14),
@@ -281,26 +290,26 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [_decimalFormatter],
-                decoration: const InputDecoration(
-                  labelText: 'Price (SDG) - optional',
+                decoration: InputDecoration(
+                  labelText: context.l10n.formPriceOptional,
                   prefixIcon: Icon(Icons.payments_outlined),
                 ),
                 validator: _validateOptionalPrice,
               ),
-              sectionTitle('Stock / Availability'),
+              sectionTitle(context.l10n.formStockSection),
               TextFormField(
                 controller: _stockController,
                 enabled: !_isSaving,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: 'Stock Quantity',
+                decoration: InputDecoration(
+                  labelText: context.l10n.formStockQuantity,
                   prefixIcon: Icon(Icons.warehouse_outlined),
                 ),
                 validator: (value) {
                   final text = value?.trim() ?? '';
                   if (text.isEmpty || int.tryParse(text) == null) {
-                    return 'Enter the stock quantity (0 or more).';
+                    return context.l10n.formStockRequired;
                   }
                   return null;
                 },
@@ -311,23 +320,23 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 onChanged: _isSaving
                     ? null
                     : (value) => setState(() => _inStock = value),
-                title: const Text('Available for sale'),
-                subtitle: const Text(
-                  'Customers can buy this product while it has stock.',
+                title: Text(context.l10n.formAvailableForSale),
+                subtitle: Text(
+                  context.l10n.formAvailableHint,
                 ),
               ),
-              sectionTitle('Description'),
+              sectionTitle(context.l10n.productDescription),
               TextFormField(
                 controller: _descriptionController,
                 enabled: !_isSaving,
                 minLines: 3,
                 maxLines: 6,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
+                decoration: InputDecoration(
+                  labelText: context.l10n.productDescription,
                   alignLabelWithHint: true,
                 ),
               ),
-              sectionTitle('Specifications'),
+              sectionTitle(context.l10n.productSpecifications),
               for (int i = 0; i < _specRows.length; i++) ...[
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,7 +346,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                       child: TextFormField(
                         controller: _specRows[i].keyController,
                         enabled: !_isSaving,
-                        decoration: const InputDecoration(labelText: 'Name'),
+                        decoration: InputDecoration(labelText: context.l10n.formSpecName),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -346,11 +355,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                       child: TextFormField(
                         controller: _specRows[i].valueController,
                         enabled: !_isSaving,
-                        decoration: const InputDecoration(labelText: 'Value'),
+                        decoration: InputDecoration(labelText: context.l10n.formSpecValue),
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Remove',
+                      tooltip: context.l10n.commonRemove,
                       onPressed: _isSaving ? null : () => _removeSpecRow(i),
                       icon: Icon(
                         Icons.remove_circle_outline,
@@ -366,24 +375,24 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 child: TextButton.icon(
                   onPressed: _isSaving ? null : _addSpecRow,
                   icon: const Icon(Icons.add),
-                  label: const Text('Add specification'),
+                  label: Text(context.l10n.formAddSpec),
                 ),
               ),
-              sectionTitle('Delivery'),
+              sectionTitle(context.l10n.checkoutDelivery),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _deliveryAvailable,
                 onChanged: _isSaving
                     ? null
                     : (value) => setState(() => _deliveryAvailable = value),
-                title: const Text('Delivery Available'),
+                title: Text(context.l10n.formDeliveryAvailable),
                 subtitle: Text(
                   _deliveryAvailable
-                      ? 'Customers can choose delivery at checkout.'
-                      : 'Customers collect this product from your pickup location.',
+                      ? context.l10n.formDeliveryOn
+                      : context.l10n.formDeliveryOff,
                 ),
               ),
-              sectionTitle('Installation'),
+              sectionTitle(context.l10n.pendingInstallation),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _installationAvailable,
@@ -391,11 +400,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     ? null
                     : (value) =>
                         setState(() => _installationAvailable = value),
-                title: const Text('Installation Available'),
+                title: Text(context.l10n.formInstallationAvailable),
                 subtitle: Text(
                   _installationAvailable
-                      ? 'Customers can choose Product + Installation.'
-                      : 'Customers will not see any installation option.',
+                      ? context.l10n.formInstallationOn
+                      : context.l10n.formInstallationOff,
                 ),
               ),
               if (_installationAvailable) ...[
@@ -406,12 +415,15 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [_decimalFormatter],
-                  decoration: const InputDecoration(
-                    labelText: 'Installation Price (SDG)',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.formInstallationPrice,
                     prefixIcon: Icon(Icons.handyman_outlined),
                   ),
-                  validator: (value) =>
-                      _validatePositiveNumber(value, 'installation price'),
+                  validator: (value) => _validatePositiveNumber(
+                    value,
+                    requiredMessage: context.l10n.formInstallationPriceRequired,
+                    invalidMessage: context.l10n.formInstallationPriceInvalid,
+                  ),
                 ),
               ],
               const SizedBox(height: 28),
@@ -426,7 +438,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                           color: AppColors.onPrimary,
                         ),
                       )
-                    : Text(widget.isEditing ? 'Save Changes' : 'Add Product'),
+                    : Text(widget.isEditing ? context.l10n.commonSaveChanges : context.l10n.adminAddProduct),
               ),
             ],
           ),

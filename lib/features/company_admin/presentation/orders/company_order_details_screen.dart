@@ -10,6 +10,8 @@ import '../company_admin_format.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/order_status_actions.dart';
 import '../widgets/status_badge.dart';
+import '../../../../core/localization/l10n_extension.dart';
+import '../../../orders/presentation/order_labels.dart';
 
 /// Looks up a company order from the live company orders stream so status
 /// changes are reflected immediately.
@@ -39,12 +41,12 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(order == null ? 'Order Details' : 'Order #${order.shortId}'),
+        title: Text(order == null ? context.l10n.orderDetailsTitle : context.l10n.orderTitleNumber(order.shortId)),
       ),
       body: order == null
           ? (ordersAsync.isLoading
               ? const Center(child: CircularProgressIndicator())
-              : const AdminErrorState(message: 'This order was not found.'))
+              : AdminErrorState(message: context.l10n.adminOrderNotFound))
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
@@ -53,30 +55,30 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                 OrderStatusActions(order: order),
                 const SizedBox(height: 12),
                 AdminSectionCard(
-                  title: 'Customer',
+                  title: context.l10n.adminCustomer,
                   children: [
                     AdminInfoRow(
-                      label: 'Name',
-                      value: CompanyAdminFormat.customer(order),
+                      label: context.l10n.adminName,
+                      value: CompanyAdminFormat.customer(order, context.l10n),
                     ),
                     AdminInfoRow(
-                      label: 'Contact Phone',
+                      label: context.l10n.orderContactPhone,
                       value: order.contactPhone,
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 AdminSectionCard(
-                  title: 'Product',
+                  title: context.l10n.adminProduct,
                   children: [
-                    AdminInfoRow(label: 'Product', value: order.productName),
-                    AdminInfoRow(label: 'Quantity', value: '${order.quantity}'),
+                    AdminInfoRow(label: context.l10n.adminProduct, value: order.productName),
+                    AdminInfoRow(label: context.l10n.adminQuantity, value: '${order.quantity}'),
                     AdminInfoRow(
-                      label: 'Unit Price',
+                      label: context.l10n.adminUnitPrice,
                       value: CompanyAdminFormat.price(order.unitPrice),
                     ),
                     AdminInfoRow(
-                      label: 'Product Subtotal',
+                      label: context.l10n.orderProductSubtotal,
                       value: CompanyAdminFormat.price(order.productSubtotal),
                     ),
                   ],
@@ -84,22 +86,22 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 AdminSectionCard(
                   title: order.deliveryMethod == DeliveryMethod.pickup
-                      ? 'Pickup'
-                      : 'Delivery',
+                      ? context.l10n.checkoutPickup
+                      : context.l10n.checkoutDelivery,
                   children: [
                     AdminInfoRow(
-                      label: 'Method',
-                      value: order.deliveryMethod.displayName,
+                      label: context.l10n.adminMethod,
+                      value: order.deliveryMethod.label(context.l10n),
                     ),
                     AdminInfoRow(
                       label: order.deliveryMethod == DeliveryMethod.pickup
-                          ? 'Pickup Location'
-                          : 'Delivery Address',
+                          ? context.l10n.checkoutPickupLocation
+                          : context.l10n.pendingDeliveryAddress,
                       value: orderDeliveryLabel(context, order),
                     ),
                     if (order.deliveryMethod == DeliveryMethod.delivery)
                       AdminInfoRow(
-                        label: 'Delivery Fee',
+                        label: context.l10n.orderDeliveryFee,
                         value: CompanyAdminFormat.price(order.deliveryFee),
                       ),
                     // Read-only: the customer's saved delivery point, or the
@@ -114,47 +116,47 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 AdminSectionCard(
-                  title: 'Installation',
+                  title: context.l10n.pendingInstallation,
                   children: [
                     AdminInfoRow(
-                      label: 'Selection',
+                      label: context.l10n.adminSelection,
                       value: order.installationSelected
-                          ? 'Product + Installation'
-                          : 'Product Only',
+                          ? context.l10n.checkoutProductInstallation
+                          : context.l10n.checkoutProductOnly,
                     ),
                     if (order.installationSelected) ...[
                       AdminInfoRow(
-                        label: 'Installation Fee',
+                        label: context.l10n.orderInstallationFee,
                         value: CompanyAdminFormat.price(order.installationFee),
                       ),
                       AdminInfoRow(
-                        label: 'Job Status',
-                        value: CompanyAdminFormat.installationJobStatus(order),
+                        label: context.l10n.adminJobStatus,
+                        value: CompanyAdminFormat.installationJobStatus(order, context.l10n),
                       ),
                     ],
                   ],
                 ),
                 const SizedBox(height: 12),
                 AdminSectionCard(
-                  title: 'Payment',
+                  title: context.l10n.adminPayment,
                   children: [
                     AdminInfoRow(
-                      label: 'Total Amount',
+                      label: context.l10n.orderTotalAmount,
                       value: CompanyAdminFormat.price(order.totalAmount),
                       valueColor: AppColors.primary,
                       emphasize: true,
                     ),
                     AdminInfoRow(
-                      label: 'Payment Status',
-                      value: order.paymentStatus.displayName,
+                      label: context.l10n.orderPaymentStatus,
+                      value: order.paymentStatus.label(context.l10n),
                       valueColor: CompanyAdminFormat.paymentStatusColor(
                         order.paymentStatus,
                       ),
                     ),
                     AdminInfoRow(
-                      label: 'Receipt Reference',
+                      label: context.l10n.adminReceiptReference,
                       value: (order.receiptFileName ?? '').trim().isEmpty
-                          ? 'Not provided'
+                          ? context.l10n.adminNotProvided
                           : order.receiptFileName!,
                     ),
                   ],
@@ -173,25 +175,25 @@ class _OrderSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AdminSectionCard(
-      title: 'Order Information',
+      title: context.l10n.adminOrderInformation,
       trailing: StatusBadge(
-        label: order.orderStatus.displayName,
+        label: order.orderStatus.label(context.l10n),
         color: CompanyAdminFormat.orderStatusColor(order.orderStatus),
       ),
       children: [
-        AdminInfoRow(label: 'Order Number', value: order.id),
+        AdminInfoRow(label: context.l10n.adminOrderNumber, value: order.id),
         AdminInfoRow(
-          label: 'Created',
+          label: context.l10n.adminCreated,
           value: CompanyAdminFormat.date(order.createdAt),
         ),
         if (order.updatedAt != null)
           AdminInfoRow(
-            label: 'Last Updated',
+            label: context.l10n.adminLastUpdated,
             value: CompanyAdminFormat.date(order.updatedAt!),
           ),
         AdminInfoRow(
-          label: 'Order Status',
-          value: order.orderStatus.displayName,
+          label: context.l10n.orderOrderStatus,
+          value: order.orderStatus.label(context.l10n),
           valueColor: CompanyAdminFormat.orderStatusColor(order.orderStatus),
         ),
       ],

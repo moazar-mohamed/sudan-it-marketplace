@@ -10,6 +10,8 @@ import '../../auth/presentation/auth_state.dart';
 import '../../auth/domain/entities/user_profile.dart';
 import '../../auth/domain/exceptions/auth_exception.dart';
 import 'profile_controller.dart';
+import '../../auth/presentation/auth_error_messages.dart';
+import '../../../core/localization/l10n_extension.dart';
 
 class CustomerProfileScreen extends ConsumerStatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -95,7 +97,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       _isEditing = error != null;
     });
     _showMessage(
-      error ?? 'Profile updated successfully.',
+      error ?? context.l10n.profileUpdated,
       isError: error != null,
     );
   }
@@ -133,7 +135,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
               setSheetState(() => isSubmitting = false);
               if (error == null) {
                 Navigator.of(sheetContext).pop();
-                _showMessage('Password changed successfully.');
+                _showMessage(context.l10n.profilePasswordChanged);
               } else {
                 _showMessage(error, isError: true);
               }
@@ -155,7 +157,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Change password',
+                          context.l10n.profileChangePassword,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -165,7 +167,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                           controller: currentPasswordController,
                           obscureText: obscureCurrentPassword,
                           decoration: InputDecoration(
-                            labelText: 'Current password',
+                            labelText: context.l10n.profileCurrentPassword,
                             suffixIcon: IconButton(
                               onPressed: () => setSheetState(
                                 () => obscureCurrentPassword =
@@ -179,7 +181,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                             ),
                           ),
                           validator: (value) => value == null || value.isEmpty
-                              ? 'Enter your current password.'
+                              ? context.l10n.profileCurrentPasswordRequired
                               : null,
                         ),
                         const SizedBox(height: 16),
@@ -187,7 +189,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                           controller: newPasswordController,
                           obscureText: obscureNewPassword,
                           decoration: InputDecoration(
-                            labelText: 'New password',
+                            labelText: context.l10n.passwordChangeNew,
                             suffixIcon: IconButton(
                               onPressed: () => setSheetState(
                                 () => obscureNewPassword = !obscureNewPassword,
@@ -201,10 +203,10 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Enter a new password.';
+                              return context.l10n.passwordChangeNewRequired;
                             }
                             if (value.length < 6) {
-                              return 'Use at least 6 characters.';
+                              return context.l10n.profilePasswordMin;
                             }
                             return null;
                           },
@@ -214,7 +216,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                           controller: confirmPasswordController,
                           obscureText: obscureConfirmPassword,
                           decoration: InputDecoration(
-                            labelText: 'Confirm new password',
+                            labelText: context.l10n.passwordChangeConfirm,
                             suffixIcon: IconButton(
                               onPressed: () => setSheetState(
                                 () => obscureConfirmPassword =
@@ -229,10 +231,10 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Confirm your new password.';
+                              return context.l10n.profileConfirmPasswordRequired;
                             }
                             if (value != newPasswordController.text) {
-                              return 'Passwords do not match.';
+                              return context.l10n.authPasswordsMismatch;
                             }
                             return null;
                           },
@@ -246,7 +248,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                                   width: 20,
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
-                              : const Text('Update password'),
+                              : Text(context.l10n.profileUpdatePassword),
                         ),
                       ],
                     ),
@@ -294,15 +296,15 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
               onPressed: () =>
                   ref.read(authControllerProvider.notifier).signOut(),
               icon: const Icon(Icons.logout),
-              label: const Text('Sign out'),
+              label: Text(context.l10n.commonSignOut),
             ),
           ],
         ),
       ),
       error: (error, _) => _ProfileFailure(
         message: error is AuthException
-            ? error.message
-            : 'Could not load your profile. Please try again.',
+            ? authErrorMessage(context.l10n, error.code)
+            : context.l10n.errorProfileLoad,
         onRetry: () => ref.invalidate(profileControllerProvider),
         onSignOut: () => ref.read(authControllerProvider.notifier).signOut(),
       ),
@@ -314,7 +316,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
             return const SizedBox.shrink();
           }
           return _ProfileFailure(
-            message: 'Your profile could not be found.',
+            message: context.l10n.errorProfileNotFound,
             onRetry: () => ref.invalidate(profileControllerProvider),
             onSignOut: () =>
                 ref.read(authControllerProvider.notifier).signOut(),
@@ -388,7 +390,7 @@ class _ProfileContent extends StatelessWidget {
           Center(child: _ProfileAvatar(photoUrl: profile.photoUrl)),
         const SizedBox(height: 12),
         Text(
-          'My profile',
+          context.l10n.profileMyProfile,
           textAlign: TextAlign.center,
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w700,
@@ -403,20 +405,20 @@ class _ProfileContent extends StatelessWidget {
                 controller: nameController,
                 enabled: isEditing && !isSaving,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Full name',
+                decoration: InputDecoration(
+                  labelText: context.l10n.profileFullName,
                   prefixIcon: Icon(Icons.person_outline),
                 ),
                 validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Enter your full name.'
+                    ? context.l10n.profileFullNameRequired
                     : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 initialValue: profile.email,
                 enabled: false,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                  labelText: context.l10n.authEmail,
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
               ),
@@ -428,9 +430,9 @@ class _ProfileContent extends StatelessWidget {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
                 ],
-                decoration: const InputDecoration(
-                  labelText: 'Phone number',
-                  hintText: 'Optional',
+                decoration: InputDecoration(
+                  labelText: context.l10n.profilePhoneNumber,
+                  hintText: context.l10n.commonOptional,
                   prefixIcon: Icon(Icons.phone_outlined),
                 ),
                 validator: (value) {
@@ -440,7 +442,7 @@ class _ProfileContent extends StatelessWidget {
                   }
                   final digitsOnly = phone.replaceAll(RegExp(r'[^0-9]'), '');
                   if (digitsOnly.length < 9) {
-                    return 'Enter a valid phone number';
+                    return context.l10n.commonPhoneInvalid;
                   }
                   return null;
                 },
@@ -455,7 +457,7 @@ class _ProfileContent extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: isSaving ? null : onCancel,
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.commonCancel),
                 ),
               ),
               const SizedBox(width: 12),
@@ -468,7 +470,7 @@ class _ProfileContent extends StatelessWidget {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save changes'),
+                      : Text(context.l10n.commonSaveChanges),
                 ),
               ),
             ],
@@ -477,14 +479,14 @@ class _ProfileContent extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onEdit,
             icon: const Icon(Icons.edit_outlined),
-            label: const Text('Edit profile'),
+            label: Text(context.l10n.profileEdit),
           ),
         const SizedBox(height: 12),
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: Icon(Icons.lock_outline, color: colorScheme.primary),
-          title: const Text('Change password'),
-          subtitle: const Text('Update your account password'),
+          title: Text(context.l10n.profileChangePassword),
+          subtitle: Text(context.l10n.profileChangePasswordSubtitle),
           trailing: const Icon(Icons.chevron_right),
           onTap: onChangePassword,
         ),
@@ -494,7 +496,7 @@ class _ProfileContent extends StatelessWidget {
           onPressed: onSignOut,
           icon: Icon(Icons.logout, color: colorScheme.error),
           label: Text(
-            'Sign out',
+            context.l10n.commonSignOut,
             style: TextStyle(color: colorScheme.error),
           ),
         ),
@@ -535,12 +537,12 @@ class _ProfileAvatar extends StatelessWidget {
 
 class _ProfileFailure extends StatelessWidget {
   const _ProfileFailure({
-    this.message = 'Could not load your profile. Please try again.',
+    this.message,
     required this.onRetry,
     this.onSignOut,
   });
 
-  final String message;
+  final String? message;
   final VoidCallback onRetry;
   final VoidCallback? onSignOut;
 
@@ -558,11 +560,14 @@ class _ProfileFailure extends StatelessWidget {
               color: Theme.of(context).colorScheme.error,
             ),
             const SizedBox(height: 16),
-            Text(message, textAlign: TextAlign.center),
+            Text(
+              message ?? context.l10n.errorProfileLoad,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
-            OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+            OutlinedButton(onPressed: onRetry, child: Text(context.l10n.commonRetry)),
             if (onSignOut != null)
-              TextButton(onPressed: onSignOut, child: const Text('Sign out')),
+              TextButton(onPressed: onSignOut, child: Text(context.l10n.commonSignOut)),
           ],
         ),
       ),

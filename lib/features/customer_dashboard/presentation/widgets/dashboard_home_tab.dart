@@ -6,6 +6,7 @@ import '../../../companies/presentation/companies_providers.dart';
 import '../../../companies/presentation/widgets/company_card.dart';
 import '../../../products/presentation/products_providers.dart';
 import '../../../products/presentation/widgets/product_card.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class DashboardHomeTab extends ConsumerStatefulWidget {
   const DashboardHomeTab({super.key, this.onSelectTab});
@@ -93,8 +94,8 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           onChanged: _onSearchChanged,
           decoration: InputDecoration(
             hintText: isProductsTab
-                ? 'Search products...'
-                : 'Search companies...',
+                ? context.l10n.homeSearchProducts
+                : context.l10n.homeSearchCompanies,
             hintMaxLines: 1,
             prefixIcon: const Icon(Icons.search),
             suffixIcon: _searchQuery.isNotEmpty
@@ -112,14 +113,14 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           children: [
             Expanded(
               child: _HomeTabButton(
-                label: 'Products',
+                label: context.l10n.navProducts,
                 selected: isProductsTab,
                 onTap: () => _selectTab(_HomeTab.products),
               ),
             ),
             Expanded(
               child: _HomeTabButton(
-                label: 'Companies',
+                label: context.l10n.navCompanies,
                 selected: !isProductsTab,
                 onTap: () => _selectTab(_HomeTab.companies),
               ),
@@ -133,7 +134,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: Text(
-                  'No products found',
+                  context.l10n.homeNoProducts,
                   style: textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
@@ -155,7 +156,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(
               child: Text(
-                'No companies found',
+                context.l10n.homeNoCompanies,
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),

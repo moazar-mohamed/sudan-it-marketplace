@@ -8,6 +8,8 @@ import 'orders/company_orders_tab.dart';
 import 'products/company_products_tab.dart';
 import 'profile/company_profile_tab.dart';
 import 'technicians/technicians_tab.dart';
+import '../../../core/localization/l10n_extension.dart';
+import '../../settings/presentation/settings_screen.dart';
 
 /// Entry point of the Company Admin experience for a signed-in company admin.
 class CompanyAdminShell extends ConsumerStatefulWidget {
@@ -42,17 +44,18 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
       appBar: AppBar(
         title: Text(
           switch (_currentIndex) {
-            1 => 'Products',
-            2 => 'Orders',
-            3 => 'Installation Jobs',
-            4 => 'Technicians',
-            5 => 'Company Profile',
-            _ => 'Company Dashboard',
+            1 => context.l10n.navProducts,
+            2 => context.l10n.navOrders,
+            3 => context.l10n.adminInstallationJobs,
+            4 => context.l10n.navTechnicians,
+            5 => context.l10n.adminCompanyProfile,
+            _ => context.l10n.adminCompanyDashboard,
           },
         ),
         actions: [
+          const SettingsButton(),
           IconButton(
-            tooltip: 'Notifications',
+            tooltip: context.l10n.commonNotifications,
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
               Navigator.of(context).push(
@@ -72,36 +75,36 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
         backgroundColor: colorScheme.surface,
         indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            label: context.l10n.navDashboard,
           ),
           NavigationDestination(
             icon: Icon(Icons.inventory_2_outlined),
             selectedIcon: Icon(Icons.inventory_2),
-            label: 'Products',
+            label: context.l10n.navProducts,
           ),
           NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
-            label: 'Orders',
+            label: context.l10n.navOrders,
           ),
           NavigationDestination(
             icon: Icon(Icons.handyman_outlined),
             selectedIcon: Icon(Icons.handyman),
-            label: 'Installations',
+            label: context.l10n.adminNavInstallations,
           ),
           NavigationDestination(
             icon: Icon(Icons.engineering_outlined),
             selectedIcon: Icon(Icons.engineering),
-            label: 'Technicians',
+            label: context.l10n.navTechnicians,
           ),
           NavigationDestination(
             icon: Icon(Icons.business_outlined),
             selectedIcon: Icon(Icons.business),
-            label: 'Profile',
+            label: context.l10n.navProfile,
           ),
         ],
       ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../orders/domain/entities/order_entity.dart';
+import '../../orders/presentation/order_labels.dart';
 
 /// Small presentation helpers shared by the Company Admin screens.
 class CompanyAdminFormat {
@@ -20,12 +22,12 @@ class CompanyAdminFormat {
         '${two(local.hour)}:${two(local.minute)}';
   }
 
-  static String customer(OrderEntity order) {
+  static String customer(OrderEntity order, AppLocalizations l10n) {
     if (order.customerName.trim().isNotEmpty) {
       return order.customerName.trim();
     }
     final id = order.customerId;
-    return 'Customer ${id.length > 6 ? id.substring(0, 6) : id}';
+    return l10n.customerFallback(id.length > 6 ? id.substring(0, 6) : id);
   }
 
   static Color orderStatusColor(OrderStatus status) {
@@ -44,12 +46,11 @@ class CompanyAdminFormat {
   }
 
   /// Installation jobs follow their product order's lifecycle.
-  static String installationJobStatus(OrderEntity order) {
-    return switch (order.orderStatus) {
-      OrderStatus.processing => 'Pending',
-      OrderStatus.outForDelivery => 'In Progress',
-      OrderStatus.completed => 'Completed',
-    };
+  static String installationJobStatus(
+    OrderEntity order,
+    AppLocalizations l10n,
+  ) {
+    return order.orderStatus.jobLabel(l10n);
   }
 
   /// The next allowed status in Processing -> Out for Delivery -> Completed.

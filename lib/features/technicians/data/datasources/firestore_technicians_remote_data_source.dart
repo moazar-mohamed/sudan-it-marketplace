@@ -4,6 +4,7 @@ import '../../domain/entities/technician.dart';
 import '../../domain/entities/technician_invite.dart';
 import '../models/technician_model.dart';
 import 'technicians_remote_data_source.dart';
+import '../../../../core/errors/app_exception.dart';
 
 class FirestoreTechniciansRemoteDataSource
     implements TechniciansRemoteDataSource {
@@ -82,7 +83,7 @@ class FirestoreTechniciansRemoteDataSource
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (error) {
-      throw Exception(_message(error, 'save'));
+      throw _failure(error, AppErrorCode.technicianSaveDenied, AppErrorCode.technicianSaveFailed);
     }
   }
 
@@ -97,7 +98,7 @@ class FirestoreTechniciansRemoteDataSource
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (error) {
-      throw Exception(_message(error, 'update'));
+      throw _failure(error, AppErrorCode.technicianUpdateDenied, AppErrorCode.technicianUpdateFailed);
     }
   }
 
@@ -109,15 +110,19 @@ class FirestoreTechniciansRemoteDataSource
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (error) {
-      throw Exception(_message(error, 'deactivate'));
+      throw _failure(error, AppErrorCode.technicianDeactivateDenied, AppErrorCode.technicianDeactivateFailed);
     }
   }
 
-  String _message(FirebaseException error, String action) {
+  AppException _failure(
+    FirebaseException error,
+    AppErrorCode denied,
+    AppErrorCode failed,
+  ) {
     if (error.code == 'permission-denied') {
-      return 'You do not have permission to $action this technician.';
+      return AppException(denied);
     }
-    return 'Could not $action the technician: ${error.message ?? error.code}';
+    return AppException(failed, detail: '${error.code}: ${error.message}');
   }
 
   TechnicianInvite _inviteFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {

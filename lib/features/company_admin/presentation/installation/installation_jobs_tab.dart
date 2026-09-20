@@ -5,6 +5,7 @@ import '../../../orders/presentation/orders_providers.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/company_order_tile.dart';
 import 'installation_job_details_screen.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 /// Installation jobs are product orders that include installation.
 class InstallationJobsTab extends ConsumerWidget {
@@ -19,18 +20,18 @@ class InstallationJobsTab extends ConsumerWidget {
     return ordersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => AdminErrorState(
-        message: 'Could not load installation jobs.',
+        message: context.l10n.adminInstallationJobsLoadFailed,
         onRetry: () => ref.invalidate(companyOrdersStreamProvider(companyId)),
       ),
       data: (orders) {
         final jobs = orders.where((o) => o.installationSelected).toList();
         if (jobs.isEmpty) {
           return ListView(
-            children: const [
+            children: [
               AdminEmptyState(
                 icon: Icons.handyman_outlined,
                 message:
-                    'No installation jobs yet.\nOrders with Product + Installation appear here.',
+                    context.l10n.adminInstallationJobsEmpty,
               ),
             ],
           );

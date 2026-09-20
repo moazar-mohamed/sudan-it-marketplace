@@ -6,6 +6,8 @@ import '../../../orders/domain/entities/order_entity.dart';
 import '../company_admin_actions.dart';
 import '../company_admin_format.dart';
 import 'admin_section_card.dart';
+import '../../../../core/localization/l10n_extension.dart';
+import '../../../orders/presentation/order_labels.dart';
 
 /// Payment confirmation and the Processing -> Out for Delivery -> Completed
 /// progression for a single product order.
@@ -47,11 +49,11 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Confirm'),
+            child: Text(context.l10n.commonConfirm),
           ),
         ],
       ),
@@ -61,11 +63,11 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
 
   String _nextLabel(OrderStatus next) {
     return switch (next) {
-      OrderStatus.outForDelivery => 'Mark Out for Delivery',
+      OrderStatus.outForDelivery => context.l10n.adminMarkOutForDelivery,
       OrderStatus.completed => widget.order.installationSelected
-          ? 'Mark Completed (Installed)'
-          : 'Mark Completed',
-      OrderStatus.processing => 'Mark Processing',
+          ? context.l10n.adminMarkCompletedInstalled
+          : context.l10n.adminMarkCompleted,
+      OrderStatus.processing => context.l10n.adminMarkProcessing,
     };
   }
 
@@ -78,11 +80,11 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
     final textTheme = Theme.of(context).textTheme;
 
     return AdminSectionCard(
-      title: 'Manage Order',
+      title: context.l10n.adminManageOrder,
       children: [
         if (!paymentConfirmed) ...[
           Text(
-            'Verify the transfer receipt before processing this order.',
+            context.l10n.adminVerifyReceipt,
             style: textTheme.bodySmall,
           ),
           const SizedBox(height: 10),
@@ -92,19 +94,20 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
               onPressed: _isBusy
                   ? null
                   : () async {
+                      final l10n = context.l10n;
                       final ok = await _confirm(
-                        'Confirm payment',
-                        'Mark the payment for order #${order.shortId} as confirmed?',
+                        l10n.adminConfirmPaymentTitle,
+                        l10n.adminConfirmPaymentBody(order.shortId),
                       );
                       if (ok) {
                         await _run(
                           () => actions.confirmPayment(order),
-                          'Payment confirmed.',
+                          l10n.adminPaymentConfirmed,
                         );
                       }
                     },
               icon: const Icon(Icons.verified_outlined),
-              label: const Text('Confirm Payment'),
+              label: Text(context.l10n.adminConfirmPaymentButton),
             ),
           ),
           const SizedBox(height: 10),
@@ -116,7 +119,7 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'This order is completed.',
+                  context.l10n.adminOrderCompleted,
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -129,7 +132,7 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Text(
-                'Mark completed once the technician has finished the installation.',
+                context.l10n.adminMarkCompletedHint,
                 style: textTheme.bodySmall,
               ),
             ),
@@ -139,14 +142,19 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
               onPressed: (_isBusy || !paymentConfirmed)
                   ? null
                   : () async {
+                      final l10n = context.l10n;
+                      final statusLabel = next.label(l10n);
                       final ok = await _confirm(
-                        'Update order status',
-                        'Change order #${order.shortId} to "${next.displayName}"? This cannot be undone.',
+                        l10n.adminUpdateOrderStatus,
+                        l10n.adminChangeOrderStatusBody(
+                          order.shortId,
+                          statusLabel,
+                        ),
                       );
                       if (ok) {
                         await _run(
                           () => actions.advanceOrderStatus(order, next),
-                          'Order marked ${next.displayName}.',
+                          l10n.adminOrderMarked(statusLabel),
                         );
                       }
                     },

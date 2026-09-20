@@ -8,6 +8,7 @@ import '../../products/domain/entities/product.dart';
 import '../../products/presentation/products_providers.dart';
 import '../../products/presentation/widgets/product_card.dart';
 import '../domain/entities/company.dart';
+import '../../../core/localization/l10n_extension.dart';
 
 class CompanyDetailsScreen extends ConsumerWidget {
   const CompanyDetailsScreen({
@@ -115,7 +116,7 @@ class CompanyDetailsScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  '(${company.reviewCount} reviews)',
+                                  context.l10n.reviewsCount(company.reviewCount),
                                   style: textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurface
                                         .withValues(alpha: 0.6),
@@ -164,7 +165,7 @@ class CompanyDetailsScreen extends ConsumerWidget {
                     const Divider(),
                     const SizedBox(height: 10),
                     Text(
-                      'About Company',
+                      context.l10n.companyAbout,
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: colorScheme.onSurface,
@@ -229,7 +230,7 @@ class CompanyDetailsScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Products (${companyProducts.length})',
+                  context.l10n.companyProductsCount(companyProducts.length),
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: colorScheme.onSurface,
@@ -252,7 +253,7 @@ class CompanyDetailsScreen extends ConsumerWidget {
                 ),
                 child: Center(
                   child: Text(
-                    'No products listed by this company yet.',
+                    context.l10n.companyNoProducts,
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.6),
                     ),

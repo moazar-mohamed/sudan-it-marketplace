@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/l10n_extension.dart';
 import '../../domain/entities/app_notification.dart';
 import '../notification_format.dart';
 
@@ -26,7 +27,7 @@ class NotificationTile extends StatelessWidget {
         child: Icon(style.icon),
       ),
       title: Text(
-        notification.title,
+        NotificationFormat.title(context.l10n, notification),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: textTheme.bodyMedium?.copyWith(
@@ -34,7 +35,7 @@ class NotificationTile extends StatelessWidget {
         ),
       ),
       subtitle: Text(
-        '${notification.body}\n${NotificationFormat.date(notification.createdAt)}',
+        '${NotificationFormat.body(context.l10n, notification)}\n${NotificationFormat.date(notification.createdAt)}',
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
       ),

@@ -17,6 +17,7 @@ import '../domain/entities/checkout_order_draft.dart';
 import '../domain/entities/order_entity.dart';
 import 'manual_payment_screen.dart';
 import 'widgets/price_summary_row.dart';
+import '../../../core/localization/l10n_extension.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
@@ -40,7 +41,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   /// Optional exact delivery point picked on the map. The typed address and
   /// the map point are independent: either one, or both, satisfies checkout.
   GeoLocation? _deliveryLocation;
-  String? _locationError;
+  bool _locationMissing = false;
 
   bool _includeInstallation = false;
   static const double _standardDeliveryFee = 15000.0;
@@ -60,7 +61,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   bool get _installationEligible =>
       _useDelivery && widget.product.isInstallationAvailable;
 
-  String _pickupLocation() {
+  /// The company's pickup point. Pass a [display] context to show the
+  /// fallback text in the active language; without it the stored (English)
+  /// text is returned, which is what is saved on the order.
+  String _pickupLocation([BuildContext? display]) {
     final companyId = widget.product.companyId;
     final company =
         companyId == null ? null : ref.read(resolvedCompanyProvider(companyId));
@@ -72,7 +76,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (address.isNotEmpty) {
       return address;
     }
-    return 'Company pickup location (the company will confirm by phone)';
+    return display?.l10n.checkoutPickupFallback ??
+        'Company pickup location (the company will confirm by phone)';
   }
 
   @override
@@ -80,8 +85,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.initState();
     // Typing an address satisfies the "address or map" requirement.
     _addressController.addListener(() {
-      if (_locationError != null && _addressController.text.trim().isNotEmpty) {
-        setState(() => _locationError = null);
+      if (_locationMissing && _addressController.text.trim().isNotEmpty) {
+        setState(() => _locationMissing = false);
       }
     });
   }
@@ -111,7 +116,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (_useDelivery &&
         _addressController.text.trim().isEmpty &&
         _deliveryLocation == null) {
-      setState(() => _locationError = LocationStrings.of(context).locationRequired);
+      setState(() => _locationMissing = true);
       return;
     }
     if (!formValid) {
@@ -187,7 +192,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Checkout'),
+        title: Text(context.l10n.checkoutTitle),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -246,14 +251,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Unit: ${_formatPrice(_unitPrice)} ${widget.product.currency}',
+                                context.l10n.checkoutUnit(_formatPrice(_unitPrice), widget.product.currency),
                                 style: textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurface
                                       .withValues(alpha: 0.6),
                                 ),
                               ),
                               Text(
-                                'Qty: ${widget.quantity}',
+                                context.l10n.checkoutQty(widget.quantity),
                                 style: textTheme.bodySmall?.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: colorScheme.onSurface,
@@ -263,7 +268,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Subtotal: ${_formatPrice(productSubtotal)} ${widget.product.currency}',
+                            context.l10n.checkoutSubtotal(_formatPrice(productSubtotal), widget.product.currency),
                             style: textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: AppColors.primary,
@@ -280,8 +285,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               // 2. Delivery & Contact Details
               Text(
                 widget.product.isDeliveryAvailable
-                    ? 'Delivery & Contact'
-                    : 'Pickup & Contact',
+                    ? context.l10n.checkoutDeliveryContact
+                    : context.l10n.checkoutPickupContact,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: colorScheme.onSurface,
@@ -304,16 +309,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: SegmentedButton<bool>(
-                          segments: const [
+                          segments: [
                             ButtonSegment<bool>(
                               value: true,
                               icon: Icon(Icons.local_shipping_outlined),
-                              label: Text('Delivery'),
+                              label: Text(context.l10n.checkoutDelivery),
                             ),
                             ButtonSegment<bool>(
                               value: false,
                               icon: Icon(Icons.storefront_outlined),
-                              label: Text('Pickup'),
+                              label: Text(context.l10n.checkoutPickup),
                             ),
                           ],
                           selected: {_useDelivery},
@@ -344,14 +349,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Pickup Location',
+                                  context.l10n.checkoutPickupLocation,
                                   style: textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  _pickupLocation(),
+                                  _pickupLocation(context),
                                   style: textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurface
                                         .withValues(alpha: 0.75),
@@ -361,9 +366,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                   const SizedBox(height: 8),
                                   OpenLocationButton(
                                     label: LocationStrings.of(context).viewOnMap,
-                                    viewerTitle: 'Pickup Location',
+                                    viewerTitle: context.l10n.checkoutPickupLocation,
                                     coordinates: _pickupCoordinates(),
-                                    text: _pickupLocation(),
+                                    text: _pickupLocation(context),
                                   ),
                                 ],
                               ],
@@ -378,11 +383,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     LocationField(
                       textController: _addressController,
                       location: _deliveryLocation,
-                      textHint: 'Street name, building/house, neighborhood, city',
-                      errorText: _locationError,
+                      textHint: context.l10n.checkoutAddressHint,
+                      errorText: _locationMissing
+                          ? LocationStrings.of(context).locationRequired
+                          : null,
                       onLocationChanged: (value) => setState(() {
                         _deliveryLocation = value;
-                        _locationError = null;
+                        _locationMissing = false;
                       }),
                     ),
                     const SizedBox(height: 16),
@@ -396,24 +403,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           RegExp(r'[0-9+\s]'),
                         ),
                       ],
-                      decoration: const InputDecoration(
-                        labelText: 'Contact Phone Number',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.checkoutContactPhone,
                         hintText: '+249 9X XXX XXXX',
                         prefixIcon: Icon(Icons.phone_outlined),
                         helperText:
-                            'The company will call this number to coordinate delivery',
+                            context.l10n.checkoutContactPhoneHelper,
                       ),
                       validator: (value) {
                         final phone = value?.trim() ?? '';
                         if (phone.isEmpty) {
-                          return 'Please enter a contact phone number';
+                          return context.l10n.checkoutPhoneRequired;
                         }
                         final digitsOnly = phone.replaceAll(
                           RegExp(r'[^0-9]'),
                           '',
                         );
                         if (digitsOnly.length < 9) {
-                          return 'Enter a valid phone number';
+                          return context.l10n.commonPhoneInvalid;
                         }
                         return null;
                       },
@@ -427,7 +434,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               // the product supports installation)
               if (_installationEligible) ...[
                 Text(
-                  'Installation Option',
+                  context.l10n.checkoutInstallationOption,
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: colorScheme.onSurface,
@@ -456,7 +463,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'On-site Professional Installation',
+                              context.l10n.checkoutInstallationTitle,
                               style: textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -466,7 +473,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Certified technician setup available for ${_formatPrice(installationPrice)} ${widget.product.currency}.',
+                        context.l10n.checkoutInstallationNote(_formatPrice(installationPrice), widget.product.currency),
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
@@ -514,7 +521,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
-                                      'Product Only',
+                                      context.l10n.checkoutProductOnly,
                                       textAlign: TextAlign.center,
                                       style: textTheme.bodySmall?.copyWith(
                                         fontWeight: !_includeInstallation
@@ -578,7 +585,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
-                                      'Product + Installation',
+                                      context.l10n.checkoutProductInstallation,
                                       textAlign: TextAlign.center,
                                       style: textTheme.bodySmall?.copyWith(
                                         fontWeight: _includeInstallation
@@ -615,7 +622,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
               // 4. Order Price Summary
               Text(
-                'Price Summary',
+                context.l10n.checkoutPriceSummary,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: colorScheme.onSurface,
@@ -634,7 +641,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 child: Column(
                   children: [
                     PriceSummaryRow(
-                      label: 'Product Subtotal (${widget.quantity} items)',
+                      label: context.l10n.checkoutProductSubtotal(widget.quantity),
                       value:
                           '${_formatPrice(productSubtotal)} ${widget.product.currency}',
                       labelStyle: textTheme.bodyMedium,
@@ -645,10 +652,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     if (_installationEligible) ...[
                       const SizedBox(height: 10),
                       PriceSummaryRow(
-                        label: 'Installation Service',
+                        label: context.l10n.checkoutInstallationService,
                         value: _includeInstallation
                             ? '+${_formatPrice(installationPrice)} ${widget.product.currency}'
-                            : 'Not included',
+                            : context.l10n.checkoutNotIncluded,
                         labelStyle: textTheme.bodyMedium,
                         valueStyle: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
@@ -661,7 +668,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     if (_useDelivery) ...[
                       const SizedBox(height: 10),
                       PriceSummaryRow(
-                        label: 'Delivery Fee',
+                        label: context.l10n.checkoutDeliveryFee,
                         value:
                             '${_formatPrice(_deliveryFee)} ${widget.product.currency}',
                         labelStyle: textTheme.bodyMedium,
@@ -674,7 +681,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     const Divider(),
                     const SizedBox(height: 10),
                     PriceSummaryRow(
-                      label: 'Final Total',
+                      label: context.l10n.checkoutFinalTotal,
                       value:
                           '${_formatPrice(finalTotal)} ${widget.product.currency}',
                       labelStyle: textTheme.titleMedium?.copyWith(
@@ -694,7 +701,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ElevatedButton(
                 onPressed: _onConfirmOrder,
                 child: Text(
-                  'Confirm Order • ${_formatPrice(finalTotal)} ${widget.product.currency}',
+                  context.l10n.checkoutConfirmOrder(_formatPrice(finalTotal), widget.product.currency),
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),

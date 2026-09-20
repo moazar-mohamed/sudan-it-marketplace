@@ -5,6 +5,7 @@ import '../../../notifications/presentation/notifications_providers.dart';
 import '../../../notifications/presentation/widgets/notification_tile.dart';
 import '../orders/company_order_details_screen.dart';
 import '../widgets/admin_section_card.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class CompanyNotificationsScreen extends ConsumerWidget {
   const CompanyNotificationsScreen({super.key, required this.companyId});
@@ -17,21 +18,21 @@ class CompanyNotificationsScreen extends ConsumerWidget {
         ref.watch(companyNotificationsStreamProvider(companyId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(title: Text(context.l10n.commonNotifications)),
       body: notificationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => AdminErrorState(
-          message: 'Could not load notifications.',
+          message: context.l10n.notificationsLoadFailed,
           onRetry: () =>
               ref.invalidate(companyNotificationsStreamProvider(companyId)),
         ),
         data: (items) {
           if (items.isEmpty) {
             return ListView(
-              children: const [
+              children: [
                 AdminEmptyState(
                   icon: Icons.notifications_none_outlined,
-                  message: 'No notifications yet.',
+                  message: context.l10n.notificationsEmpty,
                 ),
               ],
             );

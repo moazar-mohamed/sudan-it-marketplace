@@ -8,6 +8,8 @@ import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../technician_format.dart';
 import '../widgets/technician_widgets.dart';
 import 'technician_job_status_actions.dart';
+import '../../../../core/localization/l10n_extension.dart';
+import '../../../orders/presentation/order_labels.dart';
 
 OrderEntity? _findJob(List<OrderEntity>? jobs, String orderId) {
   if (jobs == null) {
@@ -38,58 +40,58 @@ class TechnicianJobDetailsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(job == null ? 'Job Details' : 'Job #${job.shortId}'),
+        title: Text(job == null ? context.l10n.adminJobDetails : context.l10n.adminJobTitleNumber(job.shortId)),
       ),
       body: job == null
           ? (jobsAsync.isLoading
               ? const Center(child: CircularProgressIndicator())
-              : const TechnicianErrorState(message: 'This job was not found.'))
+              : TechnicianErrorState(message: context.l10n.adminJobNotFound))
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 TechnicianSectionCard(
-                  title: 'Installation Job',
+                  title: context.l10n.adminInstallationJob,
                   trailing: TechnicianStatusBadge(
-                    label: TechnicianFormat.jobStatusLabel(job),
+                    label: TechnicianFormat.jobStatusLabel(job, context.l10n),
                     color: TechnicianFormat.jobStatusColor(job.orderStatus),
                   ),
                   children: [
-                    TechnicianInfoRow(label: 'Order Number', value: job.id),
-                    TechnicianInfoRow(label: 'Product', value: job.productName),
-                    TechnicianInfoRow(label: 'Quantity', value: '${job.quantity}'),
+                    TechnicianInfoRow(label: context.l10n.adminOrderNumber, value: job.id),
+                    TechnicianInfoRow(label: context.l10n.adminProduct, value: job.productName),
+                    TechnicianInfoRow(label: context.l10n.adminQuantity, value: '${job.quantity}'),
                     TechnicianInfoRow(
-                      label: 'Installation Fee',
+                      label: context.l10n.orderInstallationFee,
                       value: TechnicianFormat.price(job.installationFee),
                     ),
                     TechnicianInfoRow(
-                      label: 'Current Status',
-                      value: job.orderStatus.displayName,
+                      label: context.l10n.adminCurrentStatus,
+                      value: job.orderStatus.label(context.l10n),
                     ),
                     TechnicianInfoRow(
-                      label: 'Created',
+                      label: context.l10n.adminCreated,
                       value: TechnicianFormat.date(job.createdAt),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 TechnicianSectionCard(
-                  title: 'Customer & Location',
+                  title: context.l10n.adminCustomerLocation,
                   children: [
                     TechnicianInfoRow(
-                      label: 'Customer',
-                      value: TechnicianFormat.customer(job),
+                      label: context.l10n.adminCustomer,
+                      value: TechnicianFormat.customer(job, context.l10n),
                     ),
                     TechnicianInfoRow(
-                      label: 'Contact Phone',
+                      label: context.l10n.orderContactPhone,
                       value: job.contactPhone,
                     ),
                     TechnicianInfoRow(
                       label: job.deliveryMethod == DeliveryMethod.delivery
-                          ? 'Installation Address'
-                          : 'Location',
+                          ? context.l10n.adminInstallationAddress
+                          : context.l10n.adminLocation,
                       value: job.deliveryMethod == DeliveryMethod.delivery
                           ? orderDeliveryLabel(context, job)
-                          : 'Customer pickup — confirm the installation location by phone',
+                          : context.l10n.adminCustomerPickupConfirm,
                     ),
                     // The customer's/order location saved at checkout. The
                     // company's own location is intentionally not offered

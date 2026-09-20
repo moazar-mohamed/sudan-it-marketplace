@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../core/errors/app_exception.dart';
 import '../../domain/entities/company.dart';
 import '../models/company_model.dart';
 import 'companies_remote_data_source.dart';
@@ -38,10 +39,11 @@ class FirestoreCompaniesRemoteDataSource implements CompaniesRemoteDataSource {
       });
     } on FirebaseException catch (error) {
       if (error.code == 'permission-denied') {
-        throw Exception('You do not have permission to edit this company.');
+        throw const AppException(AppErrorCode.companyUpdateDenied);
       }
-      throw Exception(
-        'Could not update company profile: ${error.message ?? error.code}',
+      throw AppException(
+        AppErrorCode.companyUpdateFailed,
+        detail: '${error.code}: ${error.message}',
       );
     }
   }

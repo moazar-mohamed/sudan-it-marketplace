@@ -5,6 +5,7 @@ import '../../../notifications/presentation/notifications_providers.dart';
 import '../../../notifications/presentation/widgets/notification_tile.dart';
 import '../jobs/technician_job_details_screen.dart';
 import '../widgets/technician_widgets.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class TechnicianNotificationsScreen extends ConsumerWidget {
   const TechnicianNotificationsScreen({super.key, required this.technicianId});
@@ -17,21 +18,21 @@ class TechnicianNotificationsScreen extends ConsumerWidget {
         ref.watch(technicianNotificationsStreamProvider(technicianId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(title: Text(context.l10n.commonNotifications)),
       body: notificationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => TechnicianErrorState(
-          message: 'Could not load notifications.',
+          message: context.l10n.notificationsLoadFailed,
           onRetry: () => ref
               .invalidate(technicianNotificationsStreamProvider(technicianId)),
         ),
         data: (items) {
           if (items.isEmpty) {
             return ListView(
-              children: const [
+              children: [
                 TechnicianEmptyState(
                   icon: Icons.notifications_none_outlined,
-                  message: 'No notifications yet.',
+                  message: context.l10n.notificationsEmpty,
                 ),
               ],
             );

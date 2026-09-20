@@ -6,6 +6,8 @@ import '../domain/entities/order_entity.dart';
 import 'order_details_screen.dart';
 import 'widgets/order_location_widgets.dart';
 import 'widgets/price_summary_row.dart';
+import 'order_labels.dart';
+import '../../../core/localization/l10n_extension.dart';
 
 class OrderPendingVerificationScreen extends StatelessWidget {
   const OrderPendingVerificationScreen({
@@ -29,7 +31,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Order Status'),
+        title: Text(context.l10n.orderOrderStatus),
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
@@ -74,7 +76,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'PENDING VERIFICATION',
+                      context.l10n.pendingBanner,
                       style: textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: Colors.amber.shade900,
@@ -84,7 +86,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Receipt Submitted for Verification',
+                    context.l10n.pendingTitle,
                     textAlign: TextAlign.center,
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
@@ -93,7 +95,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Your transfer receipt reference has been stored in Firestore. It is awaiting confirmation from the finance team. Payment will be marked Confirmed only after manual verification.',
+                    context.l10n.pendingBody,
                     textAlign: TextAlign.center,
                     style: textTheme.bodySmall?.copyWith(
                       color: Colors.amber.shade900,
@@ -121,7 +123,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        'Order Reference',
+                        context.l10n.pendingOrderReference,
                         style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -160,7 +162,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Qty: ${order.quantity}',
+                        context.l10n.orderQtyLine(order.quantity),
                         style: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: colorScheme.onSurface.withValues(alpha: 0.7),
@@ -170,14 +172,14 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   _buildDetailRow(
-                    'Delivery Address',
+                    context.l10n.pendingDeliveryAddress,
                     orderDeliveryLabel(context, order),
                     textTheme,
                     colorScheme,
                   ),
                   const SizedBox(height: 8),
                   _buildDetailRow(
-                    'Contact Phone',
+                    context.l10n.orderContactPhone,
                     order.contactPhone,
                     textTheme,
                     colorScheme,
@@ -185,8 +187,8 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   if (order.installationSelected) ...[
                     const SizedBox(height: 8),
                     _buildDetailRow(
-                      'Installation',
-                      'Included (${_formatPrice(order.installationFee)} SDG)',
+                      context.l10n.pendingInstallation,
+                      context.l10n.pendingInstallationIncluded(_formatPrice(order.installationFee)),
                       textTheme,
                       colorScheme,
                       valueColor: AppColors.primary,
@@ -195,7 +197,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   if (order.deliveryMethod == DeliveryMethod.delivery) ...[
                     const SizedBox(height: 8),
                     _buildDetailRow(
-                      'Delivery Fee',
+                      context.l10n.orderDeliveryFee,
                       '${_formatPrice(order.deliveryFee)} SDG',
                       textTheme,
                       colorScheme,
@@ -203,24 +205,24 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   ],
                   const SizedBox(height: 8),
                   _buildDetailRow(
-                    'Receipt Attached',
-                    order.receiptFileName ?? 'Uploaded',
+                    context.l10n.orderReceiptAttached,
+                    order.receiptFileName ?? context.l10n.pendingUploaded,
                     textTheme,
                     colorScheme,
                     valueColor: AppColors.success,
                   ),
                   const SizedBox(height: 8),
                   _buildDetailRow(
-                    'Order Status',
-                    order.orderStatus.displayName,
+                    context.l10n.orderOrderStatus,
+                    order.orderStatus.label(context.l10n),
                     textTheme,
                     colorScheme,
                     valueColor: AppColors.primary,
                   ),
                   const SizedBox(height: 8),
                   _buildDetailRow(
-                    'Payment Status',
-                    order.paymentStatus.displayName,
+                    context.l10n.orderPaymentStatus,
+                    order.paymentStatus.label(context.l10n),
                     textTheme,
                     colorScheme,
                     valueColor: Colors.amber.shade900,
@@ -229,7 +231,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   const Divider(),
                   const SizedBox(height: 8),
                   PriceSummaryRow(
-                    label: 'Total Amount',
+                    label: context.l10n.pendingTotalAmount,
                     value: '${_formatPrice(order.totalAmount)} SDG',
                     labelStyle: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
@@ -253,7 +255,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                 );
               },
               icon: const Icon(Icons.receipt_long_outlined),
-              label: const Text('View Order Status'),
+              label: Text(context.l10n.commonViewOrderStatus),
             ),
             const SizedBox(height: 12),
 
@@ -268,7 +270,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   (route) => false,
                 );
               },
-              child: const Text('Back to Marketplace'),
+              child: Text(context.l10n.pendingBackToMarketplace),
             ),
             const SizedBox(height: 12),
             OutlinedButton(
@@ -280,7 +282,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   (route) => false,
                 );
               },
-              child: const Text('View in My Orders'),
+              child: Text(context.l10n.pendingViewInMyOrders),
             ),
           ],
         ),

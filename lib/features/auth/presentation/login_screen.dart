@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/l10n_extension.dart';
+import '../../settings/presentation/language_selector.dart';
 import 'auth_controller.dart';
+import 'auth_error_messages.dart';
 import 'auth_state.dart';
 import 'register_screen.dart';
 
@@ -74,11 +77,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  void _showComingSoon(String feature) {
+  void _showForgotPasswordSoon() {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text('$feature will be available soon.')),
+        SnackBar(content: Text(context.l10n.authForgotPasswordSoon)),
       );
   }
 
@@ -87,8 +90,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final l10n = context.l10n;
     final authState = ref.watch(authControllerProvider);
-    final errorMessage = authState is AuthError ? authState.message : null;
+    final errorMessage =
+        authState is AuthError ? authErrorMessage(l10n, authState.code) : null;
 
     return Scaffold(
       body: SafeArea(
@@ -107,6 +112,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          const Center(child: LanguageSelector()),
+                          const SizedBox(height: 24),
                           Icon(
                             Icons.storefront_rounded,
                             size: 56,
@@ -114,7 +121,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Sudan ICT Marketplace',
+                            l10n.appName,
                             textAlign: TextAlign.center,
                             style: textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w700,
@@ -123,7 +130,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Welcome back. Sign in to continue.',
+                            l10n.authWelcomeBack,
                             textAlign: TextAlign.center,
                             style: textTheme.bodyLarge?.copyWith(
                               color: colorScheme.onSurface.withValues(alpha: 0.7),
@@ -136,18 +143,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.email],
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
+                            decoration: InputDecoration(
+                              labelText: l10n.authEmail,
                               hintText: 'you@example.com',
-                              prefixIcon: Icon(Icons.email_outlined),
+                              prefixIcon: const Icon(Icons.email_outlined),
                             ),
                             validator: (value) {
                               final email = value?.trim() ?? '';
                               if (email.isEmpty) {
-                                return 'Email is required.';
+                                return l10n.authEmailRequired;
                               }
                               if (!_emailRegex.hasMatch(email)) {
-                                return 'Enter a valid email address.';
+                                return l10n.authEmailInvalid;
                               }
                               return null;
                             },
@@ -161,7 +168,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             autofillHints: const [AutofillHints.password],
                             onFieldSubmitted: (_) => _submit(),
                             decoration: InputDecoration(
-                              labelText: 'Password',
+                              labelText: l10n.authPassword,
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
                                 onPressed: _isSubmitting
@@ -177,13 +184,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       : Icons.visibility_off_outlined,
                                 ),
                                 tooltip: _obscurePassword
-                                    ? 'Show password'
-                                    : 'Hide password',
+                                    ? l10n.commonShowPassword
+                                    : l10n.commonHidePassword,
                               ),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Password is required.';
+                                return l10n.authPasswordRequired;
                               }
                               return null;
                             },
@@ -193,8 +200,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: TextButton(
                               onPressed: _isSubmitting
                                   ? null
-                                  : () => _showComingSoon('Forgot password'),
-                              child: const Text('Forgot password?'),
+                                  : _showForgotPasswordSoon,
+                              child: Text(l10n.authForgotPassword),
                             ),
                           ),
                           if (errorMessage != null) ...[
@@ -220,7 +227,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       color: colorScheme.onPrimary,
                                     ),
                                   )
-                                : const Text('Login'),
+                                : Text(l10n.authLogin),
                           ),
                           const SizedBox(height: 16),
                           Row(
@@ -236,7 +243,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   horizontal: 12,
                                 ),
                                 child: Text(
-                                  'OR',
+                                  l10n.commonOr,
                                   style: textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurface
                                         .withValues(alpha: 0.6),
@@ -265,7 +272,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     ),
                                   )
                                 : const Icon(Icons.g_mobiledata, size: 24),
-                            label: const Text('Continue with Google'),
+                            label: Text(l10n.authContinueWithGoogle),
                           ),
                           const SizedBox(height: 16),
                           Wrap(
@@ -273,12 +280,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
-                                "Don't have an account?",
+                                l10n.authNoAccount,
                                 style: textTheme.bodyMedium,
                               ),
                               TextButton(
                                 onPressed: _isSubmitting ? null : _openRegister,
-                                child: const Text('Register'),
+                                child: Text(l10n.authRegister),
                               ),
                             ],
                           ),

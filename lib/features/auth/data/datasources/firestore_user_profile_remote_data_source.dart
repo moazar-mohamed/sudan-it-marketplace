@@ -101,6 +101,23 @@ class FirestoreUserProfileRemoteDataSource
   }
 
   @override
+  Future<void> updateLanguage({
+    required String userId,
+    required String language,
+  }) async {
+    try {
+      await _firestore.collection(_usersCollection).doc(userId).update({
+        'language': language,
+      });
+    } on FirebaseException catch (error) {
+      throw AuthException(
+        'Could not save your language. Please try again.',
+        code: error.code,
+      );
+    }
+  }
+
+  @override
   Future<void> updateProfile({
     required String userId,
     required String fullName,

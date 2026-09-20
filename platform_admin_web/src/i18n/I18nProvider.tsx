@@ -25,14 +25,20 @@ interface I18nValue {
 
 const I18nContext = createContext<I18nValue | null>(null);
 
-function initialLocale(): Locale {
+/** The language chosen in this browser, or null when none was ever chosen. */
+export function readStoredLocale(): Locale | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'en' || stored === 'ar') return stored;
   } catch {
     // localStorage can be unavailable (private mode); fall through.
   }
-  return navigator.language?.toLowerCase().startsWith('ar') ? 'ar' : 'en';
+  return null;
+}
+
+// English when nothing has been chosen yet (the browser language is not used).
+function initialLocale(): Locale {
+  return readStoredLocale() ?? 'en';
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -42,6 +48,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dir = dir;
+    const dict: Record<TranslationKey, string> = locale === 'ar' ? ar : en;
+    document.title = `${dict['app.name']} - ${dict['app.role']}`;
   }, [locale, dir]);
 
   const setLocale = useCallback((next: Locale) => {

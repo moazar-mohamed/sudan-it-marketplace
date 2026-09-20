@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import 'orders_providers.dart';
 import 'widgets/order_card.dart';
+import '../../../core/localization/l10n_extension.dart';
 
 class CustomerOrdersScreen extends ConsumerWidget {
   const CustomerOrdersScreen({
@@ -38,7 +39,7 @@ class CustomerOrdersScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 14),
               Text(
-                'Could not load orders',
+                context.l10n.ordersLoadFailed,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -54,7 +55,7 @@ class CustomerOrdersScreen extends ConsumerWidget {
               const SizedBox(height: 18),
               ElevatedButton(
                 onPressed: () => ref.invalidate(customerOrdersStreamProvider),
-                child: const Text('Retry'),
+                child: Text(context.l10n.ordersRetry),
               ),
             ],
           ),
@@ -83,14 +84,14 @@ class CustomerOrdersScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    'No Orders Yet',
+                    context.l10n.ordersEmptyTitle,
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'When you purchase IT hardware or products from the marketplace, your orders and their live status will be tracked here.',
+                    context.l10n.ordersEmptyBody,
                     textAlign: TextAlign.center,
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.65),
@@ -117,7 +118,7 @@ class CustomerOrdersScreen extends ConsumerWidget {
     if (showAppBar) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('My Orders'),
+          title: Text(context.l10n.navMyOrders),
         ),
         body: body,
       );

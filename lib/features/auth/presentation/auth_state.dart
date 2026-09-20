@@ -19,7 +19,10 @@ final class AuthUnauthenticated extends AuthState {
 }
 
 final class AuthError extends AuthState {
-  const AuthError(this.message);
+  const AuthError(this.message, {this.code});
 
+  /// English text for logs. The UI shows the translation of [code] instead
+  /// (see authErrorMessage), so the message follows a language change.
   final String message;
+  final String? code;
 }

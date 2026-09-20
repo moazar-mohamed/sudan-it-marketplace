@@ -18,4 +18,11 @@ abstract class UserProfileRemoteDataSource {
     String? phone,
     String? photoUrl,
   });
+
+  /// Writes only `language` (the security rules allow exactly that edit on
+  /// the user's own profile).
+  Future<void> updateLanguage({
+    required String userId,
+    required String language,
+  });
 }

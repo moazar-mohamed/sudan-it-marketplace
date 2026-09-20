@@ -47,6 +47,8 @@ dependencies:
   url_launcher: ^6.3.2
   image_picker: ^1.2.3
   firebase_storage: ^13.6.0
+  intl: ^0.20.3
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +66,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Generates lib/l10n/app_localizations*.dart from the ARB files.
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

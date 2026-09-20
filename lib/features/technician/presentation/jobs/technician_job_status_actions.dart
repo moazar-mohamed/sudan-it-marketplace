@@ -6,6 +6,8 @@ import '../../../orders/domain/entities/order_entity.dart';
 import '../technician_actions.dart';
 import '../technician_format.dart';
 import '../widgets/technician_widgets.dart';
+import '../../../../core/localization/l10n_extension.dart';
+import '../../../orders/presentation/order_labels.dart';
 
 /// Lets the technician move an assigned job forward through
 /// Processing -> Out for Delivery -> Completed. No payment or reassignment
@@ -50,11 +52,11 @@ class _TechnicianJobStatusActionsState
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Confirm'),
+            child: Text(context.l10n.commonConfirm),
           ),
         ],
       ),
@@ -64,9 +66,9 @@ class _TechnicianJobStatusActionsState
 
   String _nextLabel(OrderStatus next) {
     return switch (next) {
-      OrderStatus.outForDelivery => 'Mark Out for Delivery',
-      OrderStatus.completed => 'Mark Installation Completed',
-      OrderStatus.processing => 'Mark Processing',
+      OrderStatus.outForDelivery => context.l10n.adminMarkOutForDelivery,
+      OrderStatus.completed => context.l10n.techMarkInstallationCompleted,
+      OrderStatus.processing => context.l10n.adminMarkProcessing,
     };
   }
 
@@ -78,7 +80,7 @@ class _TechnicianJobStatusActionsState
     final textTheme = Theme.of(context).textTheme;
 
     return TechnicianSectionCard(
-      title: 'Job Status',
+      title: context.l10n.adminJobStatus,
       children: [
         if (next == null)
           Row(
@@ -87,7 +89,7 @@ class _TechnicianJobStatusActionsState
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'This job is completed.',
+                  context.l10n.techJobCompleted,
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -102,14 +104,16 @@ class _TechnicianJobStatusActionsState
               onPressed: _isBusy
                   ? null
                   : () async {
+                      final l10n = context.l10n;
+                      final statusLabel = next.label(l10n);
                       final ok = await _confirm(
-                        'Update job status',
-                        'Change job #${order.shortId} to "${next.displayName}"? This cannot be undone.',
+                        l10n.techUpdateJobStatus,
+                        l10n.techChangeJobBody(order.shortId, statusLabel),
                       );
                       if (ok) {
                         await _run(
                           () => actions.advanceJobStatus(order, next),
-                          'Job marked ${next.displayName}.',
+                          l10n.techJobMarked(statusLabel),
                         );
                       }
                     },

@@ -14,6 +14,8 @@ import '../orders/company_order_details_screen.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/order_status_actions.dart';
 import '../widgets/status_badge.dart';
+import '../../../../core/localization/l10n_extension.dart';
+import '../../../orders/presentation/order_labels.dart';
 
 class InstallationJobDetailsScreen extends ConsumerWidget {
   const InstallationJobDetailsScreen({
@@ -32,59 +34,59 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(order == null ? 'Installation Job' : 'Job #${order.shortId}'),
+        title: Text(order == null ? context.l10n.adminInstallationJob : context.l10n.adminJobTitleNumber(order.shortId)),
       ),
       body: order == null
           ? (ordersAsync.isLoading
               ? const Center(child: CircularProgressIndicator())
-              : const AdminErrorState(message: 'This job was not found.'))
+              : AdminErrorState(message: context.l10n.adminJobNotFound))
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 AdminSectionCard(
-                  title: 'Installation Job',
+                  title: context.l10n.adminInstallationJob,
                   trailing: StatusBadge(
-                    label: CompanyAdminFormat.installationJobStatus(order),
+                    label: CompanyAdminFormat.installationJobStatus(order, context.l10n),
                     color:
                         CompanyAdminFormat.orderStatusColor(order.orderStatus),
                   ),
                   children: [
-                    AdminInfoRow(label: 'Job / Order Number', value: order.id),
-                    AdminInfoRow(label: 'Product', value: order.productName),
-                    AdminInfoRow(label: 'Quantity', value: '${order.quantity}'),
+                    AdminInfoRow(label: context.l10n.adminJobOrderNumber, value: order.id),
+                    AdminInfoRow(label: context.l10n.adminProduct, value: order.productName),
+                    AdminInfoRow(label: context.l10n.adminQuantity, value: '${order.quantity}'),
                     AdminInfoRow(
-                      label: 'Installation Fee',
+                      label: context.l10n.orderInstallationFee,
                       value: CompanyAdminFormat.price(order.installationFee),
                     ),
                     AdminInfoRow(
-                      label: 'Order Status',
-                      value: order.orderStatus.displayName,
+                      label: context.l10n.orderOrderStatus,
+                      value: order.orderStatus.label(context.l10n),
                     ),
                     AdminInfoRow(
-                      label: 'Created',
+                      label: context.l10n.adminCreated,
                       value: CompanyAdminFormat.date(order.createdAt),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 AdminSectionCard(
-                  title: 'Customer & Location',
+                  title: context.l10n.adminCustomerLocation,
                   children: [
                     AdminInfoRow(
-                      label: 'Customer',
-                      value: CompanyAdminFormat.customer(order),
+                      label: context.l10n.adminCustomer,
+                      value: CompanyAdminFormat.customer(order, context.l10n),
                     ),
                     AdminInfoRow(
-                      label: 'Contact Phone',
+                      label: context.l10n.orderContactPhone,
                       value: order.contactPhone,
                     ),
                     AdminInfoRow(
                       label: order.deliveryMethod == DeliveryMethod.delivery
-                          ? 'Installation Address'
-                          : 'Location',
+                          ? context.l10n.adminInstallationAddress
+                          : context.l10n.adminLocation,
                       value: order.deliveryMethod == DeliveryMethod.delivery
                           ? orderDeliveryLabel(context, order)
-                          : 'Customer pickup — confirm the installation location by phone',
+                          : context.l10n.adminCustomerPickupConfirm,
                     ),
                     const SizedBox(height: 8),
                     OrderLocationButton(
@@ -108,7 +110,7 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
                     ),
                   ),
                   icon: const Icon(Icons.receipt_long_outlined),
-                  label: const Text('View full order'),
+                  label: Text(context.l10n.adminViewFullOrder),
                 ),
               ],
             ),
@@ -152,7 +154,7 @@ class _TechnicianAssignmentCardState
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(error ?? 'Technician assigned.'),
+          content: Text(error ?? context.l10n.adminTechnicianAssigned),
           backgroundColor: error == null ? null : AppColors.error,
         ),
       );
@@ -162,7 +164,7 @@ class _TechnicianAssignmentCardState
     final selected = await showDialog<Technician>(
       context: context,
       builder: (dialogContext) => SimpleDialog(
-        title: const Text('Assign Technician'),
+        title: Text(context.l10n.adminAssignTechnician),
         children: [
           for (final technician in technicians)
             SimpleDialogOption(
@@ -186,24 +188,24 @@ class _TechnicianAssignmentCardState
     final assignedName = order.technicianName ?? '';
 
     return AdminSectionCard(
-      title: 'Technician',
+      title: context.l10n.adminTechnicianSection,
       children: [
         AdminInfoRow(
-          label: 'Assigned to',
-          value: assignedName.isEmpty ? 'Not assigned' : assignedName,
+          label: context.l10n.adminAssignedTo,
+          value: assignedName.isEmpty ? context.l10n.adminNotAssigned : assignedName,
         ),
         const SizedBox(height: 10),
         techniciansAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (_, _) => Text(
-            'Could not load technicians.',
+            context.l10n.adminTechniciansLoadFailedShort,
             style: textTheme.bodySmall,
           ),
           data: (technicians) {
             final active = technicians.where((t) => t.isActive).toList();
             if (active.isEmpty) {
               return Text(
-                'Add a technician first to assign this job.',
+                context.l10n.adminAddTechnicianFirst,
                 style: textTheme.bodySmall,
               );
             }
@@ -219,7 +221,7 @@ class _TechnicianAssignmentCardState
                       )
                     : const Icon(Icons.engineering_outlined),
                 label: Text(
-                  assignedName.isEmpty ? 'Assign Technician' : 'Change Technician',
+                  assignedName.isEmpty ? context.l10n.adminAssignTechnician : context.l10n.adminChangeTechnician,
                 ),
               ),
             );

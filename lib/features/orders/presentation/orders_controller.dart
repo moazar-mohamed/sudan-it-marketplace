@@ -1,7 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/error_messages.dart';
+import '../../../core/localization/locale_controller.dart';
 import '../../notifications/presentation/notification_events.dart';
 import '../../notifications/presentation/notifications_providers.dart';
+import '../../products/domain/stock_reservation.dart';
+import '../../products/presentation/stock_error_message.dart';
 import '../domain/entities/order_entity.dart';
 import '../domain/repositories/orders_repository.dart';
 import 'orders_providers.dart';
@@ -101,10 +105,11 @@ class OrdersController extends Notifier<OrderActionState> {
   }
 
   String _errorMessage(Object error) {
-    final message = error.toString();
-    return message.startsWith('Exception: ')
-        ? message.substring('Exception: '.length)
-        : message;
+    final l10n = ref.read(appLocalizationsProvider);
+    if (error is StockUnavailableException) {
+      return stockErrorMessage(l10n, error);
+    }
+    return localizedErrorMessage(l10n, error);
   }
 
   Future<bool> attachReceipt({
@@ -119,7 +124,7 @@ class OrdersController extends Notifier<OrderActionState> {
       );
       return true;
     } catch (e) {
-      state = OrderActionError(e.toString());
+      state = OrderActionError(_errorMessage(e));
       return false;
     }
   }

@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/error_messages.dart';
+import '../../../core/localization/locale_controller.dart';
 import '../../notifications/presentation/notification_events.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../../orders/domain/entities/order_entity.dart';
@@ -41,10 +43,7 @@ class TechnicianActions {
       await action();
       return null;
     } catch (error) {
-      final message = error.toString();
-      return message.startsWith('Exception: ')
-          ? message.substring('Exception: '.length)
-          : message;
+      return localizedErrorMessage(_ref.read(appLocalizationsProvider), error);
     }
   }
 }

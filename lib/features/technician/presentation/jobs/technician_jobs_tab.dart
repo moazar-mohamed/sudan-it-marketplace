@@ -5,6 +5,7 @@ import '../../../orders/presentation/orders_providers.dart';
 import '../widgets/technician_job_tile.dart';
 import '../widgets/technician_widgets.dart';
 import 'technician_job_details_screen.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 /// Installation jobs assigned to the signed-in technician.
 class TechnicianJobsTab extends ConsumerWidget {
@@ -19,17 +20,17 @@ class TechnicianJobsTab extends ConsumerWidget {
     return jobsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => TechnicianErrorState(
-        message: 'Could not load your jobs.',
+        message: context.l10n.techJobsLoadFailed,
         onRetry: () =>
             ref.invalidate(technicianOrdersStreamProvider(technicianId)),
       ),
       data: (jobs) {
         if (jobs.isEmpty) {
           return ListView(
-            children: const [
+            children: [
               TechnicianEmptyState(
                 icon: Icons.handyman_outlined,
-                message: 'No installation jobs assigned to you yet.',
+                message: context.l10n.techNoJobsAssigned,
               ),
             ],
           );

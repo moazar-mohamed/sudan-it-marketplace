@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/l10n_extension.dart';
+import '../../settings/presentation/language_selector.dart';
 import 'auth_controller.dart';
+import 'auth_error_messages.dart';
 import 'auth_state.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -78,14 +81,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final l10n = context.l10n;
     final authState = ref.watch(authControllerProvider);
     final errorMessage = _didSubmit && authState is AuthError
-        ? authState.message
+        ? authErrorMessage(l10n, authState.code)
         : null;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create account'),
+        title: Text(l10n.authCreateAccount),
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -105,6 +109,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          const Center(child: LanguageSelector()),
+                          const SizedBox(height: 24),
                           Icon(
                             Icons.person_add_alt_1_rounded,
                             size: 56,
@@ -112,7 +118,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Join Sudan ICT Marketplace',
+                            l10n.authJoinTitle,
                             textAlign: TextAlign.center,
                             style: textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w700,
@@ -121,7 +127,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Create an account to get started.',
+                            l10n.authCreateAccountSubtitle,
                             textAlign: TextAlign.center,
                             style: textTheme.bodyLarge?.copyWith(
                               color: colorScheme.onSurface.withValues(alpha: 0.7),
@@ -134,20 +140,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             textCapitalization: TextCapitalization.words,
                             autofillHints: const [AutofillHints.name],
-                            decoration: const InputDecoration(
-                              labelText: 'Full Name',
-                              prefixIcon: Icon(Icons.person_outline),
+                            decoration: InputDecoration(
+                              labelText: l10n.authFullName,
+                              prefixIcon: const Icon(Icons.person_outline),
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Full name is required.';
+                                return l10n.authFullNameRequired;
                               }
                               final name = value.trim();
                               final nameRegex = RegExp(
                                 r"^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FFa-zA-Z\s'\-]+$",
                               );
                               if (!nameRegex.hasMatch(name)) {
-                                return 'Full name may only contain letters and spaces.';
+                                return l10n.authFullNameInvalid;
                               }
                               return null;
                             },
@@ -159,18 +165,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.email],
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
+                            decoration: InputDecoration(
+                              labelText: l10n.authEmail,
                               hintText: 'you@example.com',
-                              prefixIcon: Icon(Icons.email_outlined),
+                              prefixIcon: const Icon(Icons.email_outlined),
                             ),
                             validator: (value) {
                               final email = value?.trim() ?? '';
                               if (email.isEmpty) {
-                                return 'Email is required.';
+                                return l10n.authEmailRequired;
                               }
                               if (!_emailRegex.hasMatch(email)) {
-                                return 'Enter a valid email address.';
+                                return l10n.authEmailInvalid;
                               }
                               return null;
                             },
@@ -183,8 +189,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.newPassword],
                             decoration: InputDecoration(
-                              labelText: 'Password',
-                              helperText: 'At least 6 characters.',
+                              labelText: l10n.authPassword,
+                              helperText: l10n.authPasswordHelper,
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
                                 onPressed: _isSubmitting
@@ -200,16 +206,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                       : Icons.visibility_off_outlined,
                                 ),
                                 tooltip: _obscurePassword
-                                    ? 'Show password'
-                                    : 'Hide password',
+                                    ? l10n.commonShowPassword
+                                    : l10n.commonHidePassword,
                               ),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Password is required.';
+                                return l10n.authPasswordRequired;
                               }
                               if (value.length < 6) {
-                                return 'Password must be at least 6 characters.';
+                                return l10n.authPasswordTooShort;
                               }
                               return null;
                             },
@@ -222,7 +228,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             textInputAction: TextInputAction.done,
                             onFieldSubmitted: (_) => _submit(),
                             decoration: InputDecoration(
-                              labelText: 'Confirm Password',
+                              labelText: l10n.authConfirmPassword,
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
                                 onPressed: _isSubmitting
@@ -239,16 +245,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                       : Icons.visibility_off_outlined,
                                 ),
                                 tooltip: _obscureConfirmPassword
-                                    ? 'Show password'
-                                    : 'Hide password',
+                                    ? l10n.commonShowPassword
+                                    : l10n.commonHidePassword,
                               ),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Confirm password is required.';
+                                return l10n.authConfirmPasswordRequired;
                               }
                               if (value != _passwordController.text) {
-                                return 'Passwords do not match.';
+                                return l10n.authPasswordsMismatch;
                               }
                               return null;
                             },
@@ -275,7 +281,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                       color: colorScheme.onPrimary,
                                     ),
                                   )
-                                : const Text('Register'),
+                                : Text(l10n.authRegister),
                           ),
                           const SizedBox(height: 16),
                           Wrap(
@@ -283,12 +289,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
-                                'Already have an account?',
+                                l10n.authHaveAccount,
                                 style: textTheme.bodyMedium,
                               ),
                               TextButton(
                                 onPressed: _isSubmitting ? null : _goToLogin,
-                                child: const Text('Login'),
+                                child: Text(l10n.authLogin),
                               ),
                             ],
                           ),

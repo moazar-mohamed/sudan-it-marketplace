@@ -4,6 +4,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../domain/entities/order_entity.dart';
 import '../order_details_screen.dart';
+import '../order_labels.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class OrderCard extends StatelessWidget {
   const OrderCard({
@@ -72,7 +74,7 @@ class OrderCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}',
+                      context.l10n.orderTitleNumber(order.id.length > 8 ? order.id.substring(0, 8) : order.id),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.labelLarge?.copyWith(
@@ -96,7 +98,7 @@ class OrderCard extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        order.orderStatus.displayName,
+                        order.orderStatus.label(context.l10n),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: textTheme.labelSmall?.copyWith(
@@ -153,7 +155,7 @@ class OrderCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Total Amount',
+                        context.l10n.orderTotalAmount,
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurface.withValues(alpha: 0.55),
                         ),
@@ -170,7 +172,7 @@ class OrderCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        'Details',
+                        context.l10n.orderDetailsButton,
                         style: textTheme.bodySmall?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,

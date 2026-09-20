@@ -3,6 +3,8 @@ export interface AdminProfile {
   fullName: string;
   email: string;
   role: 'platform_admin';
+  /** users/{uid}.language when it holds a supported value; otherwise unset. */
+  language?: 'en' | 'ar';
 }
 
 export type AccessDenialReason = 'not_found' | 'not_admin' | 'inactive';
@@ -34,6 +36,7 @@ export function evaluateAccess(
       fullName: typeof data.fullName === 'string' ? data.fullName : '',
       email: typeof data.email === 'string' ? data.email : '',
       role: 'platform_admin',
+      ...(data.language === 'en' || data.language === 'ar' ? { language: data.language } : {}),
     },
   };
 }

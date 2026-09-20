@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../domain/entities/checkout_order_draft.dart';
 import 'order_pending_verification_screen.dart';
 import 'orders_controller.dart';
+import '../../../core/localization/l10n_extension.dart';
 
 class ManualPaymentScreen extends ConsumerStatefulWidget {
   const ManualPaymentScreen({
@@ -23,7 +24,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
   String? _selectedReceiptName;
   String? _selectedReceiptSize;
   DateTime? _selectedReceiptTime;
-  String? _validationError;
+  bool _receiptMissing = false;
   bool _isSubmitting = false;
 
   String _formatPrice(double price) {
@@ -36,7 +37,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$label copied to clipboard'),
+        content: Text(context.l10n.paymentCopied(label)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -47,7 +48,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
       _selectedReceiptName = 'bankak_receipt_${widget.draft.productId.toLowerCase()}.jpg';
       _selectedReceiptSize = '428 KB';
       _selectedReceiptTime = DateTime.now();
-      _validationError = null;
+      _receiptMissing = false;
     });
   }
 
@@ -62,15 +63,14 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
   Future<void> _onSubmitReceipt() async {
     if (_selectedReceiptName == null) {
       setState(() {
-        _validationError =
-            'Please upload or select a transfer receipt image before submitting.';
+        _receiptMissing = true;
       });
       return;
     }
 
     setState(() {
       _isSubmitting = true;
-      _validationError = null;
+      _receiptMissing = false;
     });
 
     try {
@@ -113,7 +113,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
       final orderState = ref.read(ordersControllerProvider);
       final message = orderState is OrderActionError
           ? orderState.message
-          : 'Could not submit your receipt. Please try again.';
+          : context.l10n.paymentSubmitFailed;
       setState(() => _isSubmitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -126,7 +126,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
       setState(() => _isSubmitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Could not submit your receipt: $error'),
+          content: Text(context.l10n.paymentSubmitFailed),
           backgroundColor: AppColors.error,
         ),
       );
@@ -146,7 +146,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text('Manual Payment'),
+        title: Text(context.l10n.paymentTitle),
       ),
       body: SafeArea(
         top: false,
@@ -175,7 +175,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
               child: Column(
                 children: [
                   Text(
-                    'Amount to Transfer',
+                    context.l10n.paymentAmountToTransfer,
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.7),
                       fontWeight: FontWeight.w600,
@@ -191,7 +191,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Your order will be created after receipt submission.',
+                    context.l10n.paymentOrderCreatedAfter,
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.6),
                       fontWeight: FontWeight.w600,
@@ -223,7 +223,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Please transfer the exact amount externally using your mobile banking app (Bankak, Fawry, etc.) or cash transfer. After completing the payment, upload a screenshot of your transfer receipt below.',
+                      context.l10n.paymentInstructions,
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurface.withValues(alpha: 0.85),
                         height: 1.45,
@@ -237,7 +237,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
 
             // 3. Payment Account Details Card
             Text(
-              'Payment Accounts',
+              context.l10n.paymentAccounts,
               style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: colorScheme.onSurface,
@@ -269,7 +269,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
 
             // 4. Upload Receipt Section
             Text(
-              'Upload Transfer Receipt',
+              context.l10n.paymentUploadReceipt,
               style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: colorScheme.onSurface,
@@ -277,7 +277,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Upload a clear screenshot or photo of your transfer notification slip.',
+              context.l10n.paymentUploadHint,
               style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.65),
               ),
@@ -285,7 +285,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             const SizedBox(height: 12),
 
             // Validation Warning Message
-            if (_validationError != null) ...[
+            if (_receiptMissing) ...[
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -310,7 +310,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        _validationError!,
+                        context.l10n.paymentReceiptRequired,
                         style: textTheme.bodySmall?.copyWith(
                           color: AppColors.error,
                           fontWeight: FontWeight.w600,
@@ -359,7 +359,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Tap to Upload Receipt / Screenshot',
+                        context.l10n.paymentTapToUpload,
                         style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.primary,
@@ -367,7 +367,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Supports JPG, PNG, or screenshot from Bankak/Fawry',
+                        context.l10n.paymentSupports,
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurface.withValues(alpha: 0.55),
                         ),
@@ -401,7 +401,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            'Receipt Selected',
+                            context.l10n.paymentReceiptSelected,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: textTheme.labelLarge?.copyWith(
@@ -413,7 +413,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                         TextButton.icon(
                           onPressed: _onRemoveReceipt,
                           icon: const Icon(Icons.delete_outline, size: 16),
-                          label: const Text('Remove'),
+                          label: Text(context.l10n.commonRemove),
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.error,
                             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -453,7 +453,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'TRANSFER SLIP PREVIEW',
+                                  context.l10n.paymentSlipPreview,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: textTheme.labelSmall?.copyWith(
@@ -474,7 +474,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  'COMPLETED',
+                                  context.l10n.paymentSlipCompleted,
                                   style: textTheme.labelSmall?.copyWith(
                                     fontWeight: FontWeight.w700,
                                     color: Colors.green.shade800,
@@ -485,7 +485,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Amount: ${_formatPrice(widget.draft.totalAmount)} SDG',
+                            context.l10n.paymentSlipAmount(_formatPrice(widget.draft.totalAmount)),
                             style: textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w800,
                               color: Colors.black87,
@@ -493,14 +493,14 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Beneficiary: Sudan ICT Marketplace Ltd',
+                            context.l10n.paymentSlipBeneficiary('Sudan ICT Marketplace Ltd'),
                             style: textTheme.bodySmall?.copyWith(
                               color: Colors.grey.shade800,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           Text(
-                            'Ref: ${widget.draft.productId.toUpperCase()}',
+                            context.l10n.paymentSlipRef(widget.draft.productId.toUpperCase()),
                             style: textTheme.bodySmall?.copyWith(
                               color: Colors.grey.shade600,
                             ),
@@ -532,7 +532,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                         ),
                         TextButton(
                           onPressed: _onPickReceipt,
-                          child: const Text('Replace'),
+                          child: Text(context.l10n.paymentReplace),
                         ),
                       ],
                     ),
@@ -560,7 +560,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Submitting this receipt stores the transfer reference in Firestore under "Pending Verification". Payment will be marked Confirmed after admin/company verification.',
+                      context.l10n.paymentPendingNote,
                       style: textTheme.bodySmall?.copyWith(
                         color: Colors.amber.shade900,
                         height: 1.35,
@@ -587,8 +587,8 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                   : const Icon(Icons.check_circle_outline),
               label: Text(
                 _isSubmitting
-                    ? 'Submitting to Firestore...'
-                    : 'Submit Receipt for Verification',
+                    ? context.l10n.paymentSubmitting
+                    : context.l10n.paymentSubmit,
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
@@ -638,10 +638,10 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          _buildAccountRow('Account Name', accountName, textTheme, colorScheme),
+          _buildAccountRow(context.l10n.paymentAccountName, accountName, textTheme, colorScheme),
           const SizedBox(height: 6),
           _buildCopyableAccountRow(
-            label: 'Account / MBAN',
+            label: context.l10n.paymentAccountMban,
             value: accountNumber,
             valueStyle: textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w700,
@@ -649,11 +649,11 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             ),
             textTheme: textTheme,
             colorScheme: colorScheme,
-            onCopy: () => _copyToClipboard(accountNumber, 'Account number'),
+            onCopy: () => _copyToClipboard(accountNumber, context.l10n.paymentAccountNumberLabel),
           ),
           const SizedBox(height: 6),
           _buildCopyableAccountRow(
-            label: 'Phone Identifier',
+            label: context.l10n.paymentPhoneIdentifier,
             value: phoneNumber,
             valueStyle: textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
@@ -661,7 +661,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             ),
             textTheme: textTheme,
             colorScheme: colorScheme,
-            onCopy: () => _copyToClipboard(phoneNumber, 'Phone number'),
+            onCopy: () => _copyToClipboard(phoneNumber, context.l10n.paymentPhoneNumberLabel),
           ),
         ],
       ),

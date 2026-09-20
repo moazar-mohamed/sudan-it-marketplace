@@ -11,6 +11,7 @@ import '../widgets/admin_section_card.dart';
 import '../widgets/status_badge.dart';
 import 'company_product_details_screen.dart';
 import 'product_form_screen.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class CompanyProductsTab extends ConsumerWidget {
   const CompanyProductsTab({super.key, required this.companyId});
@@ -34,23 +35,23 @@ class CompanyProductsTab extends ConsumerWidget {
         heroTag: 'company_add_product',
         onPressed: () => _openAdd(context),
         icon: const Icon(Icons.add),
-        label: const Text('Add Product'),
+        label: Text(context.l10n.adminAddProduct),
       ),
       body: productsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => AdminErrorState(
-          message: 'Could not load your products.',
+          message: context.l10n.adminProductsLoadFailed,
           onRetry: () =>
               ref.invalidate(companyProductsStreamProvider(companyId)),
         ),
         data: (products) {
           if (products.isEmpty) {
             return ListView(
-              children: const [
+              children: [
                 AdminEmptyState(
                   icon: Icons.inventory_2_outlined,
                   message:
-                      'You have not added any products yet.\nTap "Add Product" to create your first one.',
+                      context.l10n.adminProductsEmpty,
                 ),
               ],
             );
@@ -144,22 +145,22 @@ class _CompanyProductTile extends StatelessWidget {
                       children: [
                         StatusBadge(
                           label: product.isAvailable
-                              ? 'In stock: ${product.stockCount}'
+                              ? context.l10n.adminInStock(product.stockCount)
                               : product.hasStock
-                                  ? 'Unavailable'
-                                  : 'Out of stock',
+                                  ? context.l10n.adminUnavailable
+                                  : context.l10n.adminOutOfStock,
                           color: product.isAvailable
                               ? AppColors.success
                               : AppColors.error,
                         ),
                         if (product.isInstallationAvailable)
-                          const StatusBadge(
-                            label: 'Installation',
+                          StatusBadge(
+                            label: context.l10n.adminInstallationBadge,
                             color: AppColors.primary,
                           ),
                         if (!product.isDeliveryAvailable)
-                          const StatusBadge(
-                            label: 'Pickup only',
+                          StatusBadge(
+                            label: context.l10n.adminPickupOnlyBadge,
                             color: Colors.deepOrange,
                           ),
                       ],

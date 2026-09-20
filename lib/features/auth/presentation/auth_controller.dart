@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/locale_controller.dart';
 import '../domain/entities/auth_user.dart';
 import '../domain/exceptions/auth_exception.dart';
 import '../domain/repositories/auth_repository.dart';
+import 'auth_error_messages.dart';
 import 'auth_providers.dart';
 import 'auth_state.dart';
 
@@ -35,9 +37,9 @@ class AuthController extends Notifier<AuthState> {
       );
       state = AuthAuthenticated(user);
     } on AuthException catch (error) {
-      state = AuthError(error.message);
+      state = AuthError(error.message, code: error.code);
     } catch (_) {
-      state = const AuthError('Authentication failed. Please try again.');
+      state = const AuthError('Authentication failed. Please try again.', code: 'unknown');
     }
   }
 
@@ -54,11 +56,11 @@ class AuthController extends Notifier<AuthState> {
       );
       state = AuthAuthenticated(user);
     } on AuthException catch (error) {
-      state = AuthError(error.message);
+      state = AuthError(error.message, code: error.code);
     } catch (error, st) {
       // ignore: avoid_print
       print('[DIAG][AuthController.signUpWithEmail] type=${error.runtimeType} error=$error\n$st');
-      state = const AuthError('Authentication failed. Please try again.');
+      state = const AuthError('Authentication failed. Please try again.', code: 'unknown');
     }
   }
 
@@ -73,9 +75,9 @@ class AuthController extends Notifier<AuthState> {
         // User dismissed the Google sign-in flow; no error to show.
         return;
       }
-      state = AuthError(error.message);
+      state = AuthError(error.message, code: error.code);
     } catch (_) {
-      state = const AuthError('Authentication failed. Please try again.');
+      state = const AuthError('Authentication failed. Please try again.', code: 'unknown');
     }
   }
 
@@ -86,9 +88,9 @@ class AuthController extends Notifier<AuthState> {
       await _repository.sendEmailVerification();
       return null;
     } on AuthException catch (error) {
-      return error.message;
+      return authErrorMessage(ref.read(appLocalizationsProvider), error.code);
     } catch (_) {
-      return 'Could not send the verification email. Please try again.';
+      return ref.read(appLocalizationsProvider).authErrorSendVerification;
     }
   }
 
@@ -104,7 +106,7 @@ class AuthController extends Notifier<AuthState> {
       state = AuthAuthenticated(user);
       return user.emailVerified;
     } on AuthException catch (error) {
-      state = AuthError(error.message);
+      state = AuthError(error.message, code: error.code);
       return false;
     } catch (_) {
       return false;
@@ -117,9 +119,9 @@ class AuthController extends Notifier<AuthState> {
       await _repository.signOut();
       state = const AuthUnauthenticated();
     } on AuthException catch (error) {
-      state = AuthError(error.message);
+      state = AuthError(error.message, code: error.code);
     } catch (_) {
-      state = const AuthError('Authentication failed. Please try again.');
+      state = const AuthError('Authentication failed. Please try again.', code: 'unknown');
     }
   }
 
@@ -138,9 +140,9 @@ class AuthController extends Notifier<AuthState> {
 
   void _applyError(Object error) {
     if (error is AuthException) {
-      state = AuthError(error.message);
+      state = AuthError(error.message, code: error.code);
       return;
     }
-    state = const AuthError('Authentication failed. Please try again.');
+    state = const AuthError('Authentication failed. Please try again.', code: 'unknown');
   }
 }

@@ -1,16 +1,26 @@
+/// Why a stock check failed. The presentation layer turns this (with
+/// [StockUnavailableException.available] / `productName`) into text in the
+/// active language.
+enum StockIssue { noLongerAvailable, chooseAtLeastOne, outOfStock, insufficient }
+
 /// Thrown when an order asks for more units than a product has left.
 ///
-/// [message] is written for the customer; it is what the checkout shows.
+/// [message] is the English text (used in logs and tests); the checkout shows
+/// the translation chosen from [issue].
 class StockUnavailableException implements Exception {
   const StockUnavailableException({
     required this.message,
     required this.available,
     required this.requested,
+    this.issue = StockIssue.noLongerAvailable,
+    this.productName = '',
   });
 
   final String message;
   final int available;
   final int requested;
+  final StockIssue issue;
+  final String productName;
 
   @override
   String toString() => message;
@@ -37,6 +47,8 @@ class StockReservation {
         message: 'Choose at least one unit to order.',
         available: available,
         requested: requested,
+        issue: StockIssue.chooseAtLeastOne,
+        productName: productName,
       );
     }
     if (available <= 0) {
@@ -44,6 +56,8 @@ class StockReservation {
         message: '$productName is out of stock.',
         available: 0,
         requested: requested,
+        issue: StockIssue.outOfStock,
+        productName: productName,
       );
     }
     if (requested > available) {
@@ -52,6 +66,8 @@ class StockReservation {
             'Please reduce the quantity.',
         available: available,
         requested: requested,
+        issue: StockIssue.insufficient,
+        productName: productName,
       );
     }
     return available - requested;

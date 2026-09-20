@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../technicians/domain/entities/technician.dart';
 import '../company_admin_actions.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 /// Add Technician (creates a pending invitation) and Edit Technician share
 /// this form.
@@ -104,8 +105,8 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
       SnackBar(
         content: Text(
           existing == null
-              ? 'Invitation created. The technician can now register with this email.'
-              : 'Technician updated.',
+              ? context.l10n.adminInvitationCreated
+              : context.l10n.adminTechnicianUpdated,
         ),
       ),
     );
@@ -116,7 +117,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Edit Technician' : 'Add Technician'),
+        title: Text(widget.isEditing ? context.l10n.adminEditTechnician : context.l10n.adminAddTechnician),
       ),
       body: SafeArea(
         top: false,
@@ -132,8 +133,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
             children: [
               if (!widget.isEditing) ...[
                 Text(
-                  'This creates an invitation. The technician sets their own '
-                  'password by registering with this email.',
+                  context.l10n.adminInviteNote,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context)
                             .colorScheme
@@ -147,12 +147,12 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
                 controller: _fullNameController,
                 enabled: !_isSaving,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
+                decoration: InputDecoration(
+                  labelText: context.l10n.authFullName,
                   prefixIcon: Icon(Icons.person_outline),
                 ),
                 validator: (value) => (value?.trim().isEmpty ?? true)
-                    ? 'Technician name is required.'
+                    ? context.l10n.adminTechnicianNameRequired
                     : null,
               ),
               const SizedBox(height: 14),
@@ -163,17 +163,17 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
                 ],
-                decoration: const InputDecoration(
-                  labelText: 'Phone',
+                decoration: InputDecoration(
+                  labelText: context.l10n.adminPhone,
                   prefixIcon: Icon(Icons.phone_outlined),
                 ),
                 validator: (value) {
                   final digits =
                       (value ?? '').replaceAll(RegExp(r'[^0-9]'), '');
                   if (digits.isEmpty) {
-                    return 'Phone number is required.';
+                    return context.l10n.adminPhoneRequired;
                   }
-                  return digits.length < 9 ? 'Enter a valid phone number.' : null;
+                  return digits.length < 9 ? context.l10n.commonPhoneInvalid : null;
                 },
               ),
               const SizedBox(height: 14),
@@ -181,8 +181,8 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
                 controller: _emailController,
                 enabled: !_isSaving && !widget.isEditing,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
+                decoration: InputDecoration(
+                  labelText: context.l10n.authEmail,
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
                 validator: (value) {
@@ -190,11 +190,11 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
                   if (text.isEmpty) {
                     return widget.isEditing
                         ? null
-                        : 'Technician email is required.';
+                        : context.l10n.adminTechnicianEmailRequired;
                   }
                   return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(text)
                       ? null
-                      : 'Enter a valid email address.';
+                      : context.l10n.authEmailInvalid;
                 },
               ),
               if (widget.isEditing) ...[
@@ -205,9 +205,9 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
                   onChanged: _isSaving
                       ? null
                       : (value) => setState(() => _isActive = value),
-                  title: const Text('Active'),
-                  subtitle: const Text(
-                    'Inactive technicians cannot be assigned to new jobs.',
+                  title: Text(context.l10n.adminActive),
+                  subtitle: Text(
+                    context.l10n.adminInactiveTechnicianNote,
                   ),
                 ),
               ],
@@ -223,7 +223,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
                           color: AppColors.onPrimary,
                         ),
                       )
-                    : Text(widget.isEditing ? 'Save Changes' : 'Send Invitation'),
+                    : Text(widget.isEditing ? context.l10n.commonSaveChanges : context.l10n.adminSendInvitation),
               ),
             ],
           ),

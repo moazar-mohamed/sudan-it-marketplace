@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/error_messages.dart';
+import '../../../core/localization/locale_controller.dart';
 import '../../companies/domain/entities/company.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../notifications/presentation/notification_events.dart';
@@ -162,10 +164,7 @@ class CompanyAdminActions {
       await action();
       return null;
     } catch (error) {
-      final message = error.toString();
-      return message.startsWith('Exception: ')
-          ? message.substring('Exception: '.length)
-          : message;
+      return localizedErrorMessage(_ref.read(appLocalizationsProvider), error);
     }
   }
 }

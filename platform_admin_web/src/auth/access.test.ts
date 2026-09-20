@@ -38,4 +38,22 @@ describe('evaluateAccess', () => {
   it('denies a user with no profile document', () => {
     expect(evaluateAccess('u1', undefined)).toEqual({ ok: false, reason: 'not_found' });
   });
+
+  describe('stored language', () => {
+    const admin = { role: 'platform_admin', isActive: true };
+
+    it.each(['en', 'ar'])('carries a supported language (%s) on the profile', (language) => {
+      const d = evaluateAccess('u1', { ...admin, language });
+      expect(d.ok && d.profile.language).toBe(language);
+    });
+
+    it.each([undefined, '', 'fr', 'AR', 1, null, true])(
+      'treats %j as no stored language (existing accounts have none)',
+      (language) => {
+        const d = evaluateAccess('u1', { ...admin, language });
+        expect(d.ok).toBe(true);
+        expect(d.ok && d.profile.language).toBeUndefined();
+      },
+    );
+  });
 });

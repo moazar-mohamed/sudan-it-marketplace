@@ -8,6 +8,7 @@ import '../../../products/presentation/products_providers.dart';
 import '../orders/company_order_details_screen.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/company_order_tile.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class CompanyDashboardTab extends ConsumerWidget {
   const CompanyDashboardTab({
@@ -50,7 +51,7 @@ class CompanyDashboardTab extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
           Text(
-            company?.name.isNotEmpty == true ? company!.name : 'Welcome',
+            company?.name.isNotEmpty == true ? company!.name : context.l10n.adminWelcome,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: textTheme.headlineSmall?.copyWith(
@@ -59,7 +60,7 @@ class CompanyDashboardTab extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Overview of your products and orders',
+            context.l10n.adminDashboardOverview,
             style: textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
             ),
@@ -70,25 +71,25 @@ class CompanyDashboardTab extends ConsumerWidget {
               final tileWidth = (constraints.maxWidth - 12) / 2;
               final tiles = [
                 _StatTile(
-                  label: 'Total Products',
+                  label: context.l10n.adminTotalProducts,
                   value: count(productsAsync),
                   icon: Icons.inventory_2_outlined,
                   onTap: () => onSelectTab?.call(1),
                 ),
                 _StatTile(
-                  label: 'Total Orders',
+                  label: context.l10n.adminTotalOrders,
                   value: count(ordersAsync),
                   icon: Icons.receipt_long_outlined,
                   onTap: () => onSelectTab?.call(2),
                 ),
                 _StatTile(
-                  label: 'Pending Orders',
+                  label: context.l10n.adminPendingOrders,
                   value: ordersAsync.hasValue ? '$pendingOrders' : '…',
                   icon: Icons.pending_actions_outlined,
                   onTap: () => onSelectTab?.call(2),
                 ),
                 _StatTile(
-                  label: 'Installation Jobs',
+                  label: context.l10n.adminInstallationJobs,
                   value: ordersAsync.hasValue
                       ? '${orders.where((o) => o.installationSelected).length}'
                       : '…',
@@ -111,7 +112,7 @@ class CompanyDashboardTab extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Recent Orders',
+                  context.l10n.adminRecentOrders,
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -119,7 +120,7 @@ class CompanyDashboardTab extends ConsumerWidget {
               ),
               TextButton(
                 onPressed: () => onSelectTab?.call(2),
-                child: const Text('View all'),
+                child: Text(context.l10n.adminViewAll),
               ),
             ],
           ),
@@ -130,14 +131,14 @@ class CompanyDashboardTab extends ConsumerWidget {
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (_, _) => AdminErrorState(
-              message: 'Could not load orders.',
+              message: context.l10n.adminOrdersLoadFailedShort,
               onRetry: () =>
                   ref.invalidate(companyOrdersStreamProvider(companyId)),
             ),
             data: (_) => recentOrders.isEmpty
-                ? const AdminEmptyState(
+                ? AdminEmptyState(
                     icon: Icons.receipt_long_outlined,
-                    message: 'No orders yet.',
+                    message: context.l10n.adminNoOrdersYet,
                   )
                 : Column(
                     children: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 /// Bordered card with an optional title, matching the app's existing cards.
 class TechnicianSectionCard extends StatelessWidget {
@@ -187,7 +188,7 @@ class TechnicianErrorState extends StatelessWidget {
             Text(message, textAlign: TextAlign.center),
             if (onRetry != null) ...[
               const SizedBox(height: 16),
-              OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+              OutlinedButton(onPressed: onRetry, child: Text(context.l10n.commonRetry)),
             ],
           ],
         ),

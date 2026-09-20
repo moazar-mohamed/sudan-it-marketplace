@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/locale_controller.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
+import '../../settings/presentation/settings_screen.dart';
 import 'auth_controller.dart';
 import 'password_change_strings.dart';
 
@@ -75,11 +77,17 @@ class _ForcePasswordChangeScreenState
   Widget build(BuildContext context) {
     final strings = PasswordChangeStrings.of(context);
     final theme = Theme.of(context);
+    // A message is text in one language, so it is dropped when the language
+    // changes rather than left behind in the old one.
+    ref.listen(localeControllerProvider, (_, _) {
+      if (_error != null) setState(() => _error = null);
+    });
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(strings.title),
+        actions: const [SettingsButton()],
       ),
       body: SafeArea(
         child: Center(

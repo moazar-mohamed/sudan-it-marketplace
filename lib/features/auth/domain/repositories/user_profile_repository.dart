@@ -28,4 +28,10 @@ abstract class UserProfileRepository {
     String? phone,
     String? photoUrl,
   });
+
+  /// Stores the user's chosen language ('en' or 'ar') on their own profile.
+  Future<void> updateLanguage({
+    required String userId,
+    required String language,
+  });
 }

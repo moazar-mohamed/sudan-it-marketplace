@@ -1335,3 +1335,44 @@ table.data tbody tr:last-child td {
   border-radius: 8px;
   background: #000;
 }
+
+/* ---------- Settings ---------- */
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.option-list legend {
+  padding: 0;
+  margin-block-end: 4px;
+  font-weight: 600;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  background: var(--surface);
+}
+
+.option:hover {
+  border-color: var(--primary);
+}
+
+.option--selected {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+
+.option input {
+  accent-color: var(--primary);
+}

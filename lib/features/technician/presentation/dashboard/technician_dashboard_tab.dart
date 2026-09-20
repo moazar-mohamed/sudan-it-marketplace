@@ -6,6 +6,7 @@ import '../../../orders/presentation/orders_providers.dart';
 import '../widgets/technician_job_tile.dart';
 import '../widgets/technician_widgets.dart';
 import '../jobs/technician_job_details_screen.dart';
+import '../../../../core/localization/l10n_extension.dart';
 
 class TechnicianDashboardTab extends ConsumerWidget {
   const TechnicianDashboardTab({
@@ -27,7 +28,7 @@ class TechnicianDashboardTab extends ConsumerWidget {
     return jobsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => TechnicianErrorState(
-        message: 'Could not load your dashboard.',
+        message: context.l10n.techDashboardLoadFailed,
         onRetry: () =>
             ref.invalidate(technicianOrdersStreamProvider(technicianId)),
       ),
@@ -50,7 +51,7 @@ class TechnicianDashboardTab extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
             Text(
-              'Welcome, $technicianName',
+              context.l10n.techWelcome(technicianName),
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -63,7 +64,7 @@ class TechnicianDashboardTab extends ConsumerWidget {
                     children: [
                       Text('${jobs.length}', style: theme.textTheme.headlineMedium),
                       const SizedBox(height: 4),
-                      Text('Total Jobs', style: theme.textTheme.bodySmall),
+                      Text(context.l10n.techTotalJobs, style: theme.textTheme.bodySmall),
                     ],
                   ),
                 ),
@@ -73,7 +74,7 @@ class TechnicianDashboardTab extends ConsumerWidget {
                     children: [
                       Text('$pending', style: theme.textTheme.headlineMedium),
                       const SizedBox(height: 4),
-                      Text('Pending', style: theme.textTheme.bodySmall),
+                      Text(context.l10n.jobStatusPending, style: theme.textTheme.bodySmall),
                     ],
                   ),
                 ),
@@ -83,7 +84,7 @@ class TechnicianDashboardTab extends ConsumerWidget {
                     children: [
                       Text('$completed', style: theme.textTheme.headlineMedium),
                       const SizedBox(height: 4),
-                      Text('Completed', style: theme.textTheme.bodySmall),
+                      Text(context.l10n.orderStatusCompleted, style: theme.textTheme.bodySmall),
                     ],
                   ),
                 ),
@@ -93,7 +94,7 @@ class TechnicianDashboardTab extends ConsumerWidget {
             Row(
               children: [
                 Text(
-                  'Upcoming Jobs',
+                  context.l10n.techUpcomingJobs,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -101,15 +102,15 @@ class TechnicianDashboardTab extends ConsumerWidget {
                 const Spacer(),
                 TextButton(
                   onPressed: onSelectJobsTab,
-                  child: const Text('View all'),
+                  child: Text(context.l10n.adminViewAll),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             if (upcoming.isEmpty)
-              const TechnicianEmptyState(
+              TechnicianEmptyState(
                 icon: Icons.check_circle_outline,
-                message: 'No pending jobs right now.',
+                message: context.l10n.techNoPendingJobs,
               )
             else
               ...upcoming.map(

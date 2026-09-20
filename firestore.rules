@@ -220,6 +220,16 @@ service cloud.firestore {
         && data.get('updatedAt', null) == request.time;
     }
 
+    // The one profile edit open to every signed-in user (customer, company
+    // admin, technician, platform admin): choosing their own app language.
+    // Only `language` may change, and only to a supported value; no other
+    // field can ride along with it.
+    function isOwnLanguageUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['language'])
+        && request.resource.data.language in ['en', 'ar'];
+    }
+
     // A deactivated account (isActive == false) can no longer place orders or
     // attach receipts, even from a session that was already open. A user with
     // no profile document, or no isActive flag, is not treated as deactivated.
@@ -404,6 +414,7 @@ service cloud.firestore {
       allow update: if (isOwner(uid)
           && isSafeCustomerProfileUpdate())
         || (isOwner(uid) && isPasswordChangeCompletion())
+        || (isOwner(uid) && isOwnLanguageUpdate())
         || isPlatformAdminCustomerUpdate();
 
       // Only the company_admin / technician profile of a company that is gone.

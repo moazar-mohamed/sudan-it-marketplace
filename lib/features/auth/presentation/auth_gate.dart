@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/l10n_extension.dart';
 import '../../company_admin/presentation/company_admin_shell.dart';
 import '../../customer_dashboard/presentation/customer_dashboard_screen.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
+import '../../settings/presentation/settings_screen.dart';
 import '../../technician/presentation/technician_shell.dart';
 import '../../technicians/domain/entities/technician.dart';
 import '../../technicians/presentation/technicians_providers.dart';
@@ -41,6 +43,7 @@ class _RoleRouter extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final authState = ref.watch(authControllerProvider);
     // The Firestore rule that authorizes a technician's self-lookup checks
     // request.auth.token.email (the live Firebase Auth email), so the query
@@ -80,10 +83,9 @@ class _RoleRouter extends ConsumerWidget {
           // and history but cannot use the app until reactivated.
           UserRole.customer => profile.isActive
               ? customerEntry()
-              : const _AccessMessageScreen(
-                  title: 'Account deactivated',
-                  message:
-                      'Your account has been deactivated. Please contact support to have it reactivated.',
+              : _AccessMessageScreen(
+                  title: l10n.authAccountDeactivatedTitle,
+                  message: l10n.authAccountDeactivatedMessage,
                 ),
           // A company admin still on the temporary password set by the
           // Platform Admin must choose their own before anything else.
@@ -91,23 +93,20 @@ class _RoleRouter extends ConsumerWidget {
             const ForcePasswordChangeScreen(),
           UserRole.companyAdmin =>
             (profile.companyId == null || profile.companyId!.isEmpty)
-                ? const _AccessMessageScreen(
-                    title: 'Company not linked',
-                    message:
-                        'Your company admin account is not linked to a company yet. Please contact the platform administrator.',
+                ? _AccessMessageScreen(
+                    title: l10n.authCompanyNotLinkedTitle,
+                    message: l10n.authCompanyAdminNotLinked,
                   )
                 : CompanyAdminShell(companyId: profile.companyId!),
-          UserRole.platformAdmin => const _AccessMessageScreen(
-              title: 'Platform Admin',
-              message:
-                  'Platform administration is managed separately and is not available in this app.',
+          UserRole.platformAdmin => _AccessMessageScreen(
+              title: l10n.authPlatformAdminTitle,
+              message: l10n.authPlatformAdminMessage,
             ),
           UserRole.technician =>
             (profile.companyId == null || profile.companyId!.isEmpty)
-                ? const _AccessMessageScreen(
-                    title: 'Company not linked',
-                    message:
-                        'Your technician account is not linked to a company yet. Please contact your company administrator.',
+                ? _AccessMessageScreen(
+                    title: l10n.authCompanyNotLinkedTitle,
+                    message: l10n.authTechnicianNotLinked,
                   )
                 // Technicians self-register through the same email/password
                 // flow as customers, so they go through the same
@@ -143,19 +142,18 @@ class _TechnicianRoleRouter extends ConsumerWidget {
   final String companyId;
   final String email;
 
-  Widget _fromTechnician(Technician? technician) {
+  Widget _fromTechnician(BuildContext context, Technician? technician) {
+    final l10n = context.l10n;
     if (technician == null) {
-      return const _AccessMessageScreen(
-        title: 'Technician account',
-        message:
-            'Your technician account is not yet set up. Please contact your company administrator.',
+      return _AccessMessageScreen(
+        title: l10n.authTechnicianAccountTitle,
+        message: l10n.authTechnicianNotSetUp,
       );
     }
     if (!technician.isActive) {
-      return const _AccessMessageScreen(
-        title: 'Technician account',
-        message:
-            'Your technician account has been deactivated. Please contact your company administrator.',
+      return _AccessMessageScreen(
+        title: l10n.authTechnicianAccountTitle,
+        message: l10n.authTechnicianDeactivated,
       );
     }
     return TechnicianShell(
@@ -172,26 +170,24 @@ class _TechnicianRoleRouter extends ConsumerWidget {
 
     return byUidAsync.when(
       loading: () => const _SessionLoadingScreen(),
-      error: (_, _) => const _AccessMessageScreen(
-        title: 'Technician account',
-        message:
-            'Could not load your technician record. Please try again or contact your company administrator.',
+      error: (_, _) => _AccessMessageScreen(
+        title: context.l10n.authTechnicianAccountTitle,
+        message: context.l10n.authTechnicianLoadFailed,
       ),
       data: (technicianByUid) {
         if (technicianByUid != null) {
-          return _fromTechnician(technicianByUid);
+          return _fromTechnician(context, technicianByUid);
         }
         final fallbackAsync = ref.watch(
           technicianSelfProvider((companyId: companyId, email: email)),
         );
         return fallbackAsync.when(
           loading: () => const _SessionLoadingScreen(),
-          error: (_, _) => const _AccessMessageScreen(
-            title: 'Technician account',
-            message:
-                'Could not load your technician record. Please try again or contact your company administrator.',
+          error: (_, _) => _AccessMessageScreen(
+            title: context.l10n.authTechnicianAccountTitle,
+            message: context.l10n.authTechnicianLoadFailed,
           ),
-          data: _fromTechnician,
+          data: (technician) => _fromTechnician(context, technician),
         );
       },
     );
@@ -208,7 +204,7 @@ class _AccessMessageScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(title: Text(title), actions: const [SettingsButton()]),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -233,7 +229,7 @@ class _AccessMessageScreen extends ConsumerWidget {
                   onPressed: () =>
                       ref.read(authControllerProvider.notifier).signOut(),
                   icon: const Icon(Icons.logout),
-                  label: const Text('Sign out'),
+                  label: Text(context.l10n.commonSignOut),
                 ),
               ],
             ),
@@ -273,9 +269,7 @@ class _EmailVerificationRequiredScreenState
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(
-            error ?? 'Verification email sent. Please check your inbox.',
-          ),
+          content: Text(error ?? context.l10n.authVerifyEmailResent),
         ),
       );
   }
@@ -291,11 +285,7 @@ class _EmailVerificationRequiredScreenState
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Still not verified. Please tap the link in the email, then try again.",
-            ),
-          ),
+          SnackBar(content: Text(context.l10n.authVerifyEmailStillNot)),
         );
     }
   }
@@ -304,7 +294,10 @@ class _EmailVerificationRequiredScreenState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify your email')),
+      appBar: AppBar(
+        title: Text(context.l10n.authVerifyEmailTitle),
+        actions: const [SettingsButton()],
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -321,9 +314,8 @@ class _EmailVerificationRequiredScreenState
                 const SizedBox(height: 16),
                 Text(
                   widget.email.isEmpty
-                      ? 'Please verify your email address before continuing.'
-                      : 'We sent a verification link to ${widget.email}. '
-                          'Please verify your email before continuing.',
+                      ? context.l10n.authVerifyEmailGeneric
+                      : context.l10n.authVerifyEmailSent(widget.email),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyLarge,
                 ),
@@ -337,7 +329,7 @@ class _EmailVerificationRequiredScreenState
                           child: CircularProgressIndicator(strokeWidth: 2.5),
                         )
                       : const Icon(Icons.refresh),
-                  label: const Text("I've verified my email"),
+                  label: Text(context.l10n.authVerifiedMyEmail),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
@@ -349,14 +341,14 @@ class _EmailVerificationRequiredScreenState
                           child: CircularProgressIndicator(strokeWidth: 2.5),
                         )
                       : const Icon(Icons.mail_outline),
-                  label: const Text('Resend verification email'),
+                  label: Text(context.l10n.authResendVerification),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () =>
                       ref.read(authControllerProvider.notifier).signOut(),
                   icon: const Icon(Icons.logout),
-                  label: const Text('Sign out'),
+                  label: Text(context.l10n.commonSignOut),
                 ),
               ],
             ),

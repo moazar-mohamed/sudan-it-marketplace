@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sudan_it_marketplace/core/services/image_upload_service.dart';
 import 'package:sudan_it_marketplace/core/widgets/image_picker_field.dart';
@@ -9,11 +9,7 @@ import 'package:sudan_it_marketplace/core/widgets/image_picker_field.dart';
 Widget _app(ImagePickerController controller, {Locale locale = const Locale('en')}) {
   return MaterialApp(
     locale: locale,
-    localizationsDelegates: const [
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: const [Locale('en'), Locale('ar')],
     home: Scaffold(
       body: SingleChildScrollView(

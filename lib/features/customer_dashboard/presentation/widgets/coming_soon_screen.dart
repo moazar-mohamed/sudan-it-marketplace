@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/l10n_extension.dart';
+
 class ComingSoonScreen extends StatelessWidget {
   const ComingSoonScreen({super.key, required this.title});
 
@@ -25,7 +27,7 @@ class ComingSoonScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                '$title is coming soon',
+                context.l10n.comingSoonTitle(title),
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -33,7 +35,7 @@ class ComingSoonScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'This section will be available in a later update.',
+                context.l10n.comingSoonBody,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.7),
                 ),

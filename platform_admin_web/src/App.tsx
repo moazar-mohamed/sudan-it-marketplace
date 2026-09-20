@@ -17,6 +17,7 @@ import { ProductDetailsPage } from './pages/ProductDetailsPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ReviewsPage } from './pages/ReviewsPage';
+import { SettingsPage } from './pages/SettingsPage';
 
 export function App() {
   const { t } = useI18n();
@@ -52,6 +53,7 @@ export function App() {
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<EmptyState message={t('common.notFound')} />} />
       </Route>
     </Routes>

@@ -10,6 +10,7 @@ import '../../orders/presentation/checkout_screen.dart';
 import '../domain/entities/product.dart';
 import 'product_price_strings.dart';
 import 'products_providers.dart';
+import '../../../core/localization/l10n_extension.dart';
 
 class ProductDetailsScreen extends ConsumerStatefulWidget {
   const ProductDetailsScreen({
@@ -105,7 +106,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     if (!product.isAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${product.name} is out of stock.'),
+          content: Text(context.l10n.stockOutOfStock(product.name)),
           backgroundColor: AppColors.error,
         ),
       );
@@ -202,8 +203,8 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                           const SizedBox(width: 5),
                           Text(
                             stock.isAvailable
-                                ? 'In Stock (${stock.stockCount})'
-                                : 'Out of Stock',
+                                ? context.l10n.productInStockCount(stock.stockCount)
+                                : context.l10n.productOutOfStock,
                             style: textTheme.labelSmall?.copyWith(
                               color: stock.isAvailable
                                   ? AppColors.success
@@ -294,7 +295,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                               Text(
                                 widget.product.companyName ??
                                     matchedCompany?.name ??
-                                    'Verified Seller',
+                                    context.l10n.productVerifiedSeller,
                                 style: textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: colorScheme.onSurface,
@@ -322,7 +323,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      '(${matchedCompany.reviewCount} reviews)',
+                                      context.l10n.reviewsCount(matchedCompany.reviewCount),
                                       style: textTheme.bodySmall?.copyWith(
                                         color: colorScheme.onSurface
                                             .withValues(alpha: 0.6),
@@ -373,7 +374,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Professional Installation Available',
+                            context.l10n.productInstallationAvailable,
                             style: textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: AppColors.primary,
@@ -381,7 +382,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Installation price: ${_formatPrice(widget.product.installationPrice ?? 0)} ${widget.product.currency}. On-site setup option is selected during checkout.',
+                            context.l10n.productInstallationNote(_formatPrice(widget.product.installationPrice ?? 0), widget.product.currency),
                             style: textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurface
                                   .withValues(alpha: 0.8),
@@ -400,7 +401,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             if (widget.product.description != null &&
                 widget.product.description!.isNotEmpty) ...[
               Text(
-                'Description',
+                context.l10n.productDescription,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: colorScheme.onSurface,
@@ -419,7 +420,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             // Specifications
             if (widget.product.specifications.isNotEmpty) ...[
               Text(
-                'Specifications',
+                context.l10n.productSpecifications,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: colorScheme.onSurface,
@@ -524,9 +525,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   children: [
                     InkWell(
                       onTap: _decrementQuantity,
-                      borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(9),
-                      ),
+                      borderRadius: const BorderRadiusDirectional.horizontal(
+                        start: Radius.circular(9),
+                      ).resolve(Directionality.of(context)),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
@@ -552,9 +553,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                     ),
                     InkWell(
                       onTap: _incrementQuantity,
-                      borderRadius: const BorderRadius.horizontal(
-                        right: Radius.circular(9),
-                      ),
+                      borderRadius: const BorderRadiusDirectional.horizontal(
+                        end: Radius.circular(9),
+                      ).resolve(Directionality.of(context)),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
@@ -587,7 +588,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   child: Text(
                     totalPrice == null
                         ? ProductPriceStrings.priceOnRequest(context)
-                        : 'Buy Now • ${_formatPrice(totalPrice)} ${widget.product.currency}',
+                        : context.l10n.productBuyNowPrice(_formatPrice(totalPrice), widget.product.currency),
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
