@@ -128,6 +128,34 @@ void main() {
       expect(find.text('1984205'), findsNothing);
     });
 
+    testWidgets('the receipt preview names the company account holder, never the marketplace',
+        (tester) async {
+      await tester.pumpWidget(
+        _paymentScreen(
+          const Company(
+            id: 'c1',
+            name: 'ABC Technology',
+            rating: 0,
+            reviewCount: 0,
+            paymentAccounts: [
+              PaymentAccount(
+                bankName: 'Bank of Khartoum',
+                accountName: 'ABC Tech Co.',
+                accountNumber: '7700123',
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.textContaining('Tap to Upload Receipt'));
+      await tester.tap(find.textContaining('Tap to Upload Receipt'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Beneficiary: ABC Tech Co.'), findsOneWidget);
+      expect(find.textContaining('Sudan ICT Marketplace'), findsNothing);
+    });
+
     testWidgets('a company without accounts shows a notice', (tester) async {
       await tester.pumpWidget(
         _paymentScreen(

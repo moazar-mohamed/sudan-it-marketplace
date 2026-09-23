@@ -148,6 +148,11 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     // Until the company has loaded, its accounts are unknown, not missing.
     final accountsLoading = paymentAccounts.isEmpty &&
         ref.watch(companyStreamProvider(widget.draft.companyId)).isLoading;
+    // The payment goes to the order's own company, never to the marketplace.
+    final firstHolder =
+        paymentAccounts.isEmpty ? '' : paymentAccounts.first.accountName.trim();
+    final beneficiary =
+        firstHolder.isNotEmpty ? firstHolder : widget.draft.companyName;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -499,7 +504,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            context.l10n.paymentSlipBeneficiary('Sudan ICT Marketplace Ltd'),
+                            context.l10n.paymentSlipBeneficiary(beneficiary),
                             style: textTheme.bodySmall?.copyWith(
                               color: Colors.grey.shade800,
                               fontWeight: FontWeight.w500,
