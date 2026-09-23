@@ -7,9 +7,12 @@ class CompanyServiceModel extends CompanyService {
     required super.serviceId,
     required super.isActive,
     required super.createdAt,
+    super.price,
+    super.note,
   });
 
   factory CompanyServiceModel.fromMap(String id, Map<String, dynamic> data) {
+    final rawPrice = data['price'];
     return CompanyServiceModel(
       id: id,
       companyId: data['companyId'] as String? ?? '',
@@ -18,6 +21,9 @@ class CompanyServiceModel extends CompanyService {
       createdAt: data['createdAt'] is DateTime
           ? (data['createdAt'] as DateTime).toUtc()
           : DateTime.now().toUtc(),
+      // Only a positive number is a price; anything else means "no price".
+      price: rawPrice is num && rawPrice > 0 ? rawPrice.toDouble() : null,
+      note: data['note'] as String?,
     );
   }
 
@@ -27,6 +33,8 @@ class CompanyServiceModel extends CompanyService {
       'companyId': companyId,
       'serviceId': serviceId,
       'isActive': isActive,
+      'price': price,
+      'note': note?.trim() ?? '',
     };
   }
 }

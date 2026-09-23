@@ -50,6 +50,7 @@ String _appException(AppLocalizations l10n, AppException error) {
     AppErrorCode.productUpdateFailed => l10n.productUpdateFailed,
     AppErrorCode.productDeleteDenied => l10n.productDeleteDenied,
     AppErrorCode.productDeleteFailed => l10n.productDeleteFailed,
+    AppErrorCode.technicianEmailInUse => l10n.technicianEmailInUse,
     AppErrorCode.technicianSaveDenied => l10n.technicianSaveDenied,
     AppErrorCode.technicianSaveFailed => l10n.technicianSaveFailed,
     AppErrorCode.technicianUpdateDenied => l10n.technicianUpdateDenied,
@@ -60,5 +61,17 @@ String _appException(AppLocalizations l10n, AppException error) {
       l10n.technicianDeactivateFailed,
     AppErrorCode.companyUpdateDenied => l10n.companyUpdateDenied,
     AppErrorCode.companyUpdateFailed => l10n.companyUpdateFailed,
+    AppErrorCode.serviceRequestCreateDenied =>
+      l10n.serviceRequestCreateDenied,
+    AppErrorCode.serviceRequestCreateFailed =>
+      l10n.serviceRequestCreateFailed,
+    AppErrorCode.serviceRequestUpdateDenied => l10n.errorPermissionDenied,
+    AppErrorCode.serviceRequestUpdateFailed =>
+      l10n.serviceRequestUpdateFailed,
+    AppErrorCode.serviceRequestLoadFailed => l10n.serviceRequestsLoadFailed,
+    AppErrorCode.chatSendDenied => l10n.chatSendDenied,
+    AppErrorCode.chatSendFailed => l10n.chatSendFailed,
+    AppErrorCode.chatLoadFailed => l10n.chatLoadFailed,
+    AppErrorCode.chatMessageInvalid => l10n.chatMessageInvalid,
   };
 }

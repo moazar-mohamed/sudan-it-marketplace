@@ -49,3 +49,6 @@ app.*.map.json
 
 # Firebase CLI deploy cache
 .firebase/
+
+# Local manual-testing screenshots (never committed)
+/.test_screens/

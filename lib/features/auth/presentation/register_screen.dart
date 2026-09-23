@@ -111,10 +111,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         children: [
                           const Center(child: LanguageSelector()),
                           const SizedBox(height: 24),
-                          Icon(
-                            Icons.person_add_alt_1_rounded,
-                            size: 56,
-                            color: colorScheme.primary,
+                          Center(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.asset(
+                                'assets/images/app_logo.png',
+                                width: 96,
+                                height: 96,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Text(

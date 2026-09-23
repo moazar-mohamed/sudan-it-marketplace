@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../companies/domain/entities/payment_account.dart';
+import '../../companies/presentation/companies_providers.dart';
 import '../domain/entities/checkout_order_draft.dart';
 import 'order_pending_verification_screen.dart';
 import 'orders_controller.dart';
@@ -23,7 +25,6 @@ class ManualPaymentScreen extends ConsumerStatefulWidget {
 class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
   String? _selectedReceiptName;
   String? _selectedReceiptSize;
-  DateTime? _selectedReceiptTime;
   bool _receiptMissing = false;
   bool _isSubmitting = false;
 
@@ -47,7 +48,6 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     setState(() {
       _selectedReceiptName = 'bankak_receipt_${widget.draft.productId.toLowerCase()}.jpg';
       _selectedReceiptSize = '428 KB';
-      _selectedReceiptTime = DateTime.now();
       _receiptMissing = false;
     });
   }
@@ -56,7 +56,6 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     setState(() {
       _selectedReceiptName = null;
       _selectedReceiptSize = null;
-      _selectedReceiptTime = null;
     });
   }
 
@@ -142,6 +141,13 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final paymentAccounts = ref
+            .watch(resolvedCompanyProvider(widget.draft.companyId))
+            ?.paymentAccounts ??
+        const <PaymentAccount>[];
+    // Until the company has loaded, its accounts are unknown, not missing.
+    final accountsLoading = paymentAccounts.isEmpty &&
+        ref.watch(companyStreamProvider(widget.draft.companyId)).isLoading;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -245,26 +251,26 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             ),
             const SizedBox(height: 10),
 
-            // Bankak Account
-            _buildAccountCard(
-              context: context,
-              bankName: 'Bank of Khartoum (Bankak)',
-              accountName: 'Sudan ICT Marketplace Ltd',
-              accountNumber: '1984205',
-              phoneNumber: '+249 912 345 678',
-              icon: Icons.account_balance_outlined,
-            ),
-            const SizedBox(height: 10),
-
-            // Fawry Account
-            _buildAccountCard(
-              context: context,
-              bankName: 'Faisal Islamic Bank (Fawry)',
-              accountName: 'Sudan ICT Marketplace Ltd',
-              accountNumber: '0849201',
-              phoneNumber: '+249 923 456 789',
-              icon: Icons.account_balance_wallet_outlined,
-            ),
+            // The accounts the order's own company added in its profile.
+            if (accountsLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (paymentAccounts.isEmpty)
+              _buildNoAccountsNotice(context)
+            else
+              for (final account in paymentAccounts) ...[
+                _buildAccountCard(
+                  context: context,
+                  bankName: account.bankName,
+                  accountName: account.accountName,
+                  accountNumber: account.accountNumber,
+                  phoneNumber: account.phoneNumber,
+                  icon: Icons.account_balance_outlined,
+                ),
+                const SizedBox(height: 10),
+              ],
             const SizedBox(height: 24),
 
             // 4. Upload Receipt Section
@@ -574,7 +580,9 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
 
             // 5. Submit Receipt Action
             ElevatedButton.icon(
-              onPressed: _isSubmitting ? null : _onSubmitReceipt,
+              onPressed: (_isSubmitting || paymentAccounts.isEmpty)
+                  ? null
+                  : _onSubmitReceipt,
               icon: _isSubmitting
                   ? const SizedBox(
                       width: 18,
@@ -638,8 +646,10 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          _buildAccountRow(context.l10n.paymentAccountName, accountName, textTheme, colorScheme),
-          const SizedBox(height: 6),
+          if (accountName.isNotEmpty) ...[
+            _buildAccountRow(context.l10n.paymentAccountName, accountName, textTheme, colorScheme),
+            const SizedBox(height: 6),
+          ],
           _buildCopyableAccountRow(
             label: context.l10n.paymentAccountMban,
             value: accountNumber,
@@ -651,17 +661,52 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             colorScheme: colorScheme,
             onCopy: () => _copyToClipboard(accountNumber, context.l10n.paymentAccountNumberLabel),
           ),
-          const SizedBox(height: 6),
-          _buildCopyableAccountRow(
-            label: context.l10n.paymentPhoneIdentifier,
-            value: phoneNumber,
-            valueStyle: textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
+          if (phoneNumber.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            _buildCopyableAccountRow(
+              label: context.l10n.paymentPhoneIdentifier,
+              value: phoneNumber,
+              valueStyle: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+              ),
+              textTheme: textTheme,
+              colorScheme: colorScheme,
+              onCopy: () => _copyToClipboard(phoneNumber, context.l10n.paymentPhoneNumberLabel),
             ),
-            textTheme: textTheme,
-            colorScheme: colorScheme,
-            onCopy: () => _copyToClipboard(phoneNumber, context.l10n.paymentPhoneNumberLabel),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoAccountsNotice(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.error,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              context.l10n.paymentNoAccountsForCompany,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),

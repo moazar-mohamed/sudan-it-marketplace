@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../location/domain/geo_location.dart';
 import '../../domain/entities/company.dart';
+import '../../domain/entities/payment_account.dart';
 
 class CompanyModel {
   CompanyModel._();
@@ -29,7 +30,15 @@ class CompanyModel {
       email: map['email'] as String?,
       pickupAddress: map['pickupAddress'] as String?,
       status: _parseStatus(map['status']),
+      paymentAccounts: _parsePaymentAccounts(map['paymentAccounts']),
     );
+  }
+
+  static List<PaymentAccount> _parsePaymentAccounts(Object? value) {
+    if (value is! List) {
+      return const [];
+    }
+    return [for (final entry in value) ?PaymentAccount.tryFromMap(entry)];
   }
 
   static String _parseStatus(Object? value) {
@@ -38,6 +47,13 @@ class CompanyModel {
         ? value
         : 'active';
   }
+
+  /// Payment accounts are saved on their own (see `updatePaymentAccounts`), so
+  /// editing the profile never touches them.
+  static List<Map<String, dynamic>> paymentAccountsToFirestore(
+    List<PaymentAccount> accounts,
+  ) =>
+      [for (final account in accounts) account.toMap()];
 
   /// Only the fields a company admin is allowed to edit. Coordinates are
   /// written as numbers, or removed entirely when the admin cleared them (a

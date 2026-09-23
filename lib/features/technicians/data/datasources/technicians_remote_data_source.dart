@@ -1,5 +1,4 @@
 import '../../domain/entities/technician.dart';
-import '../../domain/entities/technician_invite.dart';
 
 abstract interface class TechniciansRemoteDataSource {
   Stream<List<Technician>> watchCompanyTechnicians(String companyId);
@@ -14,40 +13,27 @@ abstract interface class TechniciansRemoteDataSource {
   });
 
   /// Watches the technician record keyed by the signed-in technician's own
-  /// Firebase Auth uid, the scheme used by every technician created through
-  /// the invite/claim flow.
+  /// Firebase Auth uid, the scheme used by every technician account a
+  /// company admin creates.
   Stream<Technician?> watchTechnicianByUid(String uid);
-
-  String newTechnicianId();
-
-  Future<void> createTechnician(Technician technician);
 
   Future<void> updateTechnician(Technician technician);
 
   Future<void> deactivateTechnician(String technicianId);
 
-  /// Watches the pending technician invitations for a company, so the
-  /// Company Admin can see who has been invited but not yet registered.
-  Stream<List<TechnicianInvite>> watchPendingInvites(String companyId);
-
-  /// Creates (or resends) a pending technician invitation for
-  /// [companyId], which must be the caller's own trusted company id.
-  /// Throws if the email already belongs to a claimed invitation.
-  Future<void> createInvite({
+  /// Creates the technician's Firebase Auth account with [password] (a
+  /// temporary one) together with their `users/{uid}` profile
+  /// (`mustChangePassword: true`) and `technicians/{uid}` record, so the
+  /// technician must choose their own password at first sign-in. [companyId]
+  /// must be the caller's own trusted company id.
+  ///
+  /// Throws [AppException] with `technicianEmailInUse` when the email already
+  /// has an account.
+  Future<void> provisionTechnician({
     required String companyId,
     required String fullName,
     required String phone,
     required String email,
-  });
-
-  /// Looks up a pending invitation for [email], or null if none exists.
-  Future<TechnicianInvite?> fetchPendingInvite(String email);
-
-  /// Atomically claims [invite] for the newly-registered technician [uid]:
-  /// creates `users/{uid}` and `technicians/{uid}` from the invite's
-  /// trusted data, and marks the invitation claimed so it cannot be reused.
-  Future<void> claimInvite({
-    required String uid,
-    required TechnicianInvite invite,
+    required String password,
   });
 }

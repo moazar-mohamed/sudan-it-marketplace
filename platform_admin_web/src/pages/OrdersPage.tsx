@@ -47,7 +47,11 @@ export function OrdersPage() {
 
   return (
     <>
-      <PageHeader title={t('orders.title')} subtitle={t('orders.subtitle')} />
+      <PageHeader
+        title={t('orders.title')}
+        subtitle={t('orders.subtitle')}
+        back={{ to: '/', label: t('nav.dashboard') }}
+      />
       <DataGate gates={[orders]}>
         <div className="toolbar">
           <Chips

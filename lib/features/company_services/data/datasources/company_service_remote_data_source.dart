@@ -4,6 +4,14 @@ abstract class CompanyServiceRemoteDataSource {
   Future<String> addServiceToCompany({
     required String companyId,
     required String serviceId,
+    double? price,
+    String? note,
+  });
+
+  Future<void> updateCompanyServiceDetails({
+    required String companyServiceId,
+    double? price,
+    String? note,
   });
 
   Future<void> removeServiceFromCompany({

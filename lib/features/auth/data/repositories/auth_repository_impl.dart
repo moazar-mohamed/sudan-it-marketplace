@@ -1,4 +1,3 @@
-import '../../../technicians/domain/repositories/technicians_repository.dart';
 import '../../domain/entities/auth_user.dart';
 import '../../domain/exceptions/auth_exception.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -9,12 +8,10 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(
     this._remoteDataSource,
     this._userProfileRepository,
-    this._techniciansRepository,
   );
 
   final AuthRemoteDataSource _remoteDataSource;
   final UserProfileRepository _userProfileRepository;
-  final TechniciansRepository _techniciansRepository;
 
   @override
   Stream<AuthUser?> authStateChanges() {
@@ -55,26 +52,13 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       final accountEmail = (user.email ?? email).trim();
       try {
-        // A company admin may have invited this email as a technician
-        // before this person registered. If so, claim that invitation
-        // instead of creating an ordinary customer profile: the technician
-        // role and companyId only ever come from the trusted invitation,
-        // never from anything the registering user supplies.
-        final invite = await _techniciansRepository.fetchPendingInvite(
-          accountEmail,
+        // Self-registration always makes a customer. Technician accounts
+        // are created by their company admin (see provisionTechnician).
+        await _userProfileRepository.createCustomerProfile(
+          id: user.id,
+          fullName: fullName.trim(),
+          email: accountEmail,
         );
-        if (invite != null) {
-          await _techniciansRepository.claimInvite(
-            uid: user.id,
-            invite: invite,
-          );
-        } else {
-          await _userProfileRepository.createCustomerProfile(
-            id: user.id,
-            fullName: fullName.trim(),
-            email: accountEmail,
-          );
-        }
       } catch (error) {
         // The profile screen may already have created the profile for this
         // new account a moment earlier. In that case keep the account and

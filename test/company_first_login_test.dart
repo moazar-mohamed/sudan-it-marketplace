@@ -135,9 +135,37 @@ void main() {
       expect(_profile(mustChangePassword: false).requiresPasswordChange, isFalse);
     });
 
-    test('the flag only gates company admins', () {
+    test('the flag gates company admins and technicians, never customers', () {
       expect(_profile(role: UserRole.customer).requiresPasswordChange, isFalse);
-      expect(_profile(role: UserRole.technician).requiresPasswordChange, isFalse);
+      expect(_profile(role: UserRole.technician).requiresPasswordChange, isTrue);
+      expect(
+        _profile(role: UserRole.technician, mustChangePassword: false)
+            .requiresPasswordChange,
+        isFalse,
+      );
+    });
+
+    test('only a profile that carries the flag field was created by a company', () {
+      Map<String, dynamic> map(Map<String, dynamic> extra) => {
+            'fullName': 'T',
+            'email': 't@x.test',
+            'role': 'technician',
+            'companyId': 'c1',
+            ...extra,
+          };
+      expect(
+        UserProfileModel.fromFirestoreMap(map({'mustChangePassword': true}), 'u')
+            .createdByCompany,
+        isTrue,
+      );
+      // Still true once the password was changed: the field stays, as false.
+      expect(
+        UserProfileModel.fromFirestoreMap(map({'mustChangePassword': false}), 'u')
+            .createdByCompany,
+        isTrue,
+      );
+      // A self-registered (claimed) technician never has the field.
+      expect(UserProfileModel.fromFirestoreMap(map({}), 'u').createdByCompany, isFalse);
     });
 
     test('a customer profile is never written with the flag', () {
@@ -160,6 +188,21 @@ void main() {
 
       expect(find.byType(ForcePasswordChangeScreen), findsOneWidget);
       expect(find.byType(CompanyAdminShell), findsNothing);
+      expect(find.text('Choose a new password'), findsWidgets);
+    });
+
+    testWidgets('a technician on a temporary password gets the same change screen',
+        (tester) async {
+      await tester.pumpWidget(
+        _app(
+          const AuthGate(),
+          _FakeProfile(_profile(role: UserRole.technician)),
+          _FakeAuth(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ForcePasswordChangeScreen), findsOneWidget);
       expect(find.text('Choose a new password'), findsWidgets);
     });
 

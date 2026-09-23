@@ -22,6 +22,7 @@ enum AppErrorCode {
   productUpdateFailed,
   productDeleteDenied,
   productDeleteFailed,
+  technicianEmailInUse,
   technicianSaveDenied,
   technicianSaveFailed,
   technicianUpdateDenied,
@@ -30,6 +31,15 @@ enum AppErrorCode {
   technicianDeactivateFailed,
   companyUpdateDenied,
   companyUpdateFailed,
+  serviceRequestCreateDenied,
+  serviceRequestCreateFailed,
+  serviceRequestUpdateDenied,
+  serviceRequestUpdateFailed,
+  serviceRequestLoadFailed,
+  chatSendDenied,
+  chatSendFailed,
+  chatLoadFailed,
+  chatMessageInvalid,
 }
 
 class AppException implements Exception {

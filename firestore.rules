@@ -34,51 +34,6 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time;
     }
 
-    // The authenticated user's own Firebase Auth email, normalized to
-    // lowercase to match technicianInvites document ids.
-    function callerEmail() {
-      return request.auth.token.email != null
-        ? request.auth.token.email.lower()
-        : '';
-    }
-
-    function pendingInviteForCaller() {
-      return get(/databases/$(database)/documents/technicianInvites/$(callerEmail())).data;
-    }
-
-    function hasRequiredTechnicianUserKeys() {
-      return request.resource.data.keys().hasOnly([
-        'id',
-        'fullName',
-        'email',
-        'role',
-        'companyId',
-        'phone',
-        'isActive',
-        'createdAt'
-      ]);
-    }
-
-    // A user may create their own users/{uid} profile as a technician only
-    // by claiming a pending invitation created by a company_admin. The role
-    // and companyId always come from that trusted invitation, never from
-    // anything the registering client supplies directly.
-    function isValidTechnicianClaimCreate(uid) {
-      let invite = pendingInviteForCaller();
-      return request.resource.data.id == uid
-        && hasRequiredTechnicianUserKeys()
-        && request.resource.data.role == 'technician'
-        && request.resource.data.isActive == true
-        && request.resource.data.createdAt is timestamp
-        && request.resource.data.createdAt == request.time
-        && invite.status == 'pending'
-        && invite.email == callerEmail()
-        && request.resource.data.email == invite.email
-        && request.resource.data.companyId == invite.companyId
-        && request.resource.data.fullName == invite.fullName
-        && request.resource.data.phone == invite.phone;
-    }
-
     function isSafeCustomerProfileUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['fullName', 'phone', 'photoUrl', 'updatedAt'])
@@ -206,13 +161,63 @@ service cloud.firestore {
           .data.get('email', '').lower() == data.email;
     }
 
-    // The one edit a company admin may make to the flag: clearing it after
-    // choosing their own password. It can only go from true to false, and
+    // A company admin may create the users/{uid} profile of a technician of
+    // THEIR OWN company, only in the same batch that creates that technician's
+    // technicians/{uid} record. The account starts with mustChangePassword:
+    // true, so the technician must choose their own password at first login
+    // (the password itself lives only in Firebase Authentication).
+    function isCompanyAdminTechnicianCreate(uid) {
+      let data = request.resource.data;
+      let record = /databases/$(database)/documents/technicians/$(uid);
+      return data.keys().hasOnly([
+          'id',
+          'fullName',
+          'email',
+          'role',
+          'companyId',
+          'phone',
+          'isActive',
+          'mustChangePassword',
+          'createdAt'
+        ])
+        && data.keys().hasAll([
+          'id',
+          'fullName',
+          'email',
+          'role',
+          'companyId',
+          'phone',
+          'isActive',
+          'mustChangePassword',
+          'createdAt'
+        ])
+        && data.id == uid
+        && data.role == 'technician'
+        && data.isActive == true
+        && data.mustChangePassword == true
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.fullName.size() <= 120
+        && data.email is string
+        && data.email.size() > 0
+        && data.email == data.email.lower()
+        && data.phone is string
+        && data.createdAt == request.time
+        && isCompanyAdminOf(data.companyId)
+        && !exists(record)
+        && existsAfter(record)
+        && getAfter(record).data.get('uid', '') == uid
+        && getAfter(record).data.companyId == data.companyId
+        && getAfter(record).data.get('email', '') == data.email;
+    }
+
+    // The one edit a company admin or technician may make to the flag:
+    // clearing it after choosing their own password. It can only go from true to false, and
     // nothing else in the profile may change with it. (Rules cannot see the
     // password, so this is the app's first-login gate, not a proof.)
     function isPasswordChangeCompletion() {
       let data = request.resource.data;
-      return resource.data.role == 'company_admin'
+      return resource.data.role in ['company_admin', 'technician']
         && resource.data.get('mustChangePassword', false) == true
         && data.diff(resource.data).affectedKeys()
           .hasOnly(['mustChangePassword', 'updatedAt'])
@@ -360,25 +365,37 @@ service cloud.firestore {
         'companyId',
         'serviceId',
         'isActive',
-        'createdAt'
+        'price',
+        'note',
+        'createdAt',
+        'updatedAt'
       ]);
     }
 
+    // price is optional: absent/null means the company set no price (nothing
+    // is shown). A given price must be a positive number; 0 is never stored
+    // as a stand-in. note is the company's own short text for the service.
     function isValidCompanyServiceWrite(companyServiceId) {
+      let data = request.resource.data;
       return hasRequiredCompanyServiceKeys()
-        && request.resource.data.id == companyServiceId
-        && request.resource.data.companyId is string
-        && request.resource.data.companyId.size() > 0
-        && request.resource.data.serviceId is string
-        && request.resource.data.serviceId.size() > 0
-        && request.resource.data.isActive is bool
-        && request.resource.data.createdAt is timestamp;
+        && data.id == companyServiceId
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.serviceId is string
+        && data.serviceId.size() > 0
+        && data.isActive is bool
+        && (data.get('price', null) == null
+          || (data.price is number && data.price > 0))
+        && (!data.keys().hasAny(['note'])
+          || (data.note is string && data.note.size() <= 500))
+        && data.createdAt is timestamp;
     }
 
     function isValidCompanyServiceCreate(companyServiceId) {
       return isValidCompanyServiceWrite(companyServiceId)
         && request.resource.data.isActive == true
         && request.resource.data.createdAt == request.time
+        && request.resource.data.get('updatedAt', request.time) == request.time
         && catalogServiceExists(request.resource.data.serviceId);
     }
 
@@ -388,8 +405,9 @@ service cloud.firestore {
         && request.resource.data.companyId == resource.data.companyId
         && request.resource.data.serviceId == resource.data.serviceId
         && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['isActive']);
+            .hasOnly(['isActive', 'price', 'note', 'updatedAt']);
     }
 
     match /users/{uid} {
@@ -408,8 +426,9 @@ service cloud.firestore {
       allow create: if (isOwner(uid)
           && request.auth.uid == uid
           && request.resource.data.id == uid
-          && (isValidCustomerCreate() || isValidTechnicianClaimCreate(uid)))
-        || isPlatformAdminCompanyAdminCreate(uid);
+          && isValidCustomerCreate())
+        || isPlatformAdminCompanyAdminCreate(uid)
+        || isCompanyAdminTechnicianCreate(uid);
 
       allow update: if (isOwner(uid)
           && isSafeCustomerProfileUpdate())
@@ -780,28 +799,6 @@ service cloud.firestore {
         && data.updatedAt == request.time;
     }
 
-    // A technician may create their own technicians/{uid} record (doc id ==
-    // their own Firebase Auth uid) only by claiming a pending invitation;
-    // companyId/fullName/phone/email always come from that trusted
-    // invitation.
-    function isValidTechnicianClaimRecordCreate(technicianId) {
-      let invite = pendingInviteForCaller();
-      return technicianId == request.auth.uid
-        && hasRequiredTechnicianKeys()
-        && request.resource.data.id == technicianId
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.isActive == true
-        && request.resource.data.createdAt is timestamp
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.updatedAt == request.time
-        && invite.status == 'pending'
-        && invite.email == callerEmail()
-        && request.resource.data.email == invite.email
-        && request.resource.data.companyId == invite.companyId
-        && request.resource.data.fullName == invite.fullName
-        && request.resource.data.phone == invite.phone;
-    }
-
     match /technicians/{technicianId} {
       allow get, list: if isSignedIn()
         && (isPlatformAdmin()
@@ -812,8 +809,7 @@ service cloud.firestore {
       allow create: if (isCompanyAdminOf(request.resource.data.companyId)
           && request.resource.data.id == technicianId
           && request.resource.data.createdAt == request.time
-          && isValidTechnicianData())
-        || isValidTechnicianClaimRecordCreate(technicianId);
+          && isValidTechnicianData());
 
       allow update: if isCompanyAdminOf(resource.data.companyId)
         && request.resource.data.id == resource.data.id
@@ -826,65 +822,16 @@ service cloud.firestore {
         && companyIsGoneAfter(resource.data.get('companyId', ''));
     }
 
-    function hasRequiredInviteKeys() {
-      return request.resource.data.keys().hasOnly([
-        'email',
-        'fullName',
-        'phone',
-        'companyId',
-        'status',
-        'createdAt'
-      ]);
-    }
-
-    function isValidTechnicianInviteCreate(inviteId) {
-      return hasRequiredInviteKeys()
-        && request.resource.data.email is string
-        && request.resource.data.email.size() > 0
-        && request.resource.data.email == request.resource.data.email.lower()
-        && request.resource.data.email == inviteId
-        && request.resource.data.fullName is string
-        && request.resource.data.fullName.size() > 0
-        && request.resource.data.phone is string
-        && request.resource.data.companyId is string
-        && request.resource.data.companyId.size() > 0
-        && request.resource.data.status == 'pending'
-        && request.resource.data.createdAt is timestamp
-        && request.resource.data.createdAt == request.time;
-    }
-
-    // The invited person claims their own invitation exactly once: only the
-    // status/claimedAt/claimedBy fields may change, the invite must still be
-    // pending, and the authenticated email must match the invite.
-    function isValidInviteClaim(inviteId) {
-      return resource.data.status == 'pending'
-        && resource.data.email == callerEmail()
-        && inviteId == resource.data.email
-        && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['status', 'claimedAt', 'claimedBy'])
-        && request.resource.data.status == 'claimed'
-        && request.resource.data.claimedBy == request.auth.uid
-        && request.resource.data.claimedAt == request.time;
-    }
-
+    // Legacy technician invitations from the retired invite/claim flow.
+    // Technician accounts are now created directly by their company admin,
+    // so nothing can create or claim an invitation any more. Any left-over
+    // documents stay readable to Platform Admin and their company, and are
+    // removed together with a deleted company.
     match /technicianInvites/{inviteId} {
-      // A nonexistent invite (resource == null) is readable so a company
-      // admin can check for a free email before inviting, and so a
-      // registering user can check whether their email was invited at all,
-      // without leaking any other company's invitation data.
-      allow get: if isSignedIn()
-        && (resource == null
-          || isPlatformAdmin()
-          || isCompanyAdminOf(resource.data.companyId)
-          || resource.data.email == callerEmail());
-
-      allow list: if isSignedIn()
+      allow get, list: if isSignedIn()
         && (isPlatformAdmin() || isCompanyAdminOf(resource.data.companyId));
 
-      allow create: if isCompanyAdminOf(request.resource.data.companyId)
-        && isValidTechnicianInviteCreate(inviteId);
-
-      allow update: if isSignedIn() && isValidInviteClaim(inviteId);
+      allow create, update: if false;
 
       allow delete: if isPlatformAdmin()
         && companyIsGoneAfter(resource.data.get('companyId', ''));
@@ -1000,6 +947,36 @@ service cloud.firestore {
               /databases/$(database)/documents/technicians/$(resource.data.recipientId))));
     }
 
+    // The accounts a company receives manual payments on (shown to customers
+    // on the payment screen). Rules cannot loop over a list, so the (few)
+    // allowed entries are checked by position. Keep the limit in step with
+    // PaymentAccount.maxPerCompany in the app.
+    function isValidPaymentAccount(account) {
+      return account is map
+        && account.keys().hasOnly(['bankName', 'accountName', 'accountNumber', 'phoneNumber'])
+        && account.keys().hasAll(['bankName', 'accountName', 'accountNumber'])
+        && account.bankName is string
+        && account.bankName.size() > 0
+        && account.bankName.size() <= 80
+        && account.accountName is string
+        && account.accountName.size() <= 120
+        && account.accountNumber is string
+        && account.accountNumber.size() > 0
+        && account.accountNumber.size() <= 40
+        && account.get('phoneNumber', '') is string
+        && account.get('phoneNumber', '').size() <= 30;
+    }
+
+    function isValidPaymentAccounts(accounts) {
+      return accounts is list
+        && accounts.size() <= 5
+        && (accounts.size() < 1 || isValidPaymentAccount(accounts[0]))
+        && (accounts.size() < 2 || isValidPaymentAccount(accounts[1]))
+        && (accounts.size() < 3 || isValidPaymentAccount(accounts[2]))
+        && (accounts.size() < 4 || isValidPaymentAccount(accounts[3]))
+        && (accounts.size() < 5 || isValidPaymentAccount(accounts[4]));
+    }
+
     function isCompanyProfileUpdate() {
       let data = request.resource.data;
       return data.diff(resource.data).affectedKeys().hasOnly([
@@ -1013,6 +990,7 @@ service cloud.firestore {
           'phone',
           'email',
           'pickupAddress',
+          'paymentAccounts',
           'updatedAt'
         ])
         && data.name is string
@@ -1024,6 +1002,7 @@ service cloud.firestore {
         && data.phone is string
         && data.email is string
         && data.pickupAddress is string
+        && isValidPaymentAccounts(data.get('paymentAccounts', []))
         && isValidCoordinatePair(
           data.get('latitude', null),
           data.get('longitude', null))
@@ -1136,6 +1115,309 @@ service cloud.firestore {
 
       allow delete: if isPlatformAdmin()
         && companyIsGoneAfter(resource.data.get('companyId', ''));
+    }
+
+    // ── Service requests ───────────────────────────────────────────────────
+    // A customer asks one company to perform one catalogue service. Service
+    // requests are a separate lifecycle from product orders and never touch
+    // the orders collection, stock or payment.
+
+    // An active customer account (a deactivated one cannot request services
+    // or send chat messages, even from a session that is already open).
+    function isActiveCustomer() {
+      return signedInUserExists()
+        && signedInUser().get('role', '') == 'customer'
+        && signedInUser().get('isActive', true) != false;
+    }
+
+    function hasValidServiceRequestKeys() {
+      let keys = request.resource.data.keys();
+      return keys.hasOnly([
+          'id',
+          'customerId',
+          'customerName',
+          'companyId',
+          'companyName',
+          'companyServiceId',
+          'serviceId',
+          'serviceName',
+          'price',
+          'details',
+          'address',
+          'latitude',
+          'longitude',
+          'contactPhone',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && keys.hasAll([
+          'id',
+          'customerId',
+          'customerName',
+          'companyId',
+          'companyName',
+          'companyServiceId',
+          'serviceId',
+          'serviceName',
+          'details',
+          'address',
+          'contactPhone',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ]);
+    }
+
+    // The request must name an ACTIVE company_services link of an ACTIVE
+    // company for an existing catalogue service, and carry that link's price
+    // as it is right now (null when the company set none). It is created in
+    // the same batch as its conversation (chats/{same id}).
+    function isValidServiceRequestCreate(requestId) {
+      let data = request.resource.data;
+      let linkPath = /databases/$(database)/documents/company_services/$(data.companyServiceId);
+      let companyPath = /databases/$(database)/documents/companies/$(data.companyId);
+      return hasValidServiceRequestKeys()
+        && data.id == requestId
+        && data.customerId == request.auth.uid
+        && data.customerName is string
+        && data.customerName.size() <= 120
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.companyName is string
+        && data.companyName.size() > 0
+        && data.companyName.size() <= 200
+        && data.companyServiceId is string
+        && data.companyServiceId.size() > 0
+        && data.serviceId is string
+        && data.serviceId.size() > 0
+        && data.serviceName is string
+        && data.serviceName.size() > 0
+        && data.serviceName.size() <= 200
+        && (data.get('price', null) == null
+          || (data.price is number && data.price > 0))
+        && data.details is string
+        && data.details.size() > 0
+        && data.details.size() <= 2000
+        && data.address is string
+        && data.address.size() <= 500
+        && isValidCoordinatePair(
+          data.get('latitude', null),
+          data.get('longitude', null))
+        && data.contactPhone is string
+        && data.contactPhone.size() > 0
+        && data.contactPhone.size() <= 30
+        && data.status == 'pending'
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && exists(linkPath)
+        && get(linkPath).data.isActive == true
+        && get(linkPath).data.companyId == data.companyId
+        && get(linkPath).data.serviceId == data.serviceId
+        && get(linkPath).data.get('price', null) == data.get('price', null)
+        && exists(companyPath)
+        && get(companyPath).data.get('status', 'active') == 'active'
+        && catalogServiceExists(data.serviceId)
+        && existsAfter(/databases/$(database)/documents/chats/$(requestId));
+    }
+
+    function isServiceRequestStatusChangeOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // The customer may withdraw their own request while it is still pending.
+    function isCustomerServiceRequestCancel() {
+      return resource.data.customerId == request.auth.uid
+        && isServiceRequestStatusChangeOnly()
+        && resource.data.status == 'pending'
+        && request.resource.data.status == 'cancelled';
+    }
+
+    // The company moves a request forward:
+    //   pending -> accepted | rejected, accepted -> in_progress,
+    //   in_progress -> completed.
+    function isCompanyServiceRequestTransition() {
+      let from = resource.data.status;
+      let to = request.resource.data.status;
+      return isCompanyAdminOf(resource.data.companyId)
+        && isServiceRequestStatusChangeOnly()
+        && ((from == 'pending' && to in ['accepted', 'rejected'])
+          || (from == 'accepted' && to == 'in_progress')
+          || (from == 'in_progress' && to == 'completed'));
+    }
+
+    match /service_requests/{requestId} {
+      // The customer who sent it, the admins of the company it was sent to,
+      // and Platform Admin (read-only, as for orders). No other company,
+      // customer, technician or role can read it. Platform Admin never gets
+      // the request's conversation: see chats below.
+      allow get, list: if isSignedIn()
+        && (resource.data.customerId == request.auth.uid
+          || isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId));
+
+      // Platform Admin is read-only here: it cannot send (isActiveCustomer
+      // requires the customer role) or change a request.
+      allow create: if isSignedIn()
+        && isActiveCustomer()
+        && isValidServiceRequestCreate(requestId);
+
+      allow update: if isSignedIn()
+        && (isCustomerServiceRequestCancel()
+          || isCompanyServiceRequestTransition());
+
+      // Request history is permanent.
+      allow delete: if false;
+    }
+
+    // ── Service request conversations ──────────────────────────────────────
+    // Exactly one conversation per service request, with the same id. Its
+    // participants are that request's customer and the admins of its company.
+
+    function chatDoc(chatId) {
+      return get(/databases/$(database)/documents/chats/$(chatId)).data;
+    }
+
+    function isChatCustomer(chat) {
+      return chat.customerId == request.auth.uid;
+    }
+
+    function isChatCompany(chat) {
+      return isCompanyAdminOf(chat.companyId);
+    }
+
+    function isChatParticipant(chat) {
+      return isChatCustomer(chat) || isChatCompany(chat);
+    }
+
+    // The conversation is created by the customer in the same batch as the
+    // brand-new service request it belongs to, and copies that request's
+    // participants and names.
+    function isValidChatCreate(chatId) {
+      let data = request.resource.data;
+      let requestPath = /databases/$(database)/documents/service_requests/$(chatId);
+      let serviceRequest = getAfter(requestPath).data;
+      return data.keys().hasOnly([
+          'id',
+          'serviceRequestId',
+          'customerId',
+          'companyId',
+          'customerName',
+          'companyName',
+          'serviceName',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.id == chatId
+        && data.serviceRequestId == chatId
+        && data.customerId == request.auth.uid
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && !exists(requestPath)
+        && existsAfter(requestPath)
+        && serviceRequest.customerId == request.auth.uid
+        && serviceRequest.companyId == data.companyId
+        && serviceRequest.customerName == data.customerName
+        && serviceRequest.companyName == data.companyName
+        && serviceRequest.serviceName == data.serviceName;
+    }
+
+    // The role the caller speaks as in this conversation.
+    function chatRoleOf(chat) {
+      return isChatCustomer(chat) ? 'customer' : 'company';
+    }
+
+    function chatReadKeyOf(chat) {
+      return isChatCustomer(chat) ? 'customerLastReadAt' : 'companyLastReadAt';
+    }
+
+    // A participant may (a) record that they have read the conversation
+    // (their own read marker, set to the server time), and/or (b) publish the
+    // message they are creating in the same batch as the conversation's last
+    // message. Nothing else about the conversation can change.
+    function isValidChatUpdate(chatId) {
+      let data = request.resource.data;
+      let changed = data.diff(resource.data).affectedKeys();
+      let readKey = chatReadKeyOf(resource.data);
+      let messageFields = [
+        'lastMessageId',
+        'lastMessageText',
+        'lastMessageAt',
+        'lastMessageSenderRole',
+        'updatedAt'
+      ];
+      return isChatParticipant(resource.data)
+        && changed.hasOnly(messageFields.concat([readKey]))
+        && (!changed.hasAny([readKey]) || data[readKey] == request.time)
+        && (!changed.hasAny(messageFields)
+          || isLastMessagePublish(chatId, data));
+    }
+
+    function isLastMessagePublish(chatId, data) {
+      let messagePath = /databases/$(database)/documents/chats/$(chatId)/messages/$(data.lastMessageId);
+      return data.lastMessageId is string
+        && data.lastMessageId.size() > 0
+        && data.lastMessageAt == request.time
+        && data.updatedAt == request.time
+        && data.lastMessageSenderRole == chatRoleOf(resource.data)
+        && !exists(messagePath)
+        && existsAfter(messagePath)
+        && getAfter(messagePath).data.senderId == request.auth.uid
+        && getAfter(messagePath).data.text == data.lastMessageText;
+    }
+
+    // Conversations are private to their two participants. Platform Admin and
+    // technicians are deliberately NOT granted any access here or to the
+    // messages below.
+    match /chats/{chatId} {
+      allow get, list: if isSignedIn()
+        && (resource.data.customerId == request.auth.uid
+          || isCompanyAdminOf(resource.data.companyId));
+
+      allow create: if isSignedIn()
+        && isActiveCustomer()
+        && isValidChatCreate(chatId);
+
+      allow update: if isSignedIn()
+        && callerIsNotDeactivated()
+        && isValidChatUpdate(chatId);
+
+      allow delete: if false;
+
+      // Text messages. Only the two participants read or write them; a
+      // message is created together with the conversation's last-message
+      // update and can never be edited or deleted.
+      match /messages/{messageId} {
+        allow get, list: if isSignedIn()
+          && isChatParticipant(chatDoc(chatId));
+
+        allow create: if isSignedIn()
+          && callerIsNotDeactivated()
+          && isChatParticipant(chatDoc(chatId))
+          && request.resource.data.keys().hasOnly([
+            'id',
+            'senderId',
+            'senderRole',
+            'senderName',
+            'text',
+            'createdAt'
+          ])
+          && request.resource.data.id == messageId
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.senderRole == chatRoleOf(chatDoc(chatId))
+          && request.resource.data.senderName is string
+          && request.resource.data.senderName.size() <= 200
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.createdAt == request.time
+          && getAfter(/databases/$(database)/documents/chats/$(chatId))
+            .data.get('lastMessageId', '') == messageId;
+
+        allow update, delete: if false;
+      }
     }
 
     match /orders/{orderId} {

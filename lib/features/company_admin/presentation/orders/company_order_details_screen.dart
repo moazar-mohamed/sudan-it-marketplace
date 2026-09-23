@@ -10,6 +10,7 @@ import '../company_admin_format.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/order_status_actions.dart';
 import '../widgets/status_badge.dart';
+import '../widgets/technician_assignment_card.dart';
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../orders/presentation/order_labels.dart';
 
@@ -136,6 +137,12 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                     ],
                   ],
                 ),
+                // Whoever installs the product is chosen right here, from the
+                // company's own technicians.
+                if (order.installationSelected) ...[
+                  const SizedBox(height: 12),
+                  TechnicianAssignmentCard(companyId: companyId, order: order),
+                ],
                 const SizedBox(height: 12),
                 AdminSectionCard(
                   title: context.l10n.adminPayment,

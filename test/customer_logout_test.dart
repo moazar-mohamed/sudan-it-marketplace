@@ -13,6 +13,7 @@ import 'package:sudan_it_marketplace/features/auth/presentation/auth_gate.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/auth_providers.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/auth_state.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/login_screen.dart';
+import 'package:sudan_it_marketplace/features/chats/presentation/chat_providers.dart';
 import 'package:sudan_it_marketplace/features/companies/presentation/companies_providers.dart';
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/customer_dashboard_screen.dart';
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/customer_profile_screen.dart';
@@ -125,6 +126,8 @@ class _Harness {
           firestoreCompaniesStreamProvider
               .overrideWith((ref) => Stream.value(const [])),
           customerOrdersStreamProvider
+              .overrideWith((ref) => Stream.value(const [])),
+          customerChatsStreamProvider
               .overrideWith((ref) => Stream.value(const [])),
         ],
         child: const MaterialApp(home: AuthGate()),

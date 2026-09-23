@@ -9,6 +9,7 @@ import '../../../location/presentation/widgets/open_location_button.dart';
 import '../widgets/admin_network_image.dart';
 import '../widgets/admin_section_card.dart';
 import 'edit_company_profile_screen.dart';
+import 'payment_accounts_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
 class CompanyProfileTab extends ConsumerWidget {
@@ -115,6 +116,33 @@ class CompanyProfileTab extends ConsumerWidget {
                     text: company.locationText,
                   ),
                 ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            AdminSectionCard(
+              title: context.l10n.paymentAccountsManage,
+              trailing: TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => PaymentAccountsScreen(companyId: company.id),
+                  ),
+                ),
+                icon: const Icon(Icons.account_balance_outlined, size: 18),
+                label: Text(context.l10n.commonEdit),
+              ),
+              children: [
+                if (company.paymentAccounts.isEmpty)
+                  Text(
+                    context.l10n.paymentAccountsEmpty,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                for (final account in company.paymentAccounts)
+                  AdminInfoRow(
+                    label: account.bankName,
+                    value: account.accountNumber,
+                  ),
               ],
             ),
             const SizedBox(height: 20),

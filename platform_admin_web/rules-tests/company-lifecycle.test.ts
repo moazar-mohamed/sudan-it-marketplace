@@ -141,8 +141,10 @@ async function addCompanyData(companyId: string, adminUid: string, tag: string) 
       updatedAt: serverTimestamp(),
     }),
   );
+  // A left-over invitation from the retired invite/claim flow: nothing can
+  // create one any more, but old documents must still be cleaned up.
   const email = `${tag.toLowerCase()}.tech@x.test`; // invite ids are lowercase emails
-  await assertSucceeds(
+  await assertFails(
     setDoc(doc(db, 'technicianInvites', email), {
       email,
       fullName: `${tag} tech`,
@@ -150,6 +152,16 @@ async function addCompanyData(companyId: string, adminUid: string, tag: string) 
       companyId,
       status: 'pending',
       createdAt: serverTimestamp(),
+    }),
+  );
+  await env.withSecurityRulesDisabled((ctx) =>
+    setDoc(doc(ctx.firestore(), 'technicianInvites', email), {
+      email,
+      fullName: `${tag} tech`,
+      phone: '1',
+      companyId,
+      status: 'pending',
+      createdAt: new Date(),
     }),
   );
   await assertSucceeds(

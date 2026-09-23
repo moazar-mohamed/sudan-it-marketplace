@@ -86,6 +86,8 @@
   "authErrorCancelled": "Sign-in was cancelled.",
   "authErrorDifferentCredential": "An account already exists with a different sign-in method for this email.",
   "authErrorGoogleFailed": "Google sign-in failed. Please try again.",
+  "authErrorPopupBlocked": "Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.",
+  "authErrorUnauthorizedDomain": "Google sign-in is not enabled for this website address.",
   "authErrorGeneric": "Authentication failed. Please try again.",
   "authErrorSendVerification": "Could not send the verification email. Please try again.",
   "authErrorNotAuthenticated": "Not authenticated.",
@@ -788,18 +790,14 @@
   },
   "adminTechnicianDeactivated": "Technician deactivated.",
   "adminTechniciansLoadFailed": "Could not load your technicians.",
-  "adminTechniciansEmpty": "You have not added any technicians yet.\nTap \"Add Technician\" to invite your first one.",
-  "adminInvitedPending": "Invited (pending)",
+  "adminTechniciansEmpty": "You have not added any technicians yet.\nTap \"Add Technician\" to create your first technician account.",
   "adminActive": "Active",
   "adminInactive": "Inactive",
-  "adminInvitationCreated": "Invitation created. The technician can now register with this email.",
   "adminTechnicianUpdated": "Technician updated.",
-  "adminInviteNote": "This creates an invitation. The technician sets their own password by registering with this email.",
   "adminTechnicianNameRequired": "Technician name is required.",
   "adminPhoneRequired": "Phone number is required.",
   "adminTechnicianEmailRequired": "Technician email is required.",
   "adminInactiveTechnicianNote": "Inactive technicians cannot be assigned to new jobs.",
-  "adminSendInvitation": "Send Invitation",
   "techDashboardLoadFailed": "Could not load your dashboard.",
   "techWelcome": "Welcome, {name}",
   "@techWelcome": {
@@ -848,5 +846,150 @@
       }
     }
   },
-  "comingSoonBody": "This section will be available in a later update."
+  "paymentAccountsManage": "Payment accounts",
+  "paymentAccountsIntro": "Customers transfer their order payments to these accounts. Add at least one so customers can pay you.",
+  "paymentAccountsEmpty": "No payment accounts yet.",
+  "paymentAccountAdd": "Add account",
+  "paymentAccountEdit": "Edit account",
+  "paymentAccountBankName": "Bank / wallet name",
+  "paymentAccountBankRequired": "Enter the bank or wallet name.",
+  "paymentAccountHolderRequired": "Enter the account holder name.",
+  "paymentAccountNumberRequired": "Enter the account number.",
+  "paymentAccountPhoneOptional": "Linked phone number (optional)",
+  "paymentAccountSaved": "Payment account saved.",
+  "paymentAccountRemoved": "Payment account removed.",
+  "paymentAccountRemoveTitle": "Remove this account?",
+  "paymentAccountRemoveBody": "Customers will no longer see it on the payment screen.",
+  "paymentAccountLimit": "You can add up to {max} accounts.",
+  "@paymentAccountLimit": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "paymentNoAccountsForCompany": "This company has not added payment accounts yet, so it cannot receive a payment right now. Please contact the company.",
+  "adminTechnicianAccountNote": "This creates the technician's account with a temporary password. Give them this email and password; they choose their own password the first time they sign in.",
+  "adminTechnicianTempPassword": "Temporary password",
+  "adminTechnicianPasswordRequired": "Enter a temporary password.",
+  "adminAddTechnicianSubmit": "Add technician",
+  "adminTechnicianCreated": "Technician added. Share the email and temporary password with them.",
+  "technicianEmailInUse": "An account with this email already exists.",
+  "comingSoonBody": "This section will be available in a later update.",
+  "navServices": "Services",
+  "navChats": "Chats",
+  "navMore": "More",
+  "homeSearchServices": "Search services...",
+  "homeNoServices": "No services found",
+  "homeServicesLoadFailed": "Services could not be loaded.",
+  "ordersTabProducts": "Products",
+  "ordersTabServices": "Services",
+  "serviceDetailsTitle": "Service details",
+  "serviceAvailableCompanies": "Available companies",
+  "serviceNoCompanies": "No company offers this service yet.",
+  "serviceCompaniesLoadFailed": "The companies could not be loaded.",
+  "serviceRequestAction": "Request service",
+  "serviceRequestFormTitle": "Request service",
+  "serviceRequestDetailsLabel": "What do you need?",
+  "serviceRequestDetailsHint": "Describe the work, the device or system, and anything the company should know.",
+  "serviceRequestDetailsRequired": "Please describe what you need.",
+  "serviceRequestLocationOptional": "Address (optional)",
+  "serviceRequestAddressHint": "Where should the service be done?",
+  "serviceRequestSubmit": "Send request",
+  "serviceRequestSent": "Your request was sent. You can now chat with the company.",
+  "serviceRequestCreateDenied": "This request could not be sent. The company may no longer offer this service.",
+  "serviceRequestCreateFailed": "The request could not be sent. Please try again.",
+  "serviceRequestUpdateFailed": "The request could not be updated. Please try again.",
+  "serviceRequestsLoadFailed": "Service requests could not be loaded.",
+  "serviceRequestNotFound": "This service request was not found.",
+  "serviceRequestsEmptyCustomer": "You have not requested any services yet.",
+  "serviceRequestsEmptyCompany": "No service requests yet.",
+  "serviceRequestDetailsTitle": "Service request",
+  "serviceRequestCustomer": "Customer",
+  "serviceRequestCompany": "Company",
+  "serviceRequestPrice": "Price",
+  "serviceRequestSentAt": "Sent",
+  "serviceRequestNumber": "Request",
+  "serviceRequestContact": "Contact and location",
+  "serviceRequestAddress": "Address",
+  "serviceRequestOpenChat": "Open chat",
+  "serviceRequestViewDetails": "Request details",
+  "serviceRequestCancel": "Cancel request",
+  "serviceRequestCancelTitle": "Cancel this request?",
+  "serviceRequestCancelBody": "The company will see that you cancelled it. This cannot be undone.",
+  "serviceRequestAccept": "Accept",
+  "serviceRequestReject": "Reject",
+  "serviceRequestRejectTitle": "Reject this request?",
+  "serviceRequestRejectBody": "The customer will see that the request was rejected. This cannot be undone.",
+  "serviceRequestStart": "Start work",
+  "serviceRequestComplete": "Mark as completed",
+  "serviceRequestStatusPending": "Pending",
+  "serviceRequestStatusAccepted": "Accepted",
+  "serviceRequestStatusRejected": "Rejected",
+  "serviceRequestStatusInProgress": "In progress",
+  "serviceRequestStatusCompleted": "Completed",
+  "serviceRequestStatusCancelled": "Cancelled",
+  "serviceRequestStatusLine": "Request status: {status}",
+  "@serviceRequestStatusLine": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "chatsEmptyCustomer": "No chats yet. When you request a service, your conversation with the company appears here.",
+  "chatsEmptyCompany": "No chats yet. Each service request sent to your company opens a conversation here.",
+  "chatNoMessagesYet": "No messages yet",
+  "chatEmpty": "No messages yet. Write to start the conversation.",
+  "chatInputHint": "Write a message",
+  "chatSend": "Send",
+  "chatYou": "You",
+  "chatYouPrefix": "You: {text}",
+  "@chatYouPrefix": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "chatYesterdayAt": "Yesterday {time}",
+  "@chatYesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatCustomerFallback": "Customer",
+  "chatUnread": "Unread",
+  "chatNotFound": "This conversation was not found.",
+  "chatLoadFailed": "The chat could not be loaded.",
+  "chatSendDenied": "You cannot send messages in this conversation.",
+  "chatSendFailed": "The message could not be sent. Please try again.",
+  "chatMessageInvalid": "Write a message of up to 2000 characters.",
+  "adminServiceRequestsTab": "Requests",
+  "adminMyServicesTab": "My services",
+  "adminServicesLoadFailed": "Services could not be loaded.",
+  "adminServicesOffered": "Services you offer",
+  "adminServicesOfferedEmpty": "You do not offer any services yet. Add them from the list below.",
+  "adminServicesAvailable": "Add services",
+  "adminServicesCatalogueEmpty": "The service catalogue is empty for now.",
+  "adminServicesAllAdded": "You already offer every service in the catalogue.",
+  "adminServiceAdd": "Add",
+  "adminServiceSaved": "Service saved.",
+  "adminServiceRemoved": "Service removed.",
+  "adminServiceRemoveTitle": "Stop offering this service?",
+  "adminServiceRemoveBody": "Customers will no longer be able to request {name} from your company. Existing requests are kept.",
+  "@adminServiceRemoveBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminServicePriceHelper": "Leave empty if you do not want to show a price.",
+  "adminServiceNoteLabel": "Note for customers (optional)",
+  "adminServiceNoteHint": "For example: done on site or remotely, what is included",
+  "companyServiceAlreadyOffered": "Your company already offers this service.",
+  "companyServiceNotFound": "This service is no longer available."
 }

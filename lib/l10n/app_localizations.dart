@@ -572,6 +572,18 @@ abstract class AppLocalizations {
   /// **'Google sign-in failed. Please try again.'**
   String get authErrorGoogleFailed;
 
+  /// No description provided for @authErrorPopupBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.'**
+  String get authErrorPopupBlocked;
+
+  /// No description provided for @authErrorUnauthorizedDomain.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in is not enabled for this website address.'**
+  String get authErrorUnauthorizedDomain;
+
   /// No description provided for @authErrorGeneric.
   ///
   /// In en, this message translates to:
@@ -2945,14 +2957,8 @@ abstract class AppLocalizations {
   /// No description provided for @adminTechniciansEmpty.
   ///
   /// In en, this message translates to:
-  /// **'You have not added any technicians yet.\nTap \"Add Technician\" to invite your first one.'**
+  /// **'You have not added any technicians yet.\nTap \"Add Technician\" to create your first technician account.'**
   String get adminTechniciansEmpty;
-
-  /// No description provided for @adminInvitedPending.
-  ///
-  /// In en, this message translates to:
-  /// **'Invited (pending)'**
-  String get adminInvitedPending;
 
   /// No description provided for @adminActive.
   ///
@@ -2966,23 +2972,11 @@ abstract class AppLocalizations {
   /// **'Inactive'**
   String get adminInactive;
 
-  /// No description provided for @adminInvitationCreated.
-  ///
-  /// In en, this message translates to:
-  /// **'Invitation created. The technician can now register with this email.'**
-  String get adminInvitationCreated;
-
   /// No description provided for @adminTechnicianUpdated.
   ///
   /// In en, this message translates to:
   /// **'Technician updated.'**
   String get adminTechnicianUpdated;
-
-  /// No description provided for @adminInviteNote.
-  ///
-  /// In en, this message translates to:
-  /// **'This creates an invitation. The technician sets their own password by registering with this email.'**
-  String get adminInviteNote;
 
   /// No description provided for @adminTechnicianNameRequired.
   ///
@@ -3007,12 +3001,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Inactive technicians cannot be assigned to new jobs.'**
   String get adminInactiveTechnicianNote;
-
-  /// No description provided for @adminSendInvitation.
-  ///
-  /// In en, this message translates to:
-  /// **'Send Invitation'**
-  String get adminSendInvitation;
 
   /// No description provided for @techDashboardLoadFailed.
   ///
@@ -3116,11 +3104,671 @@ abstract class AppLocalizations {
   /// **'{title} is coming soon'**
   String comingSoonTitle(String title);
 
+  /// No description provided for @paymentAccountsManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment accounts'**
+  String get paymentAccountsManage;
+
+  /// No description provided for @paymentAccountsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers transfer their order payments to these accounts. Add at least one so customers can pay you.'**
+  String get paymentAccountsIntro;
+
+  /// No description provided for @paymentAccountsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No payment accounts yet.'**
+  String get paymentAccountsEmpty;
+
+  /// No description provided for @paymentAccountAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add account'**
+  String get paymentAccountAdd;
+
+  /// No description provided for @paymentAccountEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit account'**
+  String get paymentAccountEdit;
+
+  /// No description provided for @paymentAccountBankName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank / wallet name'**
+  String get paymentAccountBankName;
+
+  /// No description provided for @paymentAccountBankRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the bank or wallet name.'**
+  String get paymentAccountBankRequired;
+
+  /// No description provided for @paymentAccountHolderRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the account holder name.'**
+  String get paymentAccountHolderRequired;
+
+  /// No description provided for @paymentAccountNumberRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the account number.'**
+  String get paymentAccountNumberRequired;
+
+  /// No description provided for @paymentAccountPhoneOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked phone number (optional)'**
+  String get paymentAccountPhoneOptional;
+
+  /// No description provided for @paymentAccountSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment account saved.'**
+  String get paymentAccountSaved;
+
+  /// No description provided for @paymentAccountRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment account removed.'**
+  String get paymentAccountRemoved;
+
+  /// No description provided for @paymentAccountRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this account?'**
+  String get paymentAccountRemoveTitle;
+
+  /// No description provided for @paymentAccountRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers will no longer see it on the payment screen.'**
+  String get paymentAccountRemoveBody;
+
+  /// No description provided for @paymentAccountLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can add up to {max} accounts.'**
+  String paymentAccountLimit(int max);
+
+  /// No description provided for @paymentNoAccountsForCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'This company has not added payment accounts yet, so it cannot receive a payment right now. Please contact the company.'**
+  String get paymentNoAccountsForCompany;
+
+  /// No description provided for @adminTechnicianAccountNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This creates the technician\'s account with a temporary password. Give them this email and password; they choose their own password the first time they sign in.'**
+  String get adminTechnicianAccountNote;
+
+  /// No description provided for @adminTechnicianTempPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary password'**
+  String get adminTechnicianTempPassword;
+
+  /// No description provided for @adminTechnicianPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a temporary password.'**
+  String get adminTechnicianPasswordRequired;
+
+  /// No description provided for @adminAddTechnicianSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Add technician'**
+  String get adminAddTechnicianSubmit;
+
+  /// No description provided for @adminTechnicianCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician added. Share the email and temporary password with them.'**
+  String get adminTechnicianCreated;
+
+  /// No description provided for @technicianEmailInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this email already exists.'**
+  String get technicianEmailInUse;
+
   /// No description provided for @comingSoonBody.
   ///
   /// In en, this message translates to:
   /// **'This section will be available in a later update.'**
   String get comingSoonBody;
+
+  /// No description provided for @navServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get navServices;
+
+  /// No description provided for @navChats.
+  ///
+  /// In en, this message translates to:
+  /// **'Chats'**
+  String get navChats;
+
+  /// No description provided for @navMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get navMore;
+
+  /// No description provided for @homeSearchServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Search services...'**
+  String get homeSearchServices;
+
+  /// No description provided for @homeNoServices.
+  ///
+  /// In en, this message translates to:
+  /// **'No services found'**
+  String get homeNoServices;
+
+  /// No description provided for @homeServicesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Services could not be loaded.'**
+  String get homeServicesLoadFailed;
+
+  /// No description provided for @ordersTabProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get ordersTabProducts;
+
+  /// No description provided for @ordersTabServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get ordersTabServices;
+
+  /// No description provided for @serviceDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Service details'**
+  String get serviceDetailsTitle;
+
+  /// No description provided for @serviceAvailableCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'Available companies'**
+  String get serviceAvailableCompanies;
+
+  /// No description provided for @serviceNoCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'No company offers this service yet.'**
+  String get serviceNoCompanies;
+
+  /// No description provided for @serviceCompaniesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The companies could not be loaded.'**
+  String get serviceCompaniesLoadFailed;
+
+  /// No description provided for @serviceRequestAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Request service'**
+  String get serviceRequestAction;
+
+  /// No description provided for @serviceRequestFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request service'**
+  String get serviceRequestFormTitle;
+
+  /// No description provided for @serviceRequestDetailsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you need?'**
+  String get serviceRequestDetailsLabel;
+
+  /// No description provided for @serviceRequestDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the work, the device or system, and anything the company should know.'**
+  String get serviceRequestDetailsHint;
+
+  /// No description provided for @serviceRequestDetailsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please describe what you need.'**
+  String get serviceRequestDetailsRequired;
+
+  /// No description provided for @serviceRequestLocationOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Address (optional)'**
+  String get serviceRequestLocationOptional;
+
+  /// No description provided for @serviceRequestAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Where should the service be done?'**
+  String get serviceRequestAddressHint;
+
+  /// No description provided for @serviceRequestSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get serviceRequestSubmit;
+
+  /// No description provided for @serviceRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request was sent. You can now chat with the company.'**
+  String get serviceRequestSent;
+
+  /// No description provided for @serviceRequestCreateDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'This request could not be sent. The company may no longer offer this service.'**
+  String get serviceRequestCreateDenied;
+
+  /// No description provided for @serviceRequestCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The request could not be sent. Please try again.'**
+  String get serviceRequestCreateFailed;
+
+  /// No description provided for @serviceRequestUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The request could not be updated. Please try again.'**
+  String get serviceRequestUpdateFailed;
+
+  /// No description provided for @serviceRequestsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Service requests could not be loaded.'**
+  String get serviceRequestsLoadFailed;
+
+  /// No description provided for @serviceRequestNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This service request was not found.'**
+  String get serviceRequestNotFound;
+
+  /// No description provided for @serviceRequestsEmptyCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not requested any services yet.'**
+  String get serviceRequestsEmptyCustomer;
+
+  /// No description provided for @serviceRequestsEmptyCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'No service requests yet.'**
+  String get serviceRequestsEmptyCompany;
+
+  /// No description provided for @serviceRequestDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Service request'**
+  String get serviceRequestDetailsTitle;
+
+  /// No description provided for @serviceRequestCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get serviceRequestCustomer;
+
+  /// No description provided for @serviceRequestCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get serviceRequestCompany;
+
+  /// No description provided for @serviceRequestPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get serviceRequestPrice;
+
+  /// No description provided for @serviceRequestSentAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get serviceRequestSentAt;
+
+  /// No description provided for @serviceRequestNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Request'**
+  String get serviceRequestNumber;
+
+  /// No description provided for @serviceRequestContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact and location'**
+  String get serviceRequestContact;
+
+  /// No description provided for @serviceRequestAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get serviceRequestAddress;
+
+  /// No description provided for @serviceRequestOpenChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Open chat'**
+  String get serviceRequestOpenChat;
+
+  /// No description provided for @serviceRequestViewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Request details'**
+  String get serviceRequestViewDetails;
+
+  /// No description provided for @serviceRequestCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get serviceRequestCancel;
+
+  /// No description provided for @serviceRequestCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this request?'**
+  String get serviceRequestCancelTitle;
+
+  /// No description provided for @serviceRequestCancelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The company will see that you cancelled it. This cannot be undone.'**
+  String get serviceRequestCancelBody;
+
+  /// No description provided for @serviceRequestAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get serviceRequestAccept;
+
+  /// No description provided for @serviceRequestReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get serviceRequestReject;
+
+  /// No description provided for @serviceRequestRejectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject this request?'**
+  String get serviceRequestRejectTitle;
+
+  /// No description provided for @serviceRequestRejectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer will see that the request was rejected. This cannot be undone.'**
+  String get serviceRequestRejectBody;
+
+  /// No description provided for @serviceRequestStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start work'**
+  String get serviceRequestStart;
+
+  /// No description provided for @serviceRequestComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as completed'**
+  String get serviceRequestComplete;
+
+  /// No description provided for @serviceRequestStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get serviceRequestStatusPending;
+
+  /// No description provided for @serviceRequestStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get serviceRequestStatusAccepted;
+
+  /// No description provided for @serviceRequestStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get serviceRequestStatusRejected;
+
+  /// No description provided for @serviceRequestStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get serviceRequestStatusInProgress;
+
+  /// No description provided for @serviceRequestStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get serviceRequestStatusCompleted;
+
+  /// No description provided for @serviceRequestStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get serviceRequestStatusCancelled;
+
+  /// No description provided for @serviceRequestStatusLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Request status: {status}'**
+  String serviceRequestStatusLine(String status);
+
+  /// No description provided for @chatsEmptyCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'No chats yet. When you request a service, your conversation with the company appears here.'**
+  String get chatsEmptyCustomer;
+
+  /// No description provided for @chatsEmptyCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'No chats yet. Each service request sent to your company opens a conversation here.'**
+  String get chatsEmptyCompany;
+
+  /// No description provided for @chatNoMessagesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get chatNoMessagesYet;
+
+  /// No description provided for @chatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Write to start the conversation.'**
+  String get chatEmpty;
+
+  /// No description provided for @chatInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message'**
+  String get chatInputHint;
+
+  /// No description provided for @chatSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get chatSend;
+
+  /// No description provided for @chatYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get chatYou;
+
+  /// No description provided for @chatYouPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'You: {text}'**
+  String chatYouPrefix(String text);
+
+  /// No description provided for @chatYesterdayAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday {time}'**
+  String chatYesterdayAt(String time);
+
+  /// No description provided for @chatCustomerFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get chatCustomerFallback;
+
+  /// No description provided for @chatUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get chatUnread;
+
+  /// No description provided for @chatNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This conversation was not found.'**
+  String get chatNotFound;
+
+  /// No description provided for @chatLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The chat could not be loaded.'**
+  String get chatLoadFailed;
+
+  /// No description provided for @chatSendDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot send messages in this conversation.'**
+  String get chatSendDenied;
+
+  /// No description provided for @chatSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The message could not be sent. Please try again.'**
+  String get chatSendFailed;
+
+  /// No description provided for @chatMessageInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message of up to 2000 characters.'**
+  String get chatMessageInvalid;
+
+  /// No description provided for @adminServiceRequestsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests'**
+  String get adminServiceRequestsTab;
+
+  /// No description provided for @adminMyServicesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'My services'**
+  String get adminMyServicesTab;
+
+  /// No description provided for @adminServicesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Services could not be loaded.'**
+  String get adminServicesLoadFailed;
+
+  /// No description provided for @adminServicesOffered.
+  ///
+  /// In en, this message translates to:
+  /// **'Services you offer'**
+  String get adminServicesOffered;
+
+  /// No description provided for @adminServicesOfferedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not offer any services yet. Add them from the list below.'**
+  String get adminServicesOfferedEmpty;
+
+  /// No description provided for @adminServicesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Add services'**
+  String get adminServicesAvailable;
+
+  /// No description provided for @adminServicesCatalogueEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'The service catalogue is empty for now.'**
+  String get adminServicesCatalogueEmpty;
+
+  /// No description provided for @adminServicesAllAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'You already offer every service in the catalogue.'**
+  String get adminServicesAllAdded;
+
+  /// No description provided for @adminServiceAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get adminServiceAdd;
+
+  /// No description provided for @adminServiceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Service saved.'**
+  String get adminServiceSaved;
+
+  /// No description provided for @adminServiceRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Service removed.'**
+  String get adminServiceRemoved;
+
+  /// No description provided for @adminServiceRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop offering this service?'**
+  String get adminServiceRemoveTitle;
+
+  /// No description provided for @adminServiceRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers will no longer be able to request {name} from your company. Existing requests are kept.'**
+  String adminServiceRemoveBody(String name);
+
+  /// No description provided for @adminServicePriceHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty if you do not want to show a price.'**
+  String get adminServicePriceHelper;
+
+  /// No description provided for @adminServiceNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for customers (optional)'**
+  String get adminServiceNoteLabel;
+
+  /// No description provided for @adminServiceNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: done on site or remotely, what is included'**
+  String get adminServiceNoteHint;
+
+  /// No description provided for @companyServiceAlreadyOffered.
+  ///
+  /// In en, this message translates to:
+  /// **'Your company already offers this service.'**
+  String get companyServiceAlreadyOffered;
+
+  /// No description provided for @companyServiceNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This service is no longer available.'**
+  String get companyServiceNotFound;
 }
 
 class _AppLocalizationsDelegate

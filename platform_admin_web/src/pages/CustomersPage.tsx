@@ -39,6 +39,7 @@ export function CustomersPage() {
       <PageHeader
         title={t('customers.title')}
         subtitle={t('customers.subtitle')}
+        back={{ to: '/', label: t('nav.dashboard') }}
         actions={
           <button className="btn btn--primary" onClick={() => setAdding(true)}>
             + {t('customers.add')}

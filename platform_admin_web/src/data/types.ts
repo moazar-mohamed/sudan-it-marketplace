@@ -104,6 +104,57 @@ export interface Category {
   createdAt: Date | null;
 }
 
+/** A catalogue service (services/{id}); companies offer it via company_services. */
+export interface CatalogService {
+  id: string;
+  categoryId: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  createdAt: Date | null;
+}
+
+/** Status of a service request (service_requests/{id}); see the Flutter app. */
+export type ServiceRequestStatus =
+  | 'pending'
+  | 'accepted'
+  | 'rejected'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled';
+export const SERVICE_REQUEST_STATUSES: ServiceRequestStatus[] = [
+  'pending',
+  'accepted',
+  'in_progress',
+  'completed',
+  'rejected',
+  'cancelled',
+];
+
+/**
+ * A customer's request for a company's service. Platform Admin reads these
+ * only; their conversations (chats) are private and never loaded here.
+ */
+export interface ServiceRequest {
+  id: string;
+  customerId: string;
+  customerName: string;
+  companyId: string;
+  companyName: string;
+  serviceId: string;
+  serviceName: string;
+  /** null when the company set no price (never 0). */
+  price: number | null;
+  details: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  contactPhone: string;
+  status: ServiceRequestStatus;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
 export interface Review {
   id: string;
   customerName: string;

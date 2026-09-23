@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/error_messages.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../companies/domain/entities/company.dart';
+import '../../companies/domain/entities/payment_account.dart';
 import '../../companies/presentation/companies_providers.dart';
+import '../../company_services/presentation/company_service_error_message.dart';
+import '../../company_services/presentation/company_service_providers.dart';
 import '../../notifications/presentation/notification_events.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../../orders/domain/entities/order_entity.dart';
@@ -93,32 +96,34 @@ class CompanyAdminActions {
     );
   }
 
-  String newTechnicianId() =>
-      _ref.read(techniciansRepositoryProvider).newTechnicianId();
+  Future<String?> updatePaymentAccounts(
+    String companyId,
+    List<PaymentAccount> accounts,
+  ) {
+    return _guard(
+      () => _ref
+          .read(companiesRepositoryProvider)
+          .updatePaymentAccounts(companyId, accounts),
+    );
+  }
 
-  /// Creates a pending technician invitation under the Company Admin's own
-  /// (trusted) companyId. No Firebase Auth account is created here — the
-  /// technician claims the invitation themself by registering with the
-  /// invited email through the normal Register screen.
-  Future<String?> createTechnicianInvite({
+  /// Creates the technician's login with a temporary password. The technician
+  /// is made to choose their own password the first time they sign in.
+  Future<String?> createTechnicianAccount({
     required String companyId,
     required String fullName,
     required String phone,
     required String email,
+    required String password,
   }) {
     return _guard(
-      () => _ref.read(techniciansRepositoryProvider).createInvite(
+      () => _ref.read(techniciansRepositoryProvider).provisionTechnician(
             companyId: companyId,
             fullName: fullName,
             phone: phone,
             email: email,
+            password: password,
           ),
-    );
-  }
-
-  Future<String?> createTechnician(Technician technician) {
-    return _guard(
-      () => _ref.read(techniciansRepositoryProvider).createTechnician(technician),
     );
   }
 
@@ -157,6 +162,64 @@ class CompanyAdminActions {
         ),
       );
     });
+  }
+
+  /// Starts offering a catalogue service. [price] is optional: null stores
+  /// no price (never 0).
+  Future<String?> addCompanyService({
+    required String companyId,
+    required String serviceId,
+    double? price,
+    String? note,
+  }) {
+    return _guardCompanyService(
+      () => _ref.read(companyServiceRepositoryProvider).addServiceToCompany(
+            companyId: companyId,
+            serviceId: serviceId,
+            price: price,
+            note: note,
+          ),
+    );
+  }
+
+  Future<String?> updateCompanyService({
+    required String companyServiceId,
+    double? price,
+    String? note,
+  }) {
+    return _guardCompanyService(
+      () => _ref
+          .read(companyServiceRepositoryProvider)
+          .updateCompanyServiceDetails(
+            companyServiceId: companyServiceId,
+            price: price,
+            note: note,
+          ),
+    );
+  }
+
+  Future<String?> removeCompanyService({
+    required String companyId,
+    required String serviceId,
+  }) {
+    return _guardCompanyService(
+      () => _ref.read(companyServiceRepositoryProvider).removeServiceFromCompany(
+            companyId: companyId,
+            serviceId: serviceId,
+          ),
+    );
+  }
+
+  Future<String?> _guardCompanyService(Future<void> Function() action) async {
+    try {
+      await action();
+      return null;
+    } catch (error) {
+      return companyServiceErrorMessage(
+        _ref.read(appLocalizationsProvider),
+        error,
+      );
+    }
   }
 
   Future<String?> _guard(Future<void> Function() action) async {

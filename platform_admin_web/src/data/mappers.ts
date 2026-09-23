@@ -1,6 +1,7 @@
 import type { DocumentData } from 'firebase/firestore';
 import { toGeoPoint } from './location';
 import type {
+  CatalogService,
   Category,
   Company,
   CompanyStatus,
@@ -11,6 +12,8 @@ import type {
   PaymentStatus,
   Product,
   Review,
+  ServiceRequest,
+  ServiceRequestStatus,
 } from './types';
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
@@ -138,12 +141,55 @@ export function mapOrder(id: string, d: DocumentData): Order {
   };
 }
 
+export function parseServiceRequestStatus(v: unknown): ServiceRequestStatus {
+  return v === 'accepted' ||
+    v === 'rejected' ||
+    v === 'in_progress' ||
+    v === 'completed' ||
+    v === 'cancelled'
+    ? v
+    : 'pending';
+}
+
+export function mapServiceRequest(id: string, d: DocumentData): ServiceRequest {
+  const point = toGeoPoint(d.latitude, d.longitude);
+  return {
+    id,
+    customerId: str(d.customerId),
+    customerName: str(d.customerName),
+    companyId: str(d.companyId),
+    companyName: str(d.companyName),
+    serviceId: str(d.serviceId),
+    serviceName: str(d.serviceName),
+    price: typeof d.price === 'number' && isFinite(d.price) && d.price > 0 ? d.price : null,
+    details: str(d.details),
+    address: str(d.address),
+    latitude: point?.latitude ?? null,
+    longitude: point?.longitude ?? null,
+    contactPhone: str(d.contactPhone),
+    status: parseServiceRequestStatus(d.status),
+    createdAt: toDate(d.createdAt),
+    updatedAt: toDate(d.updatedAt),
+  };
+}
+
 export function mapCategory(id: string, d: DocumentData): Category {
   return {
     id,
     name: str(d.name),
     description: str(d.description),
     iconName: str(d.iconName),
+    isActive: d.isActive === true,
+    createdAt: toDate(d.createdAt),
+  };
+}
+
+export function mapService(id: string, d: DocumentData): CatalogService {
+  return {
+    id,
+    categoryId: str(d.categoryId),
+    name: str(d.name),
+    description: str(d.description),
     isActive: d.isActive === true,
     createdAt: toDate(d.createdAt),
   };

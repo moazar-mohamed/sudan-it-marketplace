@@ -1,0 +1,364 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/localization/l10n_extension.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../companies/domain/entities/payment_account.dart';
+import '../../../companies/presentation/companies_providers.dart';
+import '../company_admin_actions.dart';
+import '../widgets/admin_section_card.dart';
+
+/// Lets a company manage the accounts its customers transfer manual payments
+/// to. The customer sees exactly this list on the payment screen of an order
+/// for the company.
+class PaymentAccountsScreen extends ConsumerStatefulWidget {
+  const PaymentAccountsScreen({super.key, required this.companyId});
+
+  final String companyId;
+
+  @override
+  ConsumerState<PaymentAccountsScreen> createState() =>
+      _PaymentAccountsScreenState();
+}
+
+class _PaymentAccountsScreenState extends ConsumerState<PaymentAccountsScreen> {
+  bool _isSaving = false;
+
+  Future<void> _save(
+    List<PaymentAccount> accounts, {
+    required String successMessage,
+  }) async {
+    if (_isSaving) {
+      return;
+    }
+    setState(() => _isSaving = true);
+    final error = await ref
+        .read(companyAdminActionsProvider)
+        .updatePaymentAccounts(widget.companyId, accounts);
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isSaving = false);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(error ?? successMessage),
+          backgroundColor: error == null ? null : AppColors.error,
+        ),
+      );
+  }
+
+  Future<void> _addOrEdit(
+    List<PaymentAccount> accounts, {
+    int? index,
+  }) async {
+    final saved = await showDialog<PaymentAccount>(
+      context: context,
+      builder: (_) => _PaymentAccountDialog(
+        initial: index == null ? null : accounts[index],
+      ),
+    );
+    if (saved == null || !mounted) {
+      return;
+    }
+    final updated = [...accounts];
+    if (index == null) {
+      updated.add(saved);
+    } else {
+      updated[index] = saved;
+    }
+    await _save(updated, successMessage: context.l10n.paymentAccountSaved);
+  }
+
+  Future<void> _remove(List<PaymentAccount> accounts, int index) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.paymentAccountRemoveTitle),
+        content: Text(l10n.paymentAccountRemoveBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              l10n.commonRemove,
+              style: const TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+    final updated = [...accounts]..removeAt(index);
+    await _save(updated, successMessage: l10n.paymentAccountRemoved);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final companyAsync = ref.watch(companyStreamProvider(widget.companyId));
+    final accounts = companyAsync.asData?.value?.paymentAccounts ?? const [];
+    final atLimit = accounts.length >= PaymentAccount.maxPerCompany;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.paymentAccountsManage)),
+      body: SafeArea(
+        top: false,
+        child: companyAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, _) => AdminErrorState(
+            message: l10n.adminCompanyLoadFailed,
+            onRetry: () =>
+                ref.invalidate(companyStreamProvider(widget.companyId)),
+          ),
+          data: (_) => ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+            children: [
+              Text(
+                l10n.paymentAccountsIntro,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                ),
+              ),
+              const SizedBox(height: 14),
+              if (accounts.isEmpty)
+                AdminEmptyState(
+                  icon: Icons.account_balance_outlined,
+                  message: l10n.paymentAccountsEmpty,
+                ),
+              for (var i = 0; i < accounts.length; i++) ...[
+                _AccountCard(
+                  account: accounts[i],
+                  enabled: !_isSaving,
+                  onEdit: () => _addOrEdit(accounts, index: i),
+                  onRemove: () => _remove(accounts, i),
+                ),
+                const SizedBox(height: 10),
+              ],
+              const SizedBox(height: 6),
+              ElevatedButton.icon(
+                onPressed:
+                    (_isSaving || atLimit) ? null : () => _addOrEdit(accounts),
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: AppColors.onPrimary,
+                        ),
+                      )
+                    : const Icon(Icons.add),
+                label: Text(l10n.paymentAccountAdd),
+              ),
+              if (atLimit) ...[
+                const SizedBox(height: 8),
+                Text(
+                  l10n.paymentAccountLimit(PaymentAccount.maxPerCompany),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountCard extends StatelessWidget {
+  const _AccountCard({
+    required this.account,
+    required this.enabled,
+    required this.onEdit,
+    required this.onRemove,
+  });
+
+  final PaymentAccount account;
+  final bool enabled;
+  final VoidCallback onEdit;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AdminSectionCard(
+      title: account.bankName,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: l10n.commonEdit,
+            visualDensity: VisualDensity.compact,
+            onPressed: enabled ? onEdit : null,
+            icon: const Icon(Icons.edit_outlined, size: 20),
+          ),
+          IconButton(
+            tooltip: l10n.commonRemove,
+            visualDensity: VisualDensity.compact,
+            onPressed: enabled ? onRemove : null,
+            icon: const Icon(
+              Icons.delete_outline,
+              size: 20,
+              color: AppColors.error,
+            ),
+          ),
+        ],
+      ),
+      children: [
+        if (account.accountName.isNotEmpty)
+          AdminInfoRow(
+            label: l10n.paymentAccountName,
+            value: account.accountName,
+          ),
+        AdminInfoRow(
+          label: l10n.paymentAccountMban,
+          value: account.accountNumber,
+          emphasize: true,
+        ),
+        if (account.phoneNumber.isNotEmpty)
+          AdminInfoRow(
+            label: l10n.paymentPhoneIdentifier,
+            value: account.phoneNumber,
+          ),
+      ],
+    );
+  }
+}
+
+class _PaymentAccountDialog extends StatefulWidget {
+  const _PaymentAccountDialog({this.initial});
+
+  final PaymentAccount? initial;
+
+  @override
+  State<_PaymentAccountDialog> createState() => _PaymentAccountDialogState();
+}
+
+class _PaymentAccountDialogState extends State<_PaymentAccountDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _bank;
+  late final TextEditingController _holder;
+  late final TextEditingController _number;
+  late final TextEditingController _phone;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initial;
+    _bank = TextEditingController(text: initial?.bankName ?? '');
+    _holder = TextEditingController(text: initial?.accountName ?? '');
+    _number = TextEditingController(text: initial?.accountNumber ?? '');
+    _phone = TextEditingController(text: initial?.phoneNumber ?? '');
+  }
+
+  @override
+  void dispose() {
+    _bank.dispose();
+    _holder.dispose();
+    _number.dispose();
+    _phone.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+    Navigator.of(context).pop(
+      PaymentAccount(
+        bankName: _bank.text.trim(),
+        accountName: _holder.text.trim(),
+        accountNumber: _number.text.trim(),
+        phoneNumber: _phone.text.trim(),
+      ),
+    );
+  }
+
+  String? _required(String? value, String message) =>
+      (value?.trim().isEmpty ?? true) ? message : null;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(
+        widget.initial == null ? l10n.paymentAccountAdd : l10n.paymentAccountEdit,
+      ),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _bank,
+                autofocus: true,
+                maxLength: 80,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(
+                  labelText: l10n.paymentAccountBankName,
+                  counterText: '',
+                ),
+                validator: (v) => _required(v, l10n.paymentAccountBankRequired),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _holder,
+                maxLength: 120,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(
+                  labelText: l10n.paymentAccountName,
+                  counterText: '',
+                ),
+                validator: (v) =>
+                    _required(v, l10n.paymentAccountHolderRequired),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _number,
+                maxLength: 40,
+                decoration: InputDecoration(
+                  labelText: l10n.paymentAccountMban,
+                  counterText: '',
+                ),
+                validator: (v) =>
+                    _required(v, l10n.paymentAccountNumberRequired),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _phone,
+                maxLength: 30,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
+                ],
+                decoration: InputDecoration(
+                  labelText: l10n.paymentAccountPhoneOptional,
+                  counterText: '',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(onPressed: _submit, child: Text(l10n.commonSave)),
+      ],
+    );
+  }
+}

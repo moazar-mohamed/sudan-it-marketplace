@@ -1,4 +1,5 @@
 import '../../../location/domain/geo_location.dart';
+import 'payment_account.dart';
 
 class Company {
   const Company({
@@ -16,6 +17,7 @@ class Company {
     this.email,
     this.pickupAddress,
     this.status = 'active',
+    this.paymentAccounts = const [],
   });
 
   final String id;
@@ -41,6 +43,9 @@ class Company {
   /// pending | active | rejected | inactive, set by the platform admin.
   /// Companies without a stored status are treated as active.
   final String status;
+
+  /// Where customers transfer manual payments for this company's orders.
+  final List<PaymentAccount> paymentAccounts;
 
   /// Only active companies (and their products) are shown to customers.
   bool get isActive => status == 'active';
@@ -85,6 +90,7 @@ class Company {
       email: email ?? this.email,
       pickupAddress: pickupAddress ?? this.pickupAddress,
       status: status,
+      paymentAccounts: paymentAccounts,
     );
   }
 }

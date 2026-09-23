@@ -5,6 +5,9 @@ import { EmptyState } from './components/ui';
 import { useI18n } from './i18n/I18nProvider';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { ServicesPage } from './pages/ServicesPage';
+import { ServiceRequestDetailsPage } from './pages/ServiceRequestDetailsPage';
+import { ServiceRequestsPage } from './pages/ServiceRequestsPage';
 import { CompaniesPage } from './pages/CompaniesPage';
 import { CompanyDetailsPage } from './pages/CompanyDetailsPage';
 import { CustomerDetailsPage } from './pages/CustomerDetailsPage';
@@ -50,6 +53,9 @@ export function App() {
         <Route path="orders" element={<OrdersPage />} />
         <Route path="orders/:id" element={<OrderDetailsPage />} />
         <Route path="categories" element={<CategoriesPage />} />
+        <Route path="services" element={<ServicesPage />} />
+        <Route path="service-requests" element={<ServiceRequestsPage />} />
+        <Route path="service-requests/:id" element={<ServiceRequestDetailsPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="profile" element={<ProfilePage />} />

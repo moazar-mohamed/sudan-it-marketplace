@@ -267,6 +267,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'فشل تسجيل الدخول باستخدام Google. حاول مرة أخرى.';
 
   @override
+  String get authErrorPopupBlocked =>
+      'منع المتصفح نافذة تسجيل الدخول باستخدام Google. اسمح بالنوافذ المنبثقة لهذا الموقع ثم حاول مرة أخرى.';
+
+  @override
+  String get authErrorUnauthorizedDomain =>
+      'تسجيل الدخول باستخدام Google غير مفعّل لعنوان هذا الموقع.';
+
+  @override
   String get authErrorGeneric => 'فشلت المصادقة. يرجى المحاولة مرة أخرى.';
 
   @override
@@ -1598,10 +1606,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get adminTechniciansEmpty =>
-      'لم تضف أي فنيين بعد.\nاضغط على \"إضافة فني\" لدعوة أول فني.';
-
-  @override
-  String get adminInvitedPending => 'تمت الدعوة (بانتظار التسجيل)';
+      'لم تضف أي فنيين بعد.\nاضغط على \"إضافة فني\" لإنشاء حساب أول فني.';
 
   @override
   String get adminActive => 'نشط';
@@ -1610,15 +1615,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminInactive => 'غير نشط';
 
   @override
-  String get adminInvitationCreated =>
-      'تم إنشاء الدعوة. يمكن للفني الآن التسجيل بهذا البريد الإلكتروني.';
-
-  @override
   String get adminTechnicianUpdated => 'تم تحديث بيانات الفني.';
-
-  @override
-  String get adminInviteNote =>
-      'سيتم إنشاء دعوة. يحدد الفني كلمة مروره بنفسه عند التسجيل بهذا البريد الإلكتروني.';
 
   @override
   String get adminTechnicianNameRequired => 'اسم الفني مطلوب.';
@@ -1632,9 +1629,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get adminInactiveTechnicianNote =>
       'لا يمكن تعيين الفنيين غير النشطين لمهام جديدة.';
-
-  @override
-  String get adminSendInvitation => 'إرسال الدعوة';
 
   @override
   String get techDashboardLoadFailed => 'تعذر تحميل لوحتك.';
@@ -1696,5 +1690,363 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get paymentAccountsManage => 'حسابات الدفع';
+
+  @override
+  String get paymentAccountsIntro =>
+      'يحوّل العملاء مدفوعات طلباتهم إلى هذه الحسابات. أضف حسابًا واحدًا على الأقل ليتمكن العملاء من الدفع لك.';
+
+  @override
+  String get paymentAccountsEmpty => 'لا توجد حسابات دفع بعد.';
+
+  @override
+  String get paymentAccountAdd => 'إضافة حساب';
+
+  @override
+  String get paymentAccountEdit => 'تعديل الحساب';
+
+  @override
+  String get paymentAccountBankName => 'اسم البنك / المحفظة';
+
+  @override
+  String get paymentAccountBankRequired => 'أدخل اسم البنك أو المحفظة.';
+
+  @override
+  String get paymentAccountHolderRequired => 'أدخل اسم صاحب الحساب.';
+
+  @override
+  String get paymentAccountNumberRequired => 'أدخل رقم الحساب.';
+
+  @override
+  String get paymentAccountPhoneOptional => 'رقم الهاتف المرتبط (اختياري)';
+
+  @override
+  String get paymentAccountSaved => 'تم حفظ حساب الدفع.';
+
+  @override
+  String get paymentAccountRemoved => 'تم حذف حساب الدفع.';
+
+  @override
+  String get paymentAccountRemoveTitle => 'حذف هذا الحساب؟';
+
+  @override
+  String get paymentAccountRemoveBody =>
+      'لن يظهر للعملاء بعد الآن في شاشة الدفع.';
+
+  @override
+  String paymentAccountLimit(int max) {
+    return 'يمكنك إضافة $max حسابات كحد أقصى.';
+  }
+
+  @override
+  String get paymentNoAccountsForCompany =>
+      'لم تضف هذه الشركة حسابات دفع بعد، لذلك لا تستطيع استلام دفعة الآن. يرجى التواصل مع الشركة.';
+
+  @override
+  String get adminTechnicianAccountNote =>
+      'سيتم إنشاء حساب الفني بكلمة مرور مؤقتة. أعطِ الفني هذا البريد الإلكتروني وكلمة المرور، وسيختار كلمة مروره بنفسه عند أول تسجيل دخول.';
+
+  @override
+  String get adminTechnicianTempPassword => 'كلمة المرور المؤقتة';
+
+  @override
+  String get adminTechnicianPasswordRequired => 'أدخل كلمة مرور مؤقتة.';
+
+  @override
+  String get adminAddTechnicianSubmit => 'إضافة الفني';
+
+  @override
+  String get adminTechnicianCreated =>
+      'تمت إضافة الفني. شارك معه البريد الإلكتروني وكلمة المرور المؤقتة.';
+
+  @override
+  String get technicianEmailInUse => 'يوجد حساب بهذا البريد الإلكتروني مسبقًا.';
+
+  @override
   String get comingSoonBody => 'سيتوفر هذا القسم في تحديث لاحق.';
+
+  @override
+  String get navServices => 'الخدمات';
+
+  @override
+  String get navChats => 'المحادثات';
+
+  @override
+  String get navMore => 'المزيد';
+
+  @override
+  String get homeSearchServices => 'ابحث عن خدمة...';
+
+  @override
+  String get homeNoServices => 'لا توجد خدمات';
+
+  @override
+  String get homeServicesLoadFailed => 'تعذر تحميل الخدمات.';
+
+  @override
+  String get ordersTabProducts => 'المنتجات';
+
+  @override
+  String get ordersTabServices => 'الخدمات';
+
+  @override
+  String get serviceDetailsTitle => 'تفاصيل الخدمة';
+
+  @override
+  String get serviceAvailableCompanies => 'الشركات المتاحة';
+
+  @override
+  String get serviceNoCompanies => 'لا توجد شركة تقدم هذه الخدمة حاليًا.';
+
+  @override
+  String get serviceCompaniesLoadFailed => 'تعذر تحميل الشركات.';
+
+  @override
+  String get serviceRequestAction => 'اطلب الخدمة';
+
+  @override
+  String get serviceRequestFormTitle => 'طلب خدمة';
+
+  @override
+  String get serviceRequestDetailsLabel => 'ماذا تحتاج؟';
+
+  @override
+  String get serviceRequestDetailsHint =>
+      'صف العمل المطلوب والجهاز أو النظام، وأي شيء يجب أن تعرفه الشركة.';
+
+  @override
+  String get serviceRequestDetailsRequired => 'يرجى وصف ما تحتاجه.';
+
+  @override
+  String get serviceRequestLocationOptional => 'العنوان (اختياري)';
+
+  @override
+  String get serviceRequestAddressHint => 'أين يجب تنفيذ الخدمة؟';
+
+  @override
+  String get serviceRequestSubmit => 'إرسال الطلب';
+
+  @override
+  String get serviceRequestSent =>
+      'تم إرسال طلبك. يمكنك الآن التحدث مع الشركة.';
+
+  @override
+  String get serviceRequestCreateDenied =>
+      'تعذر إرسال هذا الطلب. ربما لم تعد الشركة تقدم هذه الخدمة.';
+
+  @override
+  String get serviceRequestCreateFailed =>
+      'تعذر إرسال الطلب. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get serviceRequestUpdateFailed =>
+      'تعذر تحديث الطلب. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get serviceRequestsLoadFailed => 'تعذر تحميل طلبات الخدمة.';
+
+  @override
+  String get serviceRequestNotFound => 'لم يتم العثور على طلب الخدمة هذا.';
+
+  @override
+  String get serviceRequestsEmptyCustomer => 'لم تطلب أي خدمة بعد.';
+
+  @override
+  String get serviceRequestsEmptyCompany => 'لا توجد طلبات خدمة بعد.';
+
+  @override
+  String get serviceRequestDetailsTitle => 'طلب خدمة';
+
+  @override
+  String get serviceRequestCustomer => 'العميل';
+
+  @override
+  String get serviceRequestCompany => 'الشركة';
+
+  @override
+  String get serviceRequestPrice => 'السعر';
+
+  @override
+  String get serviceRequestSentAt => 'تاريخ الإرسال';
+
+  @override
+  String get serviceRequestNumber => 'رقم الطلب';
+
+  @override
+  String get serviceRequestContact => 'التواصل والموقع';
+
+  @override
+  String get serviceRequestAddress => 'العنوان';
+
+  @override
+  String get serviceRequestOpenChat => 'فتح المحادثة';
+
+  @override
+  String get serviceRequestViewDetails => 'تفاصيل الطلب';
+
+  @override
+  String get serviceRequestCancel => 'إلغاء الطلب';
+
+  @override
+  String get serviceRequestCancelTitle => 'إلغاء هذا الطلب؟';
+
+  @override
+  String get serviceRequestCancelBody =>
+      'سترى الشركة أنك ألغيت الطلب. لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get serviceRequestAccept => 'قبول';
+
+  @override
+  String get serviceRequestReject => 'رفض';
+
+  @override
+  String get serviceRequestRejectTitle => 'رفض هذا الطلب؟';
+
+  @override
+  String get serviceRequestRejectBody =>
+      'سيرى العميل أن الطلب قد رُفض. لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get serviceRequestStart => 'بدء العمل';
+
+  @override
+  String get serviceRequestComplete => 'تحديد كمكتمل';
+
+  @override
+  String get serviceRequestStatusPending => 'قيد الانتظار';
+
+  @override
+  String get serviceRequestStatusAccepted => 'مقبول';
+
+  @override
+  String get serviceRequestStatusRejected => 'مرفوض';
+
+  @override
+  String get serviceRequestStatusInProgress => 'قيد التنفيذ';
+
+  @override
+  String get serviceRequestStatusCompleted => 'مكتمل';
+
+  @override
+  String get serviceRequestStatusCancelled => 'ملغى';
+
+  @override
+  String serviceRequestStatusLine(String status) {
+    return 'حالة الطلب: $status';
+  }
+
+  @override
+  String get chatsEmptyCustomer =>
+      'لا توجد محادثات بعد. عندما تطلب خدمة، ستظهر محادثتك مع الشركة هنا.';
+
+  @override
+  String get chatsEmptyCompany =>
+      'لا توجد محادثات بعد. كل طلب خدمة يُرسل إلى شركتك يفتح محادثة هنا.';
+
+  @override
+  String get chatNoMessagesYet => 'لا توجد رسائل بعد';
+
+  @override
+  String get chatEmpty => 'لا توجد رسائل بعد. اكتب لبدء المحادثة.';
+
+  @override
+  String get chatInputHint => 'اكتب رسالة';
+
+  @override
+  String get chatSend => 'إرسال';
+
+  @override
+  String get chatYou => 'أنت';
+
+  @override
+  String chatYouPrefix(String text) {
+    return 'أنت: $text';
+  }
+
+  @override
+  String chatYesterdayAt(String time) {
+    return 'أمس $time';
+  }
+
+  @override
+  String get chatCustomerFallback => 'عميل';
+
+  @override
+  String get chatUnread => 'غير مقروءة';
+
+  @override
+  String get chatNotFound => 'لم يتم العثور على هذه المحادثة.';
+
+  @override
+  String get chatLoadFailed => 'تعذر تحميل المحادثة.';
+
+  @override
+  String get chatSendDenied => 'لا يمكنك إرسال رسائل في هذه المحادثة.';
+
+  @override
+  String get chatSendFailed => 'تعذر إرسال الرسالة. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get chatMessageInvalid => 'اكتب رسالة لا تتجاوز 2000 حرف.';
+
+  @override
+  String get adminServiceRequestsTab => 'الطلبات';
+
+  @override
+  String get adminMyServicesTab => 'خدماتي';
+
+  @override
+  String get adminServicesLoadFailed => 'تعذر تحميل الخدمات.';
+
+  @override
+  String get adminServicesOffered => 'الخدمات التي تقدمها';
+
+  @override
+  String get adminServicesOfferedEmpty =>
+      'لا تقدم أي خدمة بعد. أضفها من القائمة أدناه.';
+
+  @override
+  String get adminServicesAvailable => 'إضافة خدمات';
+
+  @override
+  String get adminServicesCatalogueEmpty => 'دليل الخدمات فارغ حاليًا.';
+
+  @override
+  String get adminServicesAllAdded =>
+      'أنت تقدم بالفعل كل الخدمات الموجودة في الدليل.';
+
+  @override
+  String get adminServiceAdd => 'إضافة';
+
+  @override
+  String get adminServiceSaved => 'تم حفظ الخدمة.';
+
+  @override
+  String get adminServiceRemoved => 'تمت إزالة الخدمة.';
+
+  @override
+  String get adminServiceRemoveTitle => 'إيقاف تقديم هذه الخدمة؟';
+
+  @override
+  String adminServiceRemoveBody(String name) {
+    return 'لن يتمكن العملاء بعد الآن من طلب $name من شركتك. تبقى الطلبات الحالية كما هي.';
+  }
+
+  @override
+  String get adminServicePriceHelper =>
+      'اتركه فارغًا إذا كنت لا تريد إظهار سعر.';
+
+  @override
+  String get adminServiceNoteLabel => 'ملاحظة للعملاء (اختياري)';
+
+  @override
+  String get adminServiceNoteHint =>
+      'مثلًا: في الموقع أو عن بُعد، وما الذي يشمله';
+
+  @override
+  String get companyServiceAlreadyOffered => 'شركتك تقدم هذه الخدمة بالفعل.';
+
+  @override
+  String get companyServiceNotFound => 'هذه الخدمة لم تعد متاحة.';
 }

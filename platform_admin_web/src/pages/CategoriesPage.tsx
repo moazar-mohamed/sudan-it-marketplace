@@ -114,6 +114,7 @@ export function CategoriesPage() {
       <PageHeader
         title={t('categories.title')}
         subtitle={t('categories.subtitle')}
+        back={{ to: '/', label: t('nav.dashboard') }}
         actions={
           <button className="btn btn--primary" onClick={() => setEditing(null)}>
             + {t('categories.add')}

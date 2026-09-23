@@ -13,6 +13,7 @@ class UserProfileModel extends UserProfile {
     super.companyId,
     super.photoUrl,
     super.mustChangePassword,
+    super.createdByCompany,
     super.language,
   });
 
@@ -82,6 +83,7 @@ class UserProfileModel extends UserProfile {
       photoUrl: text('photoUrl'),
       // Only a real `true` counts; a missing or malformed value never locks anyone.
       mustChangePassword: map['mustChangePassword'] == true,
+      createdByCompany: map.containsKey('mustChangePassword'),
       // Only a supported language counts; anything else is treated as unset.
       language: switch (text('language')) {
         'en' => 'en',

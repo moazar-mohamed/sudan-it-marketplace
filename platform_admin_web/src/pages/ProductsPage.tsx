@@ -32,7 +32,11 @@ export function ProductsPage() {
 
   return (
     <>
-      <PageHeader title={t('products.title')} subtitle={t('products.subtitle')} />
+      <PageHeader
+        title={t('products.title')}
+        subtitle={t('products.subtitle')}
+        back={{ to: '/', label: t('nav.dashboard') }}
+      />
       <DataGate gates={[products]}>
         <div className="toolbar">
           <Chips

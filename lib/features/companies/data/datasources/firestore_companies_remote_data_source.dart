@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/errors/app_exception.dart';
 import '../../domain/entities/company.dart';
+import '../../domain/entities/payment_account.dart';
 import '../models/company_model.dart';
 import 'companies_remote_data_source.dart';
 
@@ -31,10 +32,24 @@ class FirestoreCompaniesRemoteDataSource implements CompaniesRemoteDataSource {
   }
 
   @override
-  Future<void> updateCompanyProfile(Company company) async {
+  Future<void> updateCompanyProfile(Company company) {
+    return _update(company.id, CompanyModel.toEditableFields(company));
+  }
+
+  @override
+  Future<void> updatePaymentAccounts(
+    String companyId,
+    List<PaymentAccount> accounts,
+  ) {
+    return _update(companyId, {
+      'paymentAccounts': CompanyModel.paymentAccountsToFirestore(accounts),
+    });
+  }
+
+  Future<void> _update(String companyId, Map<String, dynamic> fields) async {
     try {
-      await _companies.doc(company.id).update({
-        ...CompanyModel.toEditableFields(company),
+      await _companies.doc(companyId).update({
+        ...fields,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } on FirebaseException catch (error) {

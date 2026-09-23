@@ -102,16 +102,22 @@ class _RoleRouter extends ConsumerWidget {
               title: l10n.authPlatformAdminTitle,
               message: l10n.authPlatformAdminMessage,
             ),
+          // Same first-login rule for a technician the company created with a
+          // temporary password.
+          UserRole.technician when profile.requiresPasswordChange =>
+            const ForcePasswordChangeScreen(),
           UserRole.technician =>
             (profile.companyId == null || profile.companyId!.isEmpty)
                 ? _AccessMessageScreen(
                     title: l10n.authCompanyNotLinkedTitle,
                     message: l10n.authTechnicianNotLinked,
                   )
-                // Technicians self-register through the same email/password
-                // flow as customers, so they go through the same
-                // verification gate before entering their workspace.
-                : (authUser != null && !authUser.emailVerified)
+                // Technicians who self-register go through the same email
+                // verification gate as customers. One the company created
+                // itself is already vouched for by the company.
+                : (authUser != null &&
+                        !authUser.emailVerified &&
+                        !profile.createdByCompany)
                     ? _EmailVerificationRequiredScreen(
                         email: authUser.email ?? '',
                       )

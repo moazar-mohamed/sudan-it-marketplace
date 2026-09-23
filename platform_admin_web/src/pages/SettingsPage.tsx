@@ -16,7 +16,11 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
+      <PageHeader
+        title={t('settings.title')}
+        subtitle={t('settings.subtitle')}
+        back={{ to: '/', label: t('nav.dashboard') }}
+      />
       <Card>
         <fieldset className="option-list">
           <legend>

@@ -16,8 +16,19 @@ import {
   mapOrder,
   mapProduct,
   mapReview,
+  mapService,
+  mapServiceRequest,
 } from './mappers';
-import type { Category, Company, Customer, Order, Product, Review } from './types';
+import type {
+  CatalogService,
+  Category,
+  Company,
+  Customer,
+  Order,
+  Product,
+  Review,
+  ServiceRequest,
+} from './types';
 
 export interface StoreState<T> {
   status: 'loading' | 'ready' | 'error';
@@ -122,6 +133,17 @@ export const stores = {
     () => collection(db, 'categories'),
     mapCategory,
     (a, b) => a.name.localeCompare(b.name),
+  ),
+  services: new LiveCollection<CatalogService>(
+    () => collection(db, 'services'),
+    mapService,
+    (a, b) => a.name.localeCompare(b.name),
+  ),
+  // Read-only, like orders. Chats are never read by Platform Admin.
+  serviceRequests: new LiveCollection<ServiceRequest>(
+    () => collection(db, 'service_requests'),
+    mapServiceRequest,
+    newestFirst,
   ),
   reviews: new LiveCollection<Review>(
     () => collection(db, 'reviews'),

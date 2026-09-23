@@ -21,12 +21,16 @@ class FirestoreCompanyServiceRemoteDataSource
   Future<String> addServiceToCompany({
     required String companyId,
     required String serviceId,
+    double? price,
+    String? note,
   }) {
     return _run(() async {
       final resolvedCompanyId = companyId.trim();
       final resolvedServiceId = serviceId.trim();
       await _ensureCatalogServiceExists(resolvedServiceId);
       _ensureCompanyId(resolvedCompanyId);
+      final resolvedPrice = _validPrice(price);
+      final resolvedNote = note?.trim() ?? '';
 
       final existing = await _findRelationship(
         companyId: resolvedCompanyId,
@@ -39,23 +43,50 @@ class FirestoreCompanyServiceRemoteDataSource
             code: 'already-exists',
           );
         }
-        await _companyServices.doc(existing.id).update({'isActive': true});
+        await _companyServices.doc(existing.id).update({
+          'isActive': true,
+          'price': resolvedPrice,
+          'note': resolvedNote,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
         return existing.id;
       }
 
-      final doc = _companyServices.doc();
+      // One document per company + service, so the same catalogue service
+      // can never be listed twice for a company.
+      final doc = _companyServices.doc(
+        '${resolvedCompanyId}_$resolvedServiceId',
+      );
       final model = CompanyServiceModel(
         id: doc.id,
         companyId: resolvedCompanyId,
         serviceId: resolvedServiceId,
         isActive: true,
         createdAt: DateTime.now().toUtc(),
+        price: resolvedPrice,
+        note: resolvedNote,
       );
       await doc.set({
         ...model.toFirestoreMap(),
         'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       });
       return doc.id;
+    });
+  }
+
+  @override
+  Future<void> updateCompanyServiceDetails({
+    required String companyServiceId,
+    double? price,
+    String? note,
+  }) {
+    return _run(() async {
+      await _companyServices.doc(companyServiceId.trim()).update({
+        'price': _validPrice(price),
+        'note': note?.trim() ?? '',
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 
@@ -75,9 +106,17 @@ class FirestoreCompanyServiceRemoteDataSource
           code: 'not-found',
         );
       }
-      await _companyServices.doc(existing.id).update({'isActive': false});
+      await _companyServices.doc(existing.id).update({
+        'isActive': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     });
   }
+
+  /// A price is stored only when it is a positive number; an empty price is
+  /// stored as null, never as 0.
+  double? _validPrice(double? price) =>
+      price != null && price > 0 ? price : null;
 
   @override
   Future<List<CompanyServiceModel>> getActiveServicesForCompany(

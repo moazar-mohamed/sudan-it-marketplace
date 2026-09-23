@@ -1,5 +1,4 @@
 import '../../domain/entities/technician.dart';
-import '../../domain/entities/technician_invite.dart';
 import '../../domain/repositories/technicians_repository.dart';
 import '../datasources/technicians_remote_data_source.dart';
 
@@ -24,13 +23,6 @@ class TechniciansRepositoryImpl implements TechniciansRepository {
       _remoteDataSource.watchTechnicianByUid(uid);
 
   @override
-  String newTechnicianId() => _remoteDataSource.newTechnicianId();
-
-  @override
-  Future<void> createTechnician(Technician technician) =>
-      _remoteDataSource.createTechnician(technician);
-
-  @override
   Future<void> updateTechnician(Technician technician) =>
       _remoteDataSource.updateTechnician(technician);
 
@@ -39,31 +31,18 @@ class TechniciansRepositoryImpl implements TechniciansRepository {
       _remoteDataSource.deactivateTechnician(technicianId);
 
   @override
-  Stream<List<TechnicianInvite>> watchPendingInvites(String companyId) =>
-      _remoteDataSource.watchPendingInvites(companyId);
-
-  @override
-  Future<void> createInvite({
+  Future<void> provisionTechnician({
     required String companyId,
     required String fullName,
     required String phone,
     required String email,
+    required String password,
   }) =>
-      _remoteDataSource.createInvite(
+      _remoteDataSource.provisionTechnician(
         companyId: companyId,
         fullName: fullName,
         phone: phone,
         email: email,
+        password: password,
       );
-
-  @override
-  Future<TechnicianInvite?> fetchPendingInvite(String email) =>
-      _remoteDataSource.fetchPendingInvite(email);
-
-  @override
-  Future<void> claimInvite({
-    required String uid,
-    required TechnicianInvite invite,
-  }) =>
-      _remoteDataSource.claimInvite(uid: uid, invite: invite);
 }

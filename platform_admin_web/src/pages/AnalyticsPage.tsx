@@ -73,7 +73,11 @@ export function AnalyticsPage() {
 
   return (
     <>
-      <PageHeader title={t('analytics.title')} subtitle={t('analytics.subtitle')} />
+      <PageHeader
+        title={t('analytics.title')}
+        subtitle={t('analytics.subtitle')}
+        back={{ to: '/', label: t('nav.dashboard') }}
+      />
 
       <DataGate gates={[orders, companies]}>
         <div className="stat-grid">

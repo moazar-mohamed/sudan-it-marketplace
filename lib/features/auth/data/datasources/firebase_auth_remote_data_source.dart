@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../domain/exceptions/auth_exception.dart';
@@ -80,6 +81,19 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
   Future<({AuthUserModel user, bool isNewUser, String? displayName})>
       signInWithGoogle() {
     return _run(() async {
+      if (kIsWeb) {
+        // google_sign_in has no authenticate() on web; the Firebase JS SDK
+        // popup flow works there without an extra client id.
+        final credential = await _firebaseAuth.signInWithPopup(
+          GoogleAuthProvider(),
+        );
+        final user = _requireUser(credential.user);
+        return (
+          user: user,
+          isNewUser: credential.additionalUserInfo?.isNewUser ?? false,
+          displayName: credential.user?.displayName,
+        );
+      }
       final googleSignIn = await _googleSignIn();
       final googleAccount = await googleSignIn.authenticate();
       final idToken = googleAccount.authentication.idToken;
@@ -222,6 +236,10 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
         return 'An account already exists with a different sign-in method for this email.';
       case 'google-sign-in-failed':
         return 'Google sign-in failed. Please try again.';
+      case 'popup-blocked':
+        return 'The browser blocked the Google sign-in pop-up.';
+      case 'unauthorized-domain':
+        return 'Google sign-in is not authorized for this domain.';
       default:
         return 'Authentication failed. Please try again.';
     }

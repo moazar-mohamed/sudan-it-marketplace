@@ -16,7 +16,11 @@ export function ReviewsPage() {
 
   return (
     <>
-      <PageHeader title={t('reviews.title')} subtitle={t('reviews.subtitle')} />
+      <PageHeader
+        title={t('reviews.title')}
+        subtitle={t('reviews.subtitle')}
+        back={{ to: '/', label: t('nav.dashboard') }}
+      />
       <DataGate gates={[reviews]}>
         {reviews.data.length === 0 ? (
           <EmptyState message={t('reviews.empty')} hint={t('reviews.emptyHint')} />

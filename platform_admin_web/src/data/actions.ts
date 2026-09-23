@@ -109,3 +109,32 @@ export const updateCategory = (id: string, input: CategoryInput) =>
 
 export const setCategoryActive = (id: string, isActive: boolean) =>
   updateDoc(doc(db, 'categories', id), { isActive });
+
+/** A catalogue service always belongs to one category (categoryId). */
+export interface ServiceInput {
+  categoryId: string;
+  name: string;
+  description: string;
+}
+
+export async function createService(input: ServiceInput): Promise<void> {
+  const ref = doc(collection(db, 'services'));
+  await setDoc(ref, {
+    id: ref.id,
+    categoryId: input.categoryId,
+    name: input.name.trim(),
+    description: input.description.trim(),
+    isActive: true,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export const updateService = (id: string, input: ServiceInput) =>
+  updateDoc(doc(db, 'services', id), {
+    categoryId: input.categoryId,
+    name: input.name.trim(),
+    description: input.description.trim(),
+  });
+
+export const setServiceActive = (id: string, isActive: boolean) =>
+  updateDoc(doc(db, 'services', id), { isActive });

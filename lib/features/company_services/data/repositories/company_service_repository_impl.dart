@@ -12,11 +12,30 @@ class CompanyServiceRepositoryImpl implements CompanyServiceRepository {
   Future<String> addServiceToCompany({
     required String companyId,
     required String serviceId,
+    double? price,
+    String? note,
   }) {
     return _run(
       () => _remoteDataSource.addServiceToCompany(
         companyId: companyId,
         serviceId: serviceId,
+        price: price,
+        note: note,
+      ),
+    );
+  }
+
+  @override
+  Future<void> updateCompanyServiceDetails({
+    required String companyServiceId,
+    double? price,
+    String? note,
+  }) {
+    return _run(
+      () => _remoteDataSource.updateCompanyServiceDetails(
+        companyServiceId: companyServiceId,
+        price: price,
+        note: note,
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../technicians/presentation/technicians_providers.dart';
 import '../data/datasources/auth_remote_data_source.dart';
 import '../data/datasources/firebase_auth_remote_data_source.dart';
 import '../data/datasources/firestore_user_profile_remote_data_source.dart';
@@ -29,6 +28,5 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(
     ref.watch(authRemoteDataSourceProvider),
     ref.watch(userProfileRepositoryProvider),
-    ref.watch(techniciansRepositoryProvider),
   );
 });

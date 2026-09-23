@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../orders/presentation/customer_orders_screen.dart';
+import '../../chats/domain/entities/chat_conversation.dart';
+import '../../chats/presentation/chat_providers.dart';
+import '../../chats/presentation/chats_list_screen.dart';
 import 'customer_notifications_screen.dart';
 import 'customer_profile_screen.dart';
+import 'widgets/customer_orders_tab.dart';
 import 'widgets/dashboard_home_tab.dart';
 import '../../../core/localization/l10n_extension.dart';
 import '../../settings/presentation/settings_screen.dart';
@@ -38,10 +41,12 @@ class _CustomerDashboardScreenState
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final unreadChats = ref.watch(customerUnreadChatsCountProvider);
 
     final tabs = [
       const DashboardHomeTab(),
-      const CustomerOrdersScreen(showAppBar: false),
+      const CustomerOrdersTab(),
+      const ChatsListScreen(role: ChatParticipantRole.customer),
       const CustomerProfileScreen(),
     ];
 
@@ -49,7 +54,8 @@ class _CustomerDashboardScreenState
       appBar: AppBar(
         title: Text(switch (_currentIndex) {
           1 => context.l10n.navMyOrders,
-          2 => context.l10n.navProfile,
+          2 => context.l10n.navChats,
+          3 => context.l10n.navProfile,
           _ => context.l10n.appName,
         }),
         actions: [
@@ -86,6 +92,19 @@ class _CustomerDashboardScreenState
             icon: Icon(Icons.shopping_bag_outlined),
             selectedIcon: Icon(Icons.shopping_bag),
             label: context.l10n.navOrders,
+          ),
+          NavigationDestination(
+            icon: Badge.count(
+              count: unreadChats,
+              isLabelVisible: unreadChats > 0,
+              child: const Icon(Icons.chat_bubble_outline),
+            ),
+            selectedIcon: Badge.count(
+              count: unreadChats,
+              isLabelVisible: unreadChats > 0,
+              child: const Icon(Icons.chat_bubble),
+            ),
+            label: context.l10n.navChats,
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

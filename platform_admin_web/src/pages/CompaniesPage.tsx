@@ -50,6 +50,7 @@ export function CompaniesPage() {
       <PageHeader
         title={t('companies.title')}
         subtitle={t('companies.subtitle')}
+        back={{ to: '/', label: t('nav.dashboard') }}
         actions={
           <button className="btn btn--primary" onClick={() => setAdding(true)}>
             + {t('companies.add')}

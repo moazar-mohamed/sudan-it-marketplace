@@ -17,6 +17,7 @@ import 'package:sudan_it_marketplace/features/auth/domain/repositories/user_prof
 import 'package:sudan_it_marketplace/features/auth/presentation/auth_controller.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/auth_providers.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/language_sync.dart';
+import 'package:sudan_it_marketplace/features/chats/presentation/chat_providers.dart';
 import 'package:sudan_it_marketplace/features/companies/presentation/companies_providers.dart';
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/profile_controller.dart';
 import 'package:sudan_it_marketplace/features/notifications/domain/entities/app_notification.dart';
@@ -125,6 +126,8 @@ Widget _app({
       firestoreCompaniesStreamProvider
           .overrideWith((ref) => Stream.value(const [])),
       customerOrdersStreamProvider
+          .overrideWith((ref) => Stream.value(const [])),
+      customerChatsStreamProvider
           .overrideWith((ref) => Stream.value(const [])),
     ],
     child: const SudanITMarketplaceApp(),

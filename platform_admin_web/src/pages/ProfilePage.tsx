@@ -9,7 +9,11 @@ export function ProfilePage() {
 
   return (
     <>
-      <PageHeader title={t('profile.title')} subtitle={t('profile.subtitle')} />
+      <PageHeader
+        title={t('profile.title')}
+        subtitle={t('profile.subtitle')}
+        back={{ to: '/', label: t('nav.dashboard') }}
+      />
       {profile && (
         <Card>
           <div className="hero">

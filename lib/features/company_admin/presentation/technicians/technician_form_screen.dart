@@ -4,11 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../technicians/domain/entities/technician.dart';
+import '../../../auth/presentation/password_change_strings.dart';
 import '../company_admin_actions.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
-/// Add Technician (creates a pending invitation) and Edit Technician share
-/// this form.
+/// Add Technician (creates the technician's login with a temporary password)
+/// and Edit Technician share this form.
 class TechnicianFormScreen extends ConsumerStatefulWidget {
   const TechnicianFormScreen.add({super.key, required this.companyId})
       : technician = null;
@@ -31,8 +32,10 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
   late final TextEditingController _fullNameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
+  final _passwordController = TextEditingController();
   late bool _isActive;
   bool _isSaving = false;
+  bool _showPassword = false;
 
   @override
   void initState() {
@@ -49,6 +52,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
     _fullNameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -68,15 +72,14 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
     setState(() => _isSaving = true);
     final String? error;
     if (existing == null) {
-      // Adding a technician only creates a pending invitation; the
-      // technician claims it themself by registering with this same email
-      // through the normal Register screen. The company admin never
-      // creates the technician's Firebase Auth account directly.
-      error = await actions.createTechnicianInvite(
+      // The company admin gives the technician a temporary password. The
+      // technician is made to choose their own the first time they sign in.
+      error = await actions.createTechnicianAccount(
         companyId: widget.companyId,
         fullName: _fullNameController.text.trim(),
         phone: _phoneController.text.trim(),
         email: email,
+        password: _passwordController.text,
       );
     } else {
       final technician = Technician(
@@ -105,7 +108,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
       SnackBar(
         content: Text(
           existing == null
-              ? context.l10n.adminInvitationCreated
+              ? context.l10n.adminTechnicianCreated
               : context.l10n.adminTechnicianUpdated,
         ),
       ),
@@ -133,7 +136,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
             children: [
               if (!widget.isEditing) ...[
                 Text(
-                  context.l10n.adminInviteNote,
+                  context.l10n.adminTechnicianAccountNote,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context)
                             .colorScheme
@@ -197,6 +200,40 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
                       : context.l10n.authEmailInvalid;
                 },
               ),
+              if (!widget.isEditing) ...[
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _passwordController,
+                  enabled: !_isSaving,
+                  obscureText: !_showPassword,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.adminTechnicianTempPassword,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      tooltip: context.l10n.commonShowPassword,
+                      icon: Icon(
+                        _showPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                      onPressed: () =>
+                          setState(() => _showPassword = !_showPassword),
+                    ),
+                  ),
+                  validator: (value) {
+                    final text = value ?? '';
+                    if (text.isEmpty) {
+                      return context.l10n.adminTechnicianPasswordRequired;
+                    }
+                    return text.length < PasswordChangeStrings.minLength
+                        ? context.l10n
+                            .passwordChangeTooShort(PasswordChangeStrings.minLength)
+                        : null;
+                  },
+                ),
+              ],
               if (widget.isEditing) ...[
                 const SizedBox(height: 8),
                 SwitchListTile(
@@ -223,7 +260,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
                           color: AppColors.onPrimary,
                         ),
                       )
-                    : Text(widget.isEditing ? context.l10n.commonSaveChanges : context.l10n.adminSendInvitation),
+                    : Text(widget.isEditing ? context.l10n.commonSaveChanges : context.l10n.adminAddTechnicianSubmit),
               ),
             ],
           ),

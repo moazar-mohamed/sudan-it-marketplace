@@ -1,5 +1,4 @@
 import '../entities/technician.dart';
-import '../entities/technician_invite.dart';
 
 abstract interface class TechniciansRepository {
   Stream<List<Technician>> watchCompanyTechnicians(String companyId);
@@ -16,35 +15,25 @@ abstract interface class TechniciansRepository {
   /// Firebase Auth uid.
   Stream<Technician?> watchTechnicianByUid(String uid);
 
-  String newTechnicianId();
-
-  Future<void> createTechnician(Technician technician);
-
   Future<void> updateTechnician(Technician technician);
 
   /// Soft-delete: marks the technician inactive rather than removing the
   /// record, matching this app's existing delete-by-deactivation pattern.
   Future<void> deactivateTechnician(String technicianId);
 
-  /// Watches the pending technician invitations for a company.
-  Stream<List<TechnicianInvite>> watchPendingInvites(String companyId);
-
-  /// Creates a pending technician invitation under the caller's own
-  /// (trusted) companyId. The technician claims it themself at
-  /// registration; no Firebase Auth account is created here.
-  Future<void> createInvite({
+  /// Creates the technician's Firebase Auth account with [password] (a
+  /// temporary one) together with their `users/{uid}` profile
+  /// (`mustChangePassword: true`) and `technicians/{uid}` record, so the
+  /// technician must choose their own password at first sign-in. [companyId]
+  /// must be the caller's own trusted company id.
+  ///
+  /// Throws [AppException] with `technicianEmailInUse` when the email already
+  /// has an account.
+  Future<void> provisionTechnician({
     required String companyId,
     required String fullName,
     required String phone,
     required String email,
-  });
-
-  /// Looks up a pending invitation for [email], or null if none exists.
-  Future<TechnicianInvite?> fetchPendingInvite(String email);
-
-  /// Atomically claims [invite] for the newly-registered technician [uid].
-  Future<void> claimInvite({
-    required String uid,
-    required TechnicianInvite invite,
+    required String password,
   });
 }

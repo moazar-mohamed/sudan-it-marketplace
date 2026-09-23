@@ -6,6 +6,8 @@ import '../../../companies/presentation/companies_providers.dart';
 import '../../../companies/presentation/widgets/company_card.dart';
 import '../../../products/presentation/products_providers.dart';
 import '../../../products/presentation/widgets/product_card.dart';
+import '../../../services/presentation/service_providers.dart';
+import '../../../services/presentation/widgets/service_card.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
 class DashboardHomeTab extends ConsumerStatefulWidget {
@@ -17,7 +19,7 @@ class DashboardHomeTab extends ConsumerStatefulWidget {
   ConsumerState<DashboardHomeTab> createState() => _DashboardHomeTabState();
 }
 
-enum _HomeTab { products, companies }
+enum _HomeTab { products, services, companies }
 
 class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
   final TextEditingController _searchController = TextEditingController();
@@ -78,6 +80,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             .toList();
 
     final isProductsTab = _selectedTab == _HomeTab.products;
+    final isServicesTab = _selectedTab == _HomeTab.services;
 
     return ListView(
       controller: _scrollController,
@@ -93,9 +96,11 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           controller: _searchController,
           onChanged: _onSearchChanged,
           decoration: InputDecoration(
-            hintText: isProductsTab
-                ? context.l10n.homeSearchProducts
-                : context.l10n.homeSearchCompanies,
+            hintText: switch (_selectedTab) {
+              _HomeTab.products => context.l10n.homeSearchProducts,
+              _HomeTab.services => context.l10n.homeSearchServices,
+              _HomeTab.companies => context.l10n.homeSearchCompanies,
+            },
             hintMaxLines: 1,
             prefixIcon: const Icon(Icons.search),
             suffixIcon: _searchQuery.isNotEmpty
@@ -120,8 +125,15 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             ),
             Expanded(
               child: _HomeTabButton(
+                label: context.l10n.navServices,
+                selected: isServicesTab,
+                onTap: () => _selectTab(_HomeTab.services),
+              ),
+            ),
+            Expanded(
+              child: _HomeTabButton(
                 label: context.l10n.navCompanies,
-                selected: !isProductsTab,
+                selected: _selectedTab == _HomeTab.companies,
                 onTap: () => _selectTab(_HomeTab.companies),
               ),
             ),
@@ -151,6 +163,8 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
                 ],
               ],
             )
+        else if (isServicesTab)
+          _ServicesList(searchQuery: _searchQuery)
         else if (filteredCompanies.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -174,6 +188,79 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             ],
           ),
       ],
+    );
+  }
+}
+
+/// The Services tab: active catalogue services, filtered by the search box.
+/// Watched only while the tab is shown, so the catalogue is not loaded until
+/// the customer asks for it.
+class _ServicesList extends ConsumerWidget {
+  const _ServicesList({required this.searchQuery});
+
+  final String searchQuery;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final servicesAsync = ref.watch(marketplaceServicesProvider);
+    final categoryNames = ref.watch(categoryNamesProvider);
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    Widget message(String text) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Center(
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+        );
+
+    return servicesAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, _) => Column(
+        children: [
+          message(context.l10n.homeServicesLoadFailed),
+          OutlinedButton(
+            onPressed: () => ref.invalidate(activeServicesProvider(null)),
+            child: Text(context.l10n.commonRetry),
+          ),
+        ],
+      ),
+      data: (services) {
+        final filtered = searchQuery.isEmpty
+            ? services
+            : services
+                .where(
+                  (service) =>
+                      normalizeSearchText(service.name)
+                          .contains(searchQuery) ||
+                      normalizeSearchText(service.description)
+                          .contains(searchQuery),
+                )
+                .toList();
+        if (filtered.isEmpty) {
+          return message(context.l10n.homeNoServices);
+        }
+        return Column(
+          children: [
+            for (int i = 0; i < filtered.length; i++) ...[
+              ServiceCard(
+                service: filtered[i],
+                categoryName: categoryNames[filtered[i].categoryId],
+              ),
+              if (i < filtered.length - 1) const SizedBox(height: 10),
+            ],
+          ],
+        );
+      },
     );
   }
 }

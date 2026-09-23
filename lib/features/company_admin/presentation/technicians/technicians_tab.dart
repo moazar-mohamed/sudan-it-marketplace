@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../technicians/domain/entities/technician.dart';
-import '../../../technicians/domain/entities/technician_invite.dart';
 import '../../../technicians/presentation/technicians_providers.dart';
 import '../company_admin_actions.dart';
 import '../widgets/admin_section_card.dart';
@@ -71,8 +70,6 @@ class TechniciansTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final techniciansAsync =
         ref.watch(companyTechniciansStreamProvider(companyId));
-    final invitesAsync =
-        ref.watch(companyPendingInvitesStreamProvider(companyId));
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
@@ -89,8 +86,7 @@ class TechniciansTab extends ConsumerWidget {
               ref.invalidate(companyTechniciansStreamProvider(companyId)),
         ),
         data: (technicians) {
-          final invites = invitesAsync.asData?.value ?? const [];
-          if (technicians.isEmpty && invites.isEmpty) {
+          if (technicians.isEmpty) {
             return ListView(
               children: [
                 AdminEmptyState(
@@ -104,10 +100,6 @@ class TechniciansTab extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
             children: [
-              for (final invite in invites) ...[
-                _PendingInviteTile(invite: invite),
-                const SizedBox(height: 10),
-              ],
               for (final technician in technicians) ...[
                 _TechnicianTile(
                   technician: technician,
@@ -126,63 +118,6 @@ class TechniciansTab extends ConsumerWidget {
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-/// A technician invitation that has not yet been claimed by registering.
-class _PendingInviteTile extends StatelessWidget {
-  const _PendingInviteTile({required this.invite});
-
-  final TechnicianInvite invite;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: colorScheme.surface,
-        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.08)),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: Colors.orange.withValues(alpha: 0.12),
-            foregroundColor: Colors.orange,
-            child: const Icon(Icons.mail_outline),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  invite.fullName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  invite.email,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.65),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                StatusBadge(label: context.l10n.adminInvitedPending, color: Colors.orange),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

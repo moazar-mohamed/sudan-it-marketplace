@@ -267,6 +267,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Google sign-in failed. Please try again.';
 
   @override
+  String get authErrorPopupBlocked =>
+      'Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.';
+
+  @override
+  String get authErrorUnauthorizedDomain =>
+      'Google sign-in is not enabled for this website address.';
+
+  @override
   String get authErrorGeneric => 'Authentication failed. Please try again.';
 
   @override
@@ -1616,10 +1624,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminTechniciansEmpty =>
-      'You have not added any technicians yet.\nTap \"Add Technician\" to invite your first one.';
-
-  @override
-  String get adminInvitedPending => 'Invited (pending)';
+      'You have not added any technicians yet.\nTap \"Add Technician\" to create your first technician account.';
 
   @override
   String get adminActive => 'Active';
@@ -1628,15 +1633,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminInactive => 'Inactive';
 
   @override
-  String get adminInvitationCreated =>
-      'Invitation created. The technician can now register with this email.';
-
-  @override
   String get adminTechnicianUpdated => 'Technician updated.';
-
-  @override
-  String get adminInviteNote =>
-      'This creates an invitation. The technician sets their own password by registering with this email.';
 
   @override
   String get adminTechnicianNameRequired => 'Technician name is required.';
@@ -1650,9 +1647,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get adminInactiveTechnicianNote =>
       'Inactive technicians cannot be assigned to new jobs.';
-
-  @override
-  String get adminSendInvitation => 'Send Invitation';
 
   @override
   String get techDashboardLoadFailed => 'Could not load your dashboard.';
@@ -1714,6 +1708,370 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get paymentAccountsManage => 'Payment accounts';
+
+  @override
+  String get paymentAccountsIntro =>
+      'Customers transfer their order payments to these accounts. Add at least one so customers can pay you.';
+
+  @override
+  String get paymentAccountsEmpty => 'No payment accounts yet.';
+
+  @override
+  String get paymentAccountAdd => 'Add account';
+
+  @override
+  String get paymentAccountEdit => 'Edit account';
+
+  @override
+  String get paymentAccountBankName => 'Bank / wallet name';
+
+  @override
+  String get paymentAccountBankRequired => 'Enter the bank or wallet name.';
+
+  @override
+  String get paymentAccountHolderRequired => 'Enter the account holder name.';
+
+  @override
+  String get paymentAccountNumberRequired => 'Enter the account number.';
+
+  @override
+  String get paymentAccountPhoneOptional => 'Linked phone number (optional)';
+
+  @override
+  String get paymentAccountSaved => 'Payment account saved.';
+
+  @override
+  String get paymentAccountRemoved => 'Payment account removed.';
+
+  @override
+  String get paymentAccountRemoveTitle => 'Remove this account?';
+
+  @override
+  String get paymentAccountRemoveBody =>
+      'Customers will no longer see it on the payment screen.';
+
+  @override
+  String paymentAccountLimit(int max) {
+    return 'You can add up to $max accounts.';
+  }
+
+  @override
+  String get paymentNoAccountsForCompany =>
+      'This company has not added payment accounts yet, so it cannot receive a payment right now. Please contact the company.';
+
+  @override
+  String get adminTechnicianAccountNote =>
+      'This creates the technician\'s account with a temporary password. Give them this email and password; they choose their own password the first time they sign in.';
+
+  @override
+  String get adminTechnicianTempPassword => 'Temporary password';
+
+  @override
+  String get adminTechnicianPasswordRequired => 'Enter a temporary password.';
+
+  @override
+  String get adminAddTechnicianSubmit => 'Add technician';
+
+  @override
+  String get adminTechnicianCreated =>
+      'Technician added. Share the email and temporary password with them.';
+
+  @override
+  String get technicianEmailInUse =>
+      'An account with this email already exists.';
+
+  @override
   String get comingSoonBody =>
       'This section will be available in a later update.';
+
+  @override
+  String get navServices => 'Services';
+
+  @override
+  String get navChats => 'Chats';
+
+  @override
+  String get navMore => 'More';
+
+  @override
+  String get homeSearchServices => 'Search services...';
+
+  @override
+  String get homeNoServices => 'No services found';
+
+  @override
+  String get homeServicesLoadFailed => 'Services could not be loaded.';
+
+  @override
+  String get ordersTabProducts => 'Products';
+
+  @override
+  String get ordersTabServices => 'Services';
+
+  @override
+  String get serviceDetailsTitle => 'Service details';
+
+  @override
+  String get serviceAvailableCompanies => 'Available companies';
+
+  @override
+  String get serviceNoCompanies => 'No company offers this service yet.';
+
+  @override
+  String get serviceCompaniesLoadFailed => 'The companies could not be loaded.';
+
+  @override
+  String get serviceRequestAction => 'Request service';
+
+  @override
+  String get serviceRequestFormTitle => 'Request service';
+
+  @override
+  String get serviceRequestDetailsLabel => 'What do you need?';
+
+  @override
+  String get serviceRequestDetailsHint =>
+      'Describe the work, the device or system, and anything the company should know.';
+
+  @override
+  String get serviceRequestDetailsRequired => 'Please describe what you need.';
+
+  @override
+  String get serviceRequestLocationOptional => 'Address (optional)';
+
+  @override
+  String get serviceRequestAddressHint => 'Where should the service be done?';
+
+  @override
+  String get serviceRequestSubmit => 'Send request';
+
+  @override
+  String get serviceRequestSent =>
+      'Your request was sent. You can now chat with the company.';
+
+  @override
+  String get serviceRequestCreateDenied =>
+      'This request could not be sent. The company may no longer offer this service.';
+
+  @override
+  String get serviceRequestCreateFailed =>
+      'The request could not be sent. Please try again.';
+
+  @override
+  String get serviceRequestUpdateFailed =>
+      'The request could not be updated. Please try again.';
+
+  @override
+  String get serviceRequestsLoadFailed =>
+      'Service requests could not be loaded.';
+
+  @override
+  String get serviceRequestNotFound => 'This service request was not found.';
+
+  @override
+  String get serviceRequestsEmptyCustomer =>
+      'You have not requested any services yet.';
+
+  @override
+  String get serviceRequestsEmptyCompany => 'No service requests yet.';
+
+  @override
+  String get serviceRequestDetailsTitle => 'Service request';
+
+  @override
+  String get serviceRequestCustomer => 'Customer';
+
+  @override
+  String get serviceRequestCompany => 'Company';
+
+  @override
+  String get serviceRequestPrice => 'Price';
+
+  @override
+  String get serviceRequestSentAt => 'Sent';
+
+  @override
+  String get serviceRequestNumber => 'Request';
+
+  @override
+  String get serviceRequestContact => 'Contact and location';
+
+  @override
+  String get serviceRequestAddress => 'Address';
+
+  @override
+  String get serviceRequestOpenChat => 'Open chat';
+
+  @override
+  String get serviceRequestViewDetails => 'Request details';
+
+  @override
+  String get serviceRequestCancel => 'Cancel request';
+
+  @override
+  String get serviceRequestCancelTitle => 'Cancel this request?';
+
+  @override
+  String get serviceRequestCancelBody =>
+      'The company will see that you cancelled it. This cannot be undone.';
+
+  @override
+  String get serviceRequestAccept => 'Accept';
+
+  @override
+  String get serviceRequestReject => 'Reject';
+
+  @override
+  String get serviceRequestRejectTitle => 'Reject this request?';
+
+  @override
+  String get serviceRequestRejectBody =>
+      'The customer will see that the request was rejected. This cannot be undone.';
+
+  @override
+  String get serviceRequestStart => 'Start work';
+
+  @override
+  String get serviceRequestComplete => 'Mark as completed';
+
+  @override
+  String get serviceRequestStatusPending => 'Pending';
+
+  @override
+  String get serviceRequestStatusAccepted => 'Accepted';
+
+  @override
+  String get serviceRequestStatusRejected => 'Rejected';
+
+  @override
+  String get serviceRequestStatusInProgress => 'In progress';
+
+  @override
+  String get serviceRequestStatusCompleted => 'Completed';
+
+  @override
+  String get serviceRequestStatusCancelled => 'Cancelled';
+
+  @override
+  String serviceRequestStatusLine(String status) {
+    return 'Request status: $status';
+  }
+
+  @override
+  String get chatsEmptyCustomer =>
+      'No chats yet. When you request a service, your conversation with the company appears here.';
+
+  @override
+  String get chatsEmptyCompany =>
+      'No chats yet. Each service request sent to your company opens a conversation here.';
+
+  @override
+  String get chatNoMessagesYet => 'No messages yet';
+
+  @override
+  String get chatEmpty => 'No messages yet. Write to start the conversation.';
+
+  @override
+  String get chatInputHint => 'Write a message';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String get chatYou => 'You';
+
+  @override
+  String chatYouPrefix(String text) {
+    return 'You: $text';
+  }
+
+  @override
+  String chatYesterdayAt(String time) {
+    return 'Yesterday $time';
+  }
+
+  @override
+  String get chatCustomerFallback => 'Customer';
+
+  @override
+  String get chatUnread => 'Unread';
+
+  @override
+  String get chatNotFound => 'This conversation was not found.';
+
+  @override
+  String get chatLoadFailed => 'The chat could not be loaded.';
+
+  @override
+  String get chatSendDenied => 'You cannot send messages in this conversation.';
+
+  @override
+  String get chatSendFailed =>
+      'The message could not be sent. Please try again.';
+
+  @override
+  String get chatMessageInvalid => 'Write a message of up to 2000 characters.';
+
+  @override
+  String get adminServiceRequestsTab => 'Requests';
+
+  @override
+  String get adminMyServicesTab => 'My services';
+
+  @override
+  String get adminServicesLoadFailed => 'Services could not be loaded.';
+
+  @override
+  String get adminServicesOffered => 'Services you offer';
+
+  @override
+  String get adminServicesOfferedEmpty =>
+      'You do not offer any services yet. Add them from the list below.';
+
+  @override
+  String get adminServicesAvailable => 'Add services';
+
+  @override
+  String get adminServicesCatalogueEmpty =>
+      'The service catalogue is empty for now.';
+
+  @override
+  String get adminServicesAllAdded =>
+      'You already offer every service in the catalogue.';
+
+  @override
+  String get adminServiceAdd => 'Add';
+
+  @override
+  String get adminServiceSaved => 'Service saved.';
+
+  @override
+  String get adminServiceRemoved => 'Service removed.';
+
+  @override
+  String get adminServiceRemoveTitle => 'Stop offering this service?';
+
+  @override
+  String adminServiceRemoveBody(String name) {
+    return 'Customers will no longer be able to request $name from your company. Existing requests are kept.';
+  }
+
+  @override
+  String get adminServicePriceHelper =>
+      'Leave empty if you do not want to show a price.';
+
+  @override
+  String get adminServiceNoteLabel => 'Note for customers (optional)';
+
+  @override
+  String get adminServiceNoteHint =>
+      'For example: done on site or remotely, what is included';
+
+  @override
+  String get companyServiceAlreadyOffered =>
+      'Your company already offers this service.';
+
+  @override
+  String get companyServiceNotFound => 'This service is no longer available.';
 }

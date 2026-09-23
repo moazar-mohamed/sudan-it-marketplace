@@ -4,7 +4,6 @@ import '../data/datasources/firestore_technicians_remote_data_source.dart';
 import '../data/datasources/technicians_remote_data_source.dart';
 import '../data/repositories/technicians_repository_impl.dart';
 import '../domain/entities/technician.dart';
-import '../domain/entities/technician_invite.dart';
 import '../domain/repositories/technicians_repository.dart';
 
 final techniciansRemoteDataSourceProvider =
@@ -41,24 +40,12 @@ final technicianSelfProvider = StreamProvider.family<Technician?,
 });
 
 /// Looks up the technician record keyed by the signed-in technician's own
-/// Firebase Auth uid; every technician created through the invite/claim flow
-/// uses this scheme.
+/// Firebase Auth uid; every technician account a company admin creates uses
+/// this scheme.
 final technicianByUidProvider =
     StreamProvider.family<Technician?, String>((ref, uid) {
   if (uid.isEmpty) {
     return Stream.value(null);
   }
   return ref.watch(techniciansRepositoryProvider).watchTechnicianByUid(uid);
-});
-
-/// Pending technician invitations for a company, so Company Admin can see
-/// who has been invited but not yet registered.
-final companyPendingInvitesStreamProvider =
-    StreamProvider.family<List<TechnicianInvite>, String>((ref, companyId) {
-  if (companyId.isEmpty) {
-    return Stream.value(const []);
-  }
-  return ref
-      .watch(techniciansRepositoryProvider)
-      .watchPendingInvites(companyId);
 });
