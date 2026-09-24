@@ -267,6 +267,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'فشل تسجيل الدخول باستخدام Google. حاول مرة أخرى.';
 
   @override
+  String get authErrorGoogleReauth =>
+      'يحتاج Google إلى إعادة تسجيل دخولك إلى حسابك في هذا الجهاز. احذف حساب Google من إعدادات الجهاز ثم أضفه من جديد، وأعد المحاولة.';
+
+  @override
+  String get authErrorGoogleConfig =>
+      'تسجيل الدخول عبر Google غير مُعدّ لهذه النسخة من التطبيق. تواصل مع الدعم.';
+
+  @override
   String get authErrorPopupBlocked =>
       'منع المتصفح نافذة تسجيل الدخول باستخدام Google. اسمح بالنوافذ المنبثقة لهذا الموقع ثم حاول مرة أخرى.';
 
@@ -1584,6 +1592,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeFilterAllCategories => 'الكل';
 
   @override
+  String get homeCategoriesTitle => 'الأقسام';
+
+  @override
+  String get homeCategoriesMore => 'المزيد';
+
+  @override
   String get adminProductUncategorized => 'بدون فئة';
 
   @override
@@ -1856,6 +1870,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get technicianEmailInUse => 'يوجد حساب بهذا البريد الإلكتروني مسبقًا.';
+
+  @override
+  String get technicianEmailInvalid => 'البريد الإلكتروني غير صالح.';
+
+  @override
+  String get technicianPasswordWeak =>
+      'كلمة المرور المؤقتة ضعيفة جدًا. اختر كلمة أطول وأصعب.';
+
+  @override
+  String get technicianTooManyRequests =>
+      'محاولات كثيرة. انتظر بضع دقائق ثم حاول مرة أخرى.';
+
+  @override
+  String get technicianAuthDisabled =>
+      'إنشاء الحسابات بالبريد الإلكتروني متوقف في هذا المشروع. تواصل مع مسؤول المنصة.';
 
   @override
   String get comingSoonBody => 'سيتوفر هذا القسم في تحديث لاحق.';

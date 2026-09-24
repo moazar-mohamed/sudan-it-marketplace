@@ -23,6 +23,11 @@ enum AppErrorCode {
   productDeleteDenied,
   productDeleteFailed,
   technicianEmailInUse,
+  technicianEmailInvalid,
+  technicianPasswordWeak,
+  technicianNetwork,
+  technicianTooManyRequests,
+  technicianAuthDisabled,
   technicianSaveDenied,
   technicianSaveFailed,
   technicianUpdateDenied,
@@ -43,7 +48,7 @@ enum AppErrorCode {
 }
 
 class AppException implements Exception {
-  const AppException(this.code, {this.productName, this.detail});
+  const AppException(this.code, {this.productName, this.detail, this.reason});
 
   final AppErrorCode code;
 
@@ -52,6 +57,10 @@ class AppException implements Exception {
 
   /// Technical detail for logs only; never shown to the user.
   final String? detail;
+
+  /// A short error code (like `unavailable`) that is safe to show next to a
+  /// "could not ..." message, so a support person can tell what failed.
+  final String? reason;
 
   @override
   String toString() =>

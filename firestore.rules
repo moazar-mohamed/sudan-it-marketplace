@@ -290,6 +290,9 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly([
         'id',
         'name',
+        'nameAr',
+        'nameEn',
+        'sortOrder',
         'description',
         'iconName',
         'isActive',
@@ -302,10 +305,26 @@ service cloud.firestore {
         && request.resource.data.id == categoryId
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100
+        // The name in each language shown to customers. Optional so categories
+        // created before names had two languages stay valid.
+        && isOptionalCategoryName('nameAr')
+        && isOptionalCategoryName('nameEn')
+        // Where the category sits in the customer's list; absent means "after
+        // the ones that have a position".
+        && (request.resource.data.get('sortOrder', null) == null
+          || (request.resource.data.sortOrder is int
+            && request.resource.data.sortOrder >= 0
+            && request.resource.data.sortOrder < 100000))
         && request.resource.data.description is string
         && request.resource.data.iconName is string
         && request.resource.data.isActive is bool
         && request.resource.data.createdAt is timestamp;
+    }
+
+    function isOptionalCategoryName(field) {
+      return request.resource.data.get(field, '') is string
+        && request.resource.data.get(field, '').size() <= 100;
     }
 
     function isValidCategoryCreate(categoryId) {
@@ -319,7 +338,15 @@ service cloud.firestore {
         && request.resource.data.id == resource.data.id
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['name', 'description', 'iconName', 'isActive']);
+            .hasOnly([
+              'name',
+              'nameAr',
+              'nameEn',
+              'sortOrder',
+              'description',
+              'iconName',
+              'isActive'
+            ]);
     }
 
     function hasRequiredServiceKeys() {
@@ -489,7 +516,10 @@ service cloud.firestore {
       allow update: if isPlatformAdmin()
         && isSafeCategoryUpdate(categoryId);
 
-      allow delete: if false;
+      // Platform Admin removes a category it no longer wants. The dashboard
+      // only offers this for a category no product or service uses; anything
+      // that still points at a deleted one keeps working, uncategorized.
+      allow delete: if isPlatformAdmin();
     }
 
     match /services/{serviceId} {

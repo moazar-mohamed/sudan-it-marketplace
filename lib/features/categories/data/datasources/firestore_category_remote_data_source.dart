@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../domain/entities/category.dart';
 import '../../domain/exceptions/category_exception.dart';
 import '../models/category_model.dart';
 import 'category_remote_data_source.dart';
@@ -25,11 +26,7 @@ class FirestoreCategoryRemoteDataSource implements CategoryRemoteDataSource {
     return query
         .snapshots()
         .map((snapshot) {
-          final categories = snapshot.docs.map(_mapDoc).toList()
-            ..sort(
-              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-            );
-          return categories;
+          return snapshot.docs.map(_mapDoc).toList()..sort(compareCategories);
         })
         .handleError(_throwMappedError);
   }

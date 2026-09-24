@@ -100,7 +100,12 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
 
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: AppColors.error),
+        SnackBar(
+          content: Text(error),
+          backgroundColor: AppColors.error,
+          // Long enough to read a specific reason and act on it.
+          duration: const Duration(seconds: 6),
+        ),
       );
       return;
     }

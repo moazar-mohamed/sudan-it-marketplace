@@ -92,6 +92,7 @@ export function mapProduct(id: string, d: DocumentData): Product {
     id,
     companyId: str(d.companyId),
     companyName: str(d.companyName),
+    categoryId: typeof d.categoryId === 'string' && d.categoryId ? d.categoryId : null,
     name: str(d.name),
     imageUrl: str(d.imageUrl),
     price: typeof d.price === 'number' && isFinite(d.price) ? d.price : null,
@@ -177,6 +178,9 @@ export function mapCategory(id: string, d: DocumentData): Category {
   return {
     id,
     name: str(d.name),
+    nameAr: str(d.nameAr),
+    nameEn: str(d.nameEn),
+    sortOrder: typeof d.sortOrder === 'number' ? d.sortOrder : null,
     description: str(d.description),
     iconName: str(d.iconName),
     isActive: d.isActive === true,

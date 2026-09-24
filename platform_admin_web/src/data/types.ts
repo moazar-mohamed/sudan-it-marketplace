@@ -50,6 +50,8 @@ export interface Product {
   id: string;
   companyId: string;
   companyName: string;
+  /** The category the company picked, or null (older products have none). */
+  categoryId: string | null;
   name: string;
   imageUrl: string;
   /** null = the company left the price out ("price on request"), never 0. */
@@ -97,7 +99,12 @@ export interface Order {
 
 export interface Category {
   id: string;
+  /** The single name kept for every language (and all that older categories have). */
   name: string;
+  nameAr: string;
+  nameEn: string;
+  /** Position in the customer's list; null sorts after the ones that have one. */
+  sortOrder: number | null;
   description: string;
   iconName: string;
   isActive: boolean;

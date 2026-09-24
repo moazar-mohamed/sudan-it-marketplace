@@ -8,6 +8,7 @@ import {
   updateService,
   type ServiceInput,
 } from '../data/actions';
+import { categoryDisplayName, sortCategories } from '../data/categoryIcons';
 import { useCategories, useServices } from '../data/hooks';
 import type { CatalogService, Category } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
@@ -21,7 +22,7 @@ function ServiceForm({
   categories: Category[];
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { busy, run } = useRunner();
   const [name, setName] = useState(service?.name ?? '');
   const [description, setDescription] = useState(service?.description ?? '');
@@ -30,7 +31,9 @@ function ServiceForm({
 
   // Active categories, plus the service's current one even if it was
   // deactivated since, so editing never silently changes it.
-  const options = categories.filter((c) => c.isActive || c.id === service?.categoryId);
+  const options = sortCategories(categories).filter(
+    (c) => c.isActive || c.id === service?.categoryId,
+  );
   const nameMissing = !name.trim();
   const categoryMissing = !categoryId;
 
@@ -75,7 +78,7 @@ function ServiceForm({
             <option value="">{t('services.categoryPlaceholder')}</option>
             {options.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name || c.id}
+                {categoryDisplayName(c, locale) || c.id}
               </option>
             ))}
           </select>
@@ -108,7 +111,7 @@ function ServiceForm({
 }
 
 export function ServicesPage() {
-  const { t, date } = useI18n();
+  const { t, date, locale } = useI18n();
   const services = useServices();
   const categories = useCategories();
   const confirm = useConfirm();
@@ -116,8 +119,10 @@ export function ServicesPage() {
   // `undefined` = closed, `null` = adding a new service.
   const [editing, setEditing] = useState<CatalogService | null | undefined>(undefined);
 
-  const categoryName = (id: string) =>
-    categories.data.find((c) => c.id === id)?.name || '—';
+  const categoryName = (id: string) => {
+    const category = categories.data.find((c) => c.id === id);
+    return (category && categoryDisplayName(category, locale)) || '—';
+  };
 
   const toggle = async (s: CatalogService) => {
     if (s.isActive) {

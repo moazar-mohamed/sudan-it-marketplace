@@ -171,13 +171,7 @@ class FirestoreTechniciansRemoteDataSource
     } on AppException {
       rethrow;
     } on FirebaseAuthException catch (error) {
-      if (error.code == 'email-already-in-use') {
-        throw const AppException(AppErrorCode.technicianEmailInUse);
-      }
-      throw AppException(
-        AppErrorCode.technicianSaveFailed,
-        detail: '${error.code}: ${error.message}',
-      );
+      throw technicianAccountFailure(error);
     } on FirebaseException catch (error) {
       throw _failure(
         error,
@@ -206,6 +200,42 @@ class FirestoreTechniciansRemoteDataSource
     if (error.code == 'permission-denied') {
       return AppException(denied);
     }
-    return AppException(failed, detail: '${error.code}: ${error.message}');
+    if (_isNetworkCode(error.code)) {
+      return const AppException(AppErrorCode.technicianNetwork);
+    }
+    return AppException(
+      failed,
+      detail: '${error.code}: ${error.message}',
+      reason: error.code,
+    );
   }
+}
+
+bool _isNetworkCode(String code) =>
+    code == 'unavailable' ||
+    code == 'deadline-exceeded' ||
+    code == 'network-request-failed';
+
+/// What went wrong when the technician's login could not be created, as a
+/// specific error instead of a general "could not save". Unknown failures keep
+/// their Firebase code so the message can still say what kind it was.
+AppException technicianAccountFailure(FirebaseAuthException error) {
+  final code = error.code;
+  final mapped = switch (code) {
+    'email-already-in-use' => AppErrorCode.technicianEmailInUse,
+    'invalid-email' => AppErrorCode.technicianEmailInvalid,
+    'weak-password' => AppErrorCode.technicianPasswordWeak,
+    'too-many-requests' => AppErrorCode.technicianTooManyRequests,
+    'operation-not-allowed' => AppErrorCode.technicianAuthDisabled,
+    _ when _isNetworkCode(code) => AppErrorCode.technicianNetwork,
+    _ => null,
+  };
+  if (mapped != null) {
+    return AppException(mapped, detail: '$code: ${error.message}');
+  }
+  return AppException(
+    AppErrorCode.technicianSaveFailed,
+    detail: '$code: ${error.message}',
+    reason: code,
+  );
 }

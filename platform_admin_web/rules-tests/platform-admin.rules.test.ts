@@ -698,11 +698,15 @@ describe('Categories', () => {
     await assertFails(updateDoc(doc(admin(), 'categories', 'k1'), { extra: 1 }));
     await assertFails(updateDoc(doc(admin(), 'categories', 'k1'), { name: '' }));
     await assertFails(setDoc(doc(admin(), 'categories', 'k3'), { ...category, id: 'k3', isActive: false, createdAt: serverTimestamp() }));
-    await assertFails(deleteDoc(doc(admin(), 'categories', 'k1')));
+  });
+  it('Platform Admin can delete a category', async () => {
+    await assertSucceeds(deleteDoc(doc(admin(), 'categories', 'k1')));
   });
   it('non-admins cannot write', async () => {
     await assertFails(setDoc(doc(as('cust1'), 'categories', 'k2'), { ...category, createdAt: serverTimestamp() }));
     await assertFails(updateDoc(doc(as('ca1'), 'categories', 'k1'), { isActive: false }));
+    await assertFails(deleteDoc(doc(as('ca1'), 'categories', 'k1')));
+    await assertFails(deleteDoc(doc(as('cust1'), 'categories', 'k1')));
   });
 });
 

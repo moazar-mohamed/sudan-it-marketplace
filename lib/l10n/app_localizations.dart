@@ -572,6 +572,18 @@ abstract class AppLocalizations {
   /// **'Google sign-in failed. Please try again.'**
   String get authErrorGoogleFailed;
 
+  /// No description provided for @authErrorGoogleReauth.
+  ///
+  /// In en, this message translates to:
+  /// **'Google needs you to sign in to your account again on this device. Remove your Google account in the device settings, add it again, then try again.'**
+  String get authErrorGoogleReauth;
+
+  /// No description provided for @authErrorGoogleConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in is not set up for this version of the app. Please contact support.'**
+  String get authErrorGoogleConfig;
+
   /// No description provided for @authErrorPopupBlocked.
   ///
   /// In en, this message translates to:
@@ -2918,6 +2930,18 @@ abstract class AppLocalizations {
   /// **'All'**
   String get homeFilterAllCategories;
 
+  /// No description provided for @homeCategoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get homeCategoriesTitle;
+
+  /// No description provided for @homeCategoriesMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get homeCategoriesMore;
+
   /// No description provided for @adminProductUncategorized.
   ///
   /// In en, this message translates to:
@@ -3421,6 +3445,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An account with this email already exists.'**
   String get technicianEmailInUse;
+
+  /// No description provided for @technicianEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This email address is not valid.'**
+  String get technicianEmailInvalid;
+
+  /// No description provided for @technicianPasswordWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'The temporary password is too weak. Choose a longer, harder one.'**
+  String get technicianPasswordWeak;
+
+  /// No description provided for @technicianTooManyRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Wait a few minutes and try again.'**
+  String get technicianTooManyRequests;
+
+  /// No description provided for @technicianAuthDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating accounts by email is turned off for this project. Contact the platform administrator.'**
+  String get technicianAuthDisabled;
 
   /// No description provided for @comingSoonBody.
   ///

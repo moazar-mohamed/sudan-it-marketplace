@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../categories/domain/entities/category.dart';
+import '../../../categories/presentation/category_label.dart';
 import '../../../categories/presentation/category_providers.dart';
 
 /// Saves a service the company created itself; returns null on success or a
@@ -207,8 +208,8 @@ class _OwnServiceFormState extends ConsumerState<_OwnServiceForm> {
                     value: category.id,
                     child: Text(
                       category.isActive
-                          ? category.name
-                          : '${category.name} ${context.l10n.formCategoryInactiveSuffix}',
+                          ? category.localizedName(context)
+                          : '${category.localizedName(context)} ${context.l10n.formCategoryInactiveSuffix}',
                     ),
                   ),
               ],

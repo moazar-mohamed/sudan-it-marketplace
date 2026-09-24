@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/localization/locale_controller.dart';
 import '../data/datasources/category_remote_data_source.dart';
 import '../data/datasources/firestore_category_remote_data_source.dart';
 import '../data/repositories/category_repository_impl.dart';
@@ -24,9 +25,20 @@ final allCategoriesProvider = StreamProvider<List<Category>>((ref) {
   return ref.watch(categoryRepositoryProvider).watchAllCategories();
 });
 
-/// Category names by id, for labelling products and services.
-final categoryNamesProvider = Provider<Map<String, String>>((ref) {
+/// Every category by id (inactive ones included), for looking one up.
+final categoriesByIdProvider = Provider<Map<String, Category>>((ref) {
   final categories = ref.watch(allCategoriesProvider).asData?.value ??
       const <Category>[];
-  return {for (final category in categories) category.id: category.name};
+  return {for (final category in categories) category.id: category};
+});
+
+/// Category names by id in the language the app is showing, for labelling
+/// products and services.
+final categoryNamesProvider = Provider<Map<String, String>>((ref) {
+  final language = ref.watch(localeControllerProvider).languageCode;
+  final categories = ref.watch(categoriesByIdProvider);
+  return {
+    for (final category in categories.values)
+      category.id: category.nameFor(language),
+  };
 });

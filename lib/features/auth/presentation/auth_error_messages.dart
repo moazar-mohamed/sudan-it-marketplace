@@ -31,6 +31,10 @@ String authErrorMessage(AppLocalizations l10n, String? code) {
       return l10n.authErrorDifferentCredential;
     case 'google-sign-in-failed':
       return l10n.authErrorGoogleFailed;
+    case 'google-reauth-required':
+      return l10n.authErrorGoogleReauth;
+    case 'google-config-error':
+      return l10n.authErrorGoogleConfig;
     case 'popup-blocked':
       return l10n.authErrorPopupBlocked;
     case 'unauthorized-domain':

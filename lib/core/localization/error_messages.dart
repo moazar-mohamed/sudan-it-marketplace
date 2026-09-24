@@ -26,6 +26,11 @@ String firebaseErrorMessage(AppLocalizations l10n, String code) {
   }
 }
 
+/// A "could not ..." message followed by the short error code when there is
+/// one, so an unexpected failure still says what kind it was.
+String _withReason(String message, String? reason) =>
+    reason == null || reason.isEmpty ? message : '$message ($reason)';
+
 String _appException(AppLocalizations l10n, AppException error) {
   return switch (error.code) {
     AppErrorCode.orderCreateDenied => l10n.orderCreateDenied,
@@ -51,14 +56,21 @@ String _appException(AppLocalizations l10n, AppException error) {
     AppErrorCode.productDeleteDenied => l10n.productDeleteDenied,
     AppErrorCode.productDeleteFailed => l10n.productDeleteFailed,
     AppErrorCode.technicianEmailInUse => l10n.technicianEmailInUse,
+    AppErrorCode.technicianEmailInvalid => l10n.technicianEmailInvalid,
+    AppErrorCode.technicianPasswordWeak => l10n.technicianPasswordWeak,
+    AppErrorCode.technicianNetwork => l10n.errorNetwork,
+    AppErrorCode.technicianTooManyRequests => l10n.technicianTooManyRequests,
+    AppErrorCode.technicianAuthDisabled => l10n.technicianAuthDisabled,
     AppErrorCode.technicianSaveDenied => l10n.technicianSaveDenied,
-    AppErrorCode.technicianSaveFailed => l10n.technicianSaveFailed,
+    AppErrorCode.technicianSaveFailed =>
+      _withReason(l10n.technicianSaveFailed, error.reason),
     AppErrorCode.technicianUpdateDenied => l10n.technicianUpdateDenied,
-    AppErrorCode.technicianUpdateFailed => l10n.technicianUpdateFailed,
+    AppErrorCode.technicianUpdateFailed =>
+      _withReason(l10n.technicianUpdateFailed, error.reason),
     AppErrorCode.technicianDeactivateDenied =>
       l10n.technicianDeactivateDenied,
     AppErrorCode.technicianDeactivateFailed =>
-      l10n.technicianDeactivateFailed,
+      _withReason(l10n.technicianDeactivateFailed, error.reason),
     AppErrorCode.companyUpdateDenied => l10n.companyUpdateDenied,
     AppErrorCode.companyUpdateFailed => l10n.companyUpdateFailed,
     AppErrorCode.serviceRequestCreateDenied =>

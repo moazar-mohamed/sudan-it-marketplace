@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/utils/arabic_text.dart';
+import '../../../../core/utils/search_ranking.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/orders_providers.dart';
 import '../widgets/admin_section_card.dart';
@@ -37,16 +37,18 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
             ref.invalidate(companyOrdersStreamProvider(widget.companyId)),
       ),
       data: (orders) {
-        final query = normalizeSearchText(_query);
-        final visible = orders
-            .where((o) => _statusFilter == null || o.orderStatus == _statusFilter)
-            .where(
-              (o) =>
-                  query.isEmpty ||
-                  normalizeSearchText(o.productName).contains(query) ||
-                  normalizeSearchText(o.customerName).contains(query),
-            )
-            .toList();
+        final visible = searchRanked(
+          orders.where(
+            (o) => _statusFilter == null || o.orderStatus == _statusFilter,
+          ),
+          _query,
+          (o) => [
+            SearchField(o.productName, weight: 3),
+            SearchField(o.customerName, weight: 3),
+            SearchField(o.shortId, weight: 2),
+            SearchField(o.contactPhone),
+          ],
+        );
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [

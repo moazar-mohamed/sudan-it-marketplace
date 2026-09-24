@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/utils/arabic_text.dart';
+import '../../../../core/utils/search_ranking.dart';
 import '../../../categories/domain/entities/category.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
@@ -10,6 +12,7 @@ import '../../../products/presentation/products_providers.dart';
 import '../../../products/presentation/widgets/product_card.dart';
 import '../../../services/presentation/service_providers.dart';
 import '../../../services/presentation/widgets/service_card.dart';
+import 'category_grid.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
 class DashboardHomeTab extends ConsumerStatefulWidget {
@@ -29,26 +32,37 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
   // Owned by this tab so it never binds to the ambient PrimaryScrollController,
   // which the sibling IndexedStack tabs also attach to.
   final ScrollController _scrollController = ScrollController();
+  Timer? _searchDebounce;
+
+  /// What the customer has typed (drives the clear button at once) and the
+  /// same text once they pause, which is what the lists filter by.
+  bool _hasSearchText = false;
   String _searchQuery = '';
   String? _categoryFilter;
   _HomeTab _selectedTab = _HomeTab.products;
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged(String value) {
-    setState(() {
-      _searchQuery = normalizeSearchText(value);
+    final hasText = value.trim().isNotEmpty;
+    if (hasText != _hasSearchText) setState(() => _hasSearchText = hasText);
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+      if (mounted) setState(() => _searchQuery = value);
     });
   }
 
   void _clearSearch() {
+    _searchDebounce?.cancel();
     _searchController.clear();
     setState(() {
+      _hasSearchText = false;
       _searchQuery = '';
     });
   }
@@ -68,6 +82,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
     final mockCompanies = ref.watch(marketplaceCompaniesProvider);
     final mockProducts = ref.watch(marketplaceProductsProvider);
     final categoryNames = ref.watch(categoryNamesProvider);
+    final categoriesById = ref.watch(categoriesByIdProvider);
     final allCategories =
         ref.watch(allCategoriesProvider).asData?.value ?? const <Category>[];
 
@@ -87,22 +102,35 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             ? _categoryFilter
             : null;
 
-    final filteredCompanies = _searchQuery.isEmpty
-        ? mockCompanies
-        : mockCompanies
-            .where((company) =>
-                normalizeSearchText(company.name).contains(_searchQuery))
-            .toList();
+    final filteredCompanies = searchRanked(
+      mockCompanies,
+      _searchQuery,
+      (company) => [
+        SearchField(company.name, weight: 3),
+        SearchField(company.city ?? ''),
+        SearchField(company.address ?? ''),
+        SearchField(company.description ?? ''),
+      ],
+    );
 
-    final filteredProducts = mockProducts.where((product) {
-      if (activeFilter != null && product.categoryId != activeFilter) {
-        return false;
-      }
-      if (_searchQuery.isEmpty) return true;
-      return normalizeSearchText(product.name).contains(_searchQuery) ||
-          normalizeSearchText(categoryNames[product.categoryId] ?? '')
-              .contains(_searchQuery);
-    }).toList();
+    final filteredProducts = searchRanked(
+      mockProducts.where(
+        (product) => activeFilter == null || product.categoryId == activeFilter,
+      ),
+      _searchQuery,
+      (product) => [
+        SearchField(product.name, weight: 3),
+        SearchField(categoriesById[product.categoryId]?.searchText ?? '', weight: 2),
+        SearchField(product.companyName ?? ''),
+        SearchField(product.description ?? ''),
+        SearchField(
+          [
+            for (final spec in product.specifications.entries)
+              '${spec.key} ${spec.value}',
+          ].join(' '),
+        ),
+      ],
+    );
 
     final isProductsTab = _selectedTab == _HomeTab.products;
     final isServicesTab = _selectedTab == _HomeTab.services;
@@ -128,7 +156,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             },
             hintMaxLines: 1,
             prefixIcon: const Icon(Icons.search),
-            suffixIcon: _searchQuery.isNotEmpty
+            suffixIcon: _hasSearchText
                 ? IconButton(
                     icon: const Icon(Icons.clear),
                     onPressed: _clearSearch,
@@ -139,6 +167,18 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           ),
         ),
         const SizedBox(height: 16),
+        if (filterCategories.isNotEmpty) ...[
+          CategoryGrid(
+            categories: filterCategories,
+            selectedId: activeFilter,
+            // Picking a category shows its products, whichever tab was open.
+            onSelected: (id) => setState(() {
+              _categoryFilter = id;
+              if (id != null) _selectedTab = _HomeTab.products;
+            }),
+          ),
+          const SizedBox(height: 16),
+        ],
         Row(
           children: [
             Expanded(
@@ -165,29 +205,6 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           ],
         ),
         const SizedBox(height: 16),
-        if (isProductsTab && filterCategories.isNotEmpty) ...[
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _CategoryFilterChip(
-                  label: context.l10n.homeFilterAllCategories,
-                  selected: activeFilter == null,
-                  onSelected: () => setState(() => _categoryFilter = null),
-                ),
-                for (final category in filterCategories)
-                  _CategoryFilterChip(
-                    label: category.name,
-                    selected: activeFilter == category.id,
-                    onSelected: () =>
-                        setState(() => _categoryFilter = category.id),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
         if (isProductsTab)
           if (filteredProducts.isEmpty)
             Padding(
@@ -255,6 +272,7 @@ class _ServicesList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final servicesAsync = ref.watch(marketplaceServicesProvider);
     final categoryNames = ref.watch(categoryNamesProvider);
+    final categoriesById = ref.watch(categoriesByIdProvider);
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -286,17 +304,15 @@ class _ServicesList extends ConsumerWidget {
         ],
       ),
       data: (services) {
-        final filtered = searchQuery.isEmpty
-            ? services
-            : services
-                .where(
-                  (service) =>
-                      normalizeSearchText(service.name)
-                          .contains(searchQuery) ||
-                      normalizeSearchText(service.description)
-                          .contains(searchQuery),
-                )
-                .toList();
+        final filtered = searchRanked(
+          services,
+          searchQuery,
+          (service) => [
+            SearchField(service.name, weight: 3),
+            SearchField(categoriesById[service.categoryId]?.searchText ?? '', weight: 2),
+            SearchField(service.description),
+          ],
+        );
         if (filtered.isEmpty) {
           return message(context.l10n.homeNoServices);
         }
@@ -312,30 +328,6 @@ class _ServicesList extends ConsumerWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class _CategoryFilterChip extends StatelessWidget {
-  const _CategoryFilterChip({
-    required this.label,
-    required this.selected,
-    required this.onSelected,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onSelected(),
-      ),
     );
   }
 }

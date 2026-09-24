@@ -6,6 +6,28 @@ import '../../domain/exceptions/auth_exception.dart';
 import '../models/auth_user_model.dart';
 import 'auth_remote_data_source.dart';
 
+/// The auth error code for a failed Google sign-in.
+///
+/// Android reports status 16 for two different things and only the text tells
+/// them apart: "Cancelled by user." (the account picker was closed: a quiet
+/// cancel) and "Account reauth failed." (the account on the device must sign in
+/// again). Treating the second as a cancel made the button look broken, so it
+/// gets its own code and the user is told what to do.
+String googleSignInFailureCode(GoogleSignInException error) {
+  final description = (error.description ?? '').toLowerCase();
+  switch (error.code) {
+    case GoogleSignInExceptionCode.canceled:
+      return description.contains('reauth')
+          ? 'google-reauth-required'
+          : 'canceled';
+    case GoogleSignInExceptionCode.clientConfigurationError:
+    case GoogleSignInExceptionCode.providerConfigurationError:
+      return 'google-config-error';
+    default:
+      return 'google-sign-in-failed';
+  }
+}
+
 class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
   FirebaseAuthRemoteDataSource({FirebaseAuth? firebaseAuth})
     : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
@@ -175,9 +197,7 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
     } on GoogleSignInException catch (error) {
       // ignore: avoid_print
       print('[DIAG][FirebaseAuthDS] GoogleSignInException code=${error.code} description=${error.description}');
-      final code = error.code == GoogleSignInExceptionCode.canceled
-          ? 'canceled'
-          : 'google-sign-in-failed';
+      final code = googleSignInFailureCode(error);
       throw AuthException(_messageForCode(code), code: code);
     } catch (error, st) {
       // DIAG: Unknown exception swallowed here

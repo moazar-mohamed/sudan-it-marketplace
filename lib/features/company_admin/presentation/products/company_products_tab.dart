@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/arabic_text.dart';
+import '../../../../core/utils/search_ranking.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
@@ -58,6 +58,7 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
     final companyId = widget.companyId;
     final productsAsync = ref.watch(companyProductsStreamProvider(companyId));
     final categoryNames = ref.watch(categoryNamesProvider);
+    final categoriesById = ref.watch(categoriesByIdProvider);
 
     return productsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -95,19 +96,21 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
                 usedCategoryIds.contains(_categoryFilter)
             ? _categoryFilter
             : null;
-        final query = normalizeSearchText(_query);
-        final visible = products.where((product) {
-          if (filter == _uncategorized && product.categoryId != null) {
-            return false;
-          }
-          if (filter != null &&
-              filter != _uncategorized &&
-              product.categoryId != filter) {
-            return false;
-          }
-          return query.isEmpty ||
-              normalizeSearchText(product.name).contains(query);
-        }).toList();
+        final visible = searchRanked(
+          products.where((product) {
+            if (filter == _uncategorized) return product.categoryId == null;
+            return filter == null || product.categoryId == filter;
+          }),
+          _query,
+          (product) => [
+            SearchField(product.name, weight: 3),
+            SearchField(
+              categoriesById[product.categoryId]?.searchText ?? '',
+              weight: 2,
+            ),
+            SearchField(product.description ?? ''),
+          ],
+        );
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),

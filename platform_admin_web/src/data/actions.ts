@@ -1,9 +1,11 @@
 import {
   collection,
+  deleteDoc,
   doc,
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
 } from 'firebase/firestore';
 import { db, firebaseConfig } from '../firebase';
 import type { ImageSelection } from './imageRules';
@@ -83,16 +85,23 @@ export const updateCustomerProfile = (userId: string, input: CustomerProfileInpu
   });
 
 export interface CategoryInput {
-  name: string;
+  nameAr: string;
+  nameEn: string;
   description: string;
   iconName: string;
 }
 
-export async function createCategory(input: CategoryInput): Promise<void> {
+/** `name` stays filled (English first) for everything that reads the single name. */
+const legacyName = (input: CategoryInput) => input.nameEn.trim() || input.nameAr.trim();
+
+export async function createCategory(input: CategoryInput, sortOrder: number): Promise<void> {
   const ref = doc(collection(db, 'categories'));
   await setDoc(ref, {
     id: ref.id,
-    name: input.name.trim(),
+    name: legacyName(input),
+    nameAr: input.nameAr.trim(),
+    nameEn: input.nameEn.trim(),
+    sortOrder,
     description: input.description.trim(),
     iconName: input.iconName.trim(),
     isActive: true,
@@ -102,13 +111,27 @@ export async function createCategory(input: CategoryInput): Promise<void> {
 
 export const updateCategory = (id: string, input: CategoryInput) =>
   updateDoc(doc(db, 'categories', id), {
-    name: input.name.trim(),
+    name: legacyName(input),
+    nameAr: input.nameAr.trim(),
+    nameEn: input.nameEn.trim(),
     description: input.description.trim(),
     iconName: input.iconName.trim(),
   });
 
+/** Saves the customer-facing order: the category at index i gets position i. */
+export async function saveCategoryOrder(orderedIds: readonly string[]): Promise<void> {
+  const batch = writeBatch(db);
+  orderedIds.forEach((id, index) => {
+    batch.update(doc(db, 'categories', id), { sortOrder: index });
+  });
+  await batch.commit();
+}
+
 export const setCategoryActive = (id: string, isActive: boolean) =>
   updateDoc(doc(db, 'categories', id), { isActive });
+
+/** Removes a category. The page only offers this for one nothing uses. */
+export const deleteCategory = (id: string) => deleteDoc(doc(db, 'categories', id));
 
 /** A catalogue service always belongs to one category (categoryId). */
 export interface ServiceInput {

@@ -267,6 +267,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Google sign-in failed. Please try again.';
 
   @override
+  String get authErrorGoogleReauth =>
+      'Google needs you to sign in to your account again on this device. Remove your Google account in the device settings, add it again, then try again.';
+
+  @override
+  String get authErrorGoogleConfig =>
+      'Google sign-in is not set up for this version of the app. Please contact support.';
+
+  @override
   String get authErrorPopupBlocked =>
       'Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.';
 
@@ -1599,6 +1607,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeFilterAllCategories => 'All';
 
   @override
+  String get homeCategoriesTitle => 'Categories';
+
+  @override
+  String get homeCategoriesMore => 'More';
+
+  @override
   String get adminProductUncategorized => 'No category';
 
   @override
@@ -1875,6 +1889,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get technicianEmailInUse =>
       'An account with this email already exists.';
+
+  @override
+  String get technicianEmailInvalid => 'This email address is not valid.';
+
+  @override
+  String get technicianPasswordWeak =>
+      'The temporary password is too weak. Choose a longer, harder one.';
+
+  @override
+  String get technicianTooManyRequests =>
+      'Too many attempts. Wait a few minutes and try again.';
+
+  @override
+  String get technicianAuthDisabled =>
+      'Creating accounts by email is turned off for this project. Contact the platform administrator.';
 
   @override
   String get comingSoonBody =>

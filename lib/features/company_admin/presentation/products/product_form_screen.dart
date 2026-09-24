@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/image_picker_field.dart';
 import '../../../../core/widgets/image_picker_strings.dart';
 import '../../../categories/domain/entities/category.dart';
+import '../../../categories/presentation/category_label.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../products/domain/entities/product.dart';
@@ -337,8 +338,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                       value: category.id,
                       child: Text(
                         category.isActive
-                            ? category.name
-                            : '${category.name} ${context.l10n.formCategoryInactiveSuffix}',
+                            ? category.localizedName(context)
+                            : '${category.localizedName(context)} ${context.l10n.formCategoryInactiveSuffix}',
                       ),
                     ),
                 ],
