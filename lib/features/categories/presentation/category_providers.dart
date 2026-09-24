@@ -23,3 +23,10 @@ final activeCategoriesProvider = StreamProvider<List<Category>>((ref) {
 final allCategoriesProvider = StreamProvider<List<Category>>((ref) {
   return ref.watch(categoryRepositoryProvider).watchAllCategories();
 });
+
+/// Category names by id, for labelling products and services.
+final categoryNamesProvider = Provider<Map<String, String>>((ref) {
+  final categories = ref.watch(allCategoriesProvider).asData?.value ??
+      const <Category>[];
+  return {for (final category in categories) category.id: category.name};
+});

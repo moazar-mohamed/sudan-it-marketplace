@@ -6,6 +6,8 @@ import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/image_picker_field.dart';
 import '../../../../core/widgets/image_picker_strings.dart';
+import '../../../categories/domain/entities/category.dart';
+import '../../../categories/presentation/category_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../company_admin_actions.dart';
@@ -56,12 +58,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   late bool _inStock;
   late bool _deliveryAvailable;
   late bool _installationAvailable;
+  late String? _categoryId;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     final product = widget.product;
+    _categoryId = product?.categoryId;
     _nameController = TextEditingController(text: product?.name ?? '');
     _imageController = ImagePickerController(url: product?.imageUrl);
     _priceController = TextEditingController(
@@ -137,6 +141,26 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     );
   }
 
+  /// Active categories, plus the product's current category if the Platform
+  /// Admin has since deactivated it — so an existing, unchanged assignment
+  /// always has a matching dropdown item instead of crashing the widget.
+  List<Category> _selectableCategories(List<Category> allCategories) {
+    final active = [
+      for (final category in allCategories)
+        if (category.isActive) category,
+    ];
+    final currentId = _categoryId;
+    if (currentId == null || active.any((c) => c.id == currentId)) {
+      return active;
+    }
+    for (final category in allCategories) {
+      if (category.id == currentId) {
+        return [category, ...active];
+      }
+    }
+    return active;
+  }
+
   void _addSpecRow() {
     setState(() => _specRows.add(_SpecRow()));
   }
@@ -199,6 +223,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       companyName: companyName,
       name: _nameController.text.trim(),
       imageUrl: imageUrl,
+      categoryId: _categoryId,
       // Optional: an empty field saves no price (null), never 0.
       price: double.tryParse(_priceController.text.trim()),
       currency: existing?.currency ?? 'SDG',
@@ -240,6 +265,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
+    final categoriesAsync = ref.watch(allCategoriesProvider);
+    final categoriesLoaded = categoriesAsync.hasValue;
+    final selectableCategories =
+        _selectableCategories(categoriesAsync.asData?.value ?? const []);
+    // Firestore may first emit an empty snapshot from its cache, so "loaded"
+    // is not enough: the saved category must actually be among the items.
+    final currentIsSelectable = _categoryId == null ||
+        selectableCategories.any((category) => category.id == _categoryId);
 
     Widget sectionTitle(String title) => Padding(
           padding: const EdgeInsets.only(top: 20, bottom: 10),
@@ -282,6 +315,36 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               ImagePickerField(
                 controller: _imageController,
                 enabled: !_isSaving,
+              ),
+              const SizedBox(height: 14),
+              DropdownButtonFormField<String?>(
+                // The field only reads its initial value once, so it is
+                // rebuilt when the saved category becomes selectable; until
+                // then it is kept in state only.
+                key: ValueKey(currentIsSelectable),
+                initialValue: currentIsSelectable ? _categoryId : null,
+                decoration: InputDecoration(
+                  labelText: context.l10n.formCategoryLabel,
+                  prefixIcon: const Icon(Icons.category_outlined),
+                ),
+                items: [
+                  DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text(context.l10n.formCategoryNone),
+                  ),
+                  for (final category in selectableCategories)
+                    DropdownMenuItem<String?>(
+                      value: category.id,
+                      child: Text(
+                        category.isActive
+                            ? category.name
+                            : '${category.name} ${context.l10n.formCategoryInactiveSuffix}',
+                      ),
+                    ),
+                ],
+                onChanged: _isSaving || !categoriesLoaded
+                    ? null
+                    : (value) => setState(() => _categoryId = value),
               ),
               const SizedBox(height: 14),
               TextFormField(

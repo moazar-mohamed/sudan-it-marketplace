@@ -72,10 +72,11 @@ void main() {
 
     expect(find.byType(NavigationDestination), findsNWidgets(5));
     expect(tester.takeException(), isNull);
-    expect(find.text('Company Dashboard'), findsWidgets);
+    // Home is titled with the company's own name.
+    expect(find.text('Acme IT'), findsWidgets);
   });
 
-  testWidgets('More reaches Installations, Technicians and the company profile',
+  testWidgets('Menu reaches Installations, Technicians, profile and Settings',
       (tester) async {
     usePhone(tester);
     await tester.pumpWidget(_shell());
@@ -86,10 +87,11 @@ void main() {
     expect(find.widgetWithText(ListTile, 'Installations'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Technicians'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Company Profile'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Settings'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(ListTile, 'Technicians'));
     await tester.pumpAndSettle();
-    // The Technicians section is open, and "More" is the selected slot.
+    // The Technicians section is open, and "Menu" is the selected slot.
     expect(find.text('Tech One'), findsOneWidget);
     final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
     expect(bar.selectedIndex, 4);
@@ -99,7 +101,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-      2,
+      1,
     );
   });
 

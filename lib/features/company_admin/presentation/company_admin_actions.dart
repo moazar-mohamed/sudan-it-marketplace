@@ -13,6 +13,8 @@ import '../../orders/domain/entities/order_entity.dart';
 import '../../orders/presentation/orders_providers.dart';
 import '../../products/domain/entities/product.dart';
 import '../../products/presentation/products_providers.dart';
+import '../../services/domain/exceptions/service_exception.dart';
+import '../../services/presentation/service_providers.dart';
 import '../../technicians/domain/entities/technician.dart';
 import '../../technicians/presentation/technicians_providers.dart';
 
@@ -208,6 +210,102 @@ class CompanyAdminActions {
             serviceId: serviceId,
           ),
     );
+  }
+
+  /// Creates a service owned by this company and starts offering it, so it
+  /// appears to customers straight away. [price] is optional (null stores no
+  /// price). If offering it fails, the new service is switched off again so
+  /// no half-created service stays in the catalogue.
+  Future<String?> createOwnService({
+    required String companyId,
+    required String categoryId,
+    required String name,
+    required String description,
+    double? price,
+    String? note,
+  }) {
+    return _guardOwnService(() async {
+      final services = _ref.read(serviceRepositoryProvider);
+      final serviceId = await services.createService(
+        categoryId: categoryId,
+        name: name,
+        description: description,
+        ownerCompanyId: companyId,
+      );
+      try {
+        await _ref.read(companyServiceRepositoryProvider).addServiceToCompany(
+              companyId: companyId,
+              serviceId: serviceId,
+              price: price,
+              note: note,
+            );
+      } catch (_) {
+        try {
+          await services.setServiceActive(id: serviceId, isActive: false);
+        } catch (_) {}
+        rethrow;
+      }
+    });
+  }
+
+  /// Edits a service this company created (its name, description and
+  /// category) together with the company's own price and note.
+  Future<String?> updateOwnService({
+    required String companyServiceId,
+    required String serviceId,
+    required String categoryId,
+    required String name,
+    required String description,
+    double? price,
+    String? note,
+  }) {
+    return _guardOwnService(() async {
+      await _ref.read(serviceRepositoryProvider).updateService(
+            id: serviceId,
+            categoryId: categoryId,
+            name: name,
+            description: description,
+          );
+      await _ref
+          .read(companyServiceRepositoryProvider)
+          .updateCompanyServiceDetails(
+            companyServiceId: companyServiceId,
+            price: price,
+            note: note,
+          );
+    });
+  }
+
+  /// Stops offering a service this company created and hides the service
+  /// itself, so it no longer lists in the catalogue. Past requests are kept.
+  Future<String?> removeOwnService({
+    required String companyId,
+    required String serviceId,
+  }) {
+    return _guardOwnService(() async {
+      await _ref.read(companyServiceRepositoryProvider).removeServiceFromCompany(
+            companyId: companyId,
+            serviceId: serviceId,
+          );
+      await _ref
+          .read(serviceRepositoryProvider)
+          .setServiceActive(id: serviceId, isActive: false);
+    });
+  }
+
+  Future<String?> _guardOwnService(Future<void> Function() action) async {
+    try {
+      await action();
+      return null;
+    } catch (error) {
+      final l10n = _ref.read(appLocalizationsProvider);
+      if (error is ServiceException) {
+        return error.code == 'category-not-found'
+            ? l10n.adminServiceCategoryInvalid
+            : firebaseErrorMessage(l10n, error.code ?? '');
+      }
+      return companyServiceErrorMessage(l10n, error);
+    }
   }
 
   Future<String?> _guardCompanyService(Future<void> Function() action) async {

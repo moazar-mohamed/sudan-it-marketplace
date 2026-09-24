@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/arabic_text.dart';
+import '../../../categories/domain/entities/category.dart';
+import '../../../categories/presentation/category_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../companies/presentation/widgets/company_card.dart';
 import '../../../products/presentation/products_providers.dart';
@@ -28,6 +30,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
   // which the sibling IndexedStack tabs also attach to.
   final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
+  String? _categoryFilter;
   _HomeTab _selectedTab = _HomeTab.products;
 
   @override
@@ -64,6 +67,25 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
     final horizontalPadding = screenWidth < 360 ? 12.0 : 16.0;
     final mockCompanies = ref.watch(marketplaceCompaniesProvider);
     final mockProducts = ref.watch(marketplaceProductsProvider);
+    final categoryNames = ref.watch(categoryNamesProvider);
+    final allCategories =
+        ref.watch(allCategoriesProvider).asData?.value ?? const <Category>[];
+
+    // Only active categories that at least one listed product uses become
+    // filter chips, so a chip never leads to an empty list.
+    final usedCategoryIds = {
+      for (final product in mockProducts)
+        if (product.categoryId != null) product.categoryId,
+    };
+    final filterCategories = [
+      for (final category in allCategories)
+        if (category.isActive && usedCategoryIds.contains(category.id))
+          category,
+    ];
+    final activeFilter =
+        filterCategories.any((category) => category.id == _categoryFilter)
+            ? _categoryFilter
+            : null;
 
     final filteredCompanies = _searchQuery.isEmpty
         ? mockCompanies
@@ -72,12 +94,15 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
                 normalizeSearchText(company.name).contains(_searchQuery))
             .toList();
 
-    final filteredProducts = _searchQuery.isEmpty
-        ? mockProducts
-        : mockProducts
-            .where((product) =>
-                normalizeSearchText(product.name).contains(_searchQuery))
-            .toList();
+    final filteredProducts = mockProducts.where((product) {
+      if (activeFilter != null && product.categoryId != activeFilter) {
+        return false;
+      }
+      if (_searchQuery.isEmpty) return true;
+      return normalizeSearchText(product.name).contains(_searchQuery) ||
+          normalizeSearchText(categoryNames[product.categoryId] ?? '')
+              .contains(_searchQuery);
+    }).toList();
 
     final isProductsTab = _selectedTab == _HomeTab.products;
     final isServicesTab = _selectedTab == _HomeTab.services;
@@ -140,6 +165,29 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           ],
         ),
         const SizedBox(height: 16),
+        if (isProductsTab && filterCategories.isNotEmpty) ...[
+          SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _CategoryFilterChip(
+                  label: context.l10n.homeFilterAllCategories,
+                  selected: activeFilter == null,
+                  onSelected: () => setState(() => _categoryFilter = null),
+                ),
+                for (final category in filterCategories)
+                  _CategoryFilterChip(
+                    label: category.name,
+                    selected: activeFilter == category.id,
+                    onSelected: () =>
+                        setState(() => _categoryFilter = category.id),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         if (isProductsTab)
           if (filteredProducts.isEmpty)
             Padding(
@@ -157,7 +205,10 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             Column(
               children: [
                 for (int i = 0; i < filteredProducts.length; i++) ...[
-                  ProductCard(product: filteredProducts[i]),
+                  ProductCard(
+                    product: filteredProducts[i],
+                    categoryName: categoryNames[filteredProducts[i].categoryId],
+                  ),
                   if (i < filteredProducts.length - 1)
                     const SizedBox(height: 10),
                 ],
@@ -261,6 +312,30 @@ class _ServicesList extends ConsumerWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _CategoryFilterChip extends StatelessWidget {
+  const _CategoryFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onSelected(),
+      ),
     );
   }
 }

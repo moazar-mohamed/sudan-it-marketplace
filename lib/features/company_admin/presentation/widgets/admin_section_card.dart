@@ -114,10 +114,14 @@ class AdminEmptyState extends StatelessWidget {
     super.key,
     required this.icon,
     required this.message,
+    this.action,
   });
 
   final IconData icon;
   final String message;
+
+  /// Optional call to action shown under the message.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +140,10 @@ class AdminEmptyState extends StatelessWidget {
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
           ),
+          if (action != null) ...[
+            const SizedBox(height: 16),
+            action!,
+          ],
         ],
       ),
     );

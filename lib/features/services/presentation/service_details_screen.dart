@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../categories/presentation/category_providers.dart';
 import '../../company_services/presentation/company_service_providers.dart';
 import '../domain/entities/catalog_service.dart';
-import 'service_providers.dart';
 import 'widgets/service_offer_card.dart';
 
 /// A catalogue service and the active companies a customer can request it

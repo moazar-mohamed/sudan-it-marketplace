@@ -7,6 +7,7 @@ class Product {
     this.imageUrl,
     this.companyId,
     this.companyName,
+    this.categoryId,
     this.description,
     this.inStock = true,
     this.stockCount = 10,
@@ -27,6 +28,11 @@ class Product {
   final String? imageUrl;
   final String? companyId;
   final String? companyName;
+
+  /// References the official `categories` collection managed by Platform
+  /// Admin. `null` means the product has no category yet (legacy data);
+  /// existing products are never migrated automatically.
+  final String? categoryId;
   final String? description;
   final bool inStock;
   final int stockCount;
@@ -60,6 +66,7 @@ class Product {
         imageUrl: imageUrl,
         companyId: companyId,
         companyName: companyName,
+        categoryId: categoryId,
         description: description,
         inStock: inStock,
         stockCount: stockCount,

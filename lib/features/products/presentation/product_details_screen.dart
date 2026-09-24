@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../companies/domain/entities/company.dart';
+import '../../categories/presentation/category_providers.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../companies/presentation/company_details_screen.dart';
 import '../../customer_dashboard/data/mock_marketplace_data.dart';
@@ -135,6 +136,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     final quantity = _effectiveQuantity(stock);
     final unitPrice = stock.price;
     final totalPrice = unitPrice == null ? null : unitPrice * quantity;
+    final categoryName =
+        ref.watch(categoryNamesProvider)[widget.product.categoryId]?.trim() ??
+            '';
 
     return Scaffold(
       appBar: AppBar(
@@ -228,6 +232,22 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 color: colorScheme.onSurface,
               ),
             ),
+            if (categoryName.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Chip(
+                  label: Text(categoryName),
+                  visualDensity: VisualDensity.compact,
+                  side: BorderSide.none,
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                  labelStyle: textTheme.labelMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             // Price
             Text(

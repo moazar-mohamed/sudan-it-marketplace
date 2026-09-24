@@ -10,10 +10,12 @@ class ProductCard extends StatelessWidget {
     super.key,
     required this.product,
     this.openedFromCompany = false,
+    this.categoryName,
   });
 
   final Product product;
   final bool openedFromCompany;
+  final String? categoryName;
 
   String _formatPrice(double price) {
     final parts = price.toStringAsFixed(0).split('.');
@@ -49,6 +51,7 @@ class ProductCard extends StatelessWidget {
     final isCompact = screenWidth < 360;
     final imageSize = isCompact ? 44.0 : 52.0;
     final cardPadding = isCompact ? 12.0 : 14.0;
+    final category = categoryName?.trim() ?? '';
 
     return Material(
       color: colorScheme.surface,
@@ -102,6 +105,18 @@ class ProductCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (category.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        category,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 6),
                     Text(
                       product.price == null

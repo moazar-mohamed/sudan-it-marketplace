@@ -1492,6 +1492,101 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formProductNameRequired => 'اسم المنتج مطلوب.';
 
   @override
+  String get formCategoryLabel => 'الفئة';
+
+  @override
+  String adminUnitsLeft(int count) {
+    return 'المتبقي $count';
+  }
+
+  @override
+  String get adminStockLow => 'مخزون منخفض';
+
+  @override
+  String get adminAttentionRestock => 'أعد التخزين';
+
+  @override
+  String get adminAttentionAssignTechnician => 'عيّن فنياً';
+
+  @override
+  String get adminAttentionVerifyPayment => 'تحقق من الدفع';
+
+  @override
+  String get adminQuickTechnician => 'فني';
+
+  @override
+  String get adminQuickService => 'خدمة';
+
+  @override
+  String get adminQuickProduct => 'منتج';
+
+  @override
+  String get adminStatLowStock => 'مخزون منخفض';
+
+  @override
+  String get adminStatSalesWeek => 'مبيعات الأسبوع';
+
+  @override
+  String get adminStatNewOrders => 'طلبات جديدة';
+
+  @override
+  String get adminNothingToDo => 'لا شيء يحتاج انتباهك الآن.';
+
+  @override
+  String get adminNeedsAttention => 'يحتاج انتباهك';
+
+  @override
+  String get adminMenuTitle => 'القائمة';
+
+  @override
+  String get adminSearchOrders => 'ابحث بالمنتج أو العميل';
+
+  @override
+  String get adminSearchProducts => 'ابحث في المنتجات';
+
+  @override
+  String get adminServiceOwnBadge => 'أنشأتها أنت';
+
+  @override
+  String get adminServiceCategoryInvalid => 'اختر فئة صالحة.';
+
+  @override
+  String get adminServiceCategoryRequired => 'اختر فئة.';
+
+  @override
+  String get adminServiceDescriptionLabel => 'الوصف';
+
+  @override
+  String get adminServiceNameRequired => 'اسم الخدمة مطلوب.';
+
+  @override
+  String get adminServiceNameLabel => 'اسم الخدمة';
+
+  @override
+  String get adminServiceFormEditTitle => 'تعديل الخدمة';
+
+  @override
+  String get adminServiceCreateFirst => 'أنشئ أول خدمة';
+
+  @override
+  String get adminServiceNew => 'خدمة جديدة';
+
+  @override
+  String get adminServicesYours => 'خدماتك';
+
+  @override
+  String get formCategoryInactiveSuffix => '(غير نشطة)';
+
+  @override
+  String get formCategoryNone => 'بدون فئة';
+
+  @override
+  String get homeFilterAllCategories => 'الكل';
+
+  @override
+  String get adminProductUncategorized => 'بدون فئة';
+
+  @override
   String get formPriceOptional => 'السعر (SDG) - اختياري';
 
   @override
@@ -2004,10 +2099,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get adminServicesOfferedEmpty =>
-      'لا تقدم أي خدمة بعد. أضفها من القائمة أدناه.';
+      'لا تقدم أي خدمة بعد. أنشئ خدمة لتبدأ باستقبال الطلبات.';
 
   @override
-  String get adminServicesAvailable => 'إضافة خدمات';
+  String get adminServicesAvailable => 'من كتالوج المنصة';
 
   @override
   String get adminServicesCatalogueEmpty => 'دليل الخدمات فارغ حاليًا.';

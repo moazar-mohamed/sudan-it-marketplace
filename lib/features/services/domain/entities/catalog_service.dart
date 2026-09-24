@@ -6,6 +6,7 @@ class CatalogService {
     required this.description,
     required this.isActive,
     required this.createdAt,
+    this.ownerCompanyId,
   });
 
   final String id;
@@ -14,4 +15,10 @@ class CatalogService {
   final String description;
   final bool isActive;
   final DateTime createdAt;
+
+  /// The company that created this service itself; `null` for a Platform
+  /// Admin catalogue service.
+  final String? ownerCompanyId;
+
+  bool get isCompanyOwned => ownerCompanyId != null;
 }

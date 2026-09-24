@@ -1507,6 +1507,101 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formProductNameRequired => 'Product name is required.';
 
   @override
+  String get formCategoryLabel => 'Category';
+
+  @override
+  String adminUnitsLeft(int count) {
+    return '$count left';
+  }
+
+  @override
+  String get adminStockLow => 'Low stock';
+
+  @override
+  String get adminAttentionRestock => 'Restock';
+
+  @override
+  String get adminAttentionAssignTechnician => 'Assign technician';
+
+  @override
+  String get adminAttentionVerifyPayment => 'Verify payment';
+
+  @override
+  String get adminQuickTechnician => 'Technician';
+
+  @override
+  String get adminQuickService => 'Service';
+
+  @override
+  String get adminQuickProduct => 'Product';
+
+  @override
+  String get adminStatLowStock => 'Low stock';
+
+  @override
+  String get adminStatSalesWeek => 'Sales this week';
+
+  @override
+  String get adminStatNewOrders => 'New orders';
+
+  @override
+  String get adminNothingToDo => 'Nothing needs your attention right now.';
+
+  @override
+  String get adminNeedsAttention => 'Needs your attention';
+
+  @override
+  String get adminMenuTitle => 'Menu';
+
+  @override
+  String get adminSearchOrders => 'Search by product or customer';
+
+  @override
+  String get adminSearchProducts => 'Search products';
+
+  @override
+  String get adminServiceOwnBadge => 'Created by you';
+
+  @override
+  String get adminServiceCategoryInvalid => 'Choose a valid category.';
+
+  @override
+  String get adminServiceCategoryRequired => 'Choose a category.';
+
+  @override
+  String get adminServiceDescriptionLabel => 'Description';
+
+  @override
+  String get adminServiceNameRequired => 'Service name is required.';
+
+  @override
+  String get adminServiceNameLabel => 'Service name';
+
+  @override
+  String get adminServiceFormEditTitle => 'Edit service';
+
+  @override
+  String get adminServiceCreateFirst => 'Create your first service';
+
+  @override
+  String get adminServiceNew => 'New service';
+
+  @override
+  String get adminServicesYours => 'Your services';
+
+  @override
+  String get formCategoryInactiveSuffix => '(inactive)';
+
+  @override
+  String get formCategoryNone => 'No category';
+
+  @override
+  String get homeFilterAllCategories => 'All';
+
+  @override
+  String get adminProductUncategorized => 'No category';
+
+  @override
   String get formPriceOptional => 'Price (SDG) - optional';
 
   @override
@@ -2027,10 +2122,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminServicesOfferedEmpty =>
-      'You do not offer any services yet. Add them from the list below.';
+      'You do not offer any services yet. Create one to start receiving requests.';
 
   @override
-  String get adminServicesAvailable => 'Add services';
+  String get adminServicesAvailable => 'From the platform catalogue';
 
   @override
   String get adminServicesCatalogueEmpty =>

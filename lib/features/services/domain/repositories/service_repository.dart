@@ -11,6 +11,7 @@ abstract class ServiceRepository {
     required String categoryId,
     required String name,
     required String description,
+    String? ownerCompanyId,
   });
 
   Future<void> updateService({

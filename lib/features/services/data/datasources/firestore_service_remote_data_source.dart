@@ -63,6 +63,7 @@ class FirestoreServiceRemoteDataSource implements ServiceRemoteDataSource {
     required String categoryId,
     required String name,
     required String description,
+    String? ownerCompanyId,
   }) {
     return _run(() async {
       final resolvedCategoryId = categoryId.trim();
@@ -76,6 +77,7 @@ class FirestoreServiceRemoteDataSource implements ServiceRemoteDataSource {
         description: description.trim(),
         isActive: true,
         createdAt: DateTime.now().toUtc(),
+        ownerCompanyId: ownerCompanyId,
       );
       await doc.set({
         ...model.toFirestoreMap(),

@@ -20,6 +20,10 @@ class CompanyServicesTab extends StatelessWidget {
           Material(
             color: Theme.of(context).colorScheme.surface,
             child: TabBar(
+              dividerColor: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.08),
               tabs: [
                 Tab(text: context.l10n.adminServiceRequestsTab),
                 Tab(text: context.l10n.adminMyServicesTab),

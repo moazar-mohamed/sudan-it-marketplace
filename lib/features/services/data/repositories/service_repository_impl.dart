@@ -32,12 +32,14 @@ class ServiceRepositoryImpl implements ServiceRepository {
     required String categoryId,
     required String name,
     required String description,
+    String? ownerCompanyId,
   }) {
     return _run(
       () => _remoteDataSource.createService(
         categoryId: categoryId,
         name: name,
         description: description,
+        ownerCompanyId: ownerCompanyId,
       ),
     );
   }

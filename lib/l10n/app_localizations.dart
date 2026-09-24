@@ -2738,6 +2738,192 @@ abstract class AppLocalizations {
   /// **'Product name is required.'**
   String get formProductNameRequired;
 
+  /// No description provided for @formCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get formCategoryLabel;
+
+  /// No description provided for @adminUnitsLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} left'**
+  String adminUnitsLeft(int count);
+
+  /// No description provided for @adminStockLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low stock'**
+  String get adminStockLow;
+
+  /// No description provided for @adminAttentionRestock.
+  ///
+  /// In en, this message translates to:
+  /// **'Restock'**
+  String get adminAttentionRestock;
+
+  /// No description provided for @adminAttentionAssignTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign technician'**
+  String get adminAttentionAssignTechnician;
+
+  /// No description provided for @adminAttentionVerifyPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify payment'**
+  String get adminAttentionVerifyPayment;
+
+  /// No description provided for @adminQuickTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get adminQuickTechnician;
+
+  /// No description provided for @adminQuickService.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get adminQuickService;
+
+  /// No description provided for @adminQuickProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Product'**
+  String get adminQuickProduct;
+
+  /// No description provided for @adminStatLowStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Low stock'**
+  String get adminStatLowStock;
+
+  /// No description provided for @adminStatSalesWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales this week'**
+  String get adminStatSalesWeek;
+
+  /// No description provided for @adminStatNewOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'New orders'**
+  String get adminStatNewOrders;
+
+  /// No description provided for @adminNothingToDo.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs your attention right now.'**
+  String get adminNothingToDo;
+
+  /// No description provided for @adminNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs your attention'**
+  String get adminNeedsAttention;
+
+  /// No description provided for @adminMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get adminMenuTitle;
+
+  /// No description provided for @adminSearchOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by product or customer'**
+  String get adminSearchOrders;
+
+  /// No description provided for @adminSearchProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Search products'**
+  String get adminSearchProducts;
+
+  /// No description provided for @adminServiceOwnBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by you'**
+  String get adminServiceOwnBadge;
+
+  /// No description provided for @adminServiceCategoryInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a valid category.'**
+  String get adminServiceCategoryInvalid;
+
+  /// No description provided for @adminServiceCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a category.'**
+  String get adminServiceCategoryRequired;
+
+  /// No description provided for @adminServiceDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get adminServiceDescriptionLabel;
+
+  /// No description provided for @adminServiceNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Service name is required.'**
+  String get adminServiceNameRequired;
+
+  /// No description provided for @adminServiceNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Service name'**
+  String get adminServiceNameLabel;
+
+  /// No description provided for @adminServiceFormEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit service'**
+  String get adminServiceFormEditTitle;
+
+  /// No description provided for @adminServiceCreateFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first service'**
+  String get adminServiceCreateFirst;
+
+  /// No description provided for @adminServiceNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New service'**
+  String get adminServiceNew;
+
+  /// No description provided for @adminServicesYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your services'**
+  String get adminServicesYours;
+
+  /// No description provided for @formCategoryInactiveSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'(inactive)'**
+  String get formCategoryInactiveSuffix;
+
+  /// No description provided for @formCategoryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No category'**
+  String get formCategoryNone;
+
+  /// No description provided for @homeFilterAllCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get homeFilterAllCategories;
+
+  /// No description provided for @adminProductUncategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'No category'**
+  String get adminProductUncategorized;
+
   /// No description provided for @formPriceOptional.
   ///
   /// In en, this message translates to:
@@ -3689,13 +3875,13 @@ abstract class AppLocalizations {
   /// No description provided for @adminServicesOfferedEmpty.
   ///
   /// In en, this message translates to:
-  /// **'You do not offer any services yet. Add them from the list below.'**
+  /// **'You do not offer any services yet. Create one to start receiving requests.'**
   String get adminServicesOfferedEmpty;
 
   /// No description provided for @adminServicesAvailable.
   ///
   /// In en, this message translates to:
-  /// **'Add services'**
+  /// **'From the platform catalogue'**
   String get adminServicesAvailable;
 
   /// No description provided for @adminServicesCatalogueEmpty.

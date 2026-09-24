@@ -329,6 +329,7 @@ service cloud.firestore {
         'name',
         'description',
         'isActive',
+        'ownerCompanyId',
         'createdAt'
       ]);
     }
@@ -342,6 +343,11 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && request.resource.data.description is string
         && request.resource.data.isActive is bool
+        // Optional: the company that created this service itself. Absent or
+        // null means a Platform Admin catalogue service.
+        && (request.resource.data.get('ownerCompanyId', null) == null
+          || (request.resource.data.ownerCompanyId is string
+            && request.resource.data.ownerCompanyId.size() > 0))
         && request.resource.data.createdAt is timestamp;
     }
 
@@ -357,6 +363,36 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['categoryId', 'name', 'description', 'isActive']);
+    }
+
+    // A category a company may assign to its own service: it must exist and
+    // be active (get() fails, denying the write, when it does not exist).
+    function isActiveCategory(categoryId) {
+      return get(/databases/$(database)/documents/categories/$(categoryId))
+        .data.isActive == true;
+    }
+
+    // A company admin creates a service of their own company: it is owned by
+    // that company and starts active in an active category.
+    function isCompanyOwnServiceCreate(serviceId) {
+      let owner = request.resource.data.get('ownerCompanyId', null);
+      return owner is string
+        && isCompanyAdminOf(owner)
+        && isValidServiceCreate(serviceId)
+        && isActiveCategory(request.resource.data.categoryId);
+    }
+
+    // A company admin edits only a service their own company created (never
+    // a Platform Admin catalogue service), and can only move it to an active
+    // category. The owner can never change.
+    function isCompanyOwnServiceUpdate(serviceId) {
+      let owner = resource.data.get('ownerCompanyId', null);
+      return owner is string
+        && isCompanyAdminOf(owner)
+        && isSafeServiceUpdate(serviceId)
+        && request.resource.data.get('ownerCompanyId', null) == owner
+        && (request.resource.data.categoryId == resource.data.categoryId
+          || isActiveCategory(request.resource.data.categoryId));
     }
 
     function hasRequiredCompanyServiceKeys() {
@@ -459,12 +495,16 @@ service cloud.firestore {
     match /services/{serviceId} {
       allow get, list: if isSignedIn();
 
-      allow create: if isPlatformAdmin()
-        && request.resource.data.id == serviceId
-        && isValidServiceCreate(serviceId);
+      allow create: if (isPlatformAdmin()
+          && request.resource.data.id == serviceId
+          && request.resource.data.get('ownerCompanyId', null) == null
+          && isValidServiceCreate(serviceId))
+        || (request.resource.data.id == serviceId
+          && isCompanyOwnServiceCreate(serviceId));
 
-      allow update: if isPlatformAdmin()
-        && isSafeServiceUpdate(serviceId);
+      allow update: if (isPlatformAdmin()
+          && isSafeServiceUpdate(serviceId))
+        || isCompanyOwnServiceUpdate(serviceId);
 
       allow delete: if false;
     }
@@ -696,6 +736,7 @@ service cloud.firestore {
         'id',
         'companyId',
         'companyName',
+        'categoryId',
         'name',
         'imageUrl',
         'price',
@@ -723,6 +764,10 @@ service cloud.firestore {
         && data.name.size() > 0
         && data.name.size() <= 200
         && data.imageUrl is string
+        // Optional reference into the official categories collection, owned
+        // solely by Platform Admin. Absent/null means uncategorized.
+        && (data.get('categoryId', null) == null
+          || (data.categoryId is string && data.categoryId.size() > 0))
         // Optional: absent/null means "price on request". A given price must
         // still be a positive number; 0 is never stored as a stand-in.
         && (data.get('price', null) == null
@@ -743,19 +788,34 @@ service cloud.firestore {
         && data.updatedAt == request.time;
     }
 
+    // A category assignment must point at a category that exists and is
+    // currently active (get() fails, denying the write, when it does not
+    // exist). Only checked when the category is being newly
+    // assigned or changed, so a product already pointing at a category the
+    // Platform Admin later deactivates keeps its reference and can still be
+    // edited (stock, price, etc.) without being forced off that category.
+    function isValidProductCategoryAssignment(previousCategoryId) {
+      let categoryId = request.resource.data.get('categoryId', null);
+      return categoryId == null
+        || categoryId == previousCategoryId
+        || get(/databases/$(database)/documents/categories/$(categoryId)).data.isActive == true;
+    }
+
     match /products/{productId} {
       allow get, list: if isSignedIn();
 
       allow create: if isCompanyAdminOf(request.resource.data.companyId)
         && request.resource.data.id == productId
         && request.resource.data.createdAt == request.time
-        && isValidProductData();
+        && isValidProductData()
+        && isValidProductCategoryAssignment(null);
 
       allow update: if (isCompanyAdminOf(resource.data.companyId)
           && request.resource.data.id == resource.data.id
           && request.resource.data.companyId == resource.data.companyId
           && request.resource.data.createdAt == resource.data.createdAt
-          && isValidProductData())
+          && isValidProductData()
+          && isValidProductCategoryAssignment(resource.data.get('categoryId', null)))
         || isStockReservation(productId);
 
       // A company admin deletes their own products. Platform Admin can remove

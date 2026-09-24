@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/arabic_text.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/orders_providers.dart';
 import '../widgets/admin_section_card.dart';
@@ -21,6 +22,7 @@ class CompanyOrdersTab extends ConsumerStatefulWidget {
 class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
   /// null shows all orders; otherwise only orders with this status.
   OrderStatus? _statusFilter;
+  String _query = '';
 
   @override
   Widget build(BuildContext context) {
@@ -35,26 +37,45 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
             ref.invalidate(companyOrdersStreamProvider(widget.companyId)),
       ),
       data: (orders) {
-        final visible = _statusFilter == null
-            ? orders
-            : orders.where((o) => o.orderStatus == _statusFilter).toList();
+        final query = normalizeSearchText(_query);
+        final visible = orders
+            .where((o) => _statusFilter == null || o.orderStatus == _statusFilter)
+            .where(
+              (o) =>
+                  query.isEmpty ||
+                  normalizeSearchText(o.productName).contains(query) ||
+                  normalizeSearchText(o.customerName).contains(query),
+            )
+            .toList();
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _chip(context.l10n.adminFilterAll(orders.length), null),
-                for (final status in OrderStatus.values)
-                  _chip(
-                    context.l10n.adminFilterStatus(
-                      status.label(context.l10n),
-                      orders.where((o) => o.orderStatus == status).length,
+            TextField(
+              onChanged: (value) => setState(() => _query = value),
+              decoration: InputDecoration(
+                hintText: context.l10n.adminSearchOrders,
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 40,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _chip(context.l10n.adminFilterAll(orders.length), null),
+                  for (final status in OrderStatus.values)
+                    _chip(
+                      context.l10n.adminFilterStatus(
+                        status.label(context.l10n),
+                        orders.where((o) => o.orderStatus == status).length,
+                      ),
+                      status,
                     ),
-                    status,
-                  ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 12),
             if (visible.isEmpty)
@@ -84,10 +105,13 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
   }
 
   Widget _chip(String label, OrderStatus? status) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: _statusFilter == status,
-      onSelected: (_) => setState(() => _statusFilter = status),
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: _statusFilter == status,
+        onSelected: (_) => setState(() => _statusFilter = status),
+      ),
     );
   }
 }

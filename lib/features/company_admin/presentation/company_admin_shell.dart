@@ -10,6 +10,7 @@ import 'profile/company_profile_tab.dart';
 import 'services/company_services_tab.dart';
 import 'technicians/technicians_tab.dart';
 import '../../../core/localization/l10n_extension.dart';
+import '../../companies/presentation/companies_providers.dart';
 import '../../chats/domain/entities/chat_conversation.dart';
 import '../../chats/presentation/chat_providers.dart';
 import '../../chats/presentation/chats_list_screen.dart';
@@ -43,13 +44,13 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
 
   void _selectTab(int index) => setState(() => _currentIndex = index);
 
-  /// Bottom-bar slots: the four main sections, then "More" (installations,
-  /// technicians, profile), so the bar keeps five destinations and never
-  /// wraps on a phone.
+  /// Bottom-bar slots: Home, Orders, Products, Services, then "Menu"
+  /// (installations, technicians, company profile, settings), so the bar
+  /// keeps five destinations and never wraps on a phone.
   static const _barSections = [
     _Section.dashboard,
-    _Section.products,
     _Section.orders,
+    _Section.products,
     _Section.services,
   ];
 
@@ -80,6 +81,7 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
         l10n.navTechnicians,
       ),
       (_Section.profile, Icons.business_outlined, l10n.adminCompanyProfile),
+      (_settingsEntry, Icons.settings_outlined, l10n.settingsTitle),
     ];
     final selected = await showModalBottomSheet<int>(
       context: context,
@@ -104,8 +106,18 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
         );
       },
     );
-    if (selected != null && mounted) _selectTab(selected);
+    if (selected == null || !mounted) return;
+    if (selected == _settingsEntry) {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+      );
+      return;
+    }
+    _selectTab(selected);
   }
+
+  /// A Menu entry that opens a screen instead of switching section.
+  static const _settingsEntry = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +126,8 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
     final unreadChats = ref.watch(companyUnreadChatsCountProvider(companyId));
     final pendingRequests =
         ref.watch(companyPendingServiceRequestsCountProvider(companyId));
+    final companyName =
+        ref.watch(companyStreamProvider(companyId)).asData?.value?.name ?? '';
 
     final tabs = [
       CompanyDashboardTab(companyId: companyId, onSelectTab: _selectTab),
@@ -135,11 +149,12 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
             _Section.services => context.l10n.navServices,
             _Section.technicians => context.l10n.navTechnicians,
             _Section.profile => context.l10n.adminCompanyProfile,
-            _ => context.l10n.adminCompanyDashboard,
+            _ => companyName.isNotEmpty
+                ? companyName
+                : context.l10n.adminCompanyDashboard,
           },
         ),
         actions: [
-          const SettingsButton(),
           IconButton(
             tooltip: context.l10n.navChats,
             icon: Badge.count(
@@ -179,40 +194,40 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
         onDestinationSelected: _onBarSelected,
         backgroundColor: colorScheme.surface,
         indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
-        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: context.l10n.navDashboard,
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home_rounded),
+            label: context.l10n.navHome,
           ),
           NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
-            label: context.l10n.navProducts,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
+            icon: const Icon(Icons.receipt_long_outlined),
+            selectedIcon: const Icon(Icons.receipt_long),
             label: context.l10n.navOrders,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.inventory_2_outlined),
+            selectedIcon: const Icon(Icons.inventory_2),
+            label: context.l10n.navProducts,
           ),
           NavigationDestination(
             icon: Badge.count(
               count: pendingRequests,
               isLabelVisible: pendingRequests > 0,
-              child: const Icon(Icons.miscellaneous_services_outlined),
+              child: const Icon(Icons.design_services_outlined),
             ),
             selectedIcon: Badge.count(
               count: pendingRequests,
               isLabelVisible: pendingRequests > 0,
-              child: const Icon(Icons.miscellaneous_services),
+              child: const Icon(Icons.design_services),
             ),
             label: context.l10n.navServices,
           ),
           NavigationDestination(
             icon: const Icon(Icons.menu_rounded),
             selectedIcon: const Icon(Icons.menu_open_rounded),
-            label: context.l10n.navMore,
+            label: context.l10n.adminMenuTitle,
           ),
         ],
       ),

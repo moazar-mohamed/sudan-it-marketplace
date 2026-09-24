@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../companies/presentation/companies_providers.dart';
+import '../../../../core/localization/l10n_extension.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/orders_providers.dart';
+import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
+import '../company_admin_format.dart';
 import '../orders/company_order_details_screen.dart';
+import '../products/company_product_details_screen.dart';
+import '../products/product_form_screen.dart';
+import '../services/my_services_view.dart';
+import '../technicians/technician_form_screen.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/company_order_tile.dart';
-import '../../../../core/localization/l10n_extension.dart';
+import '../widgets/status_badge.dart';
+
+/// A product with this many units or fewer counts as low on stock.
+const lowStockThreshold = 3;
 
 class CompanyDashboardTab extends ConsumerWidget {
   const CompanyDashboardTab({
@@ -24,23 +34,64 @@ class CompanyDashboardTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final company = ref.watch(companyStreamProvider(companyId)).asData?.value;
     final productsAsync = ref.watch(companyProductsStreamProvider(companyId));
     final ordersAsync = ref.watch(companyOrdersStreamProvider(companyId));
 
     final orders = ordersAsync.asData?.value ?? const <OrderEntity>[];
-    final pendingOrders = orders
+    final products = productsAsync.asData?.value ?? const <Product>[];
+    final open = orders
         .where((order) => order.orderStatus != OrderStatus.completed)
-        .length;
-    final recentOrders = orders.take(5).toList();
+        .toList();
+    final newOrders =
+        orders.where((o) => o.orderStatus == OrderStatus.processing).length;
+    final installJobs = open.where((o) => o.installationSelected).length;
+    final weekAgo = DateTime.now().subtract(const Duration(days: 7));
+    final weekSales = orders
+        .where((o) => o.createdAt.isAfter(weekAgo))
+        .fold<double>(0, (sum, o) => sum + o.totalAmount);
+    final lowStock =
+        products.where((p) => p.stockCount <= lowStockThreshold).toList();
 
-    String count<T>(AsyncValue<List<T>> value) {
-      if (value.hasError && !value.hasValue) {
-        return '–';
-      }
-      final items = value.asData?.value;
-      return items == null ? '…' : '${items.length}';
-    }
+    final attention = <Widget>[
+      for (final order in open)
+        if (order.paymentStatus == PaymentStatus.pendingVerification)
+          _AttentionRow(
+            icon: Icons.receipt_long_outlined,
+            title: '${order.productName} · #${order.shortId}',
+            subtitle: CompanyAdminFormat.customer(order, context.l10n),
+            label: context.l10n.adminAttentionVerifyPayment,
+            color: Colors.orange,
+            onTap: () => _openOrder(context, order),
+          ),
+      for (final order in open)
+        if (order.installationSelected && order.technicianId == null)
+          _AttentionRow(
+            icon: Icons.handyman_outlined,
+            title: '${order.productName} · #${order.shortId}',
+            subtitle: CompanyAdminFormat.customer(order, context.l10n),
+            label: context.l10n.adminAttentionAssignTechnician,
+            color: AppColors.primary,
+            onTap: () => _openOrder(context, order),
+          ),
+      for (final product in lowStock)
+        _AttentionRow(
+          icon: Icons.inventory_2_outlined,
+          title: product.name,
+          subtitle: context.l10n.adminUnitsLeft(product.stockCount),
+          label: context.l10n.adminAttentionRestock,
+          color: Colors.orange,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => CompanyProductDetailsScreen(
+                companyId: companyId,
+                productId: product.id,
+              ),
+            ),
+          ),
+        ),
+    ];
+
+    final recentOrders = orders.take(3).toList();
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -50,51 +101,35 @@ class CompanyDashboardTab extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          Text(
-            company?.name.isNotEmpty == true ? company!.name : context.l10n.adminWelcome,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            context.l10n.adminDashboardOverview,
-            style: textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-            ),
-          ),
-          const SizedBox(height: 16),
           LayoutBuilder(
             builder: (context, constraints) {
               final tileWidth = (constraints.maxWidth - 12) / 2;
               final tiles = [
                 _StatTile(
-                  label: context.l10n.adminTotalProducts,
-                  value: count(productsAsync),
-                  icon: Icons.inventory_2_outlined,
-                  onTap: () => onSelectTab?.call(1),
-                ),
-                _StatTile(
-                  label: context.l10n.adminTotalOrders,
-                  value: count(ordersAsync),
+                  label: context.l10n.adminStatNewOrders,
+                  value: ordersAsync.hasValue ? '$newOrders' : '…',
                   icon: Icons.receipt_long_outlined,
                   onTap: () => onSelectTab?.call(2),
                 ),
                 _StatTile(
-                  label: context.l10n.adminPendingOrders,
-                  value: ordersAsync.hasValue ? '$pendingOrders' : '…',
-                  icon: Icons.pending_actions_outlined,
+                  label: context.l10n.adminInstallationJobs,
+                  value: ordersAsync.hasValue ? '$installJobs' : '…',
+                  icon: Icons.handyman_outlined,
+                  onTap: () => onSelectTab?.call(3),
+                ),
+                _StatTile(
+                  label: context.l10n.adminStatSalesWeek,
+                  value: ordersAsync.hasValue
+                      ? CompanyAdminFormat.price(weekSales)
+                      : '…',
+                  icon: Icons.trending_up,
                   onTap: () => onSelectTab?.call(2),
                 ),
                 _StatTile(
-                  label: context.l10n.adminInstallationJobs,
-                  value: ordersAsync.hasValue
-                      ? '${orders.where((o) => o.installationSelected).length}'
-                      : '…',
-                  icon: Icons.handyman_outlined,
-                  onTap: () => onSelectTab?.call(3),
+                  label: context.l10n.adminStatLowStock,
+                  value: productsAsync.hasValue ? '${lowStock.length}' : '…',
+                  icon: Icons.inventory_2_outlined,
+                  onTap: () => onSelectTab?.call(1),
                 ),
               ];
               return Wrap(
@@ -107,6 +142,77 @@ class CompanyDashboardTab extends ConsumerWidget {
               );
             },
           ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _QuickAction(
+                  icon: Icons.add_box_outlined,
+                  label: context.l10n.adminQuickProduct,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => ProductFormScreen.add(companyId: companyId),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _QuickAction(
+                  icon: Icons.design_services_outlined,
+                  label: context.l10n.adminQuickService,
+                  onTap: () => showCreateOwnService(context, ref, companyId),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _QuickAction(
+                  icon: Icons.engineering_outlined,
+                  label: context.l10n.adminQuickTechnician,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          TechnicianFormScreen.add(companyId: companyId),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Text(
+            context.l10n.adminNeedsAttention,
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          if (attention.isEmpty)
+            AdminEmptyState(
+              icon: Icons.check_circle_outline,
+              message: context.l10n.adminNothingToDo,
+            )
+          else
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                ),
+              ),
+              child: Column(
+                children: [
+                  for (var i = 0; i < attention.length && i < 5; i++) ...[
+                    if (i > 0)
+                      Divider(
+                        height: 1,
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                      ),
+                    attention[i],
+                  ],
+                ],
+              ),
+            ),
           const SizedBox(height: 24),
           Row(
             children: [
@@ -145,14 +251,7 @@ class CompanyDashboardTab extends ConsumerWidget {
                       for (final order in recentOrders) ...[
                         CompanyOrderTile(
                           order: order,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => CompanyOrderDetailsScreen(
-                                companyId: companyId,
-                                orderId: order.id,
-                              ),
-                            ),
-                          ),
+                          onTap: () => _openOrder(context, order),
                         ),
                         const SizedBox(height: 10),
                       ],
@@ -160,6 +259,17 @@ class CompanyDashboardTab extends ConsumerWidget {
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openOrder(BuildContext context, OrderEntity order) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CompanyOrderDetailsScreen(
+          companyId: companyId,
+          orderId: order.id,
+        ),
       ),
     );
   }
@@ -199,14 +309,17 @@ class _StatTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: colorScheme.primary),
-              const SizedBox(height: 10),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
+              Icon(icon, color: colorScheme.primary, size: 22),
+              const SizedBox(height: 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               const SizedBox(height: 2),
@@ -220,6 +333,110 @@ class _StatTile extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickAction extends StatelessWidget {
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: colorScheme.primary.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          child: Column(
+            children: [
+              Icon(icon, color: colorScheme.primary),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AttentionRow extends StatelessWidget {
+  const _AttentionRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Icon(icon, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Flexible(child: StatusBadge(label: label, color: color)),
+          ],
         ),
       ),
     );

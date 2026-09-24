@@ -8,6 +8,7 @@ class CatalogServiceModel extends CatalogService {
     required super.description,
     required super.isActive,
     required super.createdAt,
+    super.ownerCompanyId,
   });
 
   factory CatalogServiceModel.fromMap(String id, Map<String, dynamic> data) {
@@ -17,6 +18,7 @@ class CatalogServiceModel extends CatalogService {
       name: data['name'] as String? ?? '',
       description: data['description'] as String? ?? '',
       isActive: data['isActive'] as bool? ?? false,
+      ownerCompanyId: data['ownerCompanyId'] as String?,
       createdAt: data['createdAt'] is DateTime
           ? (data['createdAt'] as DateTime).toUtc()
           : DateTime.now().toUtc(),
@@ -30,6 +32,7 @@ class CatalogServiceModel extends CatalogService {
       'name': name,
       'description': description,
       'isActive': isActive,
+      if (ownerCompanyId != null) 'ownerCompanyId': ownerCompanyId,
     };
   }
 }
