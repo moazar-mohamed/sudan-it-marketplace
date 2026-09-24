@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/widgets/app_widgets.dart';
 import '../../data/location_service.dart';
 import '../../domain/geo_location.dart';
 import '../location_strings.dart';
@@ -37,21 +38,19 @@ class OpenLocationButton extends ConsumerWidget {
     final address = text?.trim() ?? '';
 
     if (exact != null) {
-      return SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          key: const Key('open-location-exact'),
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => LocationViewerScreen(
-                title: viewerTitle,
-                location: exact,
-                addressText: address,
-              ),
+      return AppButton.outlined(
+        key: const Key('open-location-exact'),
+        expand: true,
+        icon: Icons.location_on_outlined,
+        label: label,
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => LocationViewerScreen(
+              title: viewerTitle,
+              location: exact,
+              addressText: address,
             ),
           ),
-          icon: const Icon(Icons.location_on_outlined),
-          label: Text(label),
         ),
       );
     }
@@ -63,23 +62,19 @@ class OpenLocationButton extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            key: const Key('open-location-search'),
-            onPressed: () async {
-              final opened = await ref
-                  .read(externalMapLauncherProvider)
-                  .open(ExternalMapLauncher.searchUri(address));
-              if (!opened && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(strings.couldNotOpenMaps)),
-                );
-              }
-            },
-            icon: const Icon(Icons.search),
-            label: Text(label),
-          ),
+        AppButton.outlined(
+          key: const Key('open-location-search'),
+          expand: true,
+          icon: Icons.search,
+          label: label,
+          onPressed: () async {
+            final opened = await ref
+                .read(externalMapLauncherProvider)
+                .open(ExternalMapLauncher.searchUri(address));
+            if (!opened && context.mounted) {
+              showAppSnackBar(context, strings.couldNotOpenMaps);
+            }
+          },
         ),
         const SizedBox(height: 4),
         Text(

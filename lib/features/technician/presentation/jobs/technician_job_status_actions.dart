@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../technician_actions.dart';
 import '../technician_format.dart';
@@ -33,35 +36,20 @@ class _TechnicianJobStatusActionsState
       return;
     }
     setState(() => _isBusy = false);
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(error ?? success),
-          backgroundColor: error == null ? null : AppColors.error,
-        ),
-      );
+    showAppSnackBar(
+      context,
+      error ?? success,
+      tone: error == null ? AppTone.success : AppTone.error,
+    );
   }
 
-  Future<bool> _confirm(String title, String message) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(context.l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(context.l10n.commonConfirm),
-          ),
-        ],
-      ),
+  Future<bool> _confirm(String title, String message) {
+    return showConfirmationDialog(
+      context,
+      title: title,
+      body: message,
+      confirmLabel: context.l10n.commonConfirm,
     );
-    return result ?? false;
   }
 
   String _nextLabel(OrderStatus next) {
@@ -77,7 +65,6 @@ class _TechnicianJobStatusActionsState
     final order = widget.order;
     final actions = ref.read(technicianActionsProvider);
     final next = TechnicianFormat.nextStatus(order);
-    final textTheme = Theme.of(context).textTheme;
 
     return TechnicianSectionCard(
       title: context.l10n.adminJobStatus,
@@ -86,53 +73,35 @@ class _TechnicianJobStatusActionsState
           Row(
             children: [
               const Icon(Icons.check_circle_rounded, color: AppColors.success),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.s8),
               Expanded(
                 child: Text(
                   context.l10n.techJobCompleted,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.bodyStrong,
                 ),
               ),
             ],
           )
         else
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _isBusy
-                  ? null
-                  : () async {
-                      final l10n = context.l10n;
-                      final statusLabel = next.label(l10n);
-                      final ok = await _confirm(
-                        l10n.techUpdateJobStatus,
-                        l10n.techChangeJobBody(order.shortId, statusLabel),
-                      );
-                      if (ok) {
-                        await _run(
-                          () => actions.advanceJobStatus(order, next),
-                          l10n.techJobMarked(statusLabel),
-                        );
-                      }
-                    },
-              icon: _isBusy
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.onPrimary,
-                      ),
-                    )
-                  : const Icon(Icons.arrow_forward_rounded),
-              label: Text(
-                _nextLabel(next),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+          AppButton.primary(
+            expand: true,
+            icon: Icons.arrow_forward_rounded,
+            loading: _isBusy,
+            label: _nextLabel(next),
+            onPressed: () async {
+              final l10n = context.l10n;
+              final statusLabel = next.label(l10n);
+              final ok = await _confirm(
+                l10n.techUpdateJobStatus,
+                l10n.techChangeJobBody(order.shortId, statusLabel),
+              );
+              if (ok) {
+                await _run(
+                  () => actions.advanceJobStatus(order, next),
+                  l10n.techJobMarked(statusLabel),
+                );
+              }
+            },
           ),
       ],
     );

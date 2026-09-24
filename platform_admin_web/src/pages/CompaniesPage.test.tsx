@@ -190,11 +190,26 @@ describe('Delete', () => {
     expect(text).toContain('the company');
     expect(text).toContain('its company admin');
     expect(text).toContain('its employees / technicians');
-    expect(text).toContain('its technician invites');
-    expect(text).toContain('its 1 product(s) and other company-owned data');
+    expect(text).toContain('its 1 product(s) and other related company data');
     expect(text).toContain('Orders and order history will NOT be deleted');
     // and that an active company is deactivated first
     expect(text).toContain(en['companies.confirmDelete.activeNote']);
+  });
+
+  it('never mentions the retired technician-invite feature, in English or Arabic', () => {
+    // The cascade still cleans up leftover invite documents, but users are not
+    // told about a feature that no longer exists.
+    const keys = ['companies.confirmDelete.body', 'companies.deletedCascade'] as const;
+    for (const key of keys) {
+      expect(en[key]).not.toMatch(/invite/i);
+      expect(ar[key]).not.toContain('دعو');
+      expect(en[key]).not.toContain('{invites}');
+      expect(ar[key]).not.toContain('{invites}');
+    }
+    // the important promise stays in both languages
+    expect(en['companies.confirmDelete.body']).toContain('Orders and order history will NOT be deleted');
+    expect(ar['companies.confirmDelete.body']).toContain('الطلبات وسجل الطلبات لن تُحذف');
+    expect(ar['companies.confirmDelete.body']).toContain('البيانات المرتبطة بالشركة');
   });
 
   it('cancelling deletes nothing', () => {
@@ -276,7 +291,8 @@ describe('Arabic', () => {
     const text = dialog().textContent ?? '';
     expect(text).toContain('مدير الشركة');
     expect(text).toContain('موظفيها');
-    expect(text).toContain('دعوات الفنيين');
+    expect(text).toContain('البيانات المرتبطة بالشركة');
+    expect(text).not.toContain('دعوات');
     expect(text).toContain('الطلبات وسجل الطلبات لن تُحذف');
     expect(screen.queryByTestId('details')).toBeNull();
   });

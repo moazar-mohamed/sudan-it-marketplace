@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../companies/domain/entities/company.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../company_services/presentation/company_service_providers.dart';
 import '../../../service_requests/presentation/service_request_form_screen.dart';
 import '../../../service_requests/presentation/service_request_labels.dart';
@@ -23,30 +25,24 @@ class ServiceOfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
     final company = offer.company;
     final price = offer.offer.price;
     final note = offer.offer.noteText;
     final city = company.city?.trim() ?? '';
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.onSurface.withValues(alpha: 0.08),
-        ),
-      ),
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.s16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              _CompanyLogo(company: company),
-              const SizedBox(width: 12),
+              AppImageTile(
+                imageUrl: company.logoUrl,
+                fallbackText: company.name.isNotEmpty ? company.name : 'C',
+                size: 44,
+              ),
+              const SizedBox(width: AppSpacing.s12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,42 +51,35 @@ class ServiceOfferCard extends StatelessWidget {
                       company.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: AppTextStyles.bodyStrong,
                     ),
-                    const SizedBox(height: 4),
                     Row(
                       children: [
                         const Icon(
                           Icons.star_rounded,
-                          color: Colors.amber,
-                          size: 16,
+                          color: AppColors.warning,
+                          size: AppSize.iconMd,
                         ),
-                        const SizedBox(width: 3),
+                        const SizedBox(width: AppSpacing.s2),
                         Text(
                           company.rating.toStringAsFixed(1),
-                          style: textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: AppTextStyles.captionStrong,
                         ),
                         if (city.isNotEmpty) ...[
-                          const SizedBox(width: 10),
-                          Icon(
+                          const SizedBox(width: AppSpacing.s12),
+                          const Icon(
                             Icons.location_on_outlined,
-                            size: 15,
-                            color: colorScheme.onSurface.withValues(alpha: 0.5),
+                            size: AppSize.iconSm,
+                            color: AppColors.iconDefault,
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: AppSpacing.s2),
                           Flexible(
                             child: Text(
                               city,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurface
-                                    .withValues(alpha: 0.6),
-                              ),
+                              style: AppTextStyles.caption
+                                  .copyWith(color: AppColors.textSecondary),
                             ),
                           ),
                         ],
@@ -99,83 +88,42 @@ class ServiceOfferCard extends StatelessWidget {
                   ],
                 ),
               ),
+              // Only a price the company set is shown; nothing otherwise.
               if (price != null) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.s8),
                 Text(
                   formatServicePrice(price),
-                  style: textTheme.titleSmall?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: AppTextStyles.bodyStrong
+                      .copyWith(color: AppColors.textBrand),
                 ),
               ],
             ],
           ),
           if (note != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.s8),
             Text(
               note,
-              style: textTheme.bodySmall?.copyWith(
-                height: 1.45,
-                color: colorScheme.onSurface.withValues(alpha: 0.75),
-              ),
+              style: AppTextStyles.caption
+                  .copyWith(color: AppColors.textSecondary),
             ),
           ],
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              icon: const Icon(Icons.send_outlined, size: 18),
-              label: Text(context.l10n.serviceRequestAction),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => ServiceRequestFormScreen(
-                    service: service,
-                    offer: offer.offer,
-                    company: company,
-                  ),
+          const SizedBox(height: AppSpacing.s12),
+          AppButton.primary(
+            icon: Icons.send_outlined,
+            label: context.l10n.serviceRequestAction,
+            expand: true,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ServiceRequestFormScreen(
+                  service: service,
+                  offer: offer.offer,
+                  company: company,
                 ),
               ),
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _CompanyLogo extends StatelessWidget {
-  const _CompanyLogo({required this.company});
-
-  final Company company;
-
-  @override
-  Widget build(BuildContext context) {
-    final fallback = Center(
-      child: Text(
-        company.name.isNotEmpty ? company.name.substring(0, 1) : 'C',
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
-      ),
-    );
-    final logoUrl = company.logoUrl ?? '';
-    return Container(
-      width: 44,
-      height: 44,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: logoUrl.isEmpty
-          ? fallback
-          : Image.network(
-              logoUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => fallback,
-            ),
     );
   }
 }

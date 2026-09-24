@@ -40,8 +40,8 @@ Widget _detailsScreen(Product product, Stream<List<Product>> catalogue) {
   );
 }
 
-ElevatedButton _buyButton(WidgetTester tester) =>
-    tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+FilledButton _buyButton(WidgetTester tester) =>
+    tester.widget<FilledButton>(find.byType(FilledButton));
 
 void main() {
   group('marketplace visibility', () {

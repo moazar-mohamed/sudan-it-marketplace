@@ -4,6 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/orders_providers.dart';
 import '../widgets/technician_job_tile.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../widgets/technician_widgets.dart';
 import '../jobs/technician_job_details_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -23,10 +27,12 @@ class TechnicianDashboardTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final jobsAsync = ref.watch(technicianOrdersStreamProvider(technicianId));
-    final theme = Theme.of(context);
 
     return jobsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => ListView(
+        padding: const EdgeInsets.all(AppSpacing.s16),
+        children: const [AppSkeletonList()],
+      ),
       error: (_, _) => TechnicianErrorState(
         message: context.l10n.techDashboardLoadFailed,
         onRetry: () =>
@@ -47,66 +53,46 @@ class TechnicianDashboardTab extends ConsumerWidget {
             .take(5)
             .toList();
 
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          children: [
-            Text(
-              context.l10n.techWelcome(technicianName),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
+        Widget stat(String value, String label) => AppCard(
+              padding: const EdgeInsets.all(AppSpacing.s12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(value, style: AppTextStyles.stat),
+                  Text(
+                    label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.textSecondary),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 16),
+            );
+
+        return AppCenteredList(
+          children: [
+            Text(context.l10n.techWelcome(technicianName), style: AppTextStyles.h2),
+            const SizedBox(height: AppSpacing.s16),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Expanded(child: stat('${jobs.length}', context.l10n.techTotalJobs)),
+                const SizedBox(width: AppSpacing.s12),
+                Expanded(child: stat('$pending', context.l10n.jobStatusPending)),
+                const SizedBox(width: AppSpacing.s12),
                 Expanded(
-                  child: TechnicianSectionCard(
-                    children: [
-                      Text('${jobs.length}', style: theme.textTheme.headlineMedium),
-                      const SizedBox(height: 4),
-                      Text(context.l10n.techTotalJobs, style: theme.textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TechnicianSectionCard(
-                    children: [
-                      Text('$pending', style: theme.textTheme.headlineMedium),
-                      const SizedBox(height: 4),
-                      Text(context.l10n.jobStatusPending, style: theme.textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TechnicianSectionCard(
-                    children: [
-                      Text('$completed', style: theme.textTheme.headlineMedium),
-                      const SizedBox(height: 4),
-                      Text(context.l10n.orderStatusCompleted, style: theme.textTheme.bodySmall),
-                    ],
-                  ),
+                  child: stat('$completed', context.l10n.orderStatusCompleted),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Text(
-                  context.l10n.techUpcomingJobs,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: onSelectJobsTab,
-                  child: Text(context.l10n.adminViewAll),
-                ),
-              ],
+            const SizedBox(height: AppSpacing.s20),
+            SectionHeader(
+              title: context.l10n.techUpcomingJobs,
+              actionLabel: context.l10n.adminViewAll,
+              onAction: onSelectJobsTab,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.s8),
             if (upcoming.isEmpty)
               TechnicianEmptyState(
                 icon: Icons.check_circle_outline,
@@ -115,7 +101,7 @@ class TechnicianDashboardTab extends ConsumerWidget {
             else
               ...upcoming.map(
                 (job) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.s12),
                   child: TechnicianJobTile(
                     order: job,
                     onTap: () => Navigator.of(context).push(

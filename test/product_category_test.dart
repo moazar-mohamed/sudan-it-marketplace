@@ -1,3 +1,4 @@
+import 'helpers/field_finders.dart';
 import 'dart:async';
 
 import 'package:firebase_storage/firebase_storage.dart';
@@ -94,11 +95,11 @@ void main() {
 
     Future<void> fillRequiredFields(WidgetTester tester) async {
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Product Name'),
+        fieldWithLabel('Product Name'),
         'Router',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Stock Quantity'),
+        fieldWithLabel('Stock Quantity'),
         '5',
       );
     }
@@ -107,7 +108,7 @@ void main() {
         (tester) async {
       await pumpAdd(tester);
 
-      await tester.tap(find.text('Category'));
+      await tester.tap(find.byType(DropdownButtonFormField<String?>));
       await tester.pumpAndSettle();
 
       expect(find.text('Electronics'), findsOneWidget);
@@ -120,12 +121,12 @@ void main() {
       await pumpAdd(tester);
       await fillRequiredFields(tester);
 
-      await tester.tap(find.text('Category'));
+      await tester.tap(find.byType(DropdownButtonFormField<String?>));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Electronics').last);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Add Product'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Add Product'));
       await tester.pumpAndSettle();
 
       expect(repository.created, hasLength(1));
@@ -137,7 +138,7 @@ void main() {
       await pumpAdd(tester);
       await fillRequiredFields(tester);
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Add Product'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Add Product'));
       await tester.pumpAndSettle();
 
       expect(repository.created, hasLength(1));
@@ -172,9 +173,9 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.ensureVisible(
-        find.widgetWithText(ElevatedButton, 'Save changes'),
+        find.widgetWithText(FilledButton, 'Save changes'),
       );
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Save changes'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Save changes'));
       await tester.pumpAndSettle();
 
       expect(repository.updated.single.categoryId, isNull);
@@ -244,9 +245,9 @@ void main() {
       expect(find.textContaining('(inactive)'), findsOneWidget);
 
       await tester.ensureVisible(
-        find.widgetWithText(ElevatedButton, 'Save changes'),
+        find.widgetWithText(FilledButton, 'Save changes'),
       );
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Save changes'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Save changes'));
       await tester.pumpAndSettle();
 
       expect(repository.updated, hasLength(1));

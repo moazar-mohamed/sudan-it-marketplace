@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../service_requests/presentation/service_requests_list.dart';
 import 'my_services_view.dart';
 
@@ -13,33 +14,15 @@ class CompanyServicesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          Material(
-            color: Theme.of(context).colorScheme.surface,
-            child: TabBar(
-              dividerColor: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.08),
-              tabs: [
-                Tab(text: context.l10n.adminServiceRequestsTab),
-                Tab(text: context.l10n.adminMyServicesTab),
-              ],
-            ),
-          ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                ServiceRequestsList(asCompany: true, companyId: companyId),
-                MyServicesView(companyId: companyId),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return AppTabbedView(
+      labels: [
+        context.l10n.adminServiceRequestsTab,
+        context.l10n.adminMyServicesTab,
+      ],
+      children: [
+        ServiceRequestsList(asCompany: true, companyId: companyId),
+        MyServicesView(companyId: companyId),
+      ],
     );
   }
 }

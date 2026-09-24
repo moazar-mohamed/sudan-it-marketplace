@@ -1,3 +1,4 @@
+import 'helpers/field_finders.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -146,21 +147,21 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Service name'),
+      fieldWithLabel('Service name'),
       'CCTV installation',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Description'),
+      fieldWithLabel('Description'),
       'Cameras and cabling',
     );
-    await tester.tap(find.text('Category'));
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
     await tester.pumpAndSettle();
     // Only active categories are offered.
     expect(find.text('Retired'), findsNothing);
     await tester.tap(find.text('Security').last);
     await tester.pumpAndSettle();
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Price (SDG) - optional'),
+      fieldWithLabel('Price (SDG) - optional'),
       '150000',
     );
 
@@ -213,7 +214,7 @@ void main() {
     await tester.tap(find.text('Edit').last);
     await tester.pumpAndSettle();
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Service name'),
+      fieldWithLabel('Service name'),
       'Wi-Fi setup pro',
     );
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));

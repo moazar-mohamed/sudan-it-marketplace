@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../orders/presentation/orders_providers.dart';
-import '../widgets/admin_section_card.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../widgets/company_order_tile.dart';
 import 'installation_job_details_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -18,8 +19,11 @@ class InstallationJobsTab extends ConsumerWidget {
     final ordersAsync = ref.watch(companyOrdersStreamProvider(companyId));
 
     return ordersAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, _) => AdminErrorState(
+      loading: () => ListView(
+        padding: const EdgeInsets.all(AppSpacing.s16),
+        children: const [AppSkeletonList()],
+      ),
+      error: (_, _) => AppErrorState(
         message: context.l10n.adminInstallationJobsLoadFailed,
         onRetry: () => ref.invalidate(companyOrdersStreamProvider(companyId)),
       ),
@@ -28,7 +32,7 @@ class InstallationJobsTab extends ConsumerWidget {
         if (jobs.isEmpty) {
           return ListView(
             children: [
-              AdminEmptyState(
+              AppEmptyState(
                 icon: Icons.handyman_outlined,
                 message:
                     context.l10n.adminInstallationJobsEmpty,
@@ -37,9 +41,14 @@ class InstallationJobsTab extends ConsumerWidget {
           );
         }
         return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            AppSpacing.s16,
+            AppSpacing.s16,
+            AppSpacing.s24,
+          ),
           itemCount: jobs.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 10),
+          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.s12),
           itemBuilder: (context, index) => CompanyOrderTile(
             order: jobs[index],
             showInstallationStatus: true,

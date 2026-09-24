@@ -5,6 +5,7 @@ import '../../../orders/domain/entities/order_entity.dart';
 import '../../../location/presentation/location_strings.dart';
 import '../../../orders/presentation/orders_providers.dart';
 import '../../../orders/presentation/widgets/order_location_widgets.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../technician_format.dart';
 import '../widgets/technician_widgets.dart';
 import 'technician_job_status_actions.dart';
@@ -44,19 +45,18 @@ class TechnicianJobDetailsScreen extends ConsumerWidget {
       ),
       body: job == null
           ? (jobsAsync.isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const AppLoadingState()
               : TechnicianErrorState(message: context.l10n.adminJobNotFound))
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          : AppCenteredList(
               children: [
                 TechnicianSectionCard(
                   title: context.l10n.adminInstallationJob,
                   trailing: TechnicianStatusBadge(
                     label: TechnicianFormat.jobStatusLabel(job, context.l10n),
-                    color: TechnicianFormat.jobStatusColor(job.orderStatus),
+                    tone: TechnicianFormat.jobStatusTone(job.orderStatus),
                   ),
                   children: [
-                    TechnicianInfoRow(label: context.l10n.adminOrderNumber, value: job.id),
+                    TechnicianInfoRow(label: context.l10n.adminOrderNumber, value: job.id, valueTextDirection: TextDirection.ltr),
                     TechnicianInfoRow(label: context.l10n.adminProduct, value: job.productName),
                     TechnicianInfoRow(label: context.l10n.adminQuantity, value: '${job.quantity}'),
                     TechnicianInfoRow(
@@ -70,6 +70,7 @@ class TechnicianJobDetailsScreen extends ConsumerWidget {
                     TechnicianInfoRow(
                       label: context.l10n.adminCreated,
                       value: TechnicianFormat.date(job.createdAt),
+                      valueTextDirection: TextDirection.ltr,
                     ),
                   ],
                 ),
@@ -84,6 +85,7 @@ class TechnicianJobDetailsScreen extends ConsumerWidget {
                     TechnicianInfoRow(
                       label: context.l10n.orderContactPhone,
                       value: job.contactPhone,
+                      valueTextDirection: TextDirection.ltr,
                     ),
                     TechnicianInfoRow(
                       label: job.deliveryMethod == DeliveryMethod.delivery

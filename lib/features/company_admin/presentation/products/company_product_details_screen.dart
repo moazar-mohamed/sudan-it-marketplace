@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
 import '../../../products/presentation/product_price_strings.dart';
 import '../company_admin_actions.dart';
 import '../company_admin_format.dart';
-import '../widgets/admin_network_image.dart';
 import '../widgets/admin_section_card.dart';
 import 'product_form_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -41,27 +43,14 @@ class _CompanyProductDetailsScreenState
   }
 
   Future<void> _confirmDelete(Product product) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.adminDeleteProduct),
-        content: Text(
-          context.l10n.adminDeleteProductBody(product.name),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(context.l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text(context.l10n.commonDelete),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: context.l10n.adminDeleteProduct,
+      body: context.l10n.adminDeleteProductBody(product.name),
+      confirmLabel: context.l10n.commonDelete,
+      destructive: true,
     );
-    if (confirmed != true || !mounted) {
+    if (!confirmed || !mounted) {
       return;
     }
 
@@ -74,13 +63,13 @@ class _CompanyProductDetailsScreenState
     setState(() => _isDeleting = false);
 
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: AppColors.error),
-      );
+      showAppSnackBar(context, error, tone: AppTone.error);
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.adminProductDeleted)),
+    showAppSnackBar(
+      context,
+      context.l10n.adminProductDeleted,
+      tone: AppTone.success,
     );
     Navigator.of(context).pop();
   }
@@ -115,19 +104,15 @@ class _CompanyProductDetailsScreenState
             IconButton(
               tooltip: context.l10n.adminDeleteProduct,
               icon: _isDeleting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(Icons.delete_outline, color: AppColors.error),
+                  ? const AppSpinner(size: 20)
+                  : const Icon(Icons.delete_outline),
               onPressed: _isDeleting ? null : () => _confirmDelete(product),
             ),
           ],
         ],
       ),
       body: productsAsync.isLoading && product == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingState()
           : product == null
               ? AdminErrorState(message: context.l10n.adminProductNotFound)
               : _ProductDetailsBody(product: product),
@@ -142,67 +127,65 @@ class _ProductDetailsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+    final l10n = context.l10n;
+    return AppCenteredList(
+      bottomPadding: AppSpacing.s32,
       children: [
-        Center(
-          child: AdminNetworkImage(
-            url: product.imageUrl,
-            fallbackIcon: Icons.inventory_2_outlined,
-            size: 160,
-            radius: 16,
-          ),
+        AppImageTile(
+          imageUrl: product.imageUrl,
+          fallbackIcon: Icons.inventory_2_outlined,
+          size: 200,
+          radius: AppRadius.lg,
+          expand: true,
         ),
-        const SizedBox(height: 16),
-        Text(
-          product.name,
-          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.s16),
+        Text(product.name, style: AppTextStyles.h2),
+        const SizedBox(height: AppSpacing.s4),
         Text(
           product.price == null
               ? ProductPriceStrings.priceOnRequest(context)
               : CompanyAdminFormat.price(product.price!, product.currency),
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: AppColors.primary,
-          ),
+          style: product.price == null
+              ? AppTextStyles.h2.copyWith(color: AppColors.textSecondary)
+              : AppTextStyles.stat.copyWith(color: AppColors.textBrand),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.s16),
         AdminSectionCard(
-          title: context.l10n.adminAvailability,
+          title: l10n.adminAvailability,
           children: [
             AdminInfoRow(
-              label: context.l10n.adminStatus,
+              label: l10n.adminStatus,
               value: product.isAvailable
-                  ? context.l10n.adminAvailable
+                  ? l10n.adminAvailable
                   : product.hasStock
-                      ? context.l10n.adminUnavailable
-                      : context.l10n.adminOutOfStock,
-              valueColor:
-                  product.isAvailable ? AppColors.success : AppColors.error,
+                      ? l10n.adminUnavailable
+                      : l10n.adminOutOfStock,
+              valueColor: product.isAvailable
+                  ? AppColors.successText
+                  : AppColors.errorText,
             ),
-            AdminInfoRow(label: context.l10n.adminStock, value: '${product.stockCount}'),
+            AdminInfoRow(label: l10n.adminStock, value: '${product.stockCount}'),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.s12),
         AdminSectionCard(
-          title: context.l10n.adminDeliveryInstallation,
+          title: l10n.adminDeliveryInstallation,
           children: [
             AdminInfoRow(
-              label: context.l10n.checkoutDelivery,
+              label: l10n.checkoutDelivery,
               value: product.isDeliveryAvailable
-                  ? context.l10n.adminAvailable
-                  : context.l10n.adminNotAvailablePickup,
+                  ? l10n.adminAvailable
+                  : l10n.adminNotAvailablePickup,
             ),
             AdminInfoRow(
-              label: context.l10n.pendingInstallation,
-              value: product.isInstallationAvailable ? context.l10n.adminAvailable : context.l10n.adminNotAvailable,
+              label: l10n.pendingInstallation,
+              value: product.isInstallationAvailable
+                  ? l10n.adminAvailable
+                  : l10n.adminNotAvailable,
             ),
             if (product.isInstallationAvailable)
               AdminInfoRow(
-                label: context.l10n.adminInstallationPrice,
+                label: l10n.adminInstallationPrice,
                 value: CompanyAdminFormat.price(
                   product.installationPrice ?? 0,
                   product.currency,
@@ -211,18 +194,16 @@ class _ProductDetailsBody extends StatelessWidget {
           ],
         ),
         if ((product.description ?? '').trim().isNotEmpty) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.s12),
           AdminSectionCard(
-            title: context.l10n.productDescription,
-            children: [
-              Text(product.description!, style: textTheme.bodyMedium),
-            ],
+            title: l10n.productDescription,
+            children: [Text(product.description!, style: AppTextStyles.body)],
           ),
         ],
         if (product.specifications.isNotEmpty) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.s12),
           AdminSectionCard(
-            title: context.l10n.productSpecifications,
+            title: l10n.productSpecifications,
             children: [
               for (final entry in product.specifications.entries)
                 AdminInfoRow(label: entry.key, value: entry.value),

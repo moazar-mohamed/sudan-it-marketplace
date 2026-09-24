@@ -19,6 +19,7 @@ import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/cu
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/customer_profile_screen.dart';
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/profile_controller.dart';
 import 'package:sudan_it_marketplace/features/orders/domain/entities/order_entity.dart';
+import 'package:sudan_it_marketplace/features/orders/presentation/order_details_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/order_pending_verification_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/orders_providers.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/products_providers.dart';
@@ -155,6 +156,10 @@ Future<void> _tapSignOutOnProfile(WidgetTester tester) async {
         )
         .first,
   );
+  // The profile is one block inside the list, so it is "found" before it is on
+  // screen: bring it into view the way a scrolling user would.
+  await tester.ensureVisible(signOut);
+  await tester.pump();
   await tester.tap(signOut);
 }
 
@@ -301,5 +306,98 @@ void main() {
 
     expect(find.text(_notFound), findsNothing);
     expect(find.text('Try again'), findsNothing);
+  });
+
+  group('after the order is placed, Back never returns to the finished checkout', () {
+    const oldCheckout = 'OLD CHECKOUT SCREEN';
+
+    /// The stack a real purchase leaves: dashboard -> checkout -> payment,
+    /// with the payment screen replaced by the confirmation.
+    Future<NavigatorState> pendingOverCheckout(WidgetTester tester) async {
+      final navigator =
+          tester.state<NavigatorState>(find.byType(Navigator).first);
+      navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text(oldCheckout)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => OrderPendingVerificationScreen(order: _order),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(oldCheckout, skipOffstage: false), findsOneWidget);
+      return navigator;
+    }
+
+    void expectOnOrdersListWithNoCheckout(
+      WidgetTester tester,
+      NavigatorState navigator,
+    ) {
+      expect(find.byType(CustomerDashboardScreen), findsOneWidget);
+      expect(find.text('My Orders'), findsWidgets);
+      expect(find.byType(OrderDetailsScreen), findsNothing);
+      expect(find.byType(OrderPendingVerificationScreen), findsNothing);
+      expect(find.text(oldCheckout, skipOffstage: false), findsNothing);
+      // nothing left underneath to go back to
+      expect(navigator.canPop(), isFalse);
+    }
+
+    testWidgets('Back from Order Details lands on the orders list', (tester) async {
+      await _signedInOnProfile(tester);
+      final navigator = await pendingOverCheckout(tester);
+
+      final viewStatus = find.text('View Order Status');
+      await tester.scrollUntilVisible(
+        viewStatus,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(OrderPendingVerificationScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(viewStatus);
+      await tester.pumpAndSettle();
+      expect(find.byType(OrderDetailsScreen), findsOneWidget);
+      // The checkout is already gone: only the details sit above the app.
+      expect(find.text(oldCheckout, skipOffstage: false), findsNothing);
+      expect(find.byType(OrderPendingVerificationScreen, skipOffstage: false),
+          findsNothing);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expectOnOrdersListWithNoCheckout(tester, navigator);
+    });
+
+    testWidgets('the system Back on the confirmation goes to the orders list',
+        (tester) async {
+      await _signedInOnProfile(tester);
+      final navigator = await pendingOverCheckout(tester);
+
+      await tester.binding.handlePopRoute(); // Android Back / iOS swipe
+      await tester.pumpAndSettle();
+
+      expectOnOrdersListWithNoCheckout(tester, navigator);
+    });
+
+    testWidgets('the confirmation offers no way back to the checkout',
+        (tester) async {
+      await _signedInOnProfile(tester);
+      await pendingOverCheckout(tester);
+
+      expect(find.byType(BackButton), findsNothing); // no app-bar back arrow
+      // Pressing Back repeatedly never reaches the old checkout at any point.
+      for (var i = 0; i < 3; i++) {
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(find.text(oldCheckout, skipOffstage: false), findsNothing,
+            reason: 'checkout visible after Back press ${i + 1}');
+        expect(find.byType(CustomerDashboardScreen), findsOneWidget);
+      }
+    });
   });
 }

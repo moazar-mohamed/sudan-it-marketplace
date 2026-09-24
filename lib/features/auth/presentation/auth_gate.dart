@@ -1,3 +1,7 @@
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -208,34 +212,33 @@ class _AccessMessageScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(title), actions: const [SettingsButton()]),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.s24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.info_outline_rounded,
-                  size: 56,
-                  color: theme.colorScheme.primary,
+                const AppIconTile(
+                  icon: Icons.info_outline_rounded,
+                  size: 72,
+                  radius: AppRadius.full,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.s16),
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyLarge,
+                  style: AppTextStyles.bodyLarge,
                 ),
-                const SizedBox(height: 24),
-                OutlinedButton.icon(
+                const SizedBox(height: AppSpacing.s24),
+                AppButton.outlined(
                   onPressed: () =>
                       ref.read(authControllerProvider.notifier).signOut(),
-                  icon: const Icon(Icons.logout),
-                  label: Text(context.l10n.commonSignOut),
+                  icon: Icons.logout,
+                  label: context.l10n.commonSignOut,
                 ),
               ],
             ),
@@ -271,13 +274,11 @@ class _EmailVerificationRequiredScreenState
         await ref.read(authControllerProvider.notifier).resendVerificationEmail();
     if (!mounted) return;
     setState(() => _isResending = false);
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(error ?? context.l10n.authVerifyEmailResent),
-        ),
-      );
+    showAppSnackBar(
+      context,
+      error ?? context.l10n.authVerifyEmailResent,
+      tone: error == null ? AppTone.success : AppTone.error,
+    );
   }
 
   Future<void> _checkAgain() async {
@@ -288,17 +289,12 @@ class _EmailVerificationRequiredScreenState
     if (!mounted) return;
     setState(() => _isChecking = false);
     if (!verified) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text(context.l10n.authVerifyEmailStillNot)),
-        );
+      showAppSnackBar(context, context.l10n.authVerifyEmailStillNot);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.authVerifyEmailTitle),
@@ -306,55 +302,48 @@ class _EmailVerificationRequiredScreenState
       ),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.s24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
-                  Icons.mark_email_unread_outlined,
-                  size: 56,
-                  color: theme.colorScheme.primary,
+                const Center(
+                  child: AppIconTile(
+                    icon: Icons.mark_email_unread_outlined,
+                    size: 72,
+                    radius: AppRadius.full,
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.s16),
                 Text(
                   widget.email.isEmpty
                       ? context.l10n.authVerifyEmailGeneric
                       : context.l10n.authVerifyEmailSent(widget.email),
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyLarge,
+                  style: AppTextStyles.bodyLarge,
                 ),
-                const SizedBox(height: 24),
-                FilledButton.icon(
-                  onPressed: _isChecking ? null : _checkAgain,
-                  icon: _isChecking
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2.5),
-                        )
-                      : const Icon(Icons.refresh),
-                  label: Text(context.l10n.authVerifiedMyEmail),
+                const SizedBox(height: AppSpacing.s24),
+                AppButton.primary(
+                  onPressed: _checkAgain,
+                  loading: _isChecking,
+                  icon: Icons.refresh,
+                  label: context.l10n.authVerifiedMyEmail,
                 ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _isResending ? null : _resend,
-                  icon: _isResending
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2.5),
-                        )
-                      : const Icon(Icons.mail_outline),
-                  label: Text(context.l10n.authResendVerification),
+                const SizedBox(height: AppSpacing.s12),
+                AppButton.outlined(
+                  onPressed: _resend,
+                  loading: _isResending,
+                  icon: Icons.mail_outline,
+                  label: context.l10n.authResendVerification,
                 ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
+                const SizedBox(height: AppSpacing.s12),
+                AppButton.outlined(
                   onPressed: () =>
                       ref.read(authControllerProvider.notifier).signOut(),
-                  icon: const Icon(Icons.logout),
-                  label: Text(context.l10n.commonSignOut),
+                  icon: Icons.logout,
+                  label: context.l10n.commonSignOut,
                 ),
               ],
             ),
@@ -370,10 +359,6 @@ class _SessionLoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const Scaffold(body: AppLoadingState());
   }
 }

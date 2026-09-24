@@ -67,9 +67,9 @@ export function CompanyStatusActions({
       t('companies.deletedCascade', {
         admins: r.admins,
         technicians: r.technicians,
-        invites: r.invites,
         products: r.products,
-        other: r.other,
+        // Leftover legacy records are cleaned up silently and counted as related.
+        other: r.other + r.invites,
         orders: r.ordersKept === null ? t('companies.ordersKeptUnknown') : t('companies.ordersKept', { count: r.ordersKept }),
       }),
     );

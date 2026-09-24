@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../domain/geo_location.dart';
 import '../location_strings.dart';
 import '../map_picker_screen.dart';
@@ -47,45 +51,32 @@ class LocationField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = LocationStrings.of(context);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final selected = location;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          strings.location,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextFormField(
+        AppTextField(
           key: const Key('location-text-field'),
+          label: textLabel ?? strings.location,
+          hint: textHint ?? strings.enterAddress,
           controller: textController,
           enabled: enabled,
           minLines: 1,
           maxLines: maxLines,
-          decoration: InputDecoration(
-            labelText: textLabel ?? strings.enterAddress,
-            hintText: textHint,
-            prefixIcon: const Icon(Icons.location_on_outlined),
-            alignLabelWithHint: maxLines > 1,
-          ),
+          prefixIcon: Icons.location_on_outlined,
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.s12),
           child: Row(
             children: [
               const Expanded(child: Divider()),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
                 child: Text(
                   strings.or,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
+                  style: AppTextStyles.caption
+                      .copyWith(color: AppColors.textSecondary),
                 ),
               ),
               const Expanded(child: Divider()),
@@ -93,61 +84,51 @@ class LocationField extends StatelessWidget {
           ),
         ),
         if (selected == null)
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              key: const Key('location-select-on-map'),
-              onPressed: enabled ? () => _pick(context) : null,
-              icon: const Icon(Icons.location_on),
-              label: Text(strings.selectOnMap),
-            ),
+          AppButton.outlined(
+            key: const Key('location-select-on-map'),
+            label: strings.selectOnMap,
+            icon: Icons.location_on,
+            expand: true,
+            onPressed: enabled ? () => _pick(context) : null,
           )
         else
-          Container(
+          AppCard(
             key: const Key('location-selected-card'),
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: colorScheme.primary.withValues(alpha: 0.25),
-              ),
-            ),
+            color: AppColors.brandPrimarySubtle,
+            borderColor: AppColors.brandPrimarySubtleStrong,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(Icons.location_on, color: colorScheme.error, size: 20),
-                    const SizedBox(width: 6),
-                    Text(
-                      strings.locationSelected,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    const Icon(
+                      Icons.location_on,
+                      color: AppColors.error,
+                      size: AppSize.iconMd,
                     ),
+                    const SizedBox(width: AppSpacing.s6),
+                    Text(strings.locationSelected, style: AppTextStyles.bodyStrong),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.s8),
                 CoordinatesText(location: selected),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.s4),
                 Wrap(
-                  spacing: 8,
+                  spacing: AppSpacing.s8,
                   children: [
                     TextButton.icon(
                       key: const Key('location-change'),
                       onPressed: enabled ? () => _pick(context) : null,
                       icon: const Icon(
                         Icons.edit_location_alt_outlined,
-                        size: 18,
+                        size: AppSize.iconMd,
                       ),
                       label: Text(strings.changeLocation),
                     ),
                     TextButton.icon(
                       key: const Key('location-remove'),
                       onPressed: enabled ? () => onLocationChanged(null) : null,
-                      icon: const Icon(Icons.close, size: 18),
+                      icon: const Icon(Icons.close, size: AppSize.iconMd),
                       label: Text(strings.removeMapLocation),
                     ),
                   ],
@@ -156,13 +137,8 @@ class LocationField extends StatelessWidget {
             ),
           ),
         if (errorText != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            errorText!,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.error,
-            ),
-          ),
+          const SizedBox(height: AppSpacing.s8),
+          AppBanner(tone: AppTone.error, message: errorText!),
         ],
       ],
     );

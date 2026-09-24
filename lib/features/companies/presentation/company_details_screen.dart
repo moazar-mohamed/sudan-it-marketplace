@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../location/presentation/location_strings.dart';
 import '../../location/presentation/widgets/open_location_button.dart';
 import '../../products/domain/entities/product.dart';
@@ -33,247 +36,179 @@ class CompanyDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final l10n = context.l10n;
     final companyProducts =
         _getCompanyProducts(ref.watch(marketplaceProductsProvider));
+    final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
+    final about = company.description?.trim() ?? '';
+    final phone = company.phone?.trim() ?? '';
 
     return Scaffold(
       appBar: AppBar(
         title: Text(company.name),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Company Header Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: colorScheme.onSurface.withValues(alpha: 0.08),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+        padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppCard(
+                  padding: const EdgeInsets.all(AppSpacing.s16),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.15),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AppImageTile(
+                            imageUrl: company.logoUrl,
+                            fallbackText:
+                                company.name.isNotEmpty ? company.name : 'C',
+                            size: 64,
+                            radius: AppRadius.md,
                           ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            company.name.isNotEmpty
-                                ? company.name.substring(0, 1).toUpperCase()
-                                : 'C',
-                            style: textTheme.headlineSmall?.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              company.name,
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
+                          const SizedBox(width: AppSpacing.s16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(
-                                  Icons.star_rounded,
-                                  color: Colors.amber,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  company.rating.toStringAsFixed(1),
-                                  style: textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  context.l10n.reviewsCount(company.reviewCount),
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (company.city != null ||
-                                company.address != null) ...[
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on_outlined,
-                                    size: 16,
-                                    color: colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      company.city != null &&
-                                              company.address != null
-                                          ? '${company.address}'
-                                          : (company.city ??
-                                              company.address ??
-                                              ''),
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurface
-                                            .withValues(alpha: 0.7),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                Text(company.name, style: AppTextStyles.h3),
+                                const SizedBox(height: AppSpacing.s4),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star_rounded,
+                                      color: AppColors.warning,
+                                      size: AppSize.iconMd,
                                     ),
+                                    const SizedBox(width: AppSpacing.s4),
+                                    Text(
+                                      company.rating.toStringAsFixed(1),
+                                      style: AppTextStyles.captionStrong,
+                                    ),
+                                    const SizedBox(width: AppSpacing.s6),
+                                    Flexible(
+                                      child: Text(
+                                        l10n.reviewsCount(company.reviewCount),
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (company.city != null ||
+                                    company.address != null) ...[
+                                  const SizedBox(height: AppSpacing.s4),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.location_on_outlined,
+                                        size: AppSize.iconSm,
+                                        color: AppColors.iconBrand,
+                                      ),
+                                      const SizedBox(width: AppSpacing.s4),
+                                      Expanded(
+                                        child: Text(
+                                          company.city != null &&
+                                                  company.address != null
+                                              ? '${company.address}'
+                                              : (company.city ??
+                                                  company.address ??
+                                                  ''),
+                                          style: AppTextStyles.caption.copyWith(
+                                            color: AppColors.textSecondary,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (company.description != null &&
-                      company.description!.isNotEmpty) ...[
-                    const SizedBox(height: 14),
-                    const Divider(),
-                    const SizedBox(height: 10),
-                    Text(
-                      context.l10n.companyAbout,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      company.description!,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.8),
-                        height: 1.45,
-                      ),
-                    ),
-                  ],
-                  if (company.locationText != null || company.hasCoordinates) ...[
-                    const SizedBox(height: 14),
-                    const Divider(),
-                    const SizedBox(height: 10),
-                    Text(
-                      LocationStrings.of(context).location,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Exact map action only when coordinates exist; a
-                    // text-only company just shows its written location.
-                    CompanyLocationBlock(
-                      text: company.locationText,
-                      coordinates: company.coordinates,
-                      actionLabel: LocationStrings.of(context).viewOnMap,
-                      viewerTitle: company.name,
-                    ),
-                  ],
-                  if (company.phone != null && company.phone!.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.phone_outlined,
-                          size: 16,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          company.phone!,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurface.withValues(alpha: 0.8),
-                            fontWeight: FontWeight.w500,
+                              ],
+                            ),
                           ),
+                        ],
+                      ),
+                      if (about.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.s16),
+                        const Divider(height: 1),
+                        const SizedBox(height: AppSpacing.s12),
+                        Text(l10n.companyAbout, style: AppTextStyles.bodyStrong),
+                        const SizedBox(height: AppSpacing.s4),
+                        Text(about, style: AppTextStyles.body),
+                      ],
+                      if (company.locationText != null ||
+                          company.hasCoordinates) ...[
+                        const SizedBox(height: AppSpacing.s16),
+                        const Divider(height: 1),
+                        const SizedBox(height: AppSpacing.s12),
+                        Text(
+                          LocationStrings.of(context).location,
+                          style: AppTextStyles.bodyStrong,
+                        ),
+                        const SizedBox(height: AppSpacing.s8),
+                        // Exact map action only when coordinates exist; a
+                        // text-only company just shows its written location.
+                        CompanyLocationBlock(
+                          text: company.locationText,
+                          coordinates: company.coordinates,
+                          actionLabel: LocationStrings.of(context).viewOnMap,
+                          viewerTitle: company.name,
                         ),
                       ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Products Section Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.companyProductsCount(companyProducts.length),
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurface,
+                      if (phone.isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.s12),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.phone_outlined,
+                              size: AppSize.iconSm,
+                              color: AppColors.iconBrand,
+                            ),
+                            const SizedBox(width: AppSpacing.s6),
+                            Text(
+                              phone,
+                              textDirection: TextDirection.ltr,
+                              style: AppTextStyles.body,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
                 ),
+                const SizedBox(height: AppSpacing.s24),
+                Text(
+                  l10n.companyProductsCount(companyProducts.length),
+                  style: AppTextStyles.h3,
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                if (companyProducts.isEmpty)
+                  AppEmptyState(
+                    icon: Icons.inventory_2_outlined,
+                    message: l10n.companyNoProducts,
+                  )
+                else
+                  Column(
+                    children: [
+                      for (int i = 0; i < companyProducts.length; i++) ...[
+                        ProductCard(
+                          product: companyProducts[i],
+                          openedFromCompany: true,
+                        ),
+                        if (i < companyProducts.length - 1)
+                          const SizedBox(height: AppSpacing.s12),
+                      ],
+                    ],
+                  ),
               ],
             ),
-            const SizedBox(height: 12),
-            // Products Vertical List
-            if (companyProducts.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colorScheme.onSurface.withValues(alpha: 0.08),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    context.l10n.companyNoProducts,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-              )
-            else
-              Column(
-                children: [
-                  for (int i = 0; i < companyProducts.length; i++) ...[
-                    ProductCard(
-                      product: companyProducts[i],
-                      openedFromCompany: true,
-                    ),
-                    if (i < companyProducts.length - 1)
-                      const SizedBox(height: 10),
-                  ],
-                ],
-              ),
-          ],
+          ),
         ),
       ),
     );

@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/auth_state.dart';
 import '../../companies/presentation/companies_providers.dart';
@@ -173,9 +176,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final l10n = context.l10n;
+    final currency = widget.product.currency;
 
     final productCompanyId = widget.product.companyId;
     if (productCompanyId != null) {
@@ -189,523 +191,333 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ? installationPrice
         : 0.0;
     final finalTotal = productSubtotal + installationCharge + _deliveryFee;
+    final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.checkoutTitle),
+        title: Text(l10n.checkoutTitle),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Order Item Card
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: colorScheme.onSurface.withValues(alpha: 0.08),
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: AppColors.secondary.withValues(alpha: 0.15),
-                        ),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.inventory_2_outlined,
-                          color: AppColors.primary,
-                          size: 28,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.product.name,
-                            style: textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: colorScheme.onSurface,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. The item being bought.
+                  AppCard(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppImageTile(imageUrl: widget.product.imageUrl),
+                        const SizedBox(width: AppSpacing.s12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                context.l10n.checkoutUnit(_formatPrice(_unitPrice), widget.product.currency),
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                                ),
+                                widget.product.name,
+                                style: AppTextStyles.bodyStrong,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: AppSpacing.s4),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      l10n.checkoutUnit(
+                                        _formatPrice(_unitPrice),
+                                        currency,
+                                      ),
+                                      style: AppTextStyles.caption.copyWith(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    l10n.checkoutQty(widget.quantity),
+                                    style: AppTextStyles.captionStrong,
+                                  ),
+                                ],
                               ),
                               Text(
-                                context.l10n.checkoutQty(widget.quantity),
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: colorScheme.onSurface,
+                                l10n.checkoutSubtotal(
+                                  _formatPrice(productSubtotal),
+                                  currency,
+                                ),
+                                style: AppTextStyles.bodyStrong
+                                    .copyWith(color: AppColors.textBrand),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s20),
+
+                  // 2. Delivery and contact details.
+                  Text(
+                    widget.product.isDeliveryAvailable
+                        ? l10n.checkoutDeliveryContact
+                        : l10n.checkoutPickupContact,
+                    style: AppTextStyles.h3,
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                  AppCard(
+                    padding: const EdgeInsets.all(AppSpacing.s16),
+                    child: Column(
+                      children: [
+                        // Delivery / pickup choice (only when delivery is
+                        // offered).
+                        if (widget.product.isDeliveryAvailable) ...[
+                          SizedBox(
+                            width: double.infinity,
+                            child: SegmentedButton<bool>(
+                              segments: [
+                                ButtonSegment<bool>(
+                                  value: true,
+                                  icon: const Icon(Icons.local_shipping_outlined),
+                                  label: Text(l10n.checkoutDelivery),
+                                ),
+                                ButtonSegment<bool>(
+                                  value: false,
+                                  icon: const Icon(Icons.storefront_outlined),
+                                  label: Text(l10n.checkoutPickup),
+                                ),
+                              ],
+                              selected: {_useDelivery},
+                              onSelectionChanged: (selection) {
+                                setState(() {
+                                  _useDelivery = selection.first;
+                                  if (!_useDelivery) {
+                                    // No delivery: installation is not offered.
+                                    _includeInstallation = false;
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.s16),
+                        ],
+                        if (!_useDelivery) ...[
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const AppIconTile(
+                                icon: Icons.storefront_outlined,
+                                size: 40,
+                              ),
+                              const SizedBox(width: AppSpacing.s12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.checkoutPickupLocation,
+                                      style: AppTextStyles.bodyStrong,
+                                    ),
+                                    Text(
+                                      _pickupLocation(context),
+                                      style: AppTextStyles.body.copyWith(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                    if (_pickupCoordinates() != null) ...[
+                                      const SizedBox(height: AppSpacing.s8),
+                                      OpenLocationButton(
+                                        label:
+                                            LocationStrings.of(context).viewOnMap,
+                                        viewerTitle: l10n.checkoutPickupLocation,
+                                        coordinates: _pickupCoordinates(),
+                                        text: _pickupLocation(context),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            context.l10n.checkoutSubtotal(_formatPrice(productSubtotal), widget.product.currency),
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
-                            ),
-                          ),
+                          const SizedBox(height: AppSpacing.s16),
                         ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // 2. Delivery & Contact Details
-              Text(
-                widget.product.isDeliveryAvailable
-                    ? context.l10n.checkoutDeliveryContact
-                    : context.l10n.checkoutPickupContact,
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: colorScheme.onSurface.withValues(alpha: 0.08),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    // Delivery / Pickup choice (only when delivery is offered)
-                    if (widget.product.isDeliveryAvailable) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: SegmentedButton<bool>(
-                          segments: [
-                            ButtonSegment<bool>(
-                              value: true,
-                              icon: Icon(Icons.local_shipping_outlined),
-                              label: Text(context.l10n.checkoutDelivery),
-                            ),
-                            ButtonSegment<bool>(
-                              value: false,
-                              icon: Icon(Icons.storefront_outlined),
-                              label: Text(context.l10n.checkoutPickup),
+                        if (_useDelivery) ...[
+                          LocationField(
+                            textController: _addressController,
+                            location: _deliveryLocation,
+                            textHint: l10n.checkoutAddressHint,
+                            errorText: _locationMissing
+                                ? LocationStrings.of(context).locationRequired
+                                : null,
+                            onLocationChanged: (value) => setState(() {
+                              _deliveryLocation = value;
+                              _locationMissing = false;
+                            }),
+                          ),
+                          const SizedBox(height: AppSpacing.s16),
+                        ],
+                        // One contact phone number.
+                        AppTextField(
+                          label: l10n.checkoutContactPhone,
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[0-9+\s]'),
                             ),
                           ],
-                          selected: {_useDelivery},
-                          onSelectionChanged: (selection) {
-                            setState(() {
-                              _useDelivery = selection.first;
-                              if (!_useDelivery) {
-                                // No Delivery: installation is not offered.
-                                _includeInstallation = false;
-                              }
-                            });
+                          hint: '‎+249 9X XXX XXXX',
+                          prefixIcon: Icons.phone_outlined,
+                          helperText: l10n.checkoutContactPhoneHelper,
+                          validator: (value) {
+                            final phone = value?.trim() ?? '';
+                            if (phone.isEmpty) {
+                              return l10n.checkoutPhoneRequired;
+                            }
+                            final digitsOnly = phone.replaceAll(
+                              RegExp(r'[^0-9]'),
+                              '',
+                            );
+                            if (digitsOnly.length < 9) {
+                              return l10n.commonPhoneInvalid;
+                            }
+                            return null;
                           },
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    if (!_useDelivery) ...[
-                      Row(
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s20),
+
+                  // 3. Installation option (only when delivery is selected and
+                  // the product supports installation).
+                  if (_installationEligible) ...[
+                    Text(l10n.checkoutInstallationOption, style: AppTextStyles.h3),
+                    const SizedBox(height: AppSpacing.s8),
+                    AppCard(
+                      padding: const EdgeInsets.all(AppSpacing.s16),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.storefront_outlined,
-                            color: AppColors.primary,
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.handyman_outlined,
+                                color: AppColors.primary,
+                                size: AppSize.iconMd,
+                              ),
+                              const SizedBox(width: AppSpacing.s8),
+                              Expanded(
+                                child: Text(
+                                  l10n.checkoutInstallationTitle,
+                                  style: AppTextStyles.bodyStrong,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          const SizedBox(height: AppSpacing.s4),
+                          Text(
+                            l10n.checkoutInstallationNote(
+                              _formatPrice(installationPrice),
+                              currency,
+                            ),
+                            style: AppTextStyles.caption
+                                .copyWith(color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: AppSpacing.s12),
+                          // Equal-height options, whatever their text wraps to.
+                          IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Text(
-                                  context.l10n.checkoutPickupLocation,
-                                  style: textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
+                                Expanded(
+                                  child: AppOptionCard(
+                                    title: l10n.checkoutProductOnly,
+                                    subtitle: '0 $currency',
+                                    selected: !_includeInstallation,
+                                    onTap: () => setState(
+                                      () => _includeInstallation = false,
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _pickupLocation(context),
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurface
-                                        .withValues(alpha: 0.75),
+                                const SizedBox(width: AppSpacing.s12),
+                                Expanded(
+                                  child: AppOptionCard(
+                                    title: l10n.checkoutProductInstallation,
+                                    subtitle:
+                                        '+${_formatPrice(installationPrice)} $currency',
+                                    selected: _includeInstallation,
+                                    onTap: () => setState(
+                                      () => _includeInstallation = true,
+                                    ),
                                   ),
                                 ),
-                                if (_pickupCoordinates() != null) ...[
-                                  const SizedBox(height: 8),
-                                  OpenLocationButton(
-                                    label: LocationStrings.of(context).viewOnMap,
-                                    viewerTitle: context.l10n.checkoutPickupLocation,
-                                    coordinates: _pickupCoordinates(),
-                                    text: _pickupLocation(context),
-                                  ),
-                                ],
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                    ],
-                    // Delivery Address Field
-                    if (_useDelivery) ...[
-                    LocationField(
-                      textController: _addressController,
-                      location: _deliveryLocation,
-                      textHint: context.l10n.checkoutAddressHint,
-                      errorText: _locationMissing
-                          ? LocationStrings.of(context).locationRequired
-                          : null,
-                      onLocationChanged: (value) => setState(() {
-                        _deliveryLocation = value;
-                        _locationMissing = false;
-                      }),
                     ),
-                    const SizedBox(height: 16),
-                    ],
-                    // ONE contact phone number field only
-                    TextFormField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                          RegExp(r'[0-9+\s]'),
+                    const SizedBox(height: AppSpacing.s20),
+                  ],
+
+                  // 4. Price summary.
+                  Text(l10n.checkoutPriceSummary, style: AppTextStyles.h3),
+                  const SizedBox(height: AppSpacing.s8),
+                  AppCard(
+                    padding: const EdgeInsets.all(AppSpacing.s16),
+                    child: Column(
+                      children: [
+                        PriceSummaryRow(
+                          label: l10n.checkoutProductSubtotal(widget.quantity),
+                          value: '${_formatPrice(productSubtotal)} $currency',
+                        ),
+                        if (_installationEligible) ...[
+                          const SizedBox(height: AppSpacing.s8),
+                          PriceSummaryRow(
+                            label: l10n.checkoutInstallationService,
+                            value: _includeInstallation
+                                ? '+${_formatPrice(installationPrice)} $currency'
+                                : l10n.checkoutNotIncluded,
+                          ),
+                        ],
+                        if (_useDelivery) ...[
+                          const SizedBox(height: AppSpacing.s8),
+                          PriceSummaryRow(
+                            label: l10n.checkoutDeliveryFee,
+                            value: '${_formatPrice(_deliveryFee)} $currency',
+                          ),
+                        ],
+                        const SizedBox(height: AppSpacing.s12),
+                        const Divider(height: 1),
+                        const SizedBox(height: AppSpacing.s12),
+                        PriceSummaryRow(
+                          label: l10n.checkoutFinalTotal,
+                          value: '${_formatPrice(finalTotal)} $currency',
+                          total: true,
                         ),
                       ],
-                      decoration: InputDecoration(
-                        labelText: context.l10n.checkoutContactPhone,
-                        hintText: '+249 9X XXX XXXX',
-                        prefixIcon: Icon(Icons.phone_outlined),
-                        helperText:
-                            context.l10n.checkoutContactPhoneHelper,
-                      ),
-                      validator: (value) {
-                        final phone = value?.trim() ?? '';
-                        if (phone.isEmpty) {
-                          return context.l10n.checkoutPhoneRequired;
-                        }
-                        final digitsOnly = phone.replaceAll(
-                          RegExp(r'[^0-9]'),
-                          '',
-                        );
-                        if (digitsOnly.length < 9) {
-                          return context.l10n.commonPhoneInvalid;
-                        }
-                        return null;
-                      },
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
+                  ),
+                  const SizedBox(height: AppSpacing.s24),
 
-              // 3. Installation Option (only when Delivery is selected and
-              // the product supports installation)
-              if (_installationEligible) ...[
-                Text(
-                  context.l10n.checkoutInstallationOption,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: colorScheme.onSurface.withValues(alpha: 0.08),
+                  // 5. Confirm.
+                  AppButton.primary(
+                    label: l10n.checkoutConfirmOrder(
+                      _formatPrice(finalTotal),
+                      currency,
                     ),
+                    expand: true,
+                    onPressed: _onConfirmOrder,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.handyman_outlined,
-                            color: AppColors.primary,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              context.l10n.checkoutInstallationTitle,
-                              style: textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        context.l10n.checkoutInstallationNote(_formatPrice(installationPrice), widget.product.currency),
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.7),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Yes / No Selection
-                      Row(
-                        children: [
-                          // No Option
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                setState(() => _includeInstallation = false);
-                              },
-                              borderRadius: BorderRadius.circular(10),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: !_includeInstallation
-                                      ? AppColors.primary.withValues(alpha: 0.08)
-                                      : colorScheme.surface,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: !_includeInstallation
-                                        ? AppColors.primary
-                                        : colorScheme.onSurface
-                                            .withValues(alpha: 0.15),
-                                    width: !_includeInstallation ? 1.5 : 1,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      !_includeInstallation
-                                          ? Icons.radio_button_checked
-                                          : Icons.radio_button_unchecked,
-                                      color: !_includeInstallation
-                                          ? AppColors.primary
-                                          : colorScheme.onSurface
-                                              .withValues(alpha: 0.4),
-                                      size: 20,
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      context.l10n.checkoutProductOnly,
-                                      textAlign: TextAlign.center,
-                                      style: textTheme.bodySmall?.copyWith(
-                                        fontWeight: !_includeInstallation
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
-                                        color: !_includeInstallation
-                                            ? AppColors.primary
-                                            : colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'SDG 0',
-                                      style: textTheme.labelSmall?.copyWith(
-                                        color: colorScheme.onSurface
-                                            .withValues(alpha: 0.5),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          // Yes Option
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                setState(() => _includeInstallation = true);
-                              },
-                              borderRadius: BorderRadius.circular(10),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _includeInstallation
-                                      ? AppColors.primary.withValues(alpha: 0.08)
-                                      : colorScheme.surface,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: _includeInstallation
-                                        ? AppColors.primary
-                                        : colorScheme.onSurface
-                                            .withValues(alpha: 0.15),
-                                    width: _includeInstallation ? 1.5 : 1,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      _includeInstallation
-                                          ? Icons.radio_button_checked
-                                          : Icons.radio_button_unchecked,
-                                      color: _includeInstallation
-                                          ? AppColors.primary
-                                          : colorScheme.onSurface
-                                              .withValues(alpha: 0.4),
-                                      size: 20,
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      context.l10n.checkoutProductInstallation,
-                                      textAlign: TextAlign.center,
-                                      style: textTheme.bodySmall?.copyWith(
-                                        fontWeight: _includeInstallation
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
-                                        color: _includeInstallation
-                                            ? AppColors.primary
-                                            : colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '+${_formatPrice(installationPrice)} SDG',
-                                      style: textTheme.labelSmall?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: _includeInstallation
-                                            ? AppColors.primary
-                                            : colorScheme.onSurface
-                                                .withValues(alpha: 0.6),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-
-              // 4. Order Price Summary
-              Text(
-                context.l10n.checkoutPriceSummary,
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface,
-                ),
+                ],
               ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: colorScheme.onSurface.withValues(alpha: 0.08),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    PriceSummaryRow(
-                      label: context.l10n.checkoutProductSubtotal(widget.quantity),
-                      value:
-                          '${_formatPrice(productSubtotal)} ${widget.product.currency}',
-                      labelStyle: textTheme.bodyMedium,
-                      valueStyle: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (_installationEligible) ...[
-                      const SizedBox(height: 10),
-                      PriceSummaryRow(
-                        label: context.l10n.checkoutInstallationService,
-                        value: _includeInstallation
-                            ? '+${_formatPrice(installationPrice)} ${widget.product.currency}'
-                            : context.l10n.checkoutNotIncluded,
-                        labelStyle: textTheme.bodyMedium,
-                        valueStyle: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: _includeInstallation
-                              ? AppColors.primary
-                              : colorScheme.onSurface.withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ],
-                    if (_useDelivery) ...[
-                      const SizedBox(height: 10),
-                      PriceSummaryRow(
-                        label: context.l10n.checkoutDeliveryFee,
-                        value:
-                            '${_formatPrice(_deliveryFee)} ${widget.product.currency}',
-                        labelStyle: textTheme.bodyMedium,
-                        valueStyle: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 14),
-                    const Divider(),
-                    const SizedBox(height: 10),
-                    PriceSummaryRow(
-                      label: context.l10n.checkoutFinalTotal,
-                      value:
-                          '${_formatPrice(finalTotal)} ${widget.product.currency}',
-                      labelStyle: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                      valueStyle: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // 5. Confirm Order Button
-              ElevatedButton(
-                onPressed: _onConfirmOrder,
-                child: Text(
-                  context.l10n.checkoutConfirmOrder(_formatPrice(finalTotal), widget.product.currency),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

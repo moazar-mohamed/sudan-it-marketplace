@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../technicians/domain/entities/technician.dart';
 import '../../../technicians/presentation/technicians_providers.dart';
 import '../company_admin_actions.dart';
-import '../widgets/admin_section_card.dart';
 import '../widgets/status_badge.dart';
 import 'technician_form_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -28,27 +30,14 @@ class TechniciansTab extends ConsumerWidget {
     WidgetRef ref,
     Technician technician,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.adminDeactivateTechnician),
-        content: Text(
-          context.l10n.adminDeactivateTechnicianBody(technician.fullName),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(context.l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            child: Text(context.l10n.commonDeactivate),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: context.l10n.adminDeactivateTechnician,
+      body: context.l10n.adminDeactivateTechnicianBody(technician.fullName),
+      confirmLabel: context.l10n.commonDeactivate,
+      destructive: true,
     );
-    if (confirmed != true) {
+    if (!confirmed) {
       return;
     }
 
@@ -58,11 +47,10 @@ class TechniciansTab extends ConsumerWidget {
     if (!context.mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(error ?? context.l10n.adminTechnicianDeactivated),
-        backgroundColor: error == null ? null : AppColors.error,
-      ),
+    showAppSnackBar(
+      context,
+      error ?? context.l10n.adminTechnicianDeactivated,
+      tone: error == null ? AppTone.success : AppTone.error,
     );
   }
 
@@ -79,8 +67,11 @@ class TechniciansTab extends ConsumerWidget {
         label: Text(context.l10n.adminAddTechnician),
       ),
       body: techniciansAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => AdminErrorState(
+        loading: () => ListView(
+          padding: const EdgeInsets.all(AppSpacing.s16),
+          children: const [AppSkeletonList()],
+        ),
+        error: (_, _) => AppErrorState(
           message: context.l10n.adminTechniciansLoadFailed,
           onRetry: () =>
               ref.invalidate(companyTechniciansStreamProvider(companyId)),
@@ -89,7 +80,7 @@ class TechniciansTab extends ConsumerWidget {
           if (technicians.isEmpty) {
             return ListView(
               children: [
-                AdminEmptyState(
+                AppEmptyState(
                   icon: Icons.engineering_outlined,
                   message:
                       context.l10n.adminTechniciansEmpty,
@@ -98,7 +89,12 @@ class TechniciansTab extends ConsumerWidget {
             );
           }
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s16,
+              AppSpacing.s16,
+              AppSpacing.s16,
+              96,
+            ),
             children: [
               for (final technician in technicians) ...[
                 _TechnicianTile(
@@ -113,7 +109,7 @@ class TechniciansTab extends ConsumerWidget {
                       ? () => _confirmDeactivate(context, ref, technician)
                       : null,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.s12),
               ],
             ],
           );
@@ -136,79 +132,50 @@ class _TechnicianTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    return Material(
-      color: colorScheme.surface,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: colorScheme.onSurface.withValues(alpha: 0.08),
+    return AppListCard(
+      onTap: onTap,
+      leading: const AppIconTile(
+        icon: Icons.engineering_outlined,
+        size: 44,
+        radius: AppRadius.full,
+      ),
+      // The deactivate button replaces the chevron for an active technician.
+      trailing: onDeactivate == null
+          ? null
+          : IconButton(
+              tooltip: context.l10n.adminDeactivateTechnician,
+              icon: const Icon(
+                Icons.person_off_outlined,
+                color: AppColors.errorText,
+              ),
+              onPressed: onDeactivate,
             ),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            technician.fullName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyStrong,
           ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: colorScheme.primary.withValues(alpha: 0.12),
-                foregroundColor: colorScheme.primary,
-                child: const Icon(Icons.engineering_outlined),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      technician.fullName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (technician.phone.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        technician.phone,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.65),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 6),
-                    StatusBadge(
-                      label: technician.isActive ? context.l10n.adminActive : context.l10n.adminInactive,
-                      color: technician.isActive
-                          ? AppColors.success
-                          : AppColors.error,
-                    ),
-                  ],
-                ),
-              ),
-              if (onDeactivate != null)
-                IconButton(
-                  tooltip: context.l10n.adminDeactivateTechnician,
-                  icon: Icon(Icons.person_off_outlined, color: AppColors.error),
-                  onPressed: onDeactivate,
-                )
-              else
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: colorScheme.onSurface.withValues(alpha: 0.35),
-                ),
-            ],
+          if (technician.phone.isNotEmpty)
+            Text(
+              technician.phone,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textDirection: TextDirection.ltr,
+              style: AppTextStyles.caption
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+          const SizedBox(height: AppSpacing.s6),
+          StatusBadge(
+            label: technician.isActive
+                ? context.l10n.adminActive
+                : context.l10n.adminInactive,
+            tone: technician.isActive ? AppTone.success : AppTone.neutral,
           ),
-        ),
+        ],
       ),
     );
   }

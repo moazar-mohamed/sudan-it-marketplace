@@ -40,7 +40,6 @@ class _CustomerDashboardScreenState
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final unreadChats = ref.watch(customerUnreadChatsCountProvider);
 
     final tabs = [
@@ -80,8 +79,6 @@ class _CustomerDashboardScreenState
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: _onSelectTab,
-        backgroundColor: colorScheme.surface,
-        indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
         destinations: [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),

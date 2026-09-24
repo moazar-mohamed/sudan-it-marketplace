@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../chats/domain/entities/chat_conversation.dart';
 import '../../chats/presentation/chat_screen.dart';
-import '../../company_admin/presentation/widgets/admin_section_card.dart';
-import '../../company_admin/presentation/widgets/status_badge.dart';
 import '../../location/presentation/location_strings.dart';
 import '../../location/presentation/widgets/open_location_button.dart';
 import '../domain/entities/service_request.dart';
@@ -35,13 +37,13 @@ class ServiceRequestDetailsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.serviceRequestDetailsTitle)),
       body: requestAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => AdminErrorState(
+        loading: () => const AppLoadingState(),
+        error: (_, _) => AppErrorState(
           message: context.l10n.serviceRequestsLoadFailed,
           onRetry: () => ref.invalidate(serviceRequestStreamProvider(requestId)),
         ),
         data: (request) => request == null
-            ? AdminErrorState(message: context.l10n.serviceRequestNotFound)
+            ? AppErrorState(message: context.l10n.serviceRequestNotFound)
             : _Details(
                 request: request,
                 asCompany: asCompany,
@@ -51,6 +53,15 @@ class ServiceRequestDetailsScreen extends ConsumerWidget {
     );
   }
 }
+
+/// The steps a request moves through when it goes well. A rejected or
+/// cancelled request left that path, so it shows its own status instead.
+const _happyPath = [
+  ServiceRequestStatus.pending,
+  ServiceRequestStatus.accepted,
+  ServiceRequestStatus.inProgress,
+  ServiceRequestStatus.completed,
+];
 
 class _Details extends StatelessWidget {
   const _Details({
@@ -68,135 +79,130 @@ class _Details extends StatelessWidget {
     final l10n = context.l10n;
     final price = request.price;
     final locationLabel = LocationStrings.of(context).viewOnMap;
+    final step = _happyPath.indexOf(request.status);
+    final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
       children: [
-        AdminSectionCard(
-          title: request.serviceName,
-          trailing: StatusBadge(
-            label: request.status.label(l10n),
-            color: request.status.color,
-          ),
-          children: [
-            AdminInfoRow(
-              label: asCompany
-                  ? l10n.serviceRequestCustomer
-                  : l10n.serviceRequestCompany,
-              value: asCompany
-                  ? (request.customerName.trim().isEmpty
-                      ? l10n.chatCustomerFallback
-                      : request.customerName)
-                  : request.companyName,
-            ),
-            // Only a price the company actually set is shown.
-            if (price != null)
-              AdminInfoRow(
-                label: l10n.serviceRequestPrice,
-                value: formatServicePrice(price),
-                emphasize: true,
-              ),
-            AdminInfoRow(
-              label: l10n.serviceRequestSentAt,
-              value: formatServiceDate(request.createdAt),
-            ),
-            AdminInfoRow(
-              label: l10n.serviceRequestNumber,
-              value: '#${request.shortId}',
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        AdminSectionCard(
-          title: l10n.serviceRequestViewDetails,
-          children: [
-            SelectableText(
-              request.details,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    height: 1.5,
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SectionCard(
+                  title: request.serviceName,
+                  trailing: StatusChip(
+                    label: request.status.label(l10n),
+                    tone: request.status.tone,
                   ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        AdminSectionCard(
-          title: l10n.serviceRequestContact,
-          children: [
-            AdminInfoRow(
-              label: l10n.checkoutContactPhone,
-              value: request.contactPhone,
-            ),
-            if (request.addressText != null)
-              AdminInfoRow(
-                label: l10n.serviceRequestAddress,
-                value: request.addressText!,
-              ),
-            if (request.hasLocation) ...[
-              const SizedBox(height: 8),
-              OpenLocationButton(
-                label: locationLabel,
-                viewerTitle: locationLabel,
-                coordinates: request.coordinates,
-                text: request.addressText,
-                allowTextSearch: true,
-              ),
-            ],
-          ],
-        ),
-        const SizedBox(height: 16),
-        if (asCompany)
-          _CompanyActions(request: request)
-        else if (request.canCustomerCancel)
-          _CustomerCancel(request: request),
-        if (showChatAction) ...[
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            icon: const Icon(Icons.chat_bubble_outline),
-            label: Text(l10n.serviceRequestOpenChat),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-            ),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => ChatScreen(
-                  chatId: request.id,
-                  role: asCompany
-                      ? ChatParticipantRole.company
-                      : ChatParticipantRole.customer,
+                  children: [
+                    // Progress is shown for the normal path only.
+                    if (step >= 0) ...[
+                      AppStepTracker(
+                        labels: [
+                          for (final status in _happyPath) status.label(l10n),
+                        ],
+                        currentIndex: step,
+                        allDone: request.status == ServiceRequestStatus.completed,
+                      ),
+                      const SizedBox(height: AppSpacing.s12),
+                      const Divider(height: 1),
+                      const SizedBox(height: AppSpacing.s8),
+                    ],
+                    KeyValueRow(
+                      label: asCompany
+                          ? l10n.serviceRequestCustomer
+                          : l10n.serviceRequestCompany,
+                      value: asCompany
+                          ? (request.customerName.trim().isEmpty
+                              ? l10n.chatCustomerFallback
+                              : request.customerName)
+                          : request.companyName,
+                    ),
+                    // Only a price the company actually set is shown.
+                    if (price != null)
+                      KeyValueRow(
+                        label: l10n.serviceRequestPrice,
+                        value: formatServicePrice(price),
+                        emphasize: true,
+                      ),
+                    KeyValueRow(
+                      label: l10n.serviceRequestSentAt,
+                      value: formatServiceDate(request.createdAt),
+                      valueTextDirection: TextDirection.ltr,
+                    ),
+                    KeyValueRow(
+                      label: l10n.serviceRequestNumber,
+                      value: '#${request.shortId}',
+                      valueTextDirection: TextDirection.ltr,
+                    ),
+                  ],
                 ),
-              ),
+                const SizedBox(height: AppSpacing.s12),
+                SectionCard(
+                  title: l10n.serviceRequestViewDetails,
+                  children: [
+                    SelectableText(request.details, style: AppTextStyles.body),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                SectionCard(
+                  title: l10n.serviceRequestContact,
+                  children: [
+                    KeyValueRow(
+                      label: l10n.checkoutContactPhone,
+                      value: request.contactPhone,
+                      valueTextDirection: TextDirection.ltr,
+                    ),
+                    if (request.addressText != null)
+                      KeyValueRow(
+                        label: l10n.serviceRequestAddress,
+                        value: request.addressText!,
+                      ),
+                    if (request.hasLocation) ...[
+                      const SizedBox(height: AppSpacing.s8),
+                      OpenLocationButton(
+                        label: locationLabel,
+                        viewerTitle: locationLabel,
+                        coordinates: request.coordinates,
+                        text: request.addressText,
+                        allowTextSearch: true,
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                if (asCompany)
+                  _CompanyActions(request: request)
+                else if (request.canCustomerCancel)
+                  _CustomerCancel(request: request),
+                if (showChatAction) ...[
+                  const SizedBox(height: AppSpacing.s8),
+                  AppButton.outlined(
+                    icon: Icons.chat_bubble_outline,
+                    label: l10n.serviceRequestOpenChat,
+                    expand: true,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ChatScreen(
+                          chatId: request.id,
+                          role: asCompany
+                              ? ChatParticipantRole.company
+                              : ChatParticipantRole.customer,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-        ],
+        ),
       ],
     );
   }
-}
-
-Future<bool> _confirm(
-  BuildContext context, {
-  required String title,
-  required String body,
-  required String confirmLabel,
-}) async {
-  final result = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(title),
-      content: Text(body),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(context.l10n.commonCancel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text(confirmLabel),
-        ),
-      ],
-    ),
-  );
-  return result ?? false;
 }
 
 /// Runs a status change and reports a failure; the screen updates itself
@@ -211,7 +217,7 @@ Future<void> _changeStatus(
       .read(serviceRequestActionsProvider)
       .updateStatus(request, status);
   if (error != null && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+    showAppSnackBar(context, error, tone: AppTone.error);
   }
 }
 
@@ -223,19 +229,17 @@ class _CustomerCancel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    return OutlinedButton.icon(
-      icon: const Icon(Icons.close_rounded),
-      label: Text(l10n.serviceRequestCancel),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Theme.of(context).colorScheme.error,
-        minimumSize: const Size.fromHeight(48),
-      ),
+    return AppButton.destructiveOutlined(
+      icon: Icons.close_rounded,
+      label: l10n.serviceRequestCancel,
+      expand: true,
       onPressed: () async {
-        final ok = await _confirm(
+        final ok = await showConfirmationDialog(
           context,
           title: l10n.serviceRequestCancelTitle,
           body: l10n.serviceRequestCancelBody,
           confirmLabel: l10n.serviceRequestCancel,
+          destructive: true,
         );
         if (ok && context.mounted) {
           await _changeStatus(
@@ -260,27 +264,25 @@ class _CompanyActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    Widget primary(String label, ServiceRequestStatus next) => FilledButton(
-          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+    Widget primary(String label, ServiceRequestStatus next) => AppButton.primary(
+          label: label,
+          expand: true,
           onPressed: () => _changeStatus(context, ref, request, next),
-          child: Text(label),
         );
 
     return switch (request.status) {
       ServiceRequestStatus.pending => Row(
           children: [
             Expanded(
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
-                  minimumSize: const Size.fromHeight(48),
-                ),
+              child: AppButton.destructiveOutlined(
+                label: l10n.serviceRequestReject,
                 onPressed: () async {
-                  final ok = await _confirm(
+                  final ok = await showConfirmationDialog(
                     context,
                     title: l10n.serviceRequestRejectTitle,
                     body: l10n.serviceRequestRejectBody,
                     confirmLabel: l10n.serviceRequestReject,
+                    destructive: true,
                   );
                   if (ok && context.mounted) {
                     await _changeStatus(
@@ -291,10 +293,9 @@ class _CompanyActions extends ConsumerWidget {
                     );
                   }
                 },
-                child: Text(l10n.serviceRequestReject),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.s12),
             Expanded(
               child: primary(
                 l10n.serviceRequestAccept,

@@ -4,6 +4,9 @@ import 'package:image_picker/image_picker.dart';
 
 import '../services/image_upload_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_dimensions.dart';
+import 'app_feedback.dart';
+import 'app_surfaces.dart';
 import 'image_picker_strings.dart';
 
 /// Holds what an [ImagePickerField] currently shows: the saved (or typed) URL,
@@ -129,11 +132,12 @@ class ImagePickerField extends StatelessWidget {
   Future<void> _pickLocal(BuildContext context, ImageSource source) async {
     final strings = ImagePickerStrings.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    void say(String message) => messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: AppColors.error),
-      );
+    void say(String message) => showAppSnackBar(
+          context,
+          message,
+          tone: AppTone.error,
+          messenger: messenger,
+        );
 
     try {
       final file = await _picker.pickImage(
@@ -183,11 +187,7 @@ class ImagePickerField extends StatelessWidget {
     );
     final Widget image = picked != null
         ? Image.memory(picked.bytes, fit: BoxFit.cover)
-        : Image.network(
-            controller.url,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => fallback,
-          );
+        : AppNetworkImage(url: controller.url, fallback: fallback);
 
     return _frame(
       child: Stack(
@@ -224,10 +224,10 @@ class ImagePickerField extends StatelessWidget {
   }
 
   Widget _empty(BuildContext context, ImagePickerStrings strings) {
-    final primary = Theme.of(context).colorScheme.primary;
+    const primary = AppColors.primary;
     return _frame(
-      borderColor: primary.withValues(alpha: 0.45),
-      background: primary.withValues(alpha: 0.05),
+      borderColor: AppColors.primary,
+      background: AppColors.brandPrimarySubtle,
       child: InkWell(
         onTap: enabled ? () => _open(context) : null,
         child: Center(
@@ -236,12 +236,15 @@ class ImagePickerField extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.add, color: primary),
+                const Icon(Icons.add, color: primary),
                 const SizedBox(height: 4),
                 Text(
                   strings.addImage,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: primary, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    color: AppColors.textBrand,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -257,12 +260,12 @@ class ImagePickerField extends StatelessWidget {
     Color? background,
   }) {
     final decoration = BoxDecoration(
-      color: background ?? AppColors.secondary.withValues(alpha: 0.1),
+      color: background ?? AppColors.bgSubtle,
       shape: _isCircle ? BoxShape.circle : BoxShape.rectangle,
-      borderRadius: _isCircle ? null : BorderRadius.circular(12),
+      borderRadius: _isCircle ? null : AppRadius.mdAll,
       border: Border.all(
-        color: borderColor ?? AppColors.secondary.withValues(alpha: 0.2),
-        width: borderColor == null ? 1 : 1.5,
+        color: borderColor ?? AppColors.borderDefault,
+        width: borderColor == null ? AppBorder.thin : AppBorder.thick,
       ),
     );
     final framed = Container(

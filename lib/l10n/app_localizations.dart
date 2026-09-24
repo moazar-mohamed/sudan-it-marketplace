@@ -164,6 +164,30 @@ abstract class AppLocalizations {
   /// **'Search'**
   String get commonSearch;
 
+  /// No description provided for @commonClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get commonClear;
+
+  /// No description provided for @commonCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get commonCopy;
+
+  /// No description provided for @commonQuantityIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase quantity'**
+  String get commonQuantityIncrease;
+
+  /// No description provided for @commonQuantityDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease quantity'**
+  String get commonQuantityDecrease;
+
   /// No description provided for @commonDone.
   ///
   /// In en, this message translates to:
@@ -629,7 +653,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorProfileLoadDenied.
   ///
   /// In en, this message translates to:
-  /// **'Could not load your profile: access was denied by the server. Make sure the latest Firestore rules are deployed.'**
+  /// **'Could not load your profile: access was denied. Please try again later or contact support.'**
   String get errorProfileLoadDenied;
 
   /// No description provided for @errorProfileLoadOffline.
@@ -1655,13 +1679,13 @@ abstract class AppLocalizations {
   /// No description provided for @paymentPendingNote.
   ///
   /// In en, this message translates to:
-  /// **'Submitting this receipt stores the transfer reference in Firestore under \"Pending Verification\". Payment will be marked Confirmed after admin/company verification.'**
+  /// **'Submitting this receipt saves the transfer reference as \"Pending Verification\". Payment will be marked Confirmed after the company verifies it.'**
   String get paymentPendingNote;
 
   /// No description provided for @paymentSubmitting.
   ///
   /// In en, this message translates to:
-  /// **'Submitting to Firestore...'**
+  /// **'Submitting...'**
   String get paymentSubmitting;
 
   /// No description provided for @paymentSubmit.
@@ -1859,7 +1883,7 @@ abstract class AppLocalizations {
   /// No description provided for @pendingBody.
   ///
   /// In en, this message translates to:
-  /// **'Your transfer receipt reference has been stored in Firestore. It is awaiting confirmation from the finance team. Payment will be marked Confirmed only after manual verification.'**
+  /// **'Your transfer receipt reference has been saved. It is awaiting confirmation from the company. Payment will be marked Confirmed only after manual verification.'**
   String get pendingBody;
 
   /// No description provided for @pendingOrderReference.

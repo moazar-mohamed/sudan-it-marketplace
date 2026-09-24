@@ -1,5 +1,5 @@
 export const en = {
-  'app.name': 'Sudan IT Marketplace',
+  'app.name': 'Sudan ICT Marketplace',
   'app.role': 'Platform Admin',
 
   'nav.dashboard': 'Dashboard',
@@ -163,11 +163,11 @@ export const en = {
   'companies.deleted': 'Company deleted.',
   'companies.confirmDelete.title': 'Delete this company?',
   'companies.confirmDelete.body':
-    'Deleting {name} will permanently delete:\n• the company\n• its company admin\n• its employees / technicians\n• its technician invites\n• its {count} product(s) and other company-owned data\n\nOrders and order history will NOT be deleted.\n\nSign-in accounts must be removed separately in Firebase Authentication. This cannot be undone.',
+    'Deleting {name} will permanently delete:\n• the company\n• its company admin\n• its employees / technicians\n• its {count} product(s) and other related company data\n\nOrders and order history will NOT be deleted.\n\nSign-in accounts must be removed separately in Firebase Authentication. This cannot be undone.',
   'companies.confirmDelete.activeNote':
     'This company is active, so it will be deactivated first.',
   'companies.deletedCascade':
-    'Company deleted, with its admin ({admins}), employees ({technicians}), invites ({invites}), products ({products}) and {other} other record(s). {orders}',
+    'Company deleted, with its admin ({admins}), employees ({technicians}), products ({products}) and {other} other related record(s). {orders}',
   'companies.ordersKept': '{count} order(s) kept.',
   'companies.ordersKeptUnknown': 'Orders were kept.',
   'companies.statusNote':
@@ -601,11 +601,11 @@ export const ar: Record<TranslationKey, string> = {
   'companies.deleted': 'تم حذف الشركة.',
   'companies.confirmDelete.title': 'حذف هذه الشركة؟',
   'companies.confirmDelete.body':
-    'حذف {name} سيؤدي إلى حذف ما يلي نهائياً:\n• الشركة\n• مدير الشركة\n• موظفيها / الفنيين\n• دعوات الفنيين\n• {count} منتج/منتجات وبقية بيانات الشركة\n\nالطلبات وسجل الطلبات لن تُحذف.\n\nيجب حذف حسابات الدخول بشكل منفصل من Firebase Authentication. لا يمكن التراجع عن ذلك.',
+    'حذف {name} سيؤدي إلى حذف ما يلي نهائياً:\n• الشركة\n• مدير الشركة\n• موظفيها / الفنيين\n• {count} منتج/منتجات وبقية البيانات المرتبطة بالشركة\n\nالطلبات وسجل الطلبات لن تُحذف.\n\nيجب حذف حسابات الدخول بشكل منفصل من Firebase Authentication. لا يمكن التراجع عن ذلك.',
   'companies.confirmDelete.activeNote':
     'هذه الشركة نشطة، لذا سيتم إلغاء تفعيلها أولاً.',
   'companies.deletedCascade':
-    'تم حذف الشركة مع مديرها ({admins}) وموظفيها ({technicians}) ودعواتها ({invites}) ومنتجاتها ({products}) و{other} سجل آخر. {orders}',
+    'تم حذف الشركة مع مديرها ({admins}) وموظفيها ({technicians}) ومنتجاتها ({products}) و{other} سجل آخر مرتبط بها. {orders}',
   'companies.ordersKept': 'تم الاحتفاظ بـ {count} طلب.',
   'companies.ordersKeptUnknown': 'تم الاحتفاظ بالطلبات.',
   'companies.statusNote':

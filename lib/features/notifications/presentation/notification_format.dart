@@ -46,32 +46,26 @@ class NotificationFormat {
         '${two(local.hour)}:${two(local.minute)}';
   }
 
-  static ({IconData icon, Color color}) style(
-    AppNotification notification,
-    ColorScheme colorScheme,
-  ) {
+  static ({IconData icon, AppTone tone}) style(AppNotification notification) {
     return switch (notification.type) {
-      'new_order' => (
-          icon: Icons.receipt_long_outlined,
-          color: colorScheme.primary,
-        ),
+      'new_order' => (icon: Icons.receipt_long_outlined, tone: AppTone.brand),
       'payment_confirmed' => (
           icon: Icons.verified_outlined,
-          color: AppColors.success,
+          tone: AppTone.success,
         ),
       'out_for_delivery' => (
           icon: Icons.local_shipping_outlined,
-          color: Colors.deepOrange,
+          tone: AppTone.progress,
         ),
       'order_completed' => (
           icon: Icons.check_circle_outline,
-          color: Colors.green,
+          tone: AppTone.success,
         ),
       'technician_assigned' => (
           icon: Icons.engineering_outlined,
-          color: colorScheme.primary,
+          tone: AppTone.brand,
         ),
-      _ => (icon: Icons.notifications_outlined, color: colorScheme.primary),
+      _ => (icon: Icons.notifications_outlined, tone: AppTone.brand),
     };
   }
 }

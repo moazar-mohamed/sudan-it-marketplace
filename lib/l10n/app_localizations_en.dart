@@ -43,6 +43,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonSearch => 'Search';
 
   @override
+  String get commonClear => 'Clear';
+
+  @override
+  String get commonCopy => 'Copy';
+
+  @override
+  String get commonQuantityIncrease => 'Increase quantity';
+
+  @override
+  String get commonQuantityDecrease => 'Decrease quantity';
+
+  @override
   String get commonDone => 'Done';
 
   @override
@@ -302,7 +314,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorProfileLoadDenied =>
-      'Could not load your profile: access was denied by the server. Make sure the latest Firestore rules are deployed.';
+      'Could not load your profile: access was denied. Please try again later or contact support.';
 
   @override
   String get errorProfileLoadOffline =>
@@ -916,10 +928,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentPendingNote =>
-      'Submitting this receipt stores the transfer reference in Firestore under \"Pending Verification\". Payment will be marked Confirmed after admin/company verification.';
+      'Submitting this receipt saves the transfer reference as \"Pending Verification\". Payment will be marked Confirmed after the company verifies it.';
 
   @override
-  String get paymentSubmitting => 'Submitting to Firestore...';
+  String get paymentSubmitting => 'Submitting...';
 
   @override
   String get paymentSubmit => 'Submit Receipt for Verification';
@@ -1030,7 +1042,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pendingBody =>
-      'Your transfer receipt reference has been stored in Firestore. It is awaiting confirmation from the finance team. Payment will be marked Confirmed only after manual verification.';
+      'Your transfer receipt reference has been saved. It is awaiting confirmation from the company. Payment will be marked Confirmed only after manual verification.';
 
   @override
   String get pendingOrderReference => 'Order Reference';

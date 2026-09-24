@@ -7,26 +7,26 @@ import type {
 } from '../data/types';
 import { Badge, type Tone } from './ui';
 
-const COMPANY_TONE: Record<CompanyStatus, Tone> = {
+export const COMPANY_TONE: Record<CompanyStatus, Tone> = {
   active: 'success',
   pending: 'warning',
   rejected: 'danger',
   inactive: 'neutral',
 };
-const ORDER_TONE: Record<OrderStatus, Tone> = {
+export const ORDER_TONE: Record<OrderStatus, Tone> = {
   processing: 'info',
-  out_for_delivery: 'warning',
+  out_for_delivery: 'progress',
   completed: 'success',
 };
-const SERVICE_REQUEST_TONE: Record<ServiceRequestStatus, Tone> = {
+export const SERVICE_REQUEST_TONE: Record<ServiceRequestStatus, Tone> = {
   pending: 'warning',
   accepted: 'info',
-  in_progress: 'info',
+  in_progress: 'progress',
   completed: 'success',
   rejected: 'danger',
   cancelled: 'neutral',
 };
-const PAYMENT_TONE: Record<PaymentStatus, Tone> = {
+export const PAYMENT_TONE: Record<PaymentStatus, Tone> = {
   pending_verification: 'warning',
   confirmed: 'success',
 };

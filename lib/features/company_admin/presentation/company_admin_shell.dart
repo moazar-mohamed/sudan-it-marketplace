@@ -10,6 +10,8 @@ import 'profile/company_profile_tab.dart';
 import 'services/company_services_tab.dart';
 import 'technicians/technicians_tab.dart';
 import '../../../core/localization/l10n_extension.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../chats/domain/entities/chat_conversation.dart';
 import '../../chats/presentation/chat_providers.dart';
@@ -87,7 +89,6 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
       context: context,
       showDragHandle: true,
       builder: (sheetContext) {
-        final colorScheme = Theme.of(sheetContext).colorScheme;
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -97,7 +98,8 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
                   leading: Icon(icon),
                   title: Text(label),
                   selected: section == _currentIndex,
-                  selectedColor: colorScheme.primary,
+                  selectedColor: AppColors.textBrand,
+                  minTileHeight: AppSize.touchMin,
                   onTap: () => Navigator.of(sheetContext).pop(section),
                 ),
               const SizedBox(height: 8),
@@ -121,7 +123,6 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final companyId = widget.companyId;
     final unreadChats = ref.watch(companyUnreadChatsCountProvider(companyId));
     final pendingRequests =
@@ -192,8 +193,6 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _barIndex,
         onDestinationSelected: _onBarSelected,
-        backgroundColor: colorScheme.surface,
-        indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: [
           NavigationDestination(

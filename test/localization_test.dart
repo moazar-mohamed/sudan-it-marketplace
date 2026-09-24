@@ -370,7 +370,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'تسجيل الدخول'));
+      await tester.tap(find.widgetWithText(FilledButton, 'تسجيل الدخول'));
       await tester.pumpAndSettle();
       expect(find.text('البريد الإلكتروني مطلوب.'), findsOneWidget);
       expect(find.text('كلمة المرور مطلوبة.'), findsOneWidget);
@@ -398,7 +398,7 @@ void main() {
 
       await tester.enterText(find.byType(TextFormField).at(0), 'a@b.co');
       await tester.enterText(find.byType(TextFormField).at(1), 'secret1');
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Login'));
       await tester.pumpAndSettle();
       expect(find.text('Invalid email or password.'), findsOneWidget);
 

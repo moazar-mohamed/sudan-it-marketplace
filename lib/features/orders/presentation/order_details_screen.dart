@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../location/presentation/location_strings.dart';
 import '../domain/entities/order_entity.dart';
@@ -46,477 +49,227 @@ class OrderDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final l10n = context.l10n;
     final companyName = _resolveCompanyName();
+    final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
+    const gap = SizedBox(height: AppSpacing.s16);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.orderTitleNumber(order.id.length > 8 ? order.id.substring(0, 8) : order.id)),
+        title: Text(
+          l10n.orderTitleNumber(
+            order.id.length > 8 ? order.id.substring(0, 8) : order.id,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Status Flow Card: Processing → Out for Delivery → Completed
-            _buildStatusFlowCard(context),
-            const SizedBox(height: 16),
+        padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Processing -> Out for delivery -> Completed.
+                _buildStatusFlowCard(context),
+                gap,
 
-            // Product & Company Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: colorScheme.onSurface.withValues(alpha: 0.08),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.l10n.orderItemOrdered,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.inventory_2_outlined,
-                            color: AppColors.primary,
-                            size: 26,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              order.productName,
-                              style: textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
+                SectionCard(
+                  title: l10n.orderItemOrdered,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppImageTile(),
+                        const SizedBox(width: AppSpacing.s12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                order.productName,
+                                style: AppTextStyles.bodyStrong,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.business_outlined,
-                                  size: 14,
-                                  color: colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    companyName,
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurface
-                                          .withValues(alpha: 0.7),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.business_outlined,
+                                    size: AppSize.iconSm,
+                                    color: AppColors.iconDefault,
                                   ),
+                                  const SizedBox(width: AppSpacing.s4),
+                                  Expanded(
+                                    child: Text(
+                                      companyName,
+                                      style: AppTextStyles.caption.copyWith(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: AppSpacing.s6),
+                              PriceSummaryRow(
+                                label: l10n.orderUnitLine(
+                                  _formatPrice(order.unitPrice),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            PriceSummaryRow(
-                              label: context.l10n.orderUnitLine(_formatPrice(order.unitPrice)),
-                              value: context.l10n.orderQtyLine(order.quantity),
-                              labelStyle: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                value: l10n.orderQtyLine(order.quantity),
+                                labelStyle: AppTextStyles.caption
+                                    .copyWith(color: AppColors.textSecondary),
+                                valueStyle: AppTextStyles.captionStrong,
                               ),
-                              valueStyle: textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.w700,
+                              Text(
+                                l10n.orderSubtotalLine(
+                                  _formatPrice(order.productSubtotal),
+                                ),
+                                style: AppTextStyles.bodyStrong
+                                    .copyWith(color: AppColors.textBrand),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              context.l10n.orderSubtotalLine(_formatPrice(order.productSubtotal)),
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                      ],
+                    ),
+                  ],
+                ),
+                gap,
+
+                SectionCard(
+                  title: order.deliveryMethod == DeliveryMethod.pickup
+                      ? l10n.orderPickupDetails
+                      : l10n.orderDeliveryDetails,
+                  gap: AppSpacing.s8,
+                  children: [
+                    KeyValueRow(
+                      label: l10n.orderAddress,
+                      value: orderDeliveryLabel(context, order),
+                    ),
+                    OrderLocationButton(
+                      order: order,
+                      label: LocationStrings.of(context).openDeliveryLocation,
+                    ),
+                    PickupCompanyLocationButton(order: order),
+                    KeyValueRow(
+                      label: l10n.orderContactPhone,
+                      value: order.contactPhone,
+                      valueTextDirection: TextDirection.ltr,
+                    ),
+                    if (order.installationSelected)
+                      KeyValueRow(
+                        label: l10n.orderType,
+                        value: l10n.orderTypeInstallation(
+                          _formatPrice(order.installationFee),
+                        ),
+                        valueColor: AppColors.textBrand,
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Delivery & Contact Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: colorScheme.onSurface.withValues(alpha: 0.08),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    order.deliveryMethod == DeliveryMethod.pickup
-                        ? context.l10n.orderPickupDetails
-                        : context.l10n.orderDeliveryDetails,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                    if (order.deliveryMethod == DeliveryMethod.delivery)
+                      KeyValueRow(
+                        label: l10n.orderDeliveryFee,
+                        value: '${_formatPrice(order.deliveryFee)} SDG',
+                      ),
+                    KeyValueRow(
+                      label: l10n.orderOrderedAt,
+                      value: _formatDate(order.createdAt),
+                      valueTextDirection: TextDirection.ltr,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildRow(
-                    context.l10n.orderAddress,
-                    orderDeliveryLabel(context, order),
-                    textTheme,
-                    colorScheme,
-                  ),
-                  const SizedBox(height: 8),
-                  OrderLocationButton(
-                    order: order,
-                    label: LocationStrings.of(context).openDeliveryLocation,
-                  ),
-                  PickupCompanyLocationButton(order: order),
-                  const SizedBox(height: 8),
-                  _buildRow(context.l10n.orderContactPhone, order.contactPhone, textTheme, colorScheme),
-                  const SizedBox(height: 8),
-                  if (order.installationSelected) ...[
-                    _buildRow(
-                      context.l10n.orderType,
-                      context.l10n.orderTypeInstallation(_formatPrice(order.installationFee)),
-                      textTheme,
-                      colorScheme,
-                      valueColor: AppColors.primary,
-                    ),
-                    const SizedBox(height: 8),
                   ],
-                  if (order.deliveryMethod == DeliveryMethod.delivery) ...[
-                    _buildRow(
-                      context.l10n.orderDeliveryFee,
-                      '${_formatPrice(order.deliveryFee)} SDG',
-                      textTheme,
-                      colorScheme,
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  _buildRow(
-                    context.l10n.orderOrderedAt,
-                    _formatDate(order.createdAt),
-                    textTheme,
-                    colorScheme,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Payment Status Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: colorScheme.onSurface.withValues(alpha: 0.08),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.l10n.orderPaymentStatus,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                gap,
+
+                SectionCard(
+                  title: l10n.orderPaymentStatus,
+                  gap: AppSpacing.s8,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.orderStatusLabel,
+                          style: AppTextStyles.body
+                              .copyWith(color: AppColors.textSecondary),
+                        ),
+                        StatusChip(
+                          label: order.paymentStatus.label(l10n),
+                          tone: order.paymentStatus.tone,
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    if (order.receiptFileName != null)
+                      KeyValueRow(
+                        label: l10n.orderReceiptAttached,
+                        value: order.receiptFileName!,
+                        valueColor: AppColors.successText,
+                      ),
+                  ],
+                ),
+                gap,
+
+                AppCard(
+                  padding: const EdgeInsets.all(AppSpacing.s16),
+                  child: Column(
                     children: [
-                      Text(
-                        context.l10n.orderStatusLabel,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.6),
-                        ),
+                      PriceSummaryRow(
+                        label: l10n.orderProductSubtotal,
+                        value: '${_formatPrice(order.productSubtotal)} SDG',
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
+                      if (order.installationSelected) ...[
+                        const SizedBox(height: AppSpacing.s8),
+                        PriceSummaryRow(
+                          label: l10n.orderInstallationFee,
+                          value: '+${_formatPrice(order.installationFee)} SDG',
                         ),
-                        decoration: BoxDecoration(
-                          color: order.paymentStatus == PaymentStatus.confirmed
-                              ? AppColors.success.withValues(alpha: 0.12)
-                              : Colors.amber.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: order.paymentStatus == PaymentStatus.confirmed
-                                ? AppColors.success
-                                : Colors.amber.shade700,
-                          ),
+                      ],
+                      if (order.deliveryMethod == DeliveryMethod.delivery) ...[
+                        const SizedBox(height: AppSpacing.s8),
+                        PriceSummaryRow(
+                          label: l10n.orderDeliveryFee,
+                          value: '${_formatPrice(order.deliveryFee)} SDG',
                         ),
-                        child: Text(
-                          order.paymentStatus.label(context.l10n),
-                          style: textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: order.paymentStatus == PaymentStatus.confirmed
-                                ? AppColors.success
-                                : Colors.amber.shade900,
-                          ),
-                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.s12),
+                      const Divider(height: 1),
+                      const SizedBox(height: AppSpacing.s12),
+                      PriceSummaryRow(
+                        label: l10n.orderTotal,
+                        value: '${_formatPrice(order.totalAmount)} SDG',
+                        total: true,
                       ),
                     ],
                   ),
-                  if (order.receiptFileName != null) ...[
-                    const SizedBox(height: 8),
-                    _buildRow(
-                      context.l10n.orderReceiptAttached,
-                      order.receiptFileName!,
-                      textTheme,
-                      colorScheme,
-                      valueColor: AppColors.success,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Price Summary Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: colorScheme.onSurface.withValues(alpha: 0.08),
                 ),
-              ),
-              child: Column(
-                children: [
-                  PriceSummaryRow(
-                    label: context.l10n.orderProductSubtotal,
-                    value: '${_formatPrice(order.productSubtotal)} SDG',
-                    labelStyle: textTheme.bodyMedium,
-                    valueStyle: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (order.installationSelected) ...[
-                    const SizedBox(height: 8),
-                    PriceSummaryRow(
-                      label: context.l10n.orderInstallationFee,
-                      value: '+${_formatPrice(order.installationFee)} SDG',
-                      labelStyle: textTheme.bodyMedium,
-                      valueStyle: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                  if (order.deliveryMethod == DeliveryMethod.delivery) ...[
-                    const SizedBox(height: 8),
-                    PriceSummaryRow(
-                      label: context.l10n.orderDeliveryFee,
-                      value: '${_formatPrice(order.deliveryFee)} SDG',
-                      labelStyle: textTheme.bodyMedium,
-                      valueStyle: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  PriceSummaryRow(
-                    label: context.l10n.orderTotal,
-                    value: '${_formatPrice(order.totalAmount)} SDG',
-                    labelStyle: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                    valueStyle: textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildStatusFlowCard(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    final steps = [
+    final l10n = context.l10n;
+    const steps = [
       OrderStatus.processing,
       OrderStatus.outForDelivery,
       OrderStatus.completed,
     ];
+    final currentIndex = steps.indexOf(order.orderStatus);
 
-    final currentIndex = switch (order.orderStatus) {
-      OrderStatus.processing => 0,
-      OrderStatus.outForDelivery => 1,
-      OrderStatus.completed => 2,
-    };
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: colorScheme.onSurface.withValues(alpha: 0.08),
-        ),
+    return SectionCard(
+      title: l10n.orderOrderStatus,
+      trailing: StatusChip(
+        label: order.orderStatus.label(l10n),
+        tone: order.orderStatus.tone,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.l10n.orderOrderStatus,
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  order.orderStatus.label(context.l10n),
-                  style: textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              for (int i = 0; i < steps.length; i++) ...[
-                Expanded(
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 14,
-                        backgroundColor: i <= currentIndex
-                            ? AppColors.primary
-                            : colorScheme.onSurface.withValues(alpha: 0.15),
-                        child: Icon(
-                          i < currentIndex
-                              ? Icons.check
-                              : (i == currentIndex
-                                  ? (order.orderStatus == OrderStatus.completed
-                                      ? Icons.check
-                                      : Icons.circle)
-                                  : Icons.circle_outlined),
-                          size: 14,
-                          color: i <= currentIndex
-                              ? Colors.white
-                              : colorScheme.onSurface.withValues(alpha: 0.4),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        steps[i].label(context.l10n),
-                        textAlign: TextAlign.center,
-                        style: textTheme.labelSmall?.copyWith(
-                          fontWeight: i == currentIndex
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: i <= currentIndex
-                              ? colorScheme.onSurface
-                              : colorScheme.onSurface.withValues(alpha: 0.45),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (i < steps.length - 1)
-                  Expanded(
-                    child: Container(
-                      height: 2,
-                      margin: const EdgeInsets.only(bottom: 20),
-                      color: i < currentIndex
-                          ? AppColors.primary
-                          : colorScheme.onSurface.withValues(alpha: 0.15),
-                    ),
-                  ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRow(
-    String label,
-    String value,
-    TextTheme textTheme,
-    ColorScheme colorScheme, {
-    Color? valueColor,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      gap: AppSpacing.s16,
       children: [
-        SizedBox(
-          width: 120,
-          child: Text(
-            label,
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            value,
-            textAlign: TextAlign.end,
-            style: textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: valueColor ?? colorScheme.onSurface,
-            ),
-          ),
+        AppStepTracker(
+          labels: [for (final step in steps) step.label(l10n)],
+          currentIndex: currentIndex,
+          allDone: order.orderStatus == OrderStatus.completed,
         ),
       ],
     );

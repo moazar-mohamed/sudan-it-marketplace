@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../chats/domain/entities/chat_conversation.dart';
 import '../../chats/presentation/chat_screen.dart';
 import '../../companies/domain/entities/company.dart';
@@ -84,13 +88,17 @@ class _ServiceRequestFormScreenState
     setState(() => _submitting = false);
     final requestId = result.requestId;
     if (requestId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.error ?? context.l10n.errorGeneric)),
+      showAppSnackBar(
+        context,
+        result.error ?? context.l10n.errorGeneric,
+        tone: AppTone.error,
       );
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.serviceRequestSent)),
+    showAppSnackBar(
+      context,
+      context.l10n.serviceRequestSent,
+      tone: AppTone.success,
     );
     // The conversation shares the request's id.
     Navigator.of(context).pushReplacement(
@@ -106,116 +114,99 @@ class _ServiceRequestFormScreenState
   @override
   Widget build(BuildContext context) {
     ref.listen(profileControllerProvider, (_, _) => _prefillPhone());
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
     final price = widget.offer.price;
+    final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.serviceRequestFormTitle)),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
           children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: colorScheme.onSurface.withValues(alpha: 0.08),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.service.name,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.company.name,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                  ),
-                  // Only a price the company actually set is shown.
-                  if (price != null) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      formatServicePrice(price),
-                      style: textTheme.titleSmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w800,
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppCard(
+                      padding: const EdgeInsets.all(AppSpacing.s16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(widget.service.name, style: AppTextStyles.h3),
+                          Text(
+                            widget.company.name,
+                            style: AppTextStyles.body
+                                .copyWith(color: AppColors.textSecondary),
+                          ),
+                          // Only a price the company actually set is shown.
+                          if (price != null) ...[
+                            const SizedBox(height: AppSpacing.s6),
+                            Text(
+                              formatServicePrice(price),
+                              style: AppTextStyles.bodyStrong
+                                  .copyWith(color: AppColors.textBrand),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.s20),
+                    AppTextField(
+                      label: context.l10n.serviceRequestDetailsLabel,
+                      controller: _detailsController,
+                      minLines: 4,
+                      maxLines: 8,
+                      maxLength: 2000,
+                      textInputAction: TextInputAction.newline,
+                      hint: context.l10n.serviceRequestDetailsHint,
+                      validator: (value) => (value?.trim().isEmpty ?? true)
+                          ? context.l10n.serviceRequestDetailsRequired
+                          : null,
+                    ),
+                    const SizedBox(height: AppSpacing.s12),
+                    LocationField(
+                      textController: _addressController,
+                      location: _location,
+                      textLabel: context.l10n.serviceRequestLocationOptional,
+                      textHint: context.l10n.serviceRequestAddressHint,
+                      onLocationChanged: (value) =>
+                          setState(() => _location = value),
+                    ),
+                    const SizedBox(height: AppSpacing.s16),
+                    AppTextField(
+                      label: context.l10n.checkoutContactPhone,
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
+                      ],
+                      hint: '‎+249 9X XXX XXXX',
+                      prefixIcon: Icons.phone_outlined,
+                      validator: (value) {
+                        final phone = value?.trim() ?? '';
+                        if (phone.isEmpty) {
+                          return context.l10n.checkoutPhoneRequired;
+                        }
+                        final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+                        if (digits.length < 9 || phone.length > 30) {
+                          return context.l10n.commonPhoneInvalid;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.s24),
+                    AppButton.primary(
+                      label: context.l10n.serviceRequestSubmit,
+                      loading: _submitting,
+                      expand: true,
+                      onPressed: _submit,
+                    ),
                   ],
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: _detailsController,
-              minLines: 4,
-              maxLines: 8,
-              maxLength: 2000,
-              textInputAction: TextInputAction.newline,
-              decoration: InputDecoration(
-                labelText: context.l10n.serviceRequestDetailsLabel,
-                hintText: context.l10n.serviceRequestDetailsHint,
-                alignLabelWithHint: true,
-              ),
-              validator: (value) => (value?.trim().isEmpty ?? true)
-                  ? context.l10n.serviceRequestDetailsRequired
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            LocationField(
-              textController: _addressController,
-              location: _location,
-              textLabel: context.l10n.serviceRequestLocationOptional,
-              textHint: context.l10n.serviceRequestAddressHint,
-              onLocationChanged: (value) => setState(() => _location = value),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
-              ],
-              decoration: InputDecoration(
-                labelText: context.l10n.checkoutContactPhone,
-                hintText: '+249 9X XXX XXXX',
-                prefixIcon: const Icon(Icons.phone_outlined),
-              ),
-              validator: (value) {
-                final phone = value?.trim() ?? '';
-                if (phone.isEmpty) return context.l10n.checkoutPhoneRequired;
-                final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
-                if (digits.length < 9 || phone.length > 30) {
-                  return context.l10n.commonPhoneInvalid;
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _submitting ? null : _submit,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
-              ),
-              child: _submitting
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2.4),
-                    )
-                  : Text(context.l10n.serviceRequestSubmit),
             ),
           ],
         ),

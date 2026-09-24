@@ -1,3 +1,4 @@
+import 'helpers/field_finders.dart';
 import 'package:flutter/material.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -91,10 +92,10 @@ Widget _app(Widget home, _FakeProfile profile, _FakeAuth auth,
 
 Future<void> _enter(WidgetTester tester,
     {String current = 'Temp@2026', String next = 'MyOwn@2026', String? confirm}) async {
-  await tester.enterText(find.widgetWithText(TextFormField, 'Temporary password'), current);
-  await tester.enterText(find.widgetWithText(TextFormField, 'New password'), next);
+  await tester.enterText(fieldWithLabel('Temporary password'), current);
+  await tester.enterText(fieldWithLabel('New password'), next);
   await tester.enterText(
-    find.widgetWithText(TextFormField, 'Confirm new password'),
+    fieldWithLabel('Confirm new password'),
     confirm ?? next,
   );
 }
@@ -384,7 +385,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(OutlinedButton, 'Sign out'));
+      // Labels sit above the fields now, so the button is below the fold of
+      // the small test screen: scroll to it as a user would.
+      final signOut = find.widgetWithText(OutlinedButton, 'Sign out');
+      await tester.ensureVisible(signOut);
+      await tester.pump();
+      await tester.tap(signOut);
       await tester.pump();
       expect(auth.signOuts, 1);
     });

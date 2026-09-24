@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../settings/presentation/language_selector.dart';
 import 'auth_controller.dart';
 import 'auth_error_messages.dart';
@@ -21,7 +25,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
-  bool _obscurePassword = true;
   bool _isSubmitting = false;
   bool _isGoogleSubmitting = false;
 
@@ -78,18 +81,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _showForgotPasswordSoon() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(context.l10n.authForgotPasswordSoon)),
-      );
+    showAppSnackBar(context, context.l10n.authForgotPasswordSoon);
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
     final l10n = context.l10n;
     final authState = ref.watch(authControllerProvider);
     final errorMessage =
@@ -114,45 +110,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         children: [
                           const Center(child: LanguageSelector()),
                           const SizedBox(height: 24),
-                          Center(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.asset(
-                                'assets/images/app_logo.png',
-                                width: 96,
-                                height: 96,
-                              ),
-                            ),
-                          ),
+                          const Center(child: AppLogo()),
                           const SizedBox(height: 16),
                           Text(
                             l10n.appName,
                             textAlign: TextAlign.center,
-                            style: textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: colorScheme.onSurface,
-                            ),
+                            style: AppTextStyles.h1,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: AppSpacing.s8),
                           Text(
                             l10n.authWelcomeBack,
                             textAlign: TextAlign.center,
-                            style: textTheme.bodyLarge?.copyWith(
-                              color: colorScheme.onSurface.withValues(alpha: 0.7),
-                            ),
+                            style: AppTextStyles.bodyLarge
+                                .copyWith(color: AppColors.textSecondary),
                           ),
-                          const SizedBox(height: 32),
-                          TextFormField(
+                          const SizedBox(height: AppSpacing.s32),
+                          AppTextField(
+                            label: l10n.authEmail,
                             controller: _emailController,
                             enabled: !_isSubmitting,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.email],
-                            decoration: InputDecoration(
-                              labelText: l10n.authEmail,
-                              hintText: 'you@example.com',
-                              prefixIcon: const Icon(Icons.email_outlined),
-                            ),
+                            hint: 'you@example.com',
+                            prefixIcon: Icons.email_outlined,
                             validator: (value) {
                               final email = value?.trim() ?? '';
                               if (email.isEmpty) {
@@ -164,35 +145,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 16),
-                          TextFormField(
+                          const SizedBox(height: AppSpacing.s16),
+                          AppTextField(
+                            label: l10n.authPassword,
                             controller: _passwordController,
                             enabled: !_isSubmitting,
-                            obscureText: _obscurePassword,
+                            password: true,
                             textInputAction: TextInputAction.done,
                             autofillHints: const [AutofillHints.password],
                             onFieldSubmitted: (_) => _submit(),
-                            decoration: InputDecoration(
-                              labelText: l10n.authPassword,
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              suffixIcon: IconButton(
-                                onPressed: _isSubmitting
-                                    ? null
-                                    : () {
-                                        setState(() {
-                                          _obscurePassword = !_obscurePassword;
-                                        });
-                                      },
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                ),
-                                tooltip: _obscurePassword
-                                    ? l10n.commonShowPassword
-                                    : l10n.commonHidePassword,
-                              ),
-                            ),
+                            prefixIcon: Icons.lock_outline,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return l10n.authPasswordRequired;
@@ -210,74 +172,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                           if (errorMessage != null) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              errorMessage,
-                              textAlign: TextAlign.center,
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.error,
-                              ),
+                            const SizedBox(height: AppSpacing.s8),
+                            AppBanner(
+                              tone: AppTone.error,
+                              message: errorMessage,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppSpacing.s8),
                           ],
-                          const SizedBox(height: 8),
-                          ElevatedButton(
-                            onPressed: _isSubmitting ? () {} : _submit,
-                            child: _isSubmitting
-                                ? SizedBox(
-                                    height: 22,
-                                    width: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      color: colorScheme.onPrimary,
-                                    ),
-                                  )
-                                : Text(l10n.authLogin),
+                          const SizedBox(height: AppSpacing.s8),
+                          AppButton.primary(
+                            label: l10n.authLogin,
+                            loading: _isSubmitting,
+                            expand: true,
+                            onPressed: _submit,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppSpacing.s16),
                           Row(
                             children: [
-                              Expanded(
-                                child: Divider(
-                                  color: colorScheme.onSurface
-                                      .withValues(alpha: 0.2),
-                                ),
-                              ),
+                              const Expanded(child: Divider()),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
+                                  horizontal: AppSpacing.s12,
                                 ),
                                 child: Text(
                                   l10n.commonOr,
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ),
-                              Expanded(
-                                child: Divider(
-                                  color: colorScheme.onSurface
-                                      .withValues(alpha: 0.2),
-                                ),
-                              ),
+                              const Expanded(child: Divider()),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          OutlinedButton.icon(
-                            onPressed: (_isSubmitting || _isGoogleSubmitting)
-                                ? null
-                                : _submitGoogle,
-                            icon: _isGoogleSubmitting
-                                ? const SizedBox(
-                                    height: 18,
-                                    width: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                    ),
-                                  )
-                                : const Icon(Icons.g_mobiledata, size: 24),
-                            label: Text(l10n.authContinueWithGoogle),
+                          const SizedBox(height: AppSpacing.s16),
+                          AppButton.outlined(
+                            label: l10n.authContinueWithGoogle,
+                            icon: Icons.g_mobiledata,
+                            loading: _isGoogleSubmitting,
+                            expand: true,
+                            onPressed: _isSubmitting ? null : _submitGoogle,
                           ),
                           const SizedBox(height: 16),
                           Wrap(
@@ -286,7 +219,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             children: [
                               Text(
                                 l10n.authNoAccount,
-                                style: textTheme.bodyMedium,
+                                style: AppTextStyles.body,
                               ),
                               TextButton(
                                 onPressed: _isSubmitting ? null : _openRegister,

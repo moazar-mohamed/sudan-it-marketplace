@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../companies/domain/entities/company.dart';
 import '../../categories/presentation/category_providers.dart';
 import '../../companies/presentation/companies_providers.dart';
@@ -105,11 +108,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       return;
     }
     if (!product.isAvailable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.stockOutOfStock(product.name)),
-          backgroundColor: AppColors.error,
-        ),
+      showAppSnackBar(
+        context,
+        context.l10n.stockOutOfStock(product.name),
+        tone: AppTone.error,
       );
       return;
     }
@@ -125,9 +127,6 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
     final matchedCompany = _resolveCompany();
     final stock = resolveLiveProduct(
       widget.product,
@@ -139,481 +138,210 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     final categoryName =
         ref.watch(categoryNamesProvider)[widget.product.categoryId]?.trim() ??
             '';
+    final companyName = widget.product.companyName ?? '';
+    final specs = widget.product.specifications.entries.toList();
+    final description = widget.product.description?.trim() ?? '';
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final margin = AppSpacing.screenMargin(screenWidth);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.product.name),
       ),
       body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
         physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Large Product Image Container
-            Container(
-              height: 240,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.secondary.withValues(alpha: 0.15),
-                ),
-              ),
-              child: Stack(
-                children: [
-                  const Center(
-                    child: Icon(
-                      Icons.inventory_2_outlined,
-                      size: 88,
-                      color: AppColors.primary,
+        padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    AppImageTile(
+                      imageUrl: widget.product.imageUrl,
+                      size: 240,
+                      radius: AppRadius.lg,
+                      expand: true,
                     ),
-                  ),
-                  PositionedDirectional(
-                    top: 14,
-                    start: 14,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
+                    PositionedDirectional(
+                      top: AppSpacing.s12,
+                      start: AppSpacing.s12,
+                      child: StatusChip(
+                        label: stock.isAvailable
+                            ? context.l10n.productInStockCount(stock.stockCount)
+                            : context.l10n.productOutOfStock,
+                        tone: stock.isAvailable
+                            ? AppTone.success
+                            : AppTone.error,
                       ),
-                      decoration: BoxDecoration(
-                        color: stock.isAvailable
-                            ? AppColors.success.withValues(alpha: 0.12)
-                            : AppColors.error.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: stock.isAvailable
-                              ? AppColors.success
-                              : AppColors.error,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            stock.isAvailable
-                                ? Icons.check_circle_rounded
-                                : Icons.cancel_rounded,
-                            size: 14,
-                            color: stock.isAvailable
-                                ? AppColors.success
-                                : AppColors.error,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            stock.isAvailable
-                                ? context.l10n.productInStockCount(stock.stockCount)
-                                : context.l10n.productOutOfStock,
-                            style: textTheme.labelSmall?.copyWith(
-                              color: stock.isAvailable
-                                  ? AppColors.success
-                                  : AppColors.error,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                Text(widget.product.name, style: AppTextStyles.h2),
+                if (categoryName.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.s8),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: StatusChip(
+                      label: categoryName,
+                      tone: AppTone.brand,
+                      showDot: false,
                     ),
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            // Product Name
-            Text(
-              widget.product.name,
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            if (categoryName.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Chip(
-                  label: Text(categoryName),
-                  visualDensity: VisualDensity.compact,
-                  side: BorderSide.none,
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  labelStyle: textTheme.labelMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                const SizedBox(height: AppSpacing.s8),
+                // A product without a price says so; it is never shown as 0.
+                Text(
+                  unitPrice == null
+                      ? ProductPriceStrings.priceOnRequest(context)
+                      : '${_formatPrice(unitPrice)} ${widget.product.currency}',
+                  style: unitPrice == null
+                      ? AppTextStyles.h2
+                          .copyWith(color: AppColors.textSecondary)
+                      : AppTextStyles.stat.copyWith(color: AppColors.textBrand),
                 ),
-              ),
-            ],
-            const SizedBox(height: 8),
-            // Price
-            Text(
-              unitPrice == null
-                  ? ProductPriceStrings.priceOnRequest(context)
-                  : '${_formatPrice(unitPrice)} ${widget.product.currency}',
-              style: textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Seller / Company Section
-            if (matchedCompany != null ||
-                (widget.product.companyName != null &&
-                    widget.product.companyName!.isNotEmpty)) ...[
-              Material(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(14),
-                child: InkWell(
-                  onTap: matchedCompany != null
-                      ? () => _onViewCompany(context, matchedCompany)
-                      : null,
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: colorScheme.onSurface.withValues(alpha: 0.08),
-                      ),
+                const SizedBox(height: AppSpacing.s16),
+                if (matchedCompany != null || companyName.isNotEmpty) ...[
+                  AppListCard(
+                    onTap: matchedCompany != null
+                        ? () => _onViewCompany(context, matchedCompany)
+                        : null,
+                    showChevron: matchedCompany != null,
+                    leading: AppImageTile(
+                      imageUrl: matchedCompany?.logoUrl,
+                      fallbackText: companyName.isNotEmpty ? companyName : 'C',
+                      size: 48,
                     ),
-                    child: Row(
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color:
-                                  AppColors.primary.withValues(alpha: 0.15),
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              (widget.product.companyName != null &&
-                                      widget.product.companyName!.isNotEmpty)
-                                  ? widget.product.companyName![0]
-                                      .toUpperCase()
-                                  : 'C',
-                              style: textTheme.titleMedium?.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
+                        Text(
+                          companyName.isNotEmpty
+                              ? companyName
+                              : matchedCompany?.name ??
+                                  context.l10n.productVerifiedSeller,
+                          style: AppTextStyles.bodyStrong,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        if (matchedCompany != null)
+                          Row(
                             children: [
-                              Text(
-                                widget.product.companyName ??
-                                    matchedCompany?.name ??
-                                    context.l10n.productVerifiedSeller,
-                                style: textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: colorScheme.onSurface,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              const Icon(
+                                Icons.star_rounded,
+                                color: AppColors.warning,
+                                size: AppSize.iconMd,
                               ),
-                              if (matchedCompany != null) ...[
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.star_rounded,
-                                      color: Colors.amber,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      matchedCompany.rating
-                                          .toStringAsFixed(1),
-                                      style: textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        color: colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      context.l10n.reviewsCount(matchedCompany.reviewCount),
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurface
-                                            .withValues(alpha: 0.6),
-                                      ),
-                                    ),
-                                  ],
+                              const SizedBox(width: AppSpacing.s4),
+                              Text(
+                                matchedCompany.rating.toStringAsFixed(1),
+                                style: AppTextStyles.captionStrong,
+                              ),
+                              const SizedBox(width: AppSpacing.s6),
+                              Flexible(
+                                child: Text(
+                                  context.l10n
+                                      .reviewsCount(matchedCompany.reviewCount),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ),
-                              ],
+                              ),
                             ],
                           ),
-                        ),
-                        if (matchedCompany != null) ...[
-                          const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 14,
-                            color: AppColors.primary,
-                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s16),
+                ],
+                if (widget.product.isInstallationAvailable) ...[
+                  AppBanner(
+                    tone: AppTone.info,
+                    icon: Icons.handyman_outlined,
+                    title: context.l10n.productInstallationAvailable,
+                    message: context.l10n.productInstallationNote(
+                      _formatPrice(widget.product.installationPrice ?? 0),
+                      widget.product.currency,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s20),
+                ],
+                if (description.isNotEmpty) ...[
+                  Text(context.l10n.productDescription, style: AppTextStyles.h3),
+                  const SizedBox(height: AppSpacing.s8),
+                  Text(description, style: AppTextStyles.body),
+                  const SizedBox(height: AppSpacing.s20),
+                ],
+                if (specs.isNotEmpty) ...[
+                  Text(
+                    context.l10n.productSpecifications,
+                    style: AppTextStyles.h3,
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s16,
+                      vertical: AppSpacing.s6,
+                    ),
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < specs.length; i++) ...[
+                          KeyValueRow(label: specs[i].key, value: specs[i].value),
+                          if (i < specs.length - 1) const Divider(height: 1),
                         ],
                       ],
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            // Installation Info (Only shown if isInstallationAvailable is true)
-            if (widget.product.isInstallationAvailable) ...[
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: AppColors.secondary.withValues(alpha: 0.25),
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.handyman_outlined,
-                      color: AppColors.primary,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.l10n.productInstallationAvailable,
-                            style: textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            context.l10n.productInstallationNote(_formatPrice(widget.product.installationPrice ?? 0), widget.product.currency),
-                            style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurface
-                                  .withValues(alpha: 0.8),
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-            // Description
-            if (widget.product.description != null &&
-                widget.product.description!.isNotEmpty) ...[
-              Text(
-                context.l10n.productDescription,
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                widget.product.description!,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.8),
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-            // Specifications
-            if (widget.product.specifications.isNotEmpty) ...[
-              Text(
-                context.l10n.productSpecifications,
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colorScheme.onSurface.withValues(alpha: 0.08),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    for (int i = 0;
-                        i < widget.product.specifications.entries.length;
-                        i++) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 11,
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 110,
-                              child: Text(
-                                widget.product.specifications.entries
-                                    .elementAt(i)
-                                    .key,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                widget.product.specifications.entries
-                                    .elementAt(i)
-                                    .value,
-                                style: textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (i < widget.product.specifications.entries.length - 1)
-                        Divider(
-                          height: 1,
-                          color: colorScheme.onSurface.withValues(alpha: 0.06),
-                        ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ],
+                  const SizedBox(height: AppSpacing.s24),
+                ],
+              ],
+            ),
           ),
         ),
       ),
-      // Sticky Bottom Navigation for Quantity Selector & Buy Now Button
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          border: Border(
-            top: BorderSide(
-              color: colorScheme.onSurface.withValues(alpha: 0.08),
-            ),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
+      // Sticky bar: quantity and the buy action.
+      bottomNavigationBar: AppBottomBar(
+        padding: EdgeInsets.symmetric(
+          horizontal: margin,
+          vertical: AppSpacing.s12,
         ),
-        child: SafeArea(
-          child: Row(
-            children: [
-              // Quantity Counter (− quantity +)
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: colorScheme.onSurface.withValues(alpha: 0.15),
-                  ),
+        child: Center(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            child: Row(
+              children: [
+                AppQuantityStepper(
+                  value: quantity,
+                  canDecrement: quantity > 1,
+                  canIncrement: quantity < stock.maxOrderQuantity,
+                  onDecrement: _decrementQuantity,
+                  onIncrement: _incrementQuantity,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    InkWell(
-                      onTap: _decrementQuantity,
-                      borderRadius: const BorderRadiusDirectional.horizontal(
-                        start: Radius.circular(9),
-                      ).resolve(Directionality.of(context)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
-                        ),
-                        child: Icon(
-                          Icons.remove,
-                          size: 18,
-                          color: quantity > 1
-                              ? colorScheme.onSurface
-                              : colorScheme.onSurface.withValues(alpha: 0.3),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        '$quantity',
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: _incrementQuantity,
-                      borderRadius: const BorderRadiusDirectional.horizontal(
-                        end: Radius.circular(9),
-                      ).resolve(Directionality.of(context)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
-                        ),
-                        child: Icon(
-                          Icons.add,
-                          size: 18,
-                          color: quantity < stock.maxOrderQuantity
-                              ? colorScheme.onSurface
-                              : colorScheme.onSurface.withValues(alpha: 0.3),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 14),
-              // Buy Now Button
-              Expanded(
-                child: ElevatedButton(
-                  // Without a price there is nothing to charge, so it cannot be
-                  // bought online; the customer contacts the company instead.
-                  onPressed: stock.isAvailable && stock.hasPrice
-                      ? () => _onBuyNow(context)
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                  child: Text(
-                    totalPrice == null
+                const SizedBox(width: AppSpacing.s12),
+                Expanded(
+                  child: AppButton.primary(
+                    // Without a price there is nothing to charge, so it
+                    // cannot be bought online; the customer contacts the
+                    // company instead.
+                    onPressed: stock.isAvailable && stock.hasPrice
+                        ? () => _onBuyNow(context)
+                        : null,
+                    label: totalPrice == null
                         ? ProductPriceStrings.priceOnRequest(context)
-                        : context.l10n.productBuyNowPrice(_formatPrice(totalPrice), widget.product.currency),
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                        : context.l10n.productBuyNowPrice(
+                            _formatPrice(totalPrice),
+                            widget.product.currency,
+                          ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

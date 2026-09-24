@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../service_requests/presentation/service_request_details_screen.dart';
 import '../../service_requests/presentation/service_request_labels.dart';
 import '../../service_requests/presentation/service_request_providers.dart';
@@ -71,8 +75,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (!mounted) return;
     setState(() => _sending = false);
     if (error != null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error)));
+      showAppSnackBar(context, error, tone: AppTone.error);
       return;
     }
     _controller.clear();
@@ -108,11 +111,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 // Readable on the app bar's own colour.
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: (Theme.of(context).appBarTheme.foregroundColor ??
-                              Theme.of(context).colorScheme.onPrimary)
-                          .withValues(alpha: 0.85),
-                    ),
+                style: AppTextStyles.caption.copyWith(color: AppColors.onPrimary),
               ),
           ],
         ),
@@ -133,10 +132,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ],
       ),
       body: conversationAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => _CenteredMessage(text: context.l10n.chatLoadFailed),
+        loading: () => const AppLoadingState(),
+        error: (_, _) => AppErrorState(
+          message: context.l10n.chatLoadFailed,
+          onRetry: () => ref.invalidate(chatConversationProvider(widget.chatId)),
+        ),
         data: (conversation) => conversation == null
-            ? _CenteredMessage(text: context.l10n.chatNotFound)
+            ? AppErrorState(message: context.l10n.chatNotFound)
             : Column(
                 children: [
                   _RequestStatusBar(requestId: widget.chatId),
@@ -168,24 +170,21 @@ class _RequestStatusBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final request = ref.watch(serviceRequestStreamProvider(requestId)).asData?.value;
     if (request == null) return const SizedBox.shrink();
-    final color = request.status.color;
+    final tone = request.status.tone;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: color.withValues(alpha: 0.08),
+      color: tone.background,
       child: Row(
         children: [
-          Icon(Icons.assignment_outlined, size: 18, color: color),
+          Icon(Icons.assignment_outlined, size: 18, color: tone.accent),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               context.l10n.serviceRequestStatusLine(
                 request.status.label(context.l10n),
               ),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: AppTextStyles.captionStrong.copyWith(color: tone.foreground),
             ),
           ),
         ],
@@ -204,17 +203,29 @@ class _MessagesList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final messagesAsync = ref.watch(chatMessagesProvider(chatId));
     return messagesAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, _) => _CenteredMessage(text: context.l10n.chatLoadFailed),
+      loading: () => const AppLoadingState(),
+      error: (_, _) => AppErrorState(
+        message: context.l10n.chatLoadFailed,
+        onRetry: () => ref.invalidate(chatMessagesProvider(chatId)),
+      ),
       data: (messages) {
         if (messages.isEmpty) {
-          return _CenteredMessage(text: context.l10n.chatEmpty);
+          return AppEmptyState(
+            icon: Icons.chat_bubble_outline,
+            message: context.l10n.chatEmpty,
+            expandVertically: true,
+          );
         }
         // Newest at the bottom; the list is reversed so it opens there.
         final newestFirst = messages.reversed.toList();
         return ListView.builder(
           reverse: true,
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s12,
+            AppSpacing.s12,
+            AppSpacing.s12,
+            AppSpacing.s8,
+          ),
           itemCount: newestFirst.length,
           itemBuilder: (context, index) {
             final message = newestFirst[index];
@@ -246,75 +257,40 @@ class _Composer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          border: Border(
-            top: BorderSide(
-              color: colorScheme.onSurface.withValues(alpha: 0.08),
+    return AppBottomBar(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.s12,
+        AppSpacing.s8,
+        AppSpacing.s8,
+        AppSpacing.s8,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              minLines: 1,
+              maxLines: 5,
+              maxLength: ChatMessage.maxLength,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                hintText: context.l10n.chatInputHint,
+                counterText: '',
+                isDense: true,
+              ),
             ),
           ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: controller,
-                minLines: 1,
-                maxLines: 5,
-                maxLength: ChatMessage.maxLength,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  hintText: context.l10n.chatInputHint,
-                  counterText: '',
-                  isDense: true,
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            IconButton.filled(
-              tooltip: context.l10n.chatSend,
-              onPressed: sending ? null : onSend,
-              icon: sending
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.send_rounded),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CenteredMessage extends StatelessWidget {
-  const _CenteredMessage({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6),
-              ),
-        ),
+          const SizedBox(width: AppSpacing.s6),
+          IconButton.filled(
+            style: IconButton.styleFrom(foregroundColor: AppColors.onPrimary),
+            tooltip: context.l10n.chatSend,
+            onPressed: sending ? null : onSend,
+            icon: sending
+                ? const AppSpinner()
+                : const Icon(Icons.send_rounded),
+          ),
+        ],
       ),
     );
   }

@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../orders/domain/entities/order_entity.dart';
@@ -30,13 +28,7 @@ class TechnicianFormat {
     return l10n.customerFallback(id.length > 6 ? id.substring(0, 6) : id);
   }
 
-  static Color jobStatusColor(OrderStatus status) {
-    return switch (status) {
-      OrderStatus.processing => AppColors.primary,
-      OrderStatus.outForDelivery => Colors.deepOrange,
-      OrderStatus.completed => AppColors.success,
-    };
-  }
+  static AppTone jobStatusTone(OrderStatus status) => status.tone;
 
   /// Installation jobs follow their product order's lifecycle.
   static String jobStatusLabel(OrderEntity order, AppLocalizations l10n) {

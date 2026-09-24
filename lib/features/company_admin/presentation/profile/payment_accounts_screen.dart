@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../companies/domain/entities/payment_account.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../company_admin_actions.dart';
@@ -40,14 +43,11 @@ class _PaymentAccountsScreenState extends ConsumerState<PaymentAccountsScreen> {
       return;
     }
     setState(() => _isSaving = false);
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(error ?? successMessage),
-          backgroundColor: error == null ? null : AppColors.error,
-        ),
-      );
+    showAppSnackBar(
+      context,
+      error ?? successMessage,
+      tone: error == null ? AppTone.success : AppTone.error,
+    );
   }
 
   Future<void> _addOrEdit(
@@ -74,27 +74,14 @@ class _PaymentAccountsScreenState extends ConsumerState<PaymentAccountsScreen> {
 
   Future<void> _remove(List<PaymentAccount> accounts, int index) async {
     final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.paymentAccountRemoveTitle),
-        content: Text(l10n.paymentAccountRemoveBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.commonCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              l10n.commonRemove,
-              style: const TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: l10n.paymentAccountRemoveTitle,
+      body: l10n.paymentAccountRemoveBody,
+      confirmLabel: l10n.commonRemove,
+      destructive: true,
     );
-    if (confirmed != true || !mounted) {
+    if (!confirmed || !mounted) {
       return;
     }
     final updated = [...accounts]..removeAt(index);
@@ -104,7 +91,6 @@ class _PaymentAccountsScreenState extends ConsumerState<PaymentAccountsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
     final companyAsync = ref.watch(companyStreamProvider(widget.companyId));
     final accounts = companyAsync.asData?.value?.paymentAccounts ?? const [];
     final atLimit = accounts.length >= PaymentAccount.maxPerCompany;
@@ -114,24 +100,19 @@ class _PaymentAccountsScreenState extends ConsumerState<PaymentAccountsScreen> {
       body: SafeArea(
         top: false,
         child: companyAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, _) => AdminErrorState(
+          loading: () => const AppLoadingState(),
+          error: (_, _) => AppErrorState(
             message: l10n.adminCompanyLoadFailed,
             onRetry: () =>
                 ref.invalidate(companyStreamProvider(widget.companyId)),
           ),
-          data: (_) => ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          data: (_) => AppCenteredList(
+            bottomPadding: AppSpacing.s32,
             children: [
-              Text(
-                l10n.paymentAccountsIntro,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
-                ),
-              ),
-              const SizedBox(height: 14),
+              AppBanner(tone: AppTone.info, message: l10n.paymentAccountsIntro),
+              const SizedBox(height: AppSpacing.s16),
               if (accounts.isEmpty)
-                AdminEmptyState(
+                AppEmptyState(
                   icon: Icons.account_balance_outlined,
                   message: l10n.paymentAccountsEmpty,
                 ),
@@ -142,30 +123,23 @@ class _PaymentAccountsScreenState extends ConsumerState<PaymentAccountsScreen> {
                   onEdit: () => _addOrEdit(accounts, index: i),
                   onRemove: () => _remove(accounts, i),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.s12),
               ],
-              const SizedBox(height: 6),
-              ElevatedButton.icon(
-                onPressed:
-                    (_isSaving || atLimit) ? null : () => _addOrEdit(accounts),
-                icon: _isSaving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: AppColors.onPrimary,
-                        ),
-                      )
-                    : const Icon(Icons.add),
-                label: Text(l10n.paymentAccountAdd),
+              const SizedBox(height: AppSpacing.s4),
+              AppButton.primary(
+                icon: Icons.add,
+                loading: _isSaving,
+                label: l10n.paymentAccountAdd,
+                expand: true,
+                onPressed: atLimit ? null : () => _addOrEdit(accounts),
               ),
               if (atLimit) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.s8),
                 Text(
                   l10n.paymentAccountLimit(PaymentAccount.maxPerCompany),
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall,
+                  style: AppTextStyles.caption
+                      .copyWith(color: AppColors.textSecondary),
                 ),
               ],
             ],
@@ -199,18 +173,16 @@ class _AccountCard extends StatelessWidget {
         children: [
           IconButton(
             tooltip: l10n.commonEdit,
-            visualDensity: VisualDensity.compact,
             onPressed: enabled ? onEdit : null,
-            icon: const Icon(Icons.edit_outlined, size: 20),
+            icon: const Icon(Icons.edit_outlined, size: AppSize.iconMd),
           ),
           IconButton(
             tooltip: l10n.commonRemove,
-            visualDensity: VisualDensity.compact,
             onPressed: enabled ? onRemove : null,
             icon: const Icon(
               Icons.delete_outline,
-              size: 20,
-              color: AppColors.error,
+              size: AppSize.iconMd,
+              color: AppColors.errorText,
             ),
           ),
         ],
@@ -301,63 +273,54 @@ class _PaymentAccountDialogState extends State<_PaymentAccountDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextFormField(
+              AppTextField(
+                label: l10n.paymentAccountBankName,
                 controller: _bank,
-                autofocus: true,
                 maxLength: 80,
                 textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: l10n.paymentAccountBankName,
-                  counterText: '',
-                ),
                 validator: (v) => _required(v, l10n.paymentAccountBankRequired),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
+              const SizedBox(height: AppSpacing.s12),
+              AppTextField(
+                label: l10n.paymentAccountName,
                 controller: _holder,
                 maxLength: 120,
                 textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: l10n.paymentAccountName,
-                  counterText: '',
-                ),
                 validator: (v) =>
                     _required(v, l10n.paymentAccountHolderRequired),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
+              const SizedBox(height: AppSpacing.s12),
+              AppTextField(
+                label: l10n.paymentAccountMban,
                 controller: _number,
                 maxLength: 40,
-                decoration: InputDecoration(
-                  labelText: l10n.paymentAccountMban,
-                  counterText: '',
-                ),
                 validator: (v) =>
                     _required(v, l10n.paymentAccountNumberRequired),
               ),
-              const SizedBox(height: 12),
-              TextFormField(
+              const SizedBox(height: AppSpacing.s12),
+              AppTextField(
+                label: l10n.paymentAccountPhoneOptional,
                 controller: _phone,
                 maxLength: 30,
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
                 ],
-                decoration: InputDecoration(
-                  labelText: l10n.paymentAccountPhoneOptional,
-                  counterText: '',
-                ),
               ),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(
+        AppButton.text(
+          label: l10n.commonCancel,
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.commonCancel),
         ),
-        FilledButton(onPressed: _submit, child: Text(l10n.commonSave)),
+        AppButton.primary(
+          label: l10n.commonSave,
+          size: AppButtonSize.medium,
+          onPressed: _submit,
+        ),
       ],
     );
   }

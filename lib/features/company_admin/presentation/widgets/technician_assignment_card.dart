@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../technicians/domain/entities/technician.dart';
 import '../../../technicians/presentation/technicians_providers.dart';
@@ -42,14 +45,11 @@ class _TechnicianAssignmentCardState
       return;
     }
     setState(() => _isSaving = false);
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(error ?? context.l10n.adminTechnicianAssigned),
-          backgroundColor: error == null ? null : AppColors.error,
-        ),
-      );
+    showAppSnackBar(
+      context,
+      error ?? context.l10n.adminTechnicianAssigned,
+      tone: error == null ? AppTone.success : AppTone.error,
+    );
   }
 
   Future<void> _pickTechnician(List<Technician> technicians) async {
@@ -74,7 +74,6 @@ class _TechnicianAssignmentCardState
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
-    final textTheme = Theme.of(context).textTheme;
     final techniciansAsync =
         ref.watch(companyTechniciansStreamProvider(widget.companyId));
     final assignedName = order.technicianName ?? '';
@@ -86,36 +85,30 @@ class _TechnicianAssignmentCardState
           label: context.l10n.adminAssignedTo,
           value: assignedName.isEmpty ? context.l10n.adminNotAssigned : assignedName,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AppSpacing.s8),
         techniciansAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const AppLoadingState(),
           error: (_, _) => Text(
             context.l10n.adminTechniciansLoadFailedShort,
-            style: textTheme.bodySmall,
+            style: AppTextStyles.caption.copyWith(color: AppColors.errorText),
           ),
           data: (technicians) {
             final active = technicians.where((t) => t.isActive).toList();
             if (active.isEmpty) {
               return Text(
                 context.l10n.adminAddTechnicianFirst,
-                style: textTheme.bodySmall,
+                style: AppTextStyles.caption
+                    .copyWith(color: AppColors.textSecondary),
               );
             }
-            return SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _isSaving ? null : () => _pickTechnician(active),
-                icon: _isSaving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.engineering_outlined),
-                label: Text(
-                  assignedName.isEmpty ? context.l10n.adminAssignTechnician : context.l10n.adminChangeTechnician,
-                ),
-              ),
+            return AppButton.outlined(
+              expand: true,
+              icon: Icons.engineering_outlined,
+              loading: _isSaving,
+              label: assignedName.isEmpty
+                  ? context.l10n.adminAssignTechnician
+                  : context.l10n.adminChangeTechnician,
+              onPressed: () => _pickTechnician(active),
             );
           },
         ),

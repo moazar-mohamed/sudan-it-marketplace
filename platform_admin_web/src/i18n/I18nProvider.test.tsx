@@ -84,7 +84,7 @@ describe('I18nProvider', () => {
 
   it('updates the page title with the language', () => {
     mount();
-    expect(document.title).toBe('Sudan IT Marketplace - Platform Admin');
+    expect(document.title).toBe('Sudan ICT Marketplace - Platform Admin');
     act(() => api().setLocale('ar'));
     expect(document.title).toBe('سوق السودان لتقنية المعلومات - مدير المنصة');
   });

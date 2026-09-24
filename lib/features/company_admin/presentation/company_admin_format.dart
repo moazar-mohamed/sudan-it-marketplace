@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../orders/domain/entities/order_entity.dart';
 import '../../orders/presentation/order_labels.dart';
@@ -30,20 +29,11 @@ class CompanyAdminFormat {
     return l10n.customerFallback(id.length > 6 ? id.substring(0, 6) : id);
   }
 
-  static Color orderStatusColor(OrderStatus status) {
-    return switch (status) {
-      OrderStatus.processing => AppColors.primary,
-      OrderStatus.outForDelivery => Colors.deepOrange,
-      OrderStatus.completed => AppColors.success,
-    };
-  }
+  /// Text colour for a status shown as plain text (not as a chip).
+  static Color orderStatusColor(OrderStatus status) => status.tone.foreground;
 
-  static Color paymentStatusColor(PaymentStatus status) {
-    return switch (status) {
-      PaymentStatus.pendingVerification => Colors.amber.shade800,
-      PaymentStatus.confirmed => AppColors.success,
-    };
-  }
+  static Color paymentStatusColor(PaymentStatus status) =>
+      status.tone.foreground;
 
   /// Installation jobs follow their product order's lifecycle.
   static String installationJobStatus(

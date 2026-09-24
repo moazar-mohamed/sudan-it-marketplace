@@ -1,3 +1,4 @@
+import 'helpers/field_finders.dart';
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -48,8 +49,8 @@ List _detailsOverrides(Product product) => [
       resolvedCompanyProvider.overrideWith((ref, companyId) => null),
     ];
 
-ElevatedButton _buyButton(WidgetTester tester) =>
-    tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+FilledButton _buyButton(WidgetTester tester) =>
+    tester.widget<FilledButton>(find.byType(FilledButton));
 
 // A minimal stand-in so ProductModel.fromFirestore can be tested without Firebase.
 // ignore: subtype_of_sealed_class
@@ -259,21 +260,21 @@ void main() {
       required String price,
     }) async {
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Product Name'),
+        fieldWithLabel('Product Name'),
         'Dell Laptop',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Price (SDG) - optional'),
+        fieldWithLabel('Price (SDG) - optional'),
         price,
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Stock Quantity'),
+        fieldWithLabel('Stock Quantity'),
         '4',
       );
     }
 
     Future<void> submit(WidgetTester tester) async {
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Add Product'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Add Product'));
       await tester.pumpAndSettle();
     }
 

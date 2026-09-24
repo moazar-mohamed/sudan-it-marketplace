@@ -9,6 +9,10 @@ import '../../../service_requests/presentation/service_request_labels.dart';
 import '../../../services/domain/entities/catalog_service.dart';
 import '../../../services/presentation/service_providers.dart';
 import '../company_admin_actions.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../widgets/admin_section_card.dart';
 import 'company_service_form_sheet.dart';
 import 'own_service_form_sheet.dart';
@@ -60,7 +64,7 @@ class MyServicesView extends ConsumerWidget {
     };
 
     if (offeredAsync.hasError || catalogueAsync.hasError) {
-      return AdminErrorState(
+      return AppErrorState(
         message: context.l10n.adminServicesLoadFailed,
         onRetry: () {
           ref.invalidate(activeServicesForCompanyProvider(companyId));
@@ -71,7 +75,7 @@ class MyServicesView extends ConsumerWidget {
     final offered = offeredAsync.asData?.value;
     final catalogue = catalogueAsync.asData?.value;
     if (offered == null || catalogue == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const AppLoadingState();
     }
 
     final offeredIds = {for (final link in offered) link.serviceId};
@@ -83,38 +87,34 @@ class MyServicesView extends ConsumerWidget {
               !service.isCompanyOwned && !offeredIds.contains(service.id),
         )
         .toList();
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+    return AppCenteredList(
       children: [
         Row(
           children: [
             Expanded(
               child: Text(
                 context.l10n.adminServicesYours,
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: AppTextStyles.h3,
               ),
             ),
             if (offered.isNotEmpty)
-              FilledButton.icon(
-                icon: const Icon(Icons.add),
-                label: Text(context.l10n.adminServiceNew),
+              AppButton.primary(
+                icon: Icons.add,
+                label: context.l10n.adminServiceNew,
+                size: AppButtonSize.medium,
                 onPressed: () => showCreateOwnService(context, ref, companyId),
               ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.s12),
         if (offered.isEmpty)
-          AdminEmptyState(
+          AppEmptyState(
             icon: Icons.design_services_outlined,
             message: context.l10n.adminServicesOfferedEmpty,
-            action: FilledButton.icon(
-              icon: const Icon(Icons.add),
-              label: Text(context.l10n.adminServiceCreateFirst),
+            action: AppButton.primary(
+              icon: Icons.add,
+              label: context.l10n.adminServiceCreateFirst,
               onPressed: () => showCreateOwnService(context, ref, companyId),
             ),
           )
@@ -125,10 +125,10 @@ class MyServicesView extends ConsumerWidget {
               link: link,
               service: servicesById[link.serviceId],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.s12),
           ],
         if (addable.isNotEmpty) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.s12),
           AdminSectionCard(
             title: context.l10n.adminServicesAvailable,
             children: [
@@ -143,12 +143,9 @@ class MyServicesView extends ConsumerWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                  trailing: TextButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: Text(context.l10n.adminServiceAdd),
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.primary,
-                    ),
+                  trailing: AppButton.text(
+                    icon: Icons.add,
+                    label: context.l10n.adminServiceAdd,
                     onPressed: () => showCompanyServiceForm(
                       context,
                       serviceName: service.name,
@@ -183,24 +180,14 @@ class _OfferedServiceCard extends ConsumerWidget {
   final CatalogService? service;
 
   Future<void> _remove(BuildContext context, WidgetRef ref, String name) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.adminServiceRemoveTitle),
-        content: Text(context.l10n.adminServiceRemoveBody(name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(context.l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(context.l10n.commonRemove),
-          ),
-        ],
-      ),
+    final ok = await showConfirmationDialog(
+      context,
+      title: context.l10n.adminServiceRemoveTitle,
+      body: context.l10n.adminServiceRemoveBody(name),
+      confirmLabel: context.l10n.commonRemove,
+      destructive: true,
     );
-    if (ok != true || !context.mounted) return;
+    if (!ok || !context.mounted) return;
     final actions = ref.read(companyAdminActionsProvider);
     final error = (service?.isCompanyOwned ?? false)
         ? await actions.removeOwnService(
@@ -212,8 +199,10 @@ class _OfferedServiceCard extends ConsumerWidget {
             serviceId: link.serviceId,
           );
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error ?? context.l10n.adminServiceRemoved)),
+      showAppSnackBar(
+        context,
+        error ?? context.l10n.adminServiceRemoved,
+        tone: error == null ? AppTone.success : AppTone.error,
       );
     }
   }
@@ -263,105 +252,79 @@ class _OfferedServiceCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
     final name = service?.name ?? link.serviceId;
     final price = link.price;
     final note = link.noteText;
     final categoryName = ref.watch(categoryNamesProvider)[service?.categoryId];
     final isOwn = service?.isCompanyOwned ?? false;
 
-    return Material(
-      color: colorScheme.surface,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: () => _edit(context, ref, name),
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: colorScheme.onSurface.withValues(alpha: 0.08),
+    return AppCard(
+      onTap: () => _edit(context, ref, name),
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        AppSpacing.s16,
+        AppSpacing.s12,
+        AppSpacing.s4,
+        AppSpacing.s12,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: AppTextStyles.bodyStrong),
+                if (categoryName != null || isOwn)
+                  Text(
+                    [
+                      ?categoryName,
+                      if (isOwn) context.l10n.adminServiceOwnBadge,
+                    ].join(' · '),
+                    style: AppTextStyles.captionStrong
+                        .copyWith(color: AppColors.textBrand),
+                  ),
+                // Nothing is shown when the company set no price.
+                if (price != null)
+                  Text(
+                    formatServicePrice(price),
+                    style: AppTextStyles.bodyStrong
+                        .copyWith(color: AppColors.textBrand),
+                  ),
+                if (note != null)
+                  Text(
+                    note,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.textSecondary),
+                  ),
+              ],
             ),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (categoryName != null || isOwn) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        [
-                          ?categoryName,
-                          if (isOwn) context.l10n.adminServiceOwnBadge,
-                        ].join(' · '),
-                        style: textTheme.labelMedium?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                    // Nothing is shown when the company set no price.
-                    if (price != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        formatServicePrice(price),
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                    if (note != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        note,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.65),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+          PopupMenuButton<String>(
+            tooltip: context.l10n.commonEdit,
+            onSelected: (value) {
+              if (value == 'edit') {
+                _edit(context, ref, name);
+              } else {
+                _remove(context, ref, name);
+              }
+            },
+            itemBuilder: (menuContext) => [
+              PopupMenuItem(
+                value: 'edit',
+                child: Text(context.l10n.commonEdit),
               ),
-              PopupMenuButton<String>(
-                tooltip: context.l10n.commonEdit,
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    _edit(context, ref, name);
-                  } else {
-                    _remove(context, ref, name);
-                  }
-                },
-                itemBuilder: (menuContext) => [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Text(context.l10n.commonEdit),
-                  ),
-                  PopupMenuItem(
-                    value: 'remove',
-                    child: Text(
-                      context.l10n.commonRemove,
-                      style: TextStyle(color: colorScheme.error),
-                    ),
-                  ),
-                ],
+              PopupMenuItem(
+                value: 'remove',
+                child: Text(
+                  context.l10n.commonRemove,
+                  style: const TextStyle(color: AppColors.errorText),
+                ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

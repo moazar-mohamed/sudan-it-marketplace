@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/image_upload_service.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../../core/widgets/image_picker_field.dart';
 import '../../../core/widgets/image_picker_strings.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -107,9 +111,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
     final newPasswordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
     final formKey = GlobalKey<FormState>();
-    var obscureCurrentPassword = true;
-    var obscureNewPassword = true;
-    var obscureConfirmPassword = true;
     var isSubmitting = false;
 
     await showModalBottomSheet<void>(
@@ -144,10 +145,10 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
             return SafeArea(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  24,
-                  24,
-                  24,
-                  MediaQuery.viewInsetsOf(sheetContext).bottom + 24,
+                  AppSpacing.s24,
+                  AppSpacing.s8,
+                  AppSpacing.s24,
+                  MediaQuery.viewInsetsOf(sheetContext).bottom + AppSpacing.s24,
                 ),
                 child: Form(
                   key: formKey,
@@ -158,49 +159,22 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                       children: [
                         Text(
                           context.l10n.profileChangePassword,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
+                          style: AppTextStyles.h2,
                         ),
-                        const SizedBox(height: 20),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.s20),
+                        AppTextField(
+                          label: context.l10n.profileCurrentPassword,
                           controller: currentPasswordController,
-                          obscureText: obscureCurrentPassword,
-                          decoration: InputDecoration(
-                            labelText: context.l10n.profileCurrentPassword,
-                            suffixIcon: IconButton(
-                              onPressed: () => setSheetState(
-                                () => obscureCurrentPassword =
-                                    !obscureCurrentPassword,
-                              ),
-                              icon: Icon(
-                                obscureCurrentPassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                              ),
-                            ),
-                          ),
+                          password: true,
                           validator: (value) => value == null || value.isEmpty
                               ? context.l10n.profileCurrentPasswordRequired
                               : null,
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.s16),
+                        AppTextField(
+                          label: context.l10n.passwordChangeNew,
                           controller: newPasswordController,
-                          obscureText: obscureNewPassword,
-                          decoration: InputDecoration(
-                            labelText: context.l10n.passwordChangeNew,
-                            suffixIcon: IconButton(
-                              onPressed: () => setSheetState(
-                                () => obscureNewPassword = !obscureNewPassword,
-                              ),
-                              icon: Icon(
-                                obscureNewPassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                              ),
-                            ),
-                          ),
+                          password: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return context.l10n.passwordChangeNewRequired;
@@ -211,24 +185,11 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.s16),
+                        AppTextField(
+                          label: context.l10n.passwordChangeConfirm,
                           controller: confirmPasswordController,
-                          obscureText: obscureConfirmPassword,
-                          decoration: InputDecoration(
-                            labelText: context.l10n.passwordChangeConfirm,
-                            suffixIcon: IconButton(
-                              onPressed: () => setSheetState(
-                                () => obscureConfirmPassword =
-                                    !obscureConfirmPassword,
-                              ),
-                              icon: Icon(
-                                obscureConfirmPassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                              ),
-                            ),
-                          ),
+                          password: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return context.l10n.profileConfirmPasswordRequired;
@@ -239,16 +200,12 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: isSubmitting ? null : submit,
-                          child: isSubmitting
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : Text(context.l10n.profileUpdatePassword),
+                        const SizedBox(height: AppSpacing.s24),
+                        AppButton.primary(
+                          label: context.l10n.profileUpdatePassword,
+                          loading: isSubmitting,
+                          expand: true,
+                          onPressed: submit,
                         ),
                       ],
                     ),
@@ -267,15 +224,11 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   }
 
   void _showMessage(String message, {bool isError = false}) {
-    final colorScheme = Theme.of(context).colorScheme;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: isError ? colorScheme.error : null,
-        ),
-      );
+    showAppSnackBar(
+      context,
+      message,
+      tone: isError ? AppTone.error : AppTone.success,
+    );
   }
 
   @override
@@ -290,13 +243,12 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 24),
-            TextButton.icon(
+            const AppLoadingState(),
+            AppButton.text(
+              label: context.l10n.commonSignOut,
+              icon: Icons.logout,
               onPressed: () =>
                   ref.read(authControllerProvider.notifier).signOut(),
-              icon: const Icon(Icons.logout),
-              label: Text(context.l10n.commonSignOut),
             ),
           ],
         ),
@@ -373,164 +325,150 @@ class _ProfileContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final l10n = context.l10n;
+    final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(margin),
       children: [
-        if (isEditing)
-          ImagePickerField(
-            controller: photoController,
-            enabled: !isSaving,
-            shape: ImagePickerShape.circle,
-            fallbackIcon: Icons.person_outline,
-          )
-        else
-          Center(child: _ProfileAvatar(photoUrl: profile.photoUrl)),
-        const SizedBox(height: 12),
-        Text(
-          context.l10n.profileMyProfile,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 24),
-        Form(
-          key: formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: nameController,
-                enabled: isEditing && !isSaving,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: context.l10n.profileFullName,
-                  prefixIcon: Icon(Icons.person_outline),
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isEditing)
+                  ImagePickerField(
+                    controller: photoController,
+                    enabled: !isSaving,
+                    shape: ImagePickerShape.circle,
+                    fallbackIcon: Icons.person_outline,
+                  )
+                else
+                  Center(
+                    child: AppAvatar(
+                      name: profile.fullName,
+                      imageUrl: profile.photoUrl?.trim(),
+                      size: 72,
+                    ),
+                  ),
+                const SizedBox(height: AppSpacing.s12),
+                Text(
+                  l10n.profileMyProfile,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.h1,
                 ),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? context.l10n.profileFullNameRequired
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: profile.email,
-                enabled: false,
-                decoration: InputDecoration(
-                  labelText: context.l10n.authEmail,
-                  prefixIcon: Icon(Icons.email_outlined),
+                const SizedBox(height: AppSpacing.s24),
+                Form(
+                  key: formKey,
+                  child: Column(
+                    children: [
+                      AppTextField(
+                        label: l10n.profileFullName,
+                        controller: nameController,
+                        enabled: isEditing && !isSaving,
+                        textCapitalization: TextCapitalization.words,
+                        prefixIcon: Icons.person_outline,
+                        validator: (value) =>
+                            value == null || value.trim().isEmpty
+                                ? l10n.profileFullNameRequired
+                                : null,
+                      ),
+                      const SizedBox(height: AppSpacing.s16),
+                      AppTextField(
+                        label: l10n.authEmail,
+                        initialValue: profile.email,
+                        enabled: false,
+                        prefixIcon: Icons.email_outlined,
+                      ),
+                      const SizedBox(height: AppSpacing.s16),
+                      AppTextField(
+                        label: l10n.profilePhoneNumber,
+                        optional: true,
+                        controller: phoneController,
+                        enabled: isEditing && !isSaving,
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
+                        ],
+                        prefixIcon: Icons.phone_outlined,
+                        validator: (value) {
+                          final phone = value?.trim() ?? '';
+                          if (phone.isEmpty) {
+                            return null;
+                          }
+                          final digitsOnly =
+                              phone.replaceAll(RegExp(r'[^0-9]'), '');
+                          if (digitsOnly.length < 9) {
+                            return l10n.commonPhoneInvalid;
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: phoneController,
-                enabled: isEditing && !isSaving,
-                keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
-                ],
-                decoration: InputDecoration(
-                  labelText: context.l10n.profilePhoneNumber,
-                  hintText: context.l10n.commonOptional,
-                  prefixIcon: Icon(Icons.phone_outlined),
+                const SizedBox(height: AppSpacing.s20),
+                if (isEditing)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppButton.outlined(
+                          label: l10n.commonCancel,
+                          onPressed: isSaving ? null : onCancel,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.s12),
+                      Expanded(
+                        child: AppButton.primary(
+                          label: l10n.commonSaveChanges,
+                          loading: isSaving,
+                          onPressed: onSave,
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  AppButton.outlined(
+                    label: l10n.profileEdit,
+                    icon: Icons.edit_outlined,
+                    expand: true,
+                    onPressed: onEdit,
+                  ),
+                const SizedBox(height: AppSpacing.s16),
+                AppListCard(
+                  onTap: onChangePassword,
+                  leading: const AppIconTile(
+                    icon: Icons.lock_outline,
+                    size: 40,
+                  ),
+                  content: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.profileChangePassword,
+                        style: AppTextStyles.bodyStrong,
+                      ),
+                      Text(
+                        l10n.profileChangePasswordSubtitle,
+                        style: AppTextStyles.caption
+                            .copyWith(color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
                 ),
-                validator: (value) {
-                  final phone = value?.trim() ?? '';
-                  if (phone.isEmpty) {
-                    return null;
-                  }
-                  final digitsOnly = phone.replaceAll(RegExp(r'[^0-9]'), '');
-                  if (digitsOnly.length < 9) {
-                    return context.l10n.commonPhoneInvalid;
-                  }
-                  return null;
-                },
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        if (isEditing)
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: isSaving ? null : onCancel,
-                  child: Text(context.l10n.commonCancel),
+                const SizedBox(height: AppSpacing.s16),
+                AppButton.destructiveOutlined(
+                  label: l10n.commonSignOut,
+                  icon: Icons.logout,
+                  expand: true,
+                  onPressed: onSignOut,
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: isSaving ? null : onSave,
-                  child: isSaving
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(context.l10n.commonSaveChanges),
-                ),
-              ),
-            ],
-          )
-        else
-          OutlinedButton.icon(
-            onPressed: onEdit,
-            icon: const Icon(Icons.edit_outlined),
-            label: Text(context.l10n.profileEdit),
-          ),
-        const SizedBox(height: 12),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.lock_outline, color: colorScheme.primary),
-          title: Text(context.l10n.profileChangePassword),
-          subtitle: Text(context.l10n.profileChangePasswordSubtitle),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: onChangePassword,
-        ),
-        const Divider(),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: onSignOut,
-          icon: Icon(Icons.logout, color: colorScheme.error),
-          label: Text(
-            context.l10n.commonSignOut,
-            style: TextStyle(color: colorScheme.error),
+              ],
+            ),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ProfileAvatar extends StatelessWidget {
-  const _ProfileAvatar({required this.photoUrl});
-
-  final String? photoUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final fallback = ColoredBox(
-      color: colorScheme.primary.withValues(alpha: 0.12),
-      child: Center(
-        child: Icon(Icons.person_outline, size: 40, color: colorScheme.primary),
-      ),
-    );
-    final url = photoUrl?.trim() ?? '';
-    return SizedBox.square(
-      dimension: 72,
-      child: ClipOval(
-        child: url.isEmpty
-            ? fallback
-            : Image.network(
-                url,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => fallback,
-              ),
-      ),
     );
   }
 }
@@ -549,27 +487,20 @@ class _ProfileFailure extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.person_off_outlined,
-              size: 56,
-              color: Theme.of(context).colorScheme.error,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppErrorState(
+            icon: Icons.person_off_outlined,
+            message: message ?? context.l10n.errorProfileLoad,
+            onRetry: onRetry,
+          ),
+          if (onSignOut != null)
+            AppButton.text(
+              label: context.l10n.commonSignOut,
+              onPressed: onSignOut,
             ),
-            const SizedBox(height: 16),
-            Text(
-              message ?? context.l10n.errorProfileLoad,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton(onPressed: onRetry, child: Text(context.l10n.commonRetry)),
-            if (onSignOut != null)
-              TextButton(onPressed: onSignOut, child: Text(context.l10n.commonSignOut)),
-          ],
-        ),
+        ],
       ),
     );
   }

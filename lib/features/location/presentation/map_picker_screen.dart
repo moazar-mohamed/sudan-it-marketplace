@@ -3,7 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../data/location_service.dart';
 import '../data/map_config.dart';
 import '../domain/geo_location.dart';
@@ -83,9 +83,7 @@ class _MapPickerScreenState extends ConsumerState<MapPickerScreen> {
       CurrentLocationFailure.deniedForever => strings.permissionDeniedForever,
       _ => strings.currentLocationUnavailable,
     };
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    showAppSnackBar(context, message);
   }
 
   @override
@@ -154,24 +152,21 @@ class _MapPickerScreenState extends ConsumerState<MapPickerScreen> {
                     CoordinatesText(location: selected),
                     const SizedBox(height: 10),
                   ],
-                  OutlinedButton.icon(
-                    onPressed: _locating ? null : _useCurrentLocation,
-                    icon: _locating
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.my_location),
-                    label: Text(strings.useMyCurrentLocation),
+                  AppButton.outlined(
+                    expand: true,
+                    icon: Icons.my_location,
+                    loading: _locating,
+                    label: strings.useMyCurrentLocation,
+                    onPressed: _useCurrentLocation,
                   ),
                   const SizedBox(height: 8),
-                  ElevatedButton.icon(
+                  AppButton.primary(
+                    expand: true,
+                    icon: Icons.check,
+                    label: strings.confirmLocation,
                     onPressed: selected == null
                         ? null
                         : () => Navigator.of(context).pop(selected),
-                    icon: const Icon(Icons.check, color: AppColors.onPrimary),
-                    label: Text(strings.confirmLocation),
                   ),
                 ],
               ),

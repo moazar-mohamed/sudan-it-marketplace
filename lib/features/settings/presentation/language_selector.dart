@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/app_locale.dart';
 import '../../../core/localization/l10n_extension.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/language_sync.dart';
 
@@ -20,9 +22,7 @@ Future<void> changeAppLanguage(
   // Said in the language just chosen: the screen may not have been rebuilt in
   // it yet, and it is the language the user is now reading.
   final message = lookupAppLocalizations(locale).settingsLanguageSyncFailed;
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(message)));
+  showAppSnackBar(context, message, tone: AppTone.error);
 }
 
 /// Language names are always shown in their own language, so a user can find

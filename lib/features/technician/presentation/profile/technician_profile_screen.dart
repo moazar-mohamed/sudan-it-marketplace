@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../auth/domain/entities/user_profile.dart';
 import '../../../auth/presentation/auth_controller.dart';
 import '../../../companies/presentation/companies_providers.dart';
@@ -68,14 +70,11 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
       _isSaving = false;
       _isEditing = error != null;
     });
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(error ?? context.l10n.profileUpdated),
-          backgroundColor: error == null ? null : AppColors.error,
-        ),
-      );
+    showAppSnackBar(
+      context,
+      error ?? context.l10n.profileUpdated,
+      tone: error == null ? AppTone.success : AppTone.error,
+    );
   }
 
   @override
@@ -84,7 +83,7 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
     final company = ref.watch(resolvedCompanyProvider(widget.companyId));
 
     return profileAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const AppLoadingState(),
       error: (_, _) => TechnicianErrorState(
         message: context.l10n.techProfileLoadFailed,
       ),
@@ -151,27 +150,24 @@ class _TechnicianProfileContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final l10n = context.l10n;
 
-    return ListView(
-      padding: const EdgeInsets.all(20),
+    return AppCenteredList(
       children: [
-        Center(
-          child: CircleAvatar(
-            radius: 36,
-            backgroundColor: colorScheme.primary.withValues(alpha: 0.12),
-            foregroundColor: colorScheme.primary,
-            child: const Icon(Icons.engineering_outlined, size: 40),
+        const Center(
+          child: AppIconTile(
+            icon: Icons.engineering_outlined,
+            size: 72,
+            radius: AppRadius.full,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.s20),
         TechnicianSectionCard(
-          title: context.l10n.techCompany,
+          title: l10n.techCompany,
           children: [
-            TechnicianInfoRow(label: context.l10n.techCompany, value: companyName),
+            TechnicianInfoRow(label: l10n.techCompany, value: companyName),
             if (companyLocationText != null || companyCoordinates != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.s8),
               CompanyLocationBlock(
                 text: companyLocationText,
                 coordinates: companyCoordinates,
@@ -181,81 +177,72 @@ class _TechnicianProfileContent extends StatelessWidget {
             ],
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.s12),
         Form(
           key: formKey,
           child: TechnicianSectionCard(
-            title: context.l10n.techMyDetails,
+            title: l10n.techMyDetails,
             children: [
-              TextFormField(
+              AppTextField(
+                label: l10n.profileFullName,
                 controller: nameController,
                 enabled: isEditing && !isSaving,
                 textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: context.l10n.profileFullName,
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
+                prefixIcon: Icons.person_outline,
                 validator: (value) => value == null || value.trim().isEmpty
-                    ? context.l10n.profileFullNameRequired
+                    ? l10n.profileFullNameRequired
                     : null,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
+              const SizedBox(height: AppSpacing.s16),
+              AppTextField(
+                label: l10n.authEmail,
                 initialValue: profile.email,
                 enabled: false,
-                decoration: InputDecoration(
-                  labelText: context.l10n.authEmail,
-                  prefixIcon: Icon(Icons.email_outlined),
-                ),
+                prefixIcon: Icons.email_outlined,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
+              const SizedBox(height: AppSpacing.s16),
+              AppTextField(
+                label: l10n.adminPhone,
                 initialValue: phone,
                 enabled: false,
-                decoration: InputDecoration(
-                  labelText: context.l10n.adminPhone,
-                  prefixIcon: Icon(Icons.phone_outlined),
-                ),
+                prefixIcon: Icons.phone_outlined,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.s20),
         if (isEditing)
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: AppButton.outlined(
+                  label: l10n.commonCancel,
                   onPressed: isSaving ? null : onCancel,
-                  child: Text(context.l10n.commonCancel),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.s12),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: isSaving ? null : onSave,
-                  child: isSaving
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(context.l10n.commonSaveChanges),
+                child: AppButton.primary(
+                  label: l10n.commonSaveChanges,
+                  loading: isSaving,
+                  onPressed: onSave,
                 ),
               ),
             ],
           )
         else
-          OutlinedButton.icon(
+          AppButton.outlined(
+            icon: Icons.edit_outlined,
+            label: l10n.techEditName,
+            expand: true,
             onPressed: onEdit,
-            icon: const Icon(Icons.edit_outlined),
-            label: Text(context.l10n.techEditName),
           ),
-        const SizedBox(height: 20),
-        OutlinedButton.icon(
+        const SizedBox(height: AppSpacing.s20),
+        AppButton.destructiveOutlined(
+          icon: Icons.logout,
+          label: l10n.commonSignOut,
+          expand: true,
           onPressed: onSignOut,
-          icon: Icon(Icons.logout, color: colorScheme.error),
-          label: Text(context.l10n.commonSignOut, style: TextStyle(color: colorScheme.error)),
         ),
       ],
     );

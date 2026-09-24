@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../../core/widgets/image_picker_field.dart';
 import '../../../../core/widgets/image_picker_strings.dart';
 import '../../../companies/domain/entities/company.dart';
@@ -86,11 +88,10 @@ class _EditCompanyProfileScreenState
         return;
       }
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(ImagePickerStrings.of(context).uploadFailed),
-          backgroundColor: AppColors.error,
-        ),
+      showAppSnackBar(
+        context,
+        ImagePickerStrings.of(context).uploadFailed,
+        tone: AppTone.error,
       );
       return;
     }
@@ -115,11 +116,10 @@ class _EditCompanyProfileScreenState
       return;
     }
     setState(() => _isSaving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(error ?? context.l10n.adminCompanyProfileUpdated),
-        backgroundColor: error == null ? null : AppColors.error,
-      ),
+    showAppSnackBar(
+      context,
+      error ?? context.l10n.adminCompanyProfileUpdated,
+      tone: error == null ? AppTone.success : AppTone.error,
     );
     if (error == null) {
       Navigator.of(context).pop();
@@ -136,8 +136,9 @@ class _EditCompanyProfileScreenState
     int maxLines = 1,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: TextFormField(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s16),
+      child: AppTextField(
+        label: label,
         controller: controller,
         enabled: !_isSaving,
         keyboardType: keyboardType,
@@ -145,11 +146,7 @@ class _EditCompanyProfileScreenState
         maxLines: maxLines,
         minLines: 1,
         validator: validator,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon),
-          alignLabelWithHint: maxLines > 1,
-        ),
+        prefixIcon: icon,
       ),
     );
   }
@@ -160,20 +157,15 @@ class _EditCompanyProfileScreenState
       appBar: AppBar(title: Text(context.l10n.adminEditCompanyProfile)),
       body: Form(
         key: _formKey,
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            MediaQuery.viewInsetsOf(context).bottom + 24,
-          ),
+        child: AppCenteredList(
+          bottomPadding: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.s24,
           children: [
             ImagePickerField(
               controller: _logoController,
               enabled: !_isSaving,
               fallbackIcon: Icons.business_outlined,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.s16),
             _field(
               _nameController,
               context.l10n.adminCompanyName,
@@ -216,7 +208,7 @@ class _EditCompanyProfileScreenState
             ),
             _field(_cityController, context.l10n.adminCity, Icons.location_city_outlined),
             Padding(
-              padding: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.only(bottom: AppSpacing.s16),
               child: LocationField(
                 textController: _addressController,
                 location: _coordinates,
@@ -237,19 +229,12 @@ class _EditCompanyProfileScreenState
               Icons.notes_outlined,
               maxLines: 4,
             ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: _isSaving ? null : _save,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: AppColors.onPrimary,
-                      ),
-                    )
-                  : Text(context.l10n.commonSaveChanges),
+            const SizedBox(height: AppSpacing.s8),
+            AppButton.primary(
+              expand: true,
+              loading: _isSaving,
+              label: context.l10n.commonSaveChanges,
+              onPressed: _save,
             ),
           ],
         ),

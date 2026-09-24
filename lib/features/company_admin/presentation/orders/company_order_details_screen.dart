@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../location/presentation/location_strings.dart';
 import '../../../orders/presentation/orders_providers.dart';
@@ -46,10 +46,9 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
       ),
       body: order == null
           ? (ordersAsync.isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const AppLoadingState()
               : AdminErrorState(message: context.l10n.adminOrderNotFound))
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          : AppCenteredList(
               children: [
                 _OrderSummaryCard(order: order),
                 const SizedBox(height: 12),
@@ -65,6 +64,7 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                     AdminInfoRow(
                       label: context.l10n.orderContactPhone,
                       value: order.contactPhone,
+                      valueTextDirection: TextDirection.ltr,
                     ),
                   ],
                 ),
@@ -150,7 +150,6 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                     AdminInfoRow(
                       label: context.l10n.orderTotalAmount,
                       value: CompanyAdminFormat.price(order.totalAmount),
-                      valueColor: AppColors.primary,
                       emphasize: true,
                     ),
                     AdminInfoRow(
@@ -185,18 +184,20 @@ class _OrderSummaryCard extends StatelessWidget {
       title: context.l10n.adminOrderInformation,
       trailing: StatusBadge(
         label: order.orderStatus.label(context.l10n),
-        color: CompanyAdminFormat.orderStatusColor(order.orderStatus),
+        tone: order.orderStatus.tone,
       ),
       children: [
-        AdminInfoRow(label: context.l10n.adminOrderNumber, value: order.id),
+        AdminInfoRow(label: context.l10n.adminOrderNumber, value: order.id, valueTextDirection: TextDirection.ltr),
         AdminInfoRow(
           label: context.l10n.adminCreated,
           value: CompanyAdminFormat.date(order.createdAt),
+          valueTextDirection: TextDirection.ltr,
         ),
         if (order.updatedAt != null)
           AdminInfoRow(
             label: context.l10n.adminLastUpdated,
             value: CompanyAdminFormat.date(order.updatedAt!),
+            valueTextDirection: TextDirection.ltr,
           ),
         AdminInfoRow(
           label: context.l10n.orderOrderStatus,

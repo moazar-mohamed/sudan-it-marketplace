@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/entities/service_request.dart';
@@ -15,14 +13,15 @@ extension ServiceRequestStatusLabels on ServiceRequestStatus {
         ServiceRequestStatus.cancelled => l10n.serviceRequestStatusCancelled,
       };
 
-  Color get color => switch (this) {
-        ServiceRequestStatus.pending => Colors.amber.shade800,
-        ServiceRequestStatus.accepted => AppColors.primary,
-        ServiceRequestStatus.inProgress => Colors.deepOrange,
-        ServiceRequestStatus.completed => AppColors.success,
-        ServiceRequestStatus.rejected ||
-        ServiceRequestStatus.cancelled =>
-          AppColors.error,
+  /// Colour family of the status chip. A cancelled request is neutral: it
+  /// was withdrawn, not refused.
+  AppTone get tone => switch (this) {
+        ServiceRequestStatus.pending => AppTone.warning,
+        ServiceRequestStatus.accepted => AppTone.info,
+        ServiceRequestStatus.inProgress => AppTone.progress,
+        ServiceRequestStatus.completed => AppTone.success,
+        ServiceRequestStatus.rejected => AppTone.error,
+        ServiceRequestStatus.cancelled => AppTone.neutral,
       };
 }
 

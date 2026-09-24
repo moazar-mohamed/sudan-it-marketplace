@@ -1,31 +1,99 @@
-/* Sudan IT Marketplace - Platform Admin
+/* Sudan ICT Marketplace - Platform Admin
    Logical properties (inline-start/end) are used throughout so the same rules
    serve both LTR (English) and RTL (Arabic). */
 
 :root {
-  --primary: #1565c0;
-  --primary-dark: #0d47a1;
-  --primary-soft: #e8f0fb;
-  --bg: #f4f6fa;
-  --surface: #ffffff;
-  --border: #e2e7ef;
-  --text: #1c2430;
-  --muted: #667085;
-  --success: #1a7f4b;
-  --success-soft: #e3f5ea;
-  --warning: #a35a00;
-  --warning-soft: #fff1d9;
-  --danger: #c62828;
-  --danger-soft: #fdeaea;
-  --info: #1565c0;
-  --info-soft: #e3effd;
-  --neutral: #55606f;
-  --neutral-soft: #eceff3;
-  --radius: 12px;
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+  /* ---- Design tokens (Figma: Sudan ICT Marketplace design system) ---- */
+  /* Brand — the visual identity, never changes */
+  --color-brand-primary: #1565c0;
+  --color-brand-primary-hover: #12579f;
+  --color-brand-primary-pressed: #0e4680;
+  --color-brand-primary-subtle: #e8f1fb;
+  --color-brand-primary-subtle-strong: #d0e3f7;
+  --color-brand-secondary: #00a8e8;
+  /* Surfaces */
+  --color-bg-app: #f7f9fc;
+  --color-bg-surface: #ffffff;
+  --color-bg-subtle: #eef2f7;
+  --color-bg-muted: #e3e8ef;
+  --color-bg-inverse: #172033;
+  --color-bg-scrim: rgba(23, 32, 51, 0.5);
+  /* Text — all >= 4.5:1 on white */
+  --color-text-primary: #172033;
+  --color-text-secondary: #5a667b;
+  --color-text-tertiary: #66738a;
+  --color-text-disabled: #a9b4c4;
+  --color-text-on-primary: #ffffff;
+  --color-text-brand: #1565c0;
+  /* Borders — input/strong meet 3:1 */
+  --color-border-default: #e3e8ef;
+  --color-border-input: #7f8ca0;
+  --color-border-strong: #7f8ca0;
+  --color-border-focus: #1565c0;
+  --color-border-focus-ring: #0080b3;
+  --color-border-error: #d32f2f;
+  --color-icon-default: #45516a;
+  --color-icon-muted: #7f8ca0;
+  /* Status */
+  --color-success: #2e7d32;
+  --color-success-subtle: #e8f5e9;
+  --color-success-text: #1b5e20;
+  --color-warning: #ff8f00;
+  --color-warning-subtle: #fff4e0;
+  --color-warning-text: #8a5100;
+  --color-error: #d32f2f;
+  --color-error-subtle: #fdecea;
+  --color-error-text: #a62222;
+  --color-info-subtle: #e8f1fb;
+  --color-info-text: #0e4680;
+  --color-progress: #e64a19;
+  --color-progress-subtle: #fbe9e7;
+  --color-progress-text: #bf360c;
+  --color-disabled-bg: #e3e8ef;
+  --color-disabled-fg: #7f8ca0;
+  /* Space / radius / size */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --control-sm: 32px;
+  --control-md: 40px;
+  --control-lg: 48px;
+  --elevation-1: 0 1px 2px rgba(23, 32, 51, 0.06);
+  --elevation-2: 0 4px 12px rgba(23, 32, 51, 0.08);
+  --elevation-3: 0 12px 32px rgba(23, 32, 51, 0.14), 0 2px 6px rgba(23, 32, 51, 0.06);
+  --font-family: 'Cairo', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+
+  /* ---- Legacy names used across the stylesheet (aliases of the tokens) ---- */
+  --primary: var(--color-brand-primary);
+  --primary-dark: var(--color-brand-primary-pressed);
+  --primary-soft: var(--color-brand-primary-subtle);
+  --bg: var(--color-bg-app);
+  --surface: var(--color-bg-surface);
+  --border: var(--color-border-default);
+  --text: var(--color-text-primary);
+  --muted: var(--color-text-secondary);
+  --success: var(--color-success-text);
+  --success-soft: var(--color-success-subtle);
+  --warning: var(--color-warning-text);
+  --warning-soft: var(--color-warning-subtle);
+  --danger: var(--color-error-text);
+  --danger-soft: var(--color-error-subtle);
+  --info: var(--color-info-text);
+  --info-soft: var(--color-info-subtle);
+  --neutral: var(--color-text-secondary);
+  --neutral-soft: var(--color-bg-muted);
+  --radius: var(--radius-md);
+  --shadow: var(--elevation-1);
   --sidebar-w: 248px;
-  --font: 'Segoe UI', 'Noto Sans Arabic', 'Noto Sans', system-ui, -apple-system, Roboto,
-    'Helvetica Neue', Arial, sans-serif;
+  --font: var(--font-family);
 }
 
 * {
@@ -42,7 +110,7 @@ body {
   margin: 0;
   font-family: var(--font);
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.57;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -56,12 +124,15 @@ p {
 }
 
 h1 {
-  font-size: 22px;
-  line-height: 1.3;
+  font-size: 24px;
+  line-height: 1.42;
+  font-weight: 700;
 }
 
 h2 {
   font-size: 16px;
+  line-height: 1.6;
+  font-weight: 600;
 }
 
 a {
@@ -81,8 +152,9 @@ textarea {
   color: inherit;
 }
 
+/* Keyboard focus: 2 px ring in the accessible cyan (>= 3:1 on white). */
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--color-border-focus-ring);
   outline-offset: 2px;
 }
 
@@ -491,29 +563,53 @@ textarea {
 /* ---------- Badges / thumbs ---------- */
 
 .badge {
-  display: inline-block;
+  --badge-dot: var(--color-icon-muted, #7f8ca0);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
+  line-height: 16px;
   white-space: nowrap;
 }
 
+/* A dot before the label: the state is never carried by colour alone. */
+.badge::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--badge-dot);
+}
+
 .badge--success {
+  --badge-dot: var(--color-success);
   color: var(--success);
   background: var(--success-soft);
 }
 .badge--warning {
+  --badge-dot: var(--color-warning);
   color: var(--warning);
   background: var(--warning-soft);
 }
 .badge--danger {
+  --badge-dot: var(--color-error);
   color: var(--danger);
   background: var(--danger-soft);
 }
 .badge--info {
+  --badge-dot: var(--color-brand-primary);
   color: var(--info);
   background: var(--info-soft);
+}
+.badge--progress {
+  --badge-dot: var(--color-progress);
+  color: var(--color-progress-text);
+  background: var(--color-progress-subtle);
 }
 .badge--neutral {
   color: var(--neutral);
@@ -621,9 +717,10 @@ table.data tbody tr:last-child td {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-sm);
   color: var(--text);
   background: var(--surface);
   cursor: pointer;
@@ -634,9 +731,9 @@ table.data tbody tr:last-child td {
 }
 
 .chip--active {
-  color: #fff;
+  color: var(--color-text-brand);
   border-color: var(--primary);
-  background: var(--primary);
+  background: var(--color-brand-primary-subtle);
 }
 
 .chip__count {
@@ -650,7 +747,7 @@ table.data tbody tr:last-child td {
   gap: 8px;
   min-width: 240px;
   padding: 0 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border-input);
   border-radius: 8px;
   color: var(--muted);
   background: var(--surface);
@@ -672,7 +769,7 @@ table.data tbody tr:last-child td {
 .select {
   height: 38px;
   padding: 0 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border-input);
   border-radius: 8px;
   background: var(--surface);
   max-width: 220px;
@@ -683,9 +780,9 @@ table.data tbody tr:last-child td {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 38px;
+  min-height: var(--control-md);
   padding: 0 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border-input);
   border-radius: 8px;
   color: var(--text);
   font-weight: 600;
@@ -700,12 +797,14 @@ table.data tbody tr:last-child td {
 }
 
 .btn:disabled {
-  opacity: 0.55;
+  color: var(--color-disabled-fg);
+  background: var(--color-disabled-bg);
+  border-color: var(--color-border-default);
   cursor: not-allowed;
 }
 
 .btn--sm {
-  min-height: 30px;
+  min-height: var(--control-sm);
   padding: 0 12px;
   font-size: 13px;
 }
@@ -807,7 +906,7 @@ table.data tbody tr:last-child td {
 .field textarea {
   width: 100%;
   padding: 9px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border-input);
   border-radius: 8px;
   background: var(--surface);
 }
@@ -1386,4 +1485,62 @@ table.data tbody tr:last-child td {
 
 .option input {
   accent-color: var(--primary);
+}
+
+/* ---------- Tables as cards on a phone (Figma: mobile fallback) ---------- */
+
+@media (max-width: 640px) {
+  .table-wrap {
+    overflow-x: visible;
+  }
+
+  table.data,
+  table.data tbody,
+  table.data tr,
+  table.data td {
+    display: block;
+    width: 100%;
+  }
+
+  table.data thead {
+    /* Headings are repeated inside each cell as its label. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  table.data tbody tr {
+    padding: var(--space-2, 8px) 0;
+    border-bottom: 1px solid var(--color-border-default);
+  }
+
+  table.data tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  table.data td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 16px;
+    border-bottom: 0;
+    text-align: end;
+  }
+
+  table.data td[data-label]::before {
+    content: attr(data-label);
+    flex: none;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: start;
+  }
+
+  .cell-wrap {
+    min-width: 0;
+    max-width: none;
+  }
 }

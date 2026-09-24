@@ -7,6 +7,7 @@ import '../../../orders/presentation/orders_providers.dart';
 import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../company_admin_format.dart';
 import '../orders/company_order_details_screen.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/order_status_actions.dart';
 import '../widgets/status_badge.dart';
@@ -35,20 +36,18 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
       ),
       body: order == null
           ? (ordersAsync.isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const AppLoadingState()
               : AdminErrorState(message: context.l10n.adminJobNotFound))
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          : AppCenteredList(
               children: [
                 AdminSectionCard(
                   title: context.l10n.adminInstallationJob,
                   trailing: StatusBadge(
                     label: CompanyAdminFormat.installationJobStatus(order, context.l10n),
-                    color:
-                        CompanyAdminFormat.orderStatusColor(order.orderStatus),
+                    tone: order.orderStatus.tone,
                   ),
                   children: [
-                    AdminInfoRow(label: context.l10n.adminJobOrderNumber, value: order.id),
+                    AdminInfoRow(label: context.l10n.adminJobOrderNumber, value: order.id, valueTextDirection: TextDirection.ltr),
                     AdminInfoRow(label: context.l10n.adminProduct, value: order.productName),
                     AdminInfoRow(label: context.l10n.adminQuantity, value: '${order.quantity}'),
                     AdminInfoRow(
@@ -62,6 +61,7 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
                     AdminInfoRow(
                       label: context.l10n.adminCreated,
                       value: CompanyAdminFormat.date(order.createdAt),
+                      valueTextDirection: TextDirection.ltr,
                     ),
                   ],
                 ),
@@ -76,6 +76,7 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
                     AdminInfoRow(
                       label: context.l10n.orderContactPhone,
                       value: order.contactPhone,
+                      valueTextDirection: TextDirection.ltr,
                     ),
                     AdminInfoRow(
                       label: order.deliveryMethod == DeliveryMethod.delivery
@@ -97,7 +98,10 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 OrderStatusActions(order: order),
                 const SizedBox(height: 12),
-                OutlinedButton.icon(
+                AppButton.outlined(
+                  expand: true,
+                  icon: Icons.receipt_long_outlined,
+                  label: context.l10n.adminViewFullOrder,
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => CompanyOrderDetailsScreen(
@@ -106,8 +110,6 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  icon: const Icon(Icons.receipt_long_outlined),
-                  label: Text(context.l10n.adminViewFullOrder),
                 ),
               ],
             ),

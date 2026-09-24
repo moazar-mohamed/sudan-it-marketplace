@@ -102,7 +102,7 @@ export function StatCard({
 
 /* ---------- Status pieces ---------- */
 
-export type Tone = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+export type Tone = 'success' | 'warning' | 'danger' | 'info' | 'progress' | 'neutral';
 
 export function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
   return <span className={`badge badge--${tone}`}>{children}</span>;

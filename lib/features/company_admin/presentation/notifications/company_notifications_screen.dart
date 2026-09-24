@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../notifications/presentation/notifications_providers.dart';
 import '../../../notifications/presentation/widgets/notification_tile.dart';
 import '../orders/company_order_details_screen.dart';
-import '../widgets/admin_section_card.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
 class CompanyNotificationsScreen extends ConsumerWidget {
@@ -20,8 +20,8 @@ class CompanyNotificationsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.commonNotifications)),
       body: notificationsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => AdminErrorState(
+        loading: () => const AppLoadingState(),
+        error: (_, _) => AppErrorState(
           message: context.l10n.notificationsLoadFailed,
           onRetry: () =>
               ref.invalidate(companyNotificationsStreamProvider(companyId)),
@@ -30,7 +30,7 @@ class CompanyNotificationsScreen extends ConsumerWidget {
           if (items.isEmpty) {
             return ListView(
               children: [
-                AdminEmptyState(
+                AppEmptyState(
                   icon: Icons.notifications_none_outlined,
                   message: context.l10n.notificationsEmpty,
                 ),

@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../../core/utils/search_ranking.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
 import '../../../products/presentation/product_price_strings.dart';
 import '../company_admin_format.dart';
-import '../widgets/admin_network_image.dart';
-import '../widgets/admin_section_card.dart';
-import '../widgets/status_badge.dart';
 import 'company_product_details_screen.dart';
 import 'product_form_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -42,17 +42,6 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
     );
   }
 
-  Widget _chip(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: _categoryFilter == value,
-        onSelected: (_) => setState(() => _categoryFilter = value),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final companyId = widget.companyId;
@@ -61,8 +50,11 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
     final categoriesById = ref.watch(categoriesByIdProvider);
 
     return productsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, _) => AdminErrorState(
+      loading: () => ListView(
+        padding: const EdgeInsets.all(AppSpacing.s16),
+        children: const [AppSkeletonList()],
+      ),
+      error: (_, _) => AppErrorState(
         message: context.l10n.adminProductsLoadFailed,
         onRetry: () => ref.invalidate(companyProductsStreamProvider(companyId)),
       ),
@@ -70,12 +62,12 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
         if (products.isEmpty) {
           return ListView(
             children: [
-              AdminEmptyState(
+              AppEmptyState(
                 icon: Icons.inventory_2_outlined,
                 message: context.l10n.adminProductsEmpty,
-                action: FilledButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: Text(context.l10n.adminAddProduct),
+                action: AppButton.primary(
+                  icon: Icons.add,
+                  label: context.l10n.adminAddProduct,
                   onPressed: _openAdd,
                 ),
               ),
@@ -113,23 +105,26 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
         );
 
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            AppSpacing.s12,
+            AppSpacing.s16,
+            AppSpacing.s24,
+          ),
           children: [
             Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: AppSearchField(
+                    hint: context.l10n.adminSearchProducts,
                     onChanged: (value) => setState(() => _query = value),
-                    decoration: InputDecoration(
-                      hintText: context.l10n.adminSearchProducts,
-                      prefixIcon: const Icon(Icons.search),
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.surface,
-                    ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: AppSpacing.s8),
                 IconButton.filled(
+                  style: IconButton.styleFrom(
+                    foregroundColor: AppColors.onPrimary,
+                  ),
                   tooltip: context.l10n.adminAddProduct,
                   icon: const Icon(Icons.add),
                   onPressed: _openAdd,
@@ -138,26 +133,29 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
             ),
             if (usedCategoryIds.isNotEmpty || hasUncategorized) ...[
               const SizedBox(height: 10),
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _chip(context.l10n.homeFilterAllCategories, null),
-                    for (final id in usedCategoryIds)
-                      _chip(categoryNames[id]!, id),
-                    if (hasUncategorized)
-                      _chip(
-                        context.l10n.adminProductUncategorized,
-                        _uncategorized,
-                      ),
-                  ],
-                ),
+              AppFilterChips(
+                labels: [
+                  context.l10n.homeFilterAllCategories,
+                  for (final id in usedCategoryIds) categoryNames[id]!,
+                  if (hasUncategorized) context.l10n.adminProductUncategorized,
+                ],
+                selectedIndex: [
+                  null,
+                  ...usedCategoryIds,
+                  if (hasUncategorized) _uncategorized,
+                ].indexOf(_categoryFilter),
+                onChanged: (index) => setState(() {
+                  _categoryFilter = index == 0
+                      ? null
+                      : index <= usedCategoryIds.length
+                          ? usedCategoryIds.elementAt(index - 1)
+                          : _uncategorized;
+                }),
               ),
             ],
             const SizedBox(height: 12),
             if (visible.isEmpty)
-              AdminEmptyState(
+              AppEmptyState(
                 icon: Icons.search_off_outlined,
                 message: context.l10n.homeNoProducts,
               )
@@ -175,7 +173,7 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.s12),
               ],
           ],
         );
@@ -197,114 +195,76 @@ class _CompanyProductTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final name = categoryName?.trim() ?? '';
 
-    return Material(
-      color: colorScheme.surface,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: colorScheme.onSurface.withValues(alpha: 0.08),
+    return AppListCard(
+      onTap: onTap,
+      leading: AppImageTile(
+        imageUrl: product.imageUrl,
+        fallbackIcon: Icons.inventory_2_outlined,
+      ),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            product.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyStrong,
+          ),
+          if (name.isNotEmpty)
+            Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.captionStrong
+                  .copyWith(color: AppColors.textBrand),
+            ),
+          Text(
+            product.price == null
+                ? ProductPriceStrings.priceOnRequest(context)
+                : CompanyAdminFormat.price(product.price!, product.currency),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyStrong.copyWith(
+              color: product.price == null
+                  ? AppColors.textSecondary
+                  : AppColors.textBrand,
             ),
           ),
-          child: Row(
+          const SizedBox(height: AppSpacing.s6),
+          Wrap(
+            spacing: AppSpacing.s6,
+            runSpacing: AppSpacing.s6,
             children: [
-              AdminNetworkImage(
-                url: product.imageUrl,
-                fallbackIcon: Icons.inventory_2_outlined,
+              StatusChip(
+                label: product.isAvailable
+                    ? context.l10n.adminInStock(product.stockCount)
+                    : product.hasStock
+                        ? context.l10n.adminUnavailable
+                        : context.l10n.adminOutOfStock,
+                tone: product.isAvailable ? AppTone.success : AppTone.error,
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (categoryName != null && categoryName!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        categoryName!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.labelMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 4),
-                    Text(
-                      product.price == null
-                          ? ProductPriceStrings.priceOnRequest(context)
-                          : CompanyAdminFormat.price(
-                              product.price!,
-                              product.currency,
-                            ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        StatusBadge(
-                          label: product.isAvailable
-                              ? context.l10n.adminInStock(product.stockCount)
-                              : product.hasStock
-                                  ? context.l10n.adminUnavailable
-                                  : context.l10n.adminOutOfStock,
-                          color: product.isAvailable
-                              ? AppColors.success
-                              : AppColors.error,
-                        ),
-                        if (product.isInstallationAvailable)
-                          StatusBadge(
-                            label: context.l10n.adminInstallationBadge,
-                            color: AppColors.primary,
-                          ),
-                        if (!product.isDeliveryAvailable)
-                          StatusBadge(
-                            label: context.l10n.adminPickupOnlyBadge,
-                            color: Colors.deepOrange,
-                          ),
-                        // Legacy products have no category yet; nudge the
-                        // company to pick one.
-                        if (product.categoryId == null)
-                          StatusBadge(
-                            label: context.l10n.adminProductUncategorized,
-                            color: Colors.orange,
-                          ),
-                      ],
-                    ),
-                  ],
+              if (product.isInstallationAvailable)
+                StatusChip(
+                  label: context.l10n.adminInstallationBadge,
+                  tone: AppTone.brand,
                 ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: colorScheme.onSurface.withValues(alpha: 0.35),
-              ),
+              if (!product.isDeliveryAvailable)
+                StatusChip(
+                  label: context.l10n.adminPickupOnlyBadge,
+                  tone: AppTone.progress,
+                ),
+              // Legacy products have no category yet; nudge the company to
+              // pick one.
+              if (product.categoryId == null)
+                StatusChip(
+                  label: context.l10n.adminProductUncategorized,
+                  tone: AppTone.warning,
+                ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

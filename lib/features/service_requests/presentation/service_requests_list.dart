@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
-import '../../company_admin/presentation/widgets/admin_section_card.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/widgets/app_widgets.dart';
 import 'service_request_providers.dart';
 import 'widgets/service_request_tile.dart';
 
@@ -24,8 +25,11 @@ class ServiceRequestsList extends ConsumerWidget {
         ? companyServiceRequestsStreamProvider(companyId)
         : customerServiceRequestsStreamProvider;
     return ref.watch(provider).when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, _) => AdminErrorState(
+          loading: () => ListView(
+            padding: const EdgeInsets.all(AppSpacing.s16),
+            children: const [AppSkeletonList()],
+          ),
+          error: (_, _) => AppErrorState(
             message: context.l10n.serviceRequestsLoadFailed,
             onRetry: () => ref.invalidate(provider),
           ),
@@ -33,7 +37,7 @@ class ServiceRequestsList extends ConsumerWidget {
             if (requests.isEmpty) {
               return ListView(
                 children: [
-                  AdminEmptyState(
+                  AppEmptyState(
                     icon: Icons.miscellaneous_services_outlined,
                     message: asCompany
                         ? context.l10n.serviceRequestsEmptyCompany
@@ -43,9 +47,14 @@ class ServiceRequestsList extends ConsumerWidget {
               );
             }
             return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.s16,
+                AppSpacing.s16,
+                AppSpacing.s16,
+                AppSpacing.s24,
+              ),
               itemCount: requests.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.s12),
               itemBuilder: (context, index) => ServiceRequestTile(
                 request: requests[index],
                 asCompany: asCompany,

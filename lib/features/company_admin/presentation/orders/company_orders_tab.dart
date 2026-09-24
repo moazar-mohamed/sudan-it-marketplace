@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/search_ranking.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/orders_providers.dart';
-import '../widgets/admin_section_card.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../widgets/company_order_tile.dart';
 import 'company_order_details_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -30,8 +31,11 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
         ref.watch(companyOrdersStreamProvider(widget.companyId));
 
     return ordersAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, _) => AdminErrorState(
+      loading: () => ListView(
+        padding: const EdgeInsets.all(AppSpacing.s16),
+        children: const [AppSkeletonList()],
+      ),
+      error: (_, _) => AppErrorState(
         message: context.l10n.adminOrdersLoadFailed,
         onRetry: () =>
             ref.invalidate(companyOrdersStreamProvider(widget.companyId)),
@@ -50,38 +54,38 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
           ],
         );
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            AppSpacing.s12,
+            AppSpacing.s16,
+            AppSpacing.s24,
+          ),
           children: [
-            TextField(
+            AppSearchField(
+              hint: context.l10n.adminSearchOrders,
               onChanged: (value) => setState(() => _query = value),
-              decoration: InputDecoration(
-                hintText: context.l10n.adminSearchOrders,
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surface,
-              ),
             ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 40,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _chip(context.l10n.adminFilterAll(orders.length), null),
-                  for (final status in OrderStatus.values)
-                    _chip(
-                      context.l10n.adminFilterStatus(
-                        status.label(context.l10n),
-                        orders.where((o) => o.orderStatus == status).length,
-                      ),
-                      status,
-                    ),
-                ],
+            const SizedBox(height: AppSpacing.s8),
+            AppFilterChips(
+              labels: [
+                context.l10n.adminFilterAll(orders.length),
+                for (final status in OrderStatus.values)
+                  context.l10n.adminFilterStatus(
+                    status.label(context.l10n),
+                    orders.where((o) => o.orderStatus == status).length,
+                  ),
+              ],
+              selectedIndex: _statusFilter == null
+                  ? 0
+                  : OrderStatus.values.indexOf(_statusFilter!) + 1,
+              onChanged: (index) => setState(
+                () => _statusFilter =
+                    index == 0 ? null : OrderStatus.values[index - 1],
               ),
             ),
             const SizedBox(height: 12),
             if (visible.isEmpty)
-              AdminEmptyState(
+              AppEmptyState(
                 icon: Icons.receipt_long_outlined,
                 message: context.l10n.adminNoOrdersToShow,
               )
@@ -98,22 +102,11 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.s12),
               ],
           ],
         );
       },
-    );
-  }
-
-  Widget _chip(String label, OrderStatus? status) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: _statusFilter == status,
-        onSelected: (_) => setState(() => _statusFilter = status),
-      ),
     );
   }
 }

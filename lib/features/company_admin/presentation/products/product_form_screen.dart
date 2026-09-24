@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../../core/widgets/image_picker_field.dart';
 import '../../../../core/widgets/image_picker_strings.dart';
 import '../../../categories/domain/entities/category.dart';
@@ -203,11 +206,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         return;
       }
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(ImagePickerStrings.of(context).uploadFailed),
-          backgroundColor: AppColors.error,
-        ),
+      showAppSnackBar(
+        context,
+        ImagePickerStrings.of(context).uploadFailed,
+        tone: AppTone.error,
       );
       return;
     }
@@ -248,24 +250,21 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     setState(() => _isSaving = false);
 
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: AppColors.error),
-      );
+      showAppSnackBar(context, error, tone: AppTone.error);
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(existing == null ? context.l10n.formProductAdded : context.l10n.formProductUpdated),
-      ),
+    showAppSnackBar(
+      context,
+      existing == null
+          ? context.l10n.formProductAdded
+          : context.l10n.formProductUpdated,
+      tone: AppTone.success,
     );
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
     final categoriesAsync = ref.watch(allCategoriesProvider);
     final categoriesLoaded = categoriesAsync.hasValue;
     final selectableCategories =
@@ -276,11 +275,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         selectableCategories.any((category) => category.id == _categoryId);
 
     Widget sectionTitle(String title) => Padding(
-          padding: const EdgeInsets.only(top: 20, bottom: 10),
-          child: Text(
-            title,
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          padding: const EdgeInsets.only(
+            top: AppSpacing.s20,
+            bottom: AppSpacing.s8,
           ),
+          child: Text(title, style: AppTextStyles.h3),
         );
 
     return Scaffold(
@@ -291,43 +290,34 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         top: false,
         child: Form(
           key: _formKey,
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              8,
-              16,
-              MediaQuery.viewInsetsOf(context).bottom + 24,
-            ),
+          child: AppCenteredList(
+            topPadding: AppSpacing.s8,
+            bottomPadding: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.s24,
             children: [
               sectionTitle(context.l10n.adminProduct),
-              TextFormField(
+              AppTextField(
+                label: context.l10n.formProductName,
                 controller: _nameController,
                 enabled: !_isSaving,
                 textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: context.l10n.formProductName,
-                  prefixIcon: Icon(Icons.inventory_2_outlined),
-                ),
+                prefixIcon: Icons.inventory_2_outlined,
                 validator: (value) => (value?.trim().isEmpty ?? true)
                     ? context.l10n.formProductNameRequired
                     : null,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: AppSpacing.s16),
               ImagePickerField(
                 controller: _imageController,
                 enabled: !_isSaving,
               ),
-              const SizedBox(height: 14),
-              DropdownButtonFormField<String?>(
+              const SizedBox(height: AppSpacing.s16),
+              AppDropdownField<String?>(
                 // The field only reads its initial value once, so it is
                 // rebuilt when the saved category becomes selectable; until
                 // then it is kept in state only.
                 key: ValueKey(currentIsSelectable),
                 initialValue: currentIsSelectable ? _categoryId : null,
-                decoration: InputDecoration(
-                  labelText: context.l10n.formCategoryLabel,
-                  prefixIcon: const Icon(Icons.category_outlined),
-                ),
+                label: context.l10n.formCategoryLabel,
                 items: [
                   DropdownMenuItem<String?>(
                     value: null,
@@ -343,33 +333,28 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                       ),
                     ),
                 ],
-                onChanged: _isSaving || !categoriesLoaded
-                    ? null
-                    : (value) => setState(() => _categoryId = value),
+                enabled: !_isSaving && categoriesLoaded,
+                onChanged: (value) => setState(() => _categoryId = value),
               ),
-              const SizedBox(height: 14),
-              TextFormField(
+              const SizedBox(height: AppSpacing.s16),
+              AppTextField(
+                label: context.l10n.formPriceOptional,
                 controller: _priceController,
                 enabled: !_isSaving,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [_decimalFormatter],
-                decoration: InputDecoration(
-                  labelText: context.l10n.formPriceOptional,
-                  prefixIcon: Icon(Icons.payments_outlined),
-                ),
+                prefixIcon: Icons.payments_outlined,
                 validator: _validateOptionalPrice,
               ),
               sectionTitle(context.l10n.formStockSection),
-              TextFormField(
+              AppTextField(
+                label: context.l10n.formStockQuantity,
                 controller: _stockController,
                 enabled: !_isSaving,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  labelText: context.l10n.formStockQuantity,
-                  prefixIcon: Icon(Icons.warehouse_outlined),
-                ),
+                prefixIcon: Icons.warehouse_outlined,
                 validator: (value) {
                   final text = value?.trim() ?? '';
                   if (text.isEmpty || int.tryParse(text) == null) {
@@ -390,15 +375,13 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 ),
               ),
               sectionTitle(context.l10n.productDescription),
-              TextFormField(
+              AppTextField(
+                label: context.l10n.productDescription,
+                optional: true,
                 controller: _descriptionController,
                 enabled: !_isSaving,
                 minLines: 3,
                 maxLines: 6,
-                decoration: InputDecoration(
-                  labelText: context.l10n.productDescription,
-                  alignLabelWithHint: true,
-                ),
               ),
               sectionTitle(context.l10n.productSpecifications),
               for (int i = 0; i < _specRows.length; i++) ...[
@@ -407,39 +390,42 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: TextFormField(
+                      child: AppTextField(
+                        label: context.l10n.formSpecName,
                         controller: _specRows[i].keyController,
                         enabled: !_isSaving,
-                        decoration: InputDecoration(labelText: context.l10n.formSpecName),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.s8),
                     Expanded(
                       flex: 3,
-                      child: TextFormField(
+                      child: AppTextField(
+                        label: context.l10n.formSpecValue,
                         controller: _specRows[i].valueController,
                         enabled: !_isSaving,
-                        decoration: InputDecoration(labelText: context.l10n.formSpecValue),
                       ),
                     ),
-                    IconButton(
-                      tooltip: context.l10n.commonRemove,
-                      onPressed: _isSaving ? null : () => _removeSpecRow(i),
-                      icon: Icon(
-                        Icons.remove_circle_outline,
-                        color: colorScheme.error,
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.s24),
+                      child: IconButton(
+                        tooltip: context.l10n.commonRemove,
+                        onPressed: _isSaving ? null : () => _removeSpecRow(i),
+                        icon: const Icon(
+                          Icons.remove_circle_outline,
+                          color: AppColors.errorText,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.s12),
               ],
               Align(
                 alignment: AlignmentDirectional.centerStart,
-                child: TextButton.icon(
+                child: AppButton.text(
                   onPressed: _isSaving ? null : _addSpecRow,
-                  icon: const Icon(Icons.add),
-                  label: Text(context.l10n.formAddSpec),
+                  icon: Icons.add,
+                  label: context.l10n.formAddSpec,
                 ),
               ),
               sectionTitle(context.l10n.checkoutDelivery),
@@ -473,16 +459,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               ),
               if (_installationAvailable) ...[
                 const SizedBox(height: 8),
-                TextFormField(
+                AppTextField(
+                  label: context.l10n.formInstallationPrice,
                   controller: _installationPriceController,
                   enabled: !_isSaving,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [_decimalFormatter],
-                  decoration: InputDecoration(
-                    labelText: context.l10n.formInstallationPrice,
-                    prefixIcon: Icon(Icons.handyman_outlined),
-                  ),
+                  prefixIcon: Icons.handyman_outlined,
                   validator: (value) => _validatePositiveNumber(
                     value,
                     requiredMessage: context.l10n.formInstallationPriceRequired,
@@ -490,19 +474,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   ),
                 ),
               ],
-              const SizedBox(height: 28),
-              ElevatedButton(
-                onPressed: _isSaving ? null : _save,
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: AppColors.onPrimary,
-                        ),
-                      )
-                    : Text(widget.isEditing ? context.l10n.commonSaveChanges : context.l10n.adminAddProduct),
+              const SizedBox(height: AppSpacing.s24),
+              AppButton.primary(
+                expand: true,
+                loading: _isSaving,
+                label: widget.isEditing
+                    ? context.l10n.commonSaveChanges
+                    : context.l10n.adminAddProduct,
+                onPressed: _save,
               ),
             ],
           ),

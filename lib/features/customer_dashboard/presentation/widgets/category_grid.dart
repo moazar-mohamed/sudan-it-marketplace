@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/arabic_text.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../categories/domain/entities/category.dart';
 import '../../../categories/presentation/category_label.dart';
 
@@ -37,17 +40,20 @@ class CategoryGrid extends StatelessWidget {
         maxChildSize: 0.92,
         builder: (_, controller) => SingleChildScrollView(
           controller: controller,
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.s16,
+            0,
+            AppSpacing.s16,
+            AppSpacing.s24,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 context.l10n.homeCategoriesTitle,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                style: AppTextStyles.h2,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.s12),
               _Tiles(
                 categories: categories,
                 selectedId: selectedId,
@@ -66,7 +72,6 @@ class CategoryGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (categories.isEmpty) return const SizedBox.shrink();
-    final theme = Theme.of(context);
     final hasMore = categories.length > categoryGridPreviewCount;
     final preview = categories.take(categoryGridPreviewCount).toList();
     // A selected category hidden behind "More" still shows as selected.
@@ -87,9 +92,7 @@ class CategoryGrid extends StatelessWidget {
             Expanded(
               child: Text(
                 context.l10n.homeCategoriesTitle,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: AppTextStyles.h3,
               ),
             ),
             if (selectedId != null)
@@ -106,7 +109,7 @@ class CategoryGrid extends StatelessWidget {
               ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.s8),
         _Tiles(
           categories: preview,
           selectedId: selectedId,
@@ -130,20 +133,18 @@ class _Tiles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return GridView.count(
       crossAxisCount: 4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
+      mainAxisSpacing: AppSpacing.s8,
+      crossAxisSpacing: AppSpacing.s8,
       childAspectRatio: 0.82,
       children: [
         for (final category in categories)
           _Tile(
             category: category,
             selected: category.id == selectedId,
-            colorScheme: colorScheme,
             onTap: () => onTap(category.id),
           ),
       ],
@@ -155,55 +156,51 @@ class _Tile extends StatelessWidget {
   const _Tile({
     required this.category,
     required this.selected,
-    required this.colorScheme,
     required this.onTap,
   });
 
   final Category category;
   final bool selected;
-  final ColorScheme colorScheme;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : colorScheme.onSurface;
-    return Material(
-      color: selected
-          ? AppColors.primary.withValues(alpha: 0.08)
-          : colorScheme.surface,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
+    final name = category.localizedName(context);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: name,
+      excludeSemantics: true,
+      child: AppCard(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: selected
-                  ? AppColors.primary
-                  : colorScheme.onSurface.withValues(alpha: 0.08),
-              width: selected ? 1.5 : 1,
+        color: selected ? AppColors.brandPrimarySubtle : AppColors.surface,
+        borderColor: selected ? AppColors.primary : AppColors.borderDefault,
+        borderWidth: selected ? AppBorder.thick : AppBorder.thin,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.s4,
+          vertical: AppSpacing.s8,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              categoryIconFor(category),
+              size: AppSize.iconXl,
+              color: AppColors.primary,
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(categoryIconFor(category), size: 28, color: AppColors.primary),
-              const SizedBox(height: 6),
-              Text(
-                category.localizedName(context),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: color,
-                      height: 1.2,
-                    ),
+            const SizedBox(height: AppSpacing.s6),
+            Text(
+              name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.labelMedium.copyWith(
+                color: selected ? AppColors.textBrand : AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+                height: 1.2,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

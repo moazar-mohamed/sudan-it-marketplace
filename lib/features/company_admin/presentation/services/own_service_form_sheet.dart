@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../categories/domain/entities/category.dart';
 import '../../../categories/presentation/category_label.dart';
 import '../../../categories/presentation/category_providers.dart';
@@ -126,12 +130,17 @@ class _OwnServiceFormState extends ConsumerState<_OwnServiceForm> {
     setState(() => _saving = false);
     final messenger = ScaffoldMessenger.of(context);
     if (error != null) {
-      messenger.showSnackBar(SnackBar(content: Text(error)));
+      showAppSnackBar(context, error, tone: AppTone.error, messenger: messenger);
       return;
     }
     final savedMessage = context.l10n.adminServiceSaved;
     Navigator.of(context).pop();
-    messenger.showSnackBar(SnackBar(content: Text(savedMessage)));
+    showAppSnackBar(
+      context,
+      savedMessage,
+      tone: AppTone.success,
+      messenger: messenger,
+    );
   }
 
   /// Active categories, plus the service's current one if it was deactivated
@@ -160,10 +169,10 @@ class _OwnServiceFormState extends ConsumerState<_OwnServiceForm> {
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
-        16,
+        AppSpacing.s16,
         0,
-        16,
-        16 + MediaQuery.viewInsetsOf(context).bottom,
+        AppSpacing.s16,
+        AppSpacing.s16 + MediaQuery.viewInsetsOf(context).bottom,
       ),
       child: Form(
         key: _formKey,
@@ -175,33 +184,26 @@ class _OwnServiceFormState extends ConsumerState<_OwnServiceForm> {
               widget.isEditing
                   ? context.l10n.adminServiceFormEditTitle
                   : context.l10n.adminServiceNew,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: AppTextStyles.h2,
             ),
-            const SizedBox(height: 16),
-            TextFormField(
+            const SizedBox(height: AppSpacing.s16),
+            AppTextField(
+              label: context.l10n.adminServiceNameLabel,
               controller: _nameController,
               enabled: !_saving,
               textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: context.l10n.adminServiceNameLabel,
-                prefixIcon: const Icon(Icons.design_services_outlined),
-              ),
+              prefixIcon: Icons.design_services_outlined,
               validator: (value) => (value ?? '').trim().isEmpty
                   ? context.l10n.adminServiceNameRequired
                   : null,
             ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            const SizedBox(height: AppSpacing.s12),
+            AppDropdownField<String>(
               // The field reads its initial value only once, so it is
               // rebuilt when the saved category becomes one of the items.
               key: ValueKey(currentIsSelectable),
               initialValue: currentIsSelectable ? _categoryId : null,
-              decoration: InputDecoration(
-                labelText: context.l10n.formCategoryLabel,
-                prefixIcon: const Icon(Icons.category_outlined),
-              ),
+              label: context.l10n.formCategoryLabel,
               items: [
                 for (final category in categories)
                   DropdownMenuItem(
@@ -213,26 +215,23 @@ class _OwnServiceFormState extends ConsumerState<_OwnServiceForm> {
                     ),
                   ),
               ],
-              onChanged: _saving
-                  ? null
-                  : (value) => setState(() => _categoryId = value),
+              enabled: !_saving,
+              onChanged: (value) => setState(() => _categoryId = value),
               validator: (value) => value == null
                   ? context.l10n.adminServiceCategoryRequired
                   : null,
             ),
-            const SizedBox(height: 12),
-            TextFormField(
+            const SizedBox(height: AppSpacing.s12),
+            AppTextField(
+              label: context.l10n.adminServiceDescriptionLabel,
               controller: _descriptionController,
               enabled: !_saving,
               minLines: 2,
               maxLines: 4,
               maxLength: 500,
-              decoration: InputDecoration(
-                labelText: context.l10n.adminServiceDescriptionLabel,
-                alignLabelWithHint: true,
-              ),
             ),
-            TextFormField(
+            AppTextField(
+              label: context.l10n.formPriceOptional,
               controller: _priceController,
               enabled: !_saving,
               keyboardType:
@@ -240,40 +239,26 @@ class _OwnServiceFormState extends ConsumerState<_OwnServiceForm> {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
               ],
-              decoration: InputDecoration(
-                labelText: context.l10n.formPriceOptional,
-                helperText: context.l10n.adminServicePriceHelper,
-                helperMaxLines: 2,
-                prefixIcon: const Icon(Icons.payments_outlined),
-              ),
+              helperText: context.l10n.adminServicePriceHelper,
+              prefixIcon: Icons.payments_outlined,
               validator: _validatePrice,
             ),
-            const SizedBox(height: 12),
-            TextFormField(
+            const SizedBox(height: AppSpacing.s12),
+            AppTextField(
+              label: context.l10n.adminServiceNoteLabel,
               controller: _noteController,
               enabled: !_saving,
               minLines: 2,
               maxLines: 4,
               maxLength: 500,
-              decoration: InputDecoration(
-                labelText: context.l10n.adminServiceNoteLabel,
-                hintText: context.l10n.adminServiceNoteHint,
-                alignLabelWithHint: true,
-              ),
+              hint: context.l10n.adminServiceNoteHint,
             ),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: _saving ? null : _save,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-              ),
-              child: _saving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2.2),
-                    )
-                  : Text(context.l10n.commonSave),
+            const SizedBox(height: AppSpacing.s8),
+            AppButton.primary(
+              label: context.l10n.commonSave,
+              loading: _saving,
+              expand: true,
+              onPressed: _save,
             ),
           ],
         ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/chat_message.dart';
 import '../chat_format.dart';
 
@@ -20,19 +23,15 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-    final background = isMine
-        ? colorScheme.primary
-        : colorScheme.onSurface.withValues(alpha: 0.06);
-    final foreground = isMine ? colorScheme.onPrimary : colorScheme.onSurface;
+    final background = isMine ? AppColors.primary : AppColors.bgMuted;
+    final foreground = isMine ? AppColors.onPrimary : AppColors.textPrimary;
+    final meta = isMine ? AppColors.onPrimary : AppColors.textSecondary;
     final sender = isMine
         ? context.l10n.chatYou
         : (message.senderName.trim().isEmpty
             ? context.l10n.chatCustomerFallback
             : message.senderName.trim());
-    const radius = Radius.circular(16);
+    const radius = Radius.circular(AppRadius.md);
 
     return Padding(
       padding: EdgeInsets.only(top: showSender ? 10 : 3),
@@ -45,10 +44,8 @@ class MessageBubble extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               child: Text(
                 sender,
-                style: textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
+                style: AppTextStyles.labelSmall
+                    .copyWith(color: AppColors.textSecondary),
               ),
             ),
           ConstrainedBox(
@@ -72,10 +69,7 @@ class MessageBubble extends StatelessWidget {
                 children: [
                   SelectableText(
                     message.text,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: foreground,
-                      height: 1.35,
-                    ),
+                    style: AppTextStyles.body.copyWith(color: foreground),
                   ),
                   const SizedBox(height: 3),
                   Row(
@@ -83,17 +77,15 @@ class MessageBubble extends StatelessWidget {
                     children: [
                       Text(
                         formatChatTime(context, message.createdAt),
-                        style: textTheme.labelSmall?.copyWith(
-                          fontSize: 10.5,
-                          color: foreground.withValues(alpha: 0.7),
-                        ),
+                        textDirection: TextDirection.ltr,
+                        style: AppTextStyles.labelSmall.copyWith(color: meta),
                       ),
                       if (isMine && message.isPending) ...[
                         const SizedBox(width: 4),
                         Icon(
                           Icons.schedule,
-                          size: 11,
-                          color: foreground.withValues(alpha: 0.7),
+                          size: 12,
+                          color: meta,
                         ),
                       ],
                     ],

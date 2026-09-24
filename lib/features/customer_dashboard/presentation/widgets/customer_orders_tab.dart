@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../orders/presentation/customer_orders_screen.dart';
 import '../../../service_requests/presentation/service_requests_list.dart';
 
@@ -12,29 +13,12 @@ class CustomerOrdersTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          Material(
-            color: Theme.of(context).colorScheme.surface,
-            child: TabBar(
-              tabs: [
-                Tab(text: context.l10n.ordersTabProducts),
-                Tab(text: context.l10n.ordersTabServices),
-              ],
-            ),
-          ),
-          const Expanded(
-            child: TabBarView(
-              children: [
-                CustomerOrdersScreen(showAppBar: false),
-                ServiceRequestsList(asCompany: false),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return AppTabbedView(
+      labels: [context.l10n.ordersTabProducts, context.l10n.ordersTabServices],
+      children: const [
+        CustomerOrdersScreen(showAppBar: false),
+        ServiceRequestsList(asCompany: false),
+      ],
     );
   }
 }

@@ -6,7 +6,10 @@ import '../../../companies/presentation/companies_providers.dart';
 import '../../../location/presentation/location_strings.dart';
 import '../../../location/presentation/widgets/map_widgets.dart';
 import '../../../location/presentation/widgets/open_location_button.dart';
-import '../widgets/admin_network_image.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../widgets/admin_section_card.dart';
 import 'edit_company_profile_screen.dart';
 import 'payment_accounts_screen.dart';
@@ -23,21 +26,18 @@ class CompanyProfileTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final companyAsync = ref.watch(companyStreamProvider(companyId));
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final signOutButton = OutlinedButton.icon(
+    final signOutButton = AppButton.destructiveOutlined(
       onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
-      icon: Icon(Icons.logout, color: colorScheme.error),
-      label: Text(context.l10n.commonSignOut, style: TextStyle(color: colorScheme.error)),
+      icon: Icons.logout,
+      label: context.l10n.commonSignOut,
+      expand: true,
     );
 
     return companyAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, _) => ListView(
-        padding: const EdgeInsets.all(16),
+      loading: () => const AppLoadingState(),
+      error: (_, _) => AppCenteredList(
         children: [
-          AdminErrorState(
+          AppErrorState(
             message: context.l10n.adminCompanyLoadFailed,
             onRetry: () => ref.invalidate(companyStreamProvider(companyId)),
           ),
@@ -46,48 +46,43 @@ class CompanyProfileTab extends ConsumerWidget {
       ),
       data: (company) {
         if (company == null) {
-          return ListView(
-            padding: const EdgeInsets.all(16),
+          return AppCenteredList(
             children: [
-              AdminEmptyState(
+              AppEmptyState(
                 icon: Icons.business_outlined,
-                message:
-                    context.l10n.adminCompanyNotFound,
+                message: context.l10n.adminCompanyNotFound,
               ),
               signOutButton,
             ],
           );
         }
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        return AppCenteredList(
+          bottomPadding: AppSpacing.s32,
           children: [
             Center(
-              child: AdminNetworkImage(
-                url: company.logoUrl,
+              child: AppImageTile(
+                imageUrl: company.logoUrl,
                 fallbackIcon: Icons.business_outlined,
                 size: 88,
-                radius: 20,
+                radius: AppRadius.lg,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.s12),
             Text(
               company.name,
               textAlign: TextAlign.center,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTextStyles.h2,
             ),
             if ((company.description ?? '').trim().isNotEmpty) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: AppSpacing.s4),
               Text(
                 company.description!,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
+                style: AppTextStyles.body
+                    .copyWith(color: AppColors.textSecondary),
               ),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.s16),
             AdminSectionCard(
               title: context.l10n.adminContact,
               children: [
@@ -95,7 +90,7 @@ class CompanyProfileTab extends ConsumerWidget {
                 AdminInfoRow(label: context.l10n.authEmail, value: _orDash(company.email)),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.s12),
             AdminSectionCard(
               title: context.l10n.adminLocation,
               children: [
@@ -106,9 +101,9 @@ class CompanyProfileTab extends ConsumerWidget {
                   value: _orDash(company.pickupAddress),
                 ),
                 if (company.coordinates != null) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.s6),
                   CoordinatesText(location: company.coordinates!),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppSpacing.s8),
                   OpenLocationButton(
                     label: LocationStrings.of(context).viewOnMap,
                     viewerTitle: company.name,
@@ -118,25 +113,24 @@ class CompanyProfileTab extends ConsumerWidget {
                 ],
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.s12),
             AdminSectionCard(
               title: context.l10n.paymentAccountsManage,
-              trailing: TextButton.icon(
+              trailing: AppButton.text(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => PaymentAccountsScreen(companyId: company.id),
                   ),
                 ),
-                icon: const Icon(Icons.account_balance_outlined, size: 18),
-                label: Text(context.l10n.commonEdit),
+                icon: Icons.account_balance_outlined,
+                label: context.l10n.commonEdit,
               ),
               children: [
                 if (company.paymentAccounts.isEmpty)
                   Text(
                     context.l10n.paymentAccountsEmpty,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.textSecondary),
                   ),
                 for (final account in company.paymentAccounts)
                   AdminInfoRow(
@@ -145,17 +139,18 @@ class CompanyProfileTab extends ConsumerWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
+            const SizedBox(height: AppSpacing.s20),
+            AppButton.primary(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) => EditCompanyProfileScreen(company: company),
                 ),
               ),
-              icon: const Icon(Icons.edit_outlined),
-              label: Text(context.l10n.adminEditCompanyProfile),
+              icon: Icons.edit_outlined,
+              label: context.l10n.adminEditCompanyProfile,
+              expand: true,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.s12),
             signOutButton,
           ],
         );

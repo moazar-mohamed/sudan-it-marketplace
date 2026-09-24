@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../company_admin_actions.dart';
 import '../company_admin_format.dart';
@@ -30,35 +33,20 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
       return;
     }
     setState(() => _isBusy = false);
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(error ?? success),
-          backgroundColor: error == null ? null : AppColors.error,
-        ),
-      );
+    showAppSnackBar(
+      context,
+      error ?? success,
+      tone: error == null ? AppTone.success : AppTone.error,
+    );
   }
 
-  Future<bool> _confirm(String title, String message) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(context.l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(context.l10n.commonConfirm),
-          ),
-        ],
-      ),
+  Future<bool> _confirm(String title, String message) {
+    return showConfirmationDialog(
+      context,
+      title: title,
+      body: message,
+      confirmLabel: context.l10n.commonConfirm,
     );
-    return result ?? false;
   }
 
   String _nextLabel(OrderStatus next) {
@@ -77,7 +65,6 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
     final actions = ref.read(companyAdminActionsProvider);
     final next = CompanyAdminFormat.nextStatus(order);
     final paymentConfirmed = order.paymentStatus == PaymentStatus.confirmed;
-    final textTheme = Theme.of(context).textTheme;
 
     return AdminSectionCard(
       title: context.l10n.adminManageOrder,
@@ -85,12 +72,14 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
         if (!paymentConfirmed) ...[
           Text(
             context.l10n.adminVerifyReceipt,
-            style: textTheme.bodySmall,
+            style: AppTextStyles.caption
+                .copyWith(color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
+          const SizedBox(height: AppSpacing.s12),
+          AppButton.outlined(
+              expand: true,
+              icon: Icons.verified_outlined,
+              label: context.l10n.adminConfirmPaymentButton,
               onPressed: _isBusy
                   ? null
                   : () async {
@@ -106,23 +95,18 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
                         );
                       }
                     },
-              icon: const Icon(Icons.verified_outlined),
-              label: Text(context.l10n.adminConfirmPaymentButton),
-            ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.s12),
         ],
         if (next == null)
           Row(
             children: [
               const Icon(Icons.check_circle_rounded, color: AppColors.success),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.s8),
               Expanded(
                 child: Text(
                   context.l10n.adminOrderCompleted,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.bodyStrong,
                 ),
               ),
             ],
@@ -130,16 +114,20 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
         else ...[
           if (order.installationSelected && next == OrderStatus.completed)
             Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: AppSpacing.s12),
               child: Text(
                 context.l10n.adminMarkCompletedHint,
-                style: textTheme.bodySmall,
+                style: AppTextStyles.caption
+                    .copyWith(color: AppColors.textSecondary),
               ),
             ),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: (_isBusy || !paymentConfirmed)
+          AppButton.primary(
+              expand: true,
+              icon: Icons.arrow_forward_rounded,
+              loading: _isBusy,
+              label: _nextLabel(next),
+              onPressed: !paymentConfirmed
+
                   ? null
                   : () async {
                       final l10n = context.l10n;
@@ -158,22 +146,6 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
                         );
                       }
                     },
-              icon: _isBusy
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.onPrimary,
-                      ),
-                    )
-                  : const Icon(Icons.arrow_forward_rounded),
-              label: Text(
-                _nextLabel(next),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
           ),
         ],
       ],

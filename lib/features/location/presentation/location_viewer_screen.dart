@@ -3,7 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../data/location_service.dart';
 import '../data/map_config.dart';
 import '../domain/geo_location.dart';
@@ -66,22 +66,18 @@ class LocationViewerScreen extends ConsumerWidget {
                   ],
                   CoordinatesText(location: location),
                   const SizedBox(height: 10),
-                  ElevatedButton.icon(
+                  AppButton.primary(
+                    expand: true,
+                    icon: Icons.map_outlined,
+                    label: strings.openInMapsApp,
                     onPressed: () async {
                       final opened = await ref
                           .read(externalMapLauncherProvider)
                           .open(ExternalMapLauncher.coordinatesUri(location));
                       if (!opened && context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(strings.couldNotOpenMaps)),
-                        );
+                        showAppSnackBar(context, strings.couldNotOpenMaps);
                       }
                     },
-                    icon: const Icon(
-                      Icons.map_outlined,
-                      color: AppColors.onPrimary,
-                    ),
-                    label: Text(strings.openInMapsApp),
                   ),
                 ],
               ),

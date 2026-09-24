@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
 import '../../settings/presentation/settings_screen.dart';
 import 'auth_controller.dart';
@@ -76,7 +80,6 @@ class _ForcePasswordChangeScreenState
   @override
   Widget build(BuildContext context) {
     final strings = PasswordChangeStrings.of(context);
-    final theme = Theme.of(context);
     // A message is text in one language, so it is dropped when the language
     // changes rather than left behind in the old one.
     ref.listen(localeControllerProvider, (_, _) {
@@ -101,42 +104,40 @@ class _ForcePasswordChangeScreenState
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(
-                      Icons.lock_reset_rounded,
-                      size: 56,
-                      color: theme.colorScheme.primary,
+                    const Center(
+                      child: AppIconTile(
+                        icon: Icons.lock_reset_rounded,
+                        size: 72,
+                        radius: AppRadius.full,
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.s16),
                     Text(
                       strings.intro,
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyLarge,
+                      style: AppTextStyles.bodyLarge,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.s24),
                     if (!_passwordUpdated) ...[
-                      TextFormField(
+                      AppTextField(
+                        label: strings.currentPassword,
                         controller: _currentController,
                         enabled: !_isSaving,
-                        obscureText: true,
+                        password: true,
                         autofillHints: const [AutofillHints.password],
-                        decoration: InputDecoration(
-                          labelText: strings.currentPassword,
-                          prefixIcon: const Icon(Icons.lock_outline),
-                        ),
+                        prefixIcon: Icons.lock_outline,
                         validator: (value) => (value ?? '').isEmpty
                             ? strings.currentRequired
                             : null,
                       ),
-                      const SizedBox(height: 14),
-                      TextFormField(
+                      const SizedBox(height: AppSpacing.s16),
+                      AppTextField(
+                        label: strings.newPassword,
                         controller: _newController,
                         enabled: !_isSaving,
-                        obscureText: true,
+                        password: true,
                         autofillHints: const [AutofillHints.newPassword],
-                        decoration: InputDecoration(
-                          labelText: strings.newPassword,
-                          prefixIcon: const Icon(Icons.lock_reset_outlined),
-                        ),
+                        prefixIcon: Icons.lock_reset_outlined,
                         validator: (value) {
                           final text = value ?? '';
                           if (text.isEmpty) return strings.newRequired;
@@ -148,47 +149,38 @@ class _ForcePasswordChangeScreenState
                           return null;
                         },
                       ),
-                      const SizedBox(height: 14),
-                      TextFormField(
+                      const SizedBox(height: AppSpacing.s16),
+                      AppTextField(
+                        label: strings.confirmPassword,
                         controller: _confirmController,
                         enabled: !_isSaving,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: strings.confirmPassword,
-                          prefixIcon: const Icon(Icons.lock_reset_outlined),
-                        ),
+                        password: true,
+                        prefixIcon: Icons.lock_reset_outlined,
                         validator: (value) => value != _newController.text
                             ? strings.mismatch
                             : null,
                       ),
                     ],
                     if (_error != null) ...[
-                      const SizedBox(height: 14),
-                      Text(
-                        _error!,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: theme.colorScheme.error),
-                      ),
+                      const SizedBox(height: AppSpacing.s16),
+                      AppBanner(tone: AppTone.error, message: _error!),
                     ],
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: _isSaving ? null : _submit,
-                      child: _isSaving
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2.5),
-                            )
-                          : Text(strings.submit),
+                    const SizedBox(height: AppSpacing.s24),
+                    AppButton.primary(
+                      label: strings.submit,
+                      loading: _isSaving,
+                      expand: true,
+                      onPressed: _submit,
                     ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
+                    const SizedBox(height: AppSpacing.s12),
+                    AppButton.outlined(
+                      label: strings.signOut,
+                      icon: Icons.logout,
+                      expand: true,
                       onPressed: _isSaving
                           ? null
                           : () =>
                               ref.read(authControllerProvider.notifier).signOut(),
-                      icon: const Icon(Icons.logout),
-                      label: Text(strings.signOut),
                     ),
                   ],
                 ),

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useI18n } from '../i18n/I18nProvider';
 import type { TranslationKey } from '../i18n/dictionary';
 import { useChangeLanguage } from '../i18n/useChangeLanguage';
+import { watchTables } from '../ui/tableLabels';
 import { Icon, type IconName } from './Icon';
 
 const NAV: { to: string; key: TranslationKey; icon: IconName; end?: boolean }[] = [
@@ -41,6 +42,10 @@ export function Layout() {
   const { state, signOut } = useAuth();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const contentRef = useRef<HTMLElement>(null);
+
+  // Lets the stylesheet show tables as labelled cards on a phone.
+  useEffect(() => (contentRef.current ? watchTables(contentRef.current) : undefined), []);
 
   const current = NAV.find((n) => (n.end ? pathname === n.to : pathname.startsWith(n.to)));
   const profile = state.status === 'authorized' ? state.profile : null;
@@ -111,7 +116,7 @@ export function Layout() {
             )}
           </div>
         </header>
-        <main className="content">
+        <main className="content" ref={contentRef}>
           <Outlet />
         </main>
       </div>

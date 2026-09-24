@@ -43,6 +43,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonSearch => 'بحث';
 
   @override
+  String get commonClear => 'مسح';
+
+  @override
+  String get commonCopy => 'نسخ';
+
+  @override
+  String get commonQuantityIncrease => 'زيادة الكمية';
+
+  @override
+  String get commonQuantityDecrease => 'تقليل الكمية';
+
+  @override
   String get commonDone => 'تم';
 
   @override
@@ -302,7 +314,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get errorProfileLoadDenied =>
-      'تعذر تحميل ملفك الشخصي: رفض الخادم الوصول. تأكد من نشر أحدث قواعد Firestore.';
+      'تعذر تحميل ملفك الشخصي: تم رفض الوصول. حاول لاحقًا أو تواصل مع الدعم.';
 
   @override
   String get errorProfileLoadOffline =>
@@ -872,7 +884,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paymentTapToUpload => 'اضغط لرفع الإيصال / لقطة الشاشة';
 
   @override
-  String get paymentSupports => 'يدعم JPG وPNG أو لقطة شاشة من بنكك/فوري';
+  String get paymentSupports => 'يدعم JPG و PNG أو لقطة شاشة من بنكك/فوري';
 
   @override
   String get paymentReceiptSelected => 'تم اختيار الإيصال';
@@ -935,7 +947,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String orderTitleNumber(String id) {
-    return 'طلب #$id';
+    return 'طلب ‎#$id';
   }
 
   @override
@@ -1307,7 +1319,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String adminConfirmPaymentBody(String id) {
-    return 'هل تريد تحديد الدفع للطلب #$id كمؤكد؟';
+    return 'هل تريد تحديد الدفع للطلب ‎#$id كمؤكد؟';
   }
 
   @override
@@ -1328,7 +1340,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String adminChangeOrderStatusBody(String id, String status) {
-    return 'هل تريد تغيير حالة الطلب #$id إلى \"$status\"؟ لا يمكن التراجع عن هذا الإجراء.';
+    return 'هل تريد تغيير حالة الطلب ‎#$id إلى \"$status\"؟ لا يمكن التراجع عن هذا الإجراء.';
   }
 
   @override
@@ -1360,7 +1372,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String adminJobTitleNumber(String id) {
-    return 'مهمة #$id';
+    return 'مهمة ‎#$id';
   }
 
   @override
@@ -1770,7 +1782,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String techChangeJobBody(String id, String status) {
-    return 'هل تريد تغيير حالة المهمة #$id إلى \"$status\"؟ لا يمكن التراجع عن هذا الإجراء.';
+    return 'هل تريد تغيير حالة المهمة ‎#$id إلى \"$status\"؟ لا يمكن التراجع عن هذا الإجراء.';
   }
 
   @override

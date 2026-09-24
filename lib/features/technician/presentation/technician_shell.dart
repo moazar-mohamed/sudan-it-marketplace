@@ -37,8 +37,6 @@ class _TechnicianShellState extends ConsumerState<TechnicianShell> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     final tabs = [
       TechnicianDashboardTab(
         technicianId: widget.technicianId,
@@ -82,9 +80,7 @@ class _TechnicianShellState extends ConsumerState<TechnicianShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: _selectTab,
-        backgroundColor: colorScheme.surface,
-        indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
-        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
