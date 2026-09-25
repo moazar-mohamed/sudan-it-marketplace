@@ -116,7 +116,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authForgotPassword => 'نسيت كلمة المرور؟';
 
   @override
-  String get authForgotPasswordSoon => 'استعادة كلمة المرور ستتوفر قريبًا.';
+  String get authForgotPasswordTitle => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get authForgotPasswordBody =>
+      'أدخل البريد الإلكتروني الذي سجّلت به. سنرسل لك رابطًا لاختيار كلمة مرور جديدة.';
+
+  @override
+  String get authForgotPasswordSend => 'إرسال رابط إعادة التعيين';
+
+  @override
+  String get authForgotPasswordSentTitle => 'تحقّق من بريدك الإلكتروني';
+
+  @override
+  String authForgotPasswordSentBody(String email) {
+    return 'إذا كان هناك حساب مرتبط بـ ‎$email‎، فقد أرسلنا رابطًا لإعادة تعيين كلمة مروره. تحقّق أيضًا من مجلد الرسائل غير المرغوب فيها.';
+  }
+
+  @override
+  String get authForgotPasswordResend => 'إعادة إرسال الرسالة';
+
+  @override
+  String authForgotPasswordResendIn(int seconds) {
+    return 'إعادة الإرسال بعد $seconds ث';
+  }
+
+  @override
+  String get authForgotPasswordBackToLogin => 'العودة إلى تسجيل الدخول';
+
+  @override
+  String get authForgotPasswordFailed =>
+      'تعذّر إرسال رسالة إعادة التعيين. حاول مرة أخرى.';
 
   @override
   String get authContinueWithGoogle => 'المتابعة باستخدام Google';
@@ -887,28 +917,31 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paymentSupports => 'يدعم JPG و PNG أو لقطة شاشة من بنكك/فوري';
 
   @override
+  String get receiptPreparing => 'جارٍ تجهيز الصورة…';
+
+  @override
+  String get receiptTooLarge =>
+      'ما زالت الصورة كبيرة جدًا بعد الضغط. اختر صورة أصغر.';
+
+  @override
+  String get receiptUnreadable =>
+      'تعذّرت قراءة هذا الملف كصورة. اختر صورة أو لقطة شاشة للإيصال.';
+
+  @override
+  String get receiptViewTitle => 'إيصال الدفع';
+
+  @override
+  String get receiptView => 'عرض الإيصال';
+
+  @override
+  String get receiptNone => 'لا توجد صورة إيصال لهذا الطلب.';
+
+  @override
+  String get receiptLoadFailed =>
+      'تعذّر تحميل الإيصال. تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
   String get paymentReceiptSelected => 'تم اختيار الإيصال';
-
-  @override
-  String get paymentSlipPreview => 'معاينة إشعار التحويل';
-
-  @override
-  String get paymentSlipCompleted => 'مكتمل';
-
-  @override
-  String paymentSlipAmount(String amount) {
-    return 'المبلغ: $amount SDG';
-  }
-
-  @override
-  String paymentSlipBeneficiary(String name) {
-    return 'المستفيد: $name';
-  }
-
-  @override
-  String paymentSlipRef(String ref) {
-    return 'المرجع: $ref';
-  }
 
   @override
   String get paymentReplace => 'استبدال';

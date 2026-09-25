@@ -13,6 +13,7 @@ import '../widgets/status_badge.dart';
 import '../widgets/technician_assignment_card.dart';
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../orders/presentation/order_labels.dart';
+import '../../../orders/presentation/widgets/receipt_viewer.dart';
 
 /// Looks up a company order from the live company orders stream so status
 /// changes are reflected immediately.
@@ -165,6 +166,8 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                           ? context.l10n.adminNotProvided
                           : order.receiptFileName!,
                     ),
+                    if ((order.receiptFileName ?? '').trim().isNotEmpty)
+                      ReceiptViewButton(orderId: order.id),
                   ],
                 ),
               ],
@@ -187,7 +190,7 @@ class _OrderSummaryCard extends StatelessWidget {
         tone: order.orderStatus.tone,
       ),
       children: [
-        AdminInfoRow(label: context.l10n.adminOrderNumber, value: order.id, valueTextDirection: TextDirection.ltr),
+        AdminInfoRow(label: context.l10n.adminOrderNumber, value: '#${order.shortId}', valueTextDirection: TextDirection.ltr),
         AdminInfoRow(
           label: context.l10n.adminCreated,
           value: CompanyAdminFormat.date(order.createdAt),

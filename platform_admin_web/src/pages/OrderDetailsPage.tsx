@@ -1,8 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
 import { OrderStatusBadge, PaymentBadge } from '../components/StatusBadges';
+import { ReceiptViewer } from '../components/ReceiptViewer';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
 import { useCompanies, useOrders, useProducts } from '../data/hooks';
 import { formatCoordinate, osmViewUrl, toGeoPoint } from '../data/location';
+import { fetchOrderReceipt } from '../data/receipts';
+import { db } from '../firebase';
 import { useI18n } from '../i18n/I18nProvider';
 import { customerLabel, shortId } from '../utils';
 
@@ -76,6 +79,9 @@ export function OrderDetailsPage() {
                     )}
                   </KeyValue>
                 </dl>
+                {order.receiptFileName && (
+                  <ReceiptViewer orderId={order.id} load={(orderId) => fetchOrderReceipt(db, orderId)} />
+                )}
               </Card>
 
               <Card title={t('order.section.customer')}>

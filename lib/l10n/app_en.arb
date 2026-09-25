@@ -35,7 +35,29 @@
   "authLogin": "Login",
   "authRegister": "Register",
   "authForgotPassword": "Forgot password?",
-  "authForgotPasswordSoon": "Forgot password will be available soon.",
+  "authForgotPasswordTitle": "Reset your password",
+  "authForgotPasswordBody": "Enter the email you signed up with. We will send you a link to choose a new password.",
+  "authForgotPasswordSend": "Send reset link",
+  "authForgotPasswordSentTitle": "Check your email",
+  "authForgotPasswordSentBody": "If an account exists for {email}, we sent a link to reset its password. Check your spam folder too.",
+  "@authForgotPasswordSentBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authForgotPasswordResend": "Resend email",
+  "authForgotPasswordResendIn": "Resend in {seconds}s",
+  "@authForgotPasswordResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "authForgotPasswordBackToLogin": "Back to sign in",
+  "authForgotPasswordFailed": "Could not send the reset email. Please try again.",
   "authContinueWithGoogle": "Continue with Google",
   "authNoAccount": "Don't have an account?",
   "authHaveAccount": "Already have an account?",
@@ -396,33 +418,14 @@
   "paymentUploadHint": "Upload a clear screenshot or photo of your transfer notification slip.",
   "paymentTapToUpload": "Tap to Upload Receipt / Screenshot",
   "paymentSupports": "Supports JPG, PNG, or screenshot from Bankak/Fawry",
+  "receiptPreparing": "Preparing image…",
+  "receiptTooLarge": "This image is still too large after compression. Please choose a smaller one.",
+  "receiptUnreadable": "This file could not be read as an image. Choose a photo or screenshot of your receipt.",
+  "receiptViewTitle": "Payment receipt",
+  "receiptView": "View receipt",
+  "receiptNone": "No receipt image is available for this order.",
+  "receiptLoadFailed": "Could not load the receipt. Check your connection and try again.",
   "paymentReceiptSelected": "Receipt Selected",
-  "paymentSlipPreview": "TRANSFER SLIP PREVIEW",
-  "paymentSlipCompleted": "COMPLETED",
-  "paymentSlipAmount": "Amount: {amount} SDG",
-  "@paymentSlipAmount": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "paymentSlipBeneficiary": "Beneficiary: {name}",
-  "@paymentSlipBeneficiary": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "paymentSlipRef": "Ref: {ref}",
-  "@paymentSlipRef": {
-    "placeholders": {
-      "ref": {
-        "type": "String"
-      }
-    }
-  },
   "paymentReplace": "Replace",
   "paymentPendingNote": "Submitting this receipt saves the transfer reference as \"Pending Verification\". Payment will be marked Confirmed after the company verifies it.",
   "paymentSubmitting": "Submitting...",

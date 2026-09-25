@@ -9,6 +9,7 @@ import '../../products/presentation/stock_error_message.dart';
 import '../domain/entities/order_entity.dart';
 import '../domain/repositories/orders_repository.dart';
 import 'orders_providers.dart';
+import '../domain/entities/order_receipt.dart';
 
 sealed class OrderActionState {
   const OrderActionState();
@@ -62,6 +63,7 @@ class OrdersController extends Notifier<OrderActionState> {
     String? receiptFileName,
     double? deliveryLatitude,
     double? deliveryLongitude,
+    ReceiptImage? receipt,
   }) async {
     state = const OrderActionLoading();
     try {
@@ -86,6 +88,7 @@ class OrdersController extends Notifier<OrderActionState> {
         receiptFileName: receiptFileName,
         deliveryLatitude: deliveryLatitude,
         deliveryLongitude: deliveryLongitude,
+        receipt: receipt,
       );
       state = OrderActionSuccess(order);
       final notifications = ref.read(notificationsRepositoryProvider);

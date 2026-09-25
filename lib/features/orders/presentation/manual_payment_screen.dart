@@ -8,28 +8,35 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../companies/domain/entities/payment_account.dart';
 import '../../companies/presentation/companies_providers.dart';
+import '../../../core/services/receipt_image_compressor.dart';
+import '../../../core/widgets/image_picker_strings.dart';
 import '../domain/entities/checkout_order_draft.dart';
+import '../domain/entities/order_receipt.dart';
+import 'receipt_picker.dart';
 import 'order_pending_verification_screen.dart';
 import 'orders_controller.dart';
 import '../../../core/localization/l10n_extension.dart';
 
 class ManualPaymentScreen extends ConsumerStatefulWidget {
-  const ManualPaymentScreen({
-    super.key,
-    required this.draft,
-  });
+  const ManualPaymentScreen({super.key, required this.draft});
 
   final CheckoutOrderDraft draft;
 
   @override
-  ConsumerState<ManualPaymentScreen> createState() => _ManualPaymentScreenState();
+  ConsumerState<ManualPaymentScreen> createState() =>
+      _ManualPaymentScreenState();
 }
 
 class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
-  String? _selectedReceiptName;
-  String? _selectedReceiptSize;
+  /// The receipt, already compressed and ready to be stored with the order.
+  ReceiptImage? _receipt;
+
+  /// True while a picked image is being compressed.
+  bool _preparing = false;
   bool _receiptMissing = false;
   bool _isSubmitting = false;
+
+  String _formatSize(int bytes) => '${(bytes / 1024).round()} KB';
 
   String _formatPrice(double price) {
     final parts = price.toStringAsFixed(0).split('.');
@@ -46,23 +53,68 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     );
   }
 
-  void _onPickReceipt() {
-    setState(() {
-      _selectedReceiptName = 'bankak_receipt_${widget.draft.productId.toLowerCase()}.jpg';
-      _selectedReceiptSize = '428 KB';
-      _receiptMissing = false;
-    });
+  /// Lets the customer choose the receipt image (gallery or camera), then
+  /// shrinks it to a small JPEG. Nothing is stored until the order is placed.
+  Future<void> _onPickReceipt() async {
+    if (_preparing || _isSubmitting) return;
+    final source = await showModalBottomSheet<ReceiptSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (_) => const _ReceiptSourceSheet(),
+    );
+    if (source == null || !mounted) return;
+
+    setState(() => _preparing = true);
+    try {
+      final file = await ref.read(receiptPickerProvider)(source);
+      if (file == null || !mounted) return; // the picker was dismissed
+      final image = await ref
+          .read(receiptCompressorProvider)
+          .compress(file.bytes, fileName: file.name);
+      if (!mounted) return;
+      setState(() {
+        _receipt = image;
+        _receiptMissing = false;
+      });
+    } on ReceiptPickException catch (error) {
+      if (mounted) _showReceiptError(_pickMessage(error.failure));
+    } on ReceiptCompressionException catch (error) {
+      if (mounted) {
+        final l10n = context.l10n;
+        _showReceiptError(
+          error.error == ReceiptCompressionError.tooLarge
+              ? l10n.receiptTooLarge
+              : l10n.receiptUnreadable,
+        );
+      }
+    } catch (_) {
+      if (mounted) _showReceiptError(ImagePickerStrings.of(context).pickFailed);
+    } finally {
+      if (mounted) setState(() => _preparing = false);
+    }
   }
 
+  String _pickMessage(ReceiptPickFailure failure) {
+    final strings = ImagePickerStrings.of(context);
+    return switch (failure) {
+      ReceiptPickFailure.cameraDenied => strings.cameraDenied,
+      ReceiptPickFailure.galleryDenied => strings.galleryDenied,
+      ReceiptPickFailure.cameraUnavailable => strings.cameraUnavailable,
+      ReceiptPickFailure.unsupported => strings.unsupportedFile,
+      ReceiptPickFailure.tooLarge => context.l10n.receiptTooLarge,
+      ReceiptPickFailure.failed => strings.pickFailed,
+    };
+  }
+
+  void _showReceiptError(String message) =>
+      showAppSnackBar(context, message, tone: AppTone.error);
+
   void _onRemoveReceipt() {
-    setState(() {
-      _selectedReceiptName = null;
-      _selectedReceiptSize = null;
-    });
+    setState(() => _receipt = null);
   }
 
   Future<void> _onSubmitReceipt() async {
-    if (_selectedReceiptName == null) {
+    if (_receipt == null) {
       setState(() {
         _receiptMissing = true;
       });
@@ -95,7 +147,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             contactPhone: widget.draft.contactPhone,
             deliveryMethod: widget.draft.deliveryMethod,
             customerName: widget.draft.customerName,
-            receiptFileName: _selectedReceiptName!,
+            receipt: _receipt,
             deliveryLatitude: widget.draft.deliveryLatitude,
             deliveryLongitude: widget.draft.deliveryLongitude,
           );
@@ -135,25 +187,20 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final paymentAccounts = ref
+    final paymentAccounts =
+        ref
             .watch(resolvedCompanyProvider(widget.draft.companyId))
             ?.paymentAccounts ??
         const <PaymentAccount>[];
     // Until the company has loaded, its accounts are unknown, not missing.
-    final accountsLoading = paymentAccounts.isEmpty &&
+    final accountsLoading =
+        paymentAccounts.isEmpty &&
         ref.watch(companyStreamProvider(widget.draft.companyId)).isLoading;
-    // The payment goes to the order's own company, never to the marketplace.
-    final firstHolder =
-        paymentAccounts.isEmpty ? '' : paymentAccounts.first.accountName.trim();
-    final beneficiary =
-        firstHolder.isNotEmpty ? firstHolder : widget.draft.companyName;
     final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: Text(l10n.paymentTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.paymentTitle)),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -179,21 +226,24 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                       children: [
                         Text(
                           l10n.paymentAmountToTransfer,
-                          style: AppTextStyles.bodyStrong
-                              .copyWith(color: AppColors.textSecondary),
+                          style: AppTextStyles.bodyStrong.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.s4),
                         Text(
                           '${_formatPrice(widget.draft.totalAmount)} SDG',
-                          style: AppTextStyles.stat
-                              .copyWith(color: AppColors.textBrand),
+                          style: AppTextStyles.stat.copyWith(
+                            color: AppColors.textBrand,
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.s4),
                         Text(
                           l10n.paymentOrderCreatedAfter,
                           textAlign: TextAlign.center,
-                          style: AppTextStyles.caption
-                              .copyWith(color: AppColors.textSecondary),
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -235,8 +285,9 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                   const SizedBox(height: AppSpacing.s4),
                   Text(
                     l10n.paymentUploadHint,
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.textSecondary),
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.s12),
                   if (_receiptMissing) ...[
@@ -246,10 +297,10 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                     ),
                     const SizedBox(height: AppSpacing.s12),
                   ],
-                  if (_selectedReceiptName == null)
+                  if (_receipt == null)
                     _buildUploadTrigger(context)
                   else
-                    _buildReceiptPreview(context, beneficiary),
+                    _buildReceiptPreview(context),
                   const SizedBox(height: AppSpacing.s16),
 
                   AppBanner(
@@ -261,11 +312,15 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
 
                   // 5. Submit.
                   AppButton.primary(
-                    label: _isSubmitting ? l10n.paymentSubmitting : l10n.paymentSubmit,
+                    label: _isSubmitting
+                        ? l10n.paymentSubmitting
+                        : l10n.paymentSubmit,
                     icon: Icons.check_circle_outline,
                     loading: _isSubmitting,
                     expand: true,
-                    onPressed: paymentAccounts.isEmpty ? null : _onSubmitReceipt,
+                    onPressed: paymentAccounts.isEmpty || _preparing
+                        ? null
+                        : _onSubmitReceipt,
                   ),
                 ],
               ),
@@ -287,28 +342,41 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
       ),
       child: Column(
         children: [
-          const AppIconTile(
-            icon: Icons.cloud_upload_outlined,
-            size: 52,
-            radius: AppRadius.full,
-          ),
+          if (_preparing)
+            const AppSpinner(size: 32, strokeWidth: 3)
+          else
+            const AppIconTile(
+              icon: Icons.cloud_upload_outlined,
+              size: 52,
+              radius: AppRadius.full,
+            ),
           const SizedBox(height: AppSpacing.s12),
-          Text(
-            context.l10n.paymentTapToUpload,
-            style: AppTextStyles.bodyStrong
-                .copyWith(color: AppColors.textBrand),
-          ),
+          if (_preparing)
+            Text(
+              context.l10n.receiptPreparing,
+              style: AppTextStyles.bodyStrong.copyWith(
+                color: AppColors.textBrand,
+              ),
+            )
+          else
+            Text(
+              context.l10n.paymentTapToUpload,
+              style: AppTextStyles.bodyStrong.copyWith(
+                color: AppColors.textBrand,
+              ),
+            ),
           Text(
             context.l10n.paymentSupports,
-            style: AppTextStyles.caption
-                .copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildReceiptPreview(BuildContext context, String beneficiary) {
+  Widget _buildReceiptPreview(BuildContext context) {
     final l10n = context.l10n;
     return AppCard(
       borderColor: AppColors.success,
@@ -329,8 +397,9 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                   l10n.paymentReceiptSelected,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodyStrong
-                      .copyWith(color: AppColors.successText),
+                  style: AppTextStyles.bodyStrong.copyWith(
+                    color: AppColors.successText,
+                  ),
                 ),
               ),
               TextButton.icon(
@@ -344,54 +413,23 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             ],
           ),
           const SizedBox(height: AppSpacing.s8),
-          // Summary of the slip the customer is about to submit.
-          AppCard(
-            color: AppColors.bgSubtle,
-            padding: const EdgeInsets.all(AppSpacing.s16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const AppIconTile(
-                      icon: Icons.receipt_long,
-                      tone: AppTone.success,
-                      size: 32,
-                      radius: AppRadius.full,
-                    ),
-                    const SizedBox(width: AppSpacing.s8),
-                    Expanded(
-                      child: Text(
-                        l10n.paymentSlipPreview,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.labelSmall
-                            .copyWith(color: AppColors.textSecondary),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.s8),
-                    StatusChip(
-                      label: l10n.paymentSlipCompleted,
-                      tone: AppTone.success,
-                    ),
-                  ],
+          // The receipt exactly as it will be stored with the order.
+          ClipRRect(
+            borderRadius: AppRadius.smAll,
+            child: ColoredBox(
+              color: AppColors.bgSubtle,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 260),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Image.memory(
+                    _receipt!.bytes,
+                    fit: BoxFit.contain,
+                    gaplessPlayback: true,
+                    key: const ValueKey('receipt-preview'),
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.s12),
-                Text(
-                  l10n.paymentSlipAmount(_formatPrice(widget.draft.totalAmount)),
-                  style: AppTextStyles.h3,
-                ),
-                Text(
-                  l10n.paymentSlipBeneficiary(beneficiary),
-                  style: AppTextStyles.caption
-                      .copyWith(color: AppColors.textPrimary),
-                ),
-                Text(
-                  l10n.paymentSlipRef(widget.draft.productId.toUpperCase()),
-                  style: AppTextStyles.caption
-                      .copyWith(color: AppColors.textSecondary),
-                ),
-              ],
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.s8),
@@ -405,15 +443,16 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
               const SizedBox(width: AppSpacing.s6),
               Expanded(
                 child: Text(
-                  '$_selectedReceiptName ($_selectedReceiptSize)',
-                  style: AppTextStyles.caption
-                      .copyWith(color: AppColors.textSecondary),
+                  '${_receipt!.fileName} (${_formatSize(_receipt!.sizeBytes)})',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               TextButton(
-                onPressed: _onPickReceipt,
+                onPressed: _preparing ? null : _onPickReceipt,
                 child: Text(l10n.paymentReplace),
               ),
             ],
@@ -438,10 +477,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
         children: [
           Row(
             children: [
-              const AppIconTile(
-                icon: Icons.account_balance_outlined,
-                size: 36,
-              ),
+              const AppIconTile(icon: Icons.account_balance_outlined, size: 36),
               const SizedBox(width: AppSpacing.s12),
               Expanded(child: Text(bankName, style: AppTextStyles.h3)),
             ],
@@ -495,6 +531,34 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// "Choose from device" / "Take a photo" for the receipt.
+class _ReceiptSourceSheet extends StatelessWidget {
+  const _ReceiptSourceSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = ImagePickerStrings.of(context);
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: Text(strings.chooseFromDevice),
+            onTap: () => Navigator.of(context).pop(ReceiptSource.gallery),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_camera_outlined),
+            title: Text(strings.takePhoto),
+            onTap: () => Navigator.of(context).pop(ReceiptSource.camera),
+          ),
+          const SizedBox(height: AppSpacing.s8),
+        ],
+      ),
     );
   }
 }

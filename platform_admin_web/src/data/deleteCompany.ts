@@ -33,7 +33,9 @@ import {
  *   notifications    company_admin -> id   the admin's notifications
  *   notifications    technician -> tech    the employees' notifications
  *
- * Kept on purpose: orders (history), customers' own notifications, customer
+ * Kept on purpose: orders (history) and their payment receipts
+ * (`order_receipts`, part of the order history and immutable in the rules),
+ * customers' own notifications, customer
  * profiles, other companies. Firebase Authentication accounts cannot be deleted
  * from a browser (that needs the Admin SDK); only their Firestore profiles go.
  *

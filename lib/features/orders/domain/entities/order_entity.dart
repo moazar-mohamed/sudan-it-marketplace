@@ -1,4 +1,5 @@
 import '../../../location/domain/geo_location.dart';
+import '../../../../core/utils/short_id.dart';
 
 enum OrderStatus {
   processing('processing', 'Processing'),
@@ -113,7 +114,7 @@ class OrderEntity {
   final DateTime createdAt;
   final DateTime? updatedAt;
 
-  String get shortId => id.length > 8 ? id.substring(0, 8) : id;
+  String get shortId => shortReference(id);
 
   /// The delivery point saved with this order, or null when the customer only
   /// typed an address (or the order is a pickup / legacy order).

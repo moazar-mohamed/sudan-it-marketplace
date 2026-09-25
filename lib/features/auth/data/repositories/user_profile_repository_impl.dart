@@ -2,6 +2,7 @@ import '../../domain/entities/user_profile.dart';
 import '../../domain/exceptions/auth_exception.dart';
 import '../../domain/repositories/user_profile_repository.dart';
 import '../datasources/user_profile_remote_data_source.dart';
+import '../../../../core/logging/debug_log.dart';
 
 class UserProfileRepositoryImpl implements UserProfileRepository {
   UserProfileRepositoryImpl(this._remoteDataSource);
@@ -37,8 +38,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     } on AuthException {
       rethrow;
     } catch (error, st) {
-      // ignore: avoid_print
-      print('[DIAG][UserProfileRepoImpl] fetchProfile error=$error\n$st');
+      debugLog('UserProfileRepository', 'fetchProfile error=$error\n$st');
       throw const AuthException(
         'Could not load your profile. Please try again.',
         code: 'profile-fetch-failed',
@@ -137,8 +137,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     } on AuthException {
       rethrow;
     } catch (error, st) {
-      // ignore: avoid_print
-      print('[DIAG][UserProfileRepoImpl] updateProfile error=$error\n$st');
+      debugLog('UserProfileRepository', 'updateProfile error=$error\n$st');
       throw const AuthException(
         'Could not update your profile. Please try again.',
         code: 'profile-update-failed',

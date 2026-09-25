@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/app_notification.dart';
 import '../models/app_notification_model.dart';
 import 'notifications_remote_data_source.dart';
+import '../../../../core/logging/debug_log.dart';
 
 class FirestoreNotificationsRemoteDataSource
     implements NotificationsRemoteDataSource {
@@ -65,8 +66,7 @@ class FirestoreNotificationsRemoteDataSource
       // action (order created, payment confirmed, ...); a permission or
       // network failure here must not surface as an error to the user, but
       // it is still logged so it isn't silently lost.
-      // ignore: avoid_print
-      print('[DIAG][NotificationsDS] createNotification failed: '
+      debugLog('NotificationsDS', 'createNotification failed: '
           '${error.code} ${error.message}');
     }
   }
@@ -76,8 +76,7 @@ class FirestoreNotificationsRemoteDataSource
     try {
       await _notifications.doc(notificationId).update({'isRead': true});
     } on FirebaseException catch (error) {
-      // ignore: avoid_print
-      print('[DIAG][NotificationsDS] markAsRead failed: '
+      debugLog('NotificationsDS', 'markAsRead failed: '
           '${error.code} ${error.message}');
     }
   }

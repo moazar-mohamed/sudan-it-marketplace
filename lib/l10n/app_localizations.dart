@@ -308,11 +308,59 @@ abstract class AppLocalizations {
   /// **'Forgot password?'**
   String get authForgotPassword;
 
-  /// No description provided for @authForgotPasswordSoon.
+  /// No description provided for @authForgotPasswordTitle.
   ///
   /// In en, this message translates to:
-  /// **'Forgot password will be available soon.'**
-  String get authForgotPasswordSoon;
+  /// **'Reset your password'**
+  String get authForgotPasswordTitle;
+
+  /// No description provided for @authForgotPasswordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the email you signed up with. We will send you a link to choose a new password.'**
+  String get authForgotPasswordBody;
+
+  /// No description provided for @authForgotPasswordSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send reset link'**
+  String get authForgotPasswordSend;
+
+  /// No description provided for @authForgotPasswordSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email'**
+  String get authForgotPasswordSentTitle;
+
+  /// No description provided for @authForgotPasswordSentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If an account exists for {email}, we sent a link to reset its password. Check your spam folder too.'**
+  String authForgotPasswordSentBody(String email);
+
+  /// No description provided for @authForgotPasswordResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend email'**
+  String get authForgotPasswordResend;
+
+  /// No description provided for @authForgotPasswordResendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds}s'**
+  String authForgotPasswordResendIn(int seconds);
+
+  /// No description provided for @authForgotPasswordBackToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get authForgotPasswordBackToLogin;
+
+  /// No description provided for @authForgotPasswordFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send the reset email. Please try again.'**
+  String get authForgotPasswordFailed;
 
   /// No description provided for @authContinueWithGoogle.
   ///
@@ -1634,41 +1682,53 @@ abstract class AppLocalizations {
   /// **'Supports JPG, PNG, or screenshot from Bankak/Fawry'**
   String get paymentSupports;
 
+  /// No description provided for @receiptPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing image…'**
+  String get receiptPreparing;
+
+  /// No description provided for @receiptTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This image is still too large after compression. Please choose a smaller one.'**
+  String get receiptTooLarge;
+
+  /// No description provided for @receiptUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'This file could not be read as an image. Choose a photo or screenshot of your receipt.'**
+  String get receiptUnreadable;
+
+  /// No description provided for @receiptViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment receipt'**
+  String get receiptViewTitle;
+
+  /// No description provided for @receiptView.
+  ///
+  /// In en, this message translates to:
+  /// **'View receipt'**
+  String get receiptView;
+
+  /// No description provided for @receiptNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No receipt image is available for this order.'**
+  String get receiptNone;
+
+  /// No description provided for @receiptLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the receipt. Check your connection and try again.'**
+  String get receiptLoadFailed;
+
   /// No description provided for @paymentReceiptSelected.
   ///
   /// In en, this message translates to:
   /// **'Receipt Selected'**
   String get paymentReceiptSelected;
-
-  /// No description provided for @paymentSlipPreview.
-  ///
-  /// In en, this message translates to:
-  /// **'TRANSFER SLIP PREVIEW'**
-  String get paymentSlipPreview;
-
-  /// No description provided for @paymentSlipCompleted.
-  ///
-  /// In en, this message translates to:
-  /// **'COMPLETED'**
-  String get paymentSlipCompleted;
-
-  /// No description provided for @paymentSlipAmount.
-  ///
-  /// In en, this message translates to:
-  /// **'Amount: {amount} SDG'**
-  String paymentSlipAmount(String amount);
-
-  /// No description provided for @paymentSlipBeneficiary.
-  ///
-  /// In en, this message translates to:
-  /// **'Beneficiary: {name}'**
-  String paymentSlipBeneficiary(String name);
-
-  /// No description provided for @paymentSlipRef.
-  ///
-  /// In en, this message translates to:
-  /// **'Ref: {ref}'**
-  String paymentSlipRef(String ref);
 
   /// No description provided for @paymentReplace.
   ///

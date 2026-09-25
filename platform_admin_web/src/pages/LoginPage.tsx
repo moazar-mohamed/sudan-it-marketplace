@@ -4,6 +4,7 @@ import { LanguageToggle } from '../components/Layout';
 import { Icon } from '../components/Icon';
 import { useI18n } from '../i18n/I18nProvider';
 import type { TranslationKey } from '../i18n/dictionary';
+import { PasswordResetCard } from './PasswordResetCard';
 
 function authErrorKey(code: string | undefined): TranslationKey {
   switch (code) {
@@ -27,6 +28,7 @@ export function LoginPage({ notice }: { notice: AccessNotice | null }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [error, setError] = useState<TranslationKey | null>(null);
 
   const message: TranslationKey | null = error ?? (notice ? `login.denied.${notice}` : null);
@@ -51,6 +53,9 @@ export function LoginPage({ notice }: { notice: AccessNotice | null }) {
       <div className="login__lang">
         <LanguageToggle />
       </div>
+      {resetting ? (
+        <PasswordResetCard initialEmail={email} onBack={() => setResetting(false)} />
+      ) : (
       <form className="login__card" onSubmit={onSubmit} noValidate>
         <span className="login__logo">
           <Icon name="companies" size={26} />
@@ -93,7 +98,16 @@ export function LoginPage({ notice }: { notice: AccessNotice | null }) {
         >
           {submitting ? t('login.submitting') : t('login.submit')}
         </button>
+        <button
+          className="btn btn--ghost btn--block login__action"
+          type="button"
+          disabled={submitting}
+          onClick={() => setResetting(true)}
+        >
+          {t('login.forgot')}
+        </button>
       </form>
+      )}
     </div>
   );
 }

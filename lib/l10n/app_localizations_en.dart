@@ -116,8 +116,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authForgotPassword => 'Forgot password?';
 
   @override
-  String get authForgotPasswordSoon =>
-      'Forgot password will be available soon.';
+  String get authForgotPasswordTitle => 'Reset your password';
+
+  @override
+  String get authForgotPasswordBody =>
+      'Enter the email you signed up with. We will send you a link to choose a new password.';
+
+  @override
+  String get authForgotPasswordSend => 'Send reset link';
+
+  @override
+  String get authForgotPasswordSentTitle => 'Check your email';
+
+  @override
+  String authForgotPasswordSentBody(String email) {
+    return 'If an account exists for $email, we sent a link to reset its password. Check your spam folder too.';
+  }
+
+  @override
+  String get authForgotPasswordResend => 'Resend email';
+
+  @override
+  String authForgotPasswordResendIn(int seconds) {
+    return 'Resend in ${seconds}s';
+  }
+
+  @override
+  String get authForgotPasswordBackToLogin => 'Back to sign in';
+
+  @override
+  String get authForgotPasswordFailed =>
+      'Could not send the reset email. Please try again.';
 
   @override
   String get authContinueWithGoogle => 'Continue with Google';
@@ -900,28 +929,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Supports JPG, PNG, or screenshot from Bankak/Fawry';
 
   @override
+  String get receiptPreparing => 'Preparing image…';
+
+  @override
+  String get receiptTooLarge =>
+      'This image is still too large after compression. Please choose a smaller one.';
+
+  @override
+  String get receiptUnreadable =>
+      'This file could not be read as an image. Choose a photo or screenshot of your receipt.';
+
+  @override
+  String get receiptViewTitle => 'Payment receipt';
+
+  @override
+  String get receiptView => 'View receipt';
+
+  @override
+  String get receiptNone => 'No receipt image is available for this order.';
+
+  @override
+  String get receiptLoadFailed =>
+      'Could not load the receipt. Check your connection and try again.';
+
+  @override
   String get paymentReceiptSelected => 'Receipt Selected';
-
-  @override
-  String get paymentSlipPreview => 'TRANSFER SLIP PREVIEW';
-
-  @override
-  String get paymentSlipCompleted => 'COMPLETED';
-
-  @override
-  String paymentSlipAmount(String amount) {
-    return 'Amount: $amount SDG';
-  }
-
-  @override
-  String paymentSlipBeneficiary(String name) {
-    return 'Beneficiary: $name';
-  }
-
-  @override
-  String paymentSlipRef(String ref) {
-    return 'Ref: $ref';
-  }
 
   @override
   String get paymentReplace => 'Replace';

@@ -40,6 +40,7 @@ String _appException(AppLocalizations l10n, AppException error) {
     AppErrorCode.orderProductNoPrice =>
       l10n.orderProductNoPrice(error.productName ?? ''),
     AppErrorCode.orderAttachReceiptFailed => l10n.orderAttachReceiptFailed,
+    AppErrorCode.orderReceiptLoadFailed => l10n.receiptLoadFailed,
     AppErrorCode.orderFetchFailed => l10n.orderFetchFailed,
     AppErrorCode.orderUpdateStatusDenied => l10n.orderUpdateStatusDenied,
     AppErrorCode.orderUpdateStatusFailed => l10n.orderUpdateStatusFailed,

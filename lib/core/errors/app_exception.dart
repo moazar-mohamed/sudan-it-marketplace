@@ -9,6 +9,7 @@ enum AppErrorCode {
   orderNotConfirmed,
   orderProductNoPrice,
   orderAttachReceiptFailed,
+  orderReceiptLoadFailed,
   orderFetchFailed,
   orderUpdateStatusDenied,
   orderUpdateStatusFailed,

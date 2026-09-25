@@ -28,6 +28,12 @@ abstract class AuthRemoteDataSource {
   /// Sends (or re-sends) Firebase's verification email to the signed-in user.
   Future<void> sendEmailVerification();
 
+  /// Sends Firebase's password-reset email to [email], in [languageCode].
+  Future<void> sendPasswordResetEmail({
+    required String email,
+    String? languageCode,
+  });
+
   /// Reloads the signed-in Firebase user so a freshly verified email is
   /// reflected, returning the refreshed user (null when signed out).
   Future<AuthUserModel?> reloadCurrentUser();

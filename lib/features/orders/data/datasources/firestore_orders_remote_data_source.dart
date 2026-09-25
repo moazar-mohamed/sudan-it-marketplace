@@ -9,6 +9,8 @@ import '../../../products/domain/stock_reservation.dart';
 import '../../domain/entities/order_entity.dart';
 import '../models/order_model.dart';
 import 'orders_remote_data_source.dart';
+import '../../domain/entities/order_receipt.dart';
+import '../models/order_receipt_model.dart';
 
 class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
   FirestoreOrdersRemoteDataSource({FirebaseFirestore? firestore})
@@ -17,6 +19,8 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
   static const _ordersCollection = 'orders';
   static const _productsCollection = 'products';
   static const _writeAcknowledgementTimeout = Duration(seconds: 20);
+  // A receipt adds a few hundred KB to the commit: allow for slow mobile links.
+  static const _receiptWriteAcknowledgementTimeout = Duration(seconds: 60);
   static const _reconciliationTimeout = Duration(seconds: 10);
   static const _maxReservationAttempts = 4;
   final FirebaseFirestore _firestore;
@@ -32,7 +36,7 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
   /// Processing / Pending Verification and the app has no cancel or reject
   /// step to give it back).
   @override
-  Future<String> createOrder(OrderModel order) async {
+  Future<String> createOrder(OrderModel order, {ReceiptImage? receipt}) async {
     try {
       final docRef = order.id.isNotEmpty
           ? _firestore.collection(_ordersCollection).doc(order.id)
@@ -44,6 +48,22 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
       };
       final productRef =
           _firestore.collection(_productsCollection).doc(order.productId);
+      // The receipt shares the order's id and is written in the same
+      // transaction, so both exist or neither does.
+      final receiptRef = receipt == null
+          ? null
+          : _firestore.collection(OrderReceiptModel.collection).doc(docRef.id);
+      final receiptData = receipt == null
+          ? null
+          : OrderReceiptModel.toFirestoreCreateMap(
+              orderId: docRef.id,
+              customerId: order.customerId,
+              companyId: order.companyId,
+              image: receipt,
+            );
+      final acknowledgementTimeout = receipt == null
+          ? _writeAcknowledgementTimeout
+          : _receiptWriteAcknowledgementTimeout;
 
       for (var attempt = 1;; attempt++) {
         try {
@@ -55,9 +75,11 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
                   docRef,
                   order,
                   data,
+                  receiptRef,
+                  receiptData,
                 ),
               )
-              .timeout(_writeAcknowledgementTimeout);
+              .timeout(acknowledgementTimeout);
           return docRef.id;
         } on TimeoutException {
           await _confirmOrderWasWritten(docRef, order);
@@ -93,7 +115,15 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
     DocumentReference<Map<String, dynamic>> orderRef,
     OrderModel order,
     Map<String, dynamic> orderData,
+    DocumentReference<Map<String, dynamic>>? receiptRef,
+    Map<String, dynamic>? receiptData,
   ) async {
+    void writeReceipt() {
+      if (receiptRef != null && receiptData != null) {
+        transaction.set(receiptRef, receiptData);
+      }
+    }
+
     final productSnapshot = await transaction.get(productRef);
     if (!productSnapshot.exists) {
       // Only the built-in demo catalogue has no product document.
@@ -105,6 +135,7 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
         );
       }
       transaction.set(orderRef, orderData);
+      writeReceipt();
       return;
     }
 
@@ -129,6 +160,7 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
       'updatedAt': FieldValue.serverTimestamp(),
     });
     transaction.set(orderRef, orderData);
+    writeReceipt();
   }
 
   Future<void> _confirmOrderWasWritten(
@@ -249,6 +281,25 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
         AppErrorCode.orderAttachReceiptFailed,
         detail: '$error',
       );
+    }
+  }
+
+  @override
+  Future<OrderReceipt?> getReceipt(String orderId) async {
+    try {
+      final snapshot = await _firestore
+          .collection(OrderReceiptModel.collection)
+          .doc(orderId)
+          .get();
+      if (!snapshot.exists) return null;
+      return OrderReceiptModel.fromMap(orderId, snapshot.data());
+    } on FirebaseException catch (error) {
+      throw AppException(
+        AppErrorCode.orderReceiptLoadFailed,
+        detail: '${error.code}: ${error.message}',
+      );
+    } catch (error) {
+      throw AppException(AppErrorCode.orderReceiptLoadFailed, detail: '$error');
     }
   }
 

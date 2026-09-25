@@ -47,7 +47,7 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
                     tone: order.orderStatus.tone,
                   ),
                   children: [
-                    AdminInfoRow(label: context.l10n.adminJobOrderNumber, value: order.id, valueTextDirection: TextDirection.ltr),
+                    AdminInfoRow(label: context.l10n.adminJobOrderNumber, value: '#${order.shortId}', valueTextDirection: TextDirection.ltr),
                     AdminInfoRow(label: context.l10n.adminProduct, value: order.productName),
                     AdminInfoRow(label: context.l10n.adminQuantity, value: '${order.quantity}'),
                     AdminInfoRow(

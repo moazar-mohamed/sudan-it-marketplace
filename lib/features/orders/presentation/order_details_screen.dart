@@ -11,6 +11,7 @@ import 'widgets/order_location_widgets.dart';
 import 'widgets/price_summary_row.dart';
 import 'order_labels.dart';
 import '../../../core/localization/l10n_extension.dart';
+import 'widgets/receipt_viewer.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
   const OrderDetailsScreen({
@@ -57,9 +58,7 @@ class OrderDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          l10n.orderTitleNumber(
-            order.id.length > 8 ? order.id.substring(0, 8) : order.id,
-          ),
+          l10n.orderTitleNumber(order.shortId),
         ),
       ),
       body: SingleChildScrollView(
@@ -204,6 +203,8 @@ class OrderDetailsScreen extends StatelessWidget {
                         value: order.receiptFileName!,
                         valueColor: AppColors.successText,
                       ),
+                    if (order.receiptFileName != null)
+                      ReceiptViewButton(orderId: order.id),
                   ],
                 ),
                 gap,

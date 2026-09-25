@@ -7,6 +7,7 @@ import '../domain/repositories/auth_repository.dart';
 import 'auth_error_messages.dart';
 import 'auth_providers.dart';
 import 'auth_state.dart';
+import '../../../core/logging/debug_log.dart';
 
 final authControllerProvider = NotifierProvider<AuthController, AuthState>(
   AuthController.new,
@@ -58,8 +59,7 @@ class AuthController extends Notifier<AuthState> {
     } on AuthException catch (error) {
       state = AuthError(error.message, code: error.code);
     } catch (error, st) {
-      // ignore: avoid_print
-      print('[DIAG][AuthController.signUpWithEmail] type=${error.runtimeType} error=$error\n$st');
+      debugLog('AuthController', 'type=${error.runtimeType} error=$error\n$st');
       state = const AuthError('Authentication failed. Please try again.', code: 'unknown');
     }
   }

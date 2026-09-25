@@ -49,6 +49,7 @@ dependencies:
   firebase_storage: ^13.6.0
   intl: ^0.20.3
   shared_preferences: ^2.5.5
+  image: ^4.10.1
 
 dev_dependencies:
   flutter_test:

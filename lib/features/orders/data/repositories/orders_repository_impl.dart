@@ -2,6 +2,7 @@ import '../../domain/entities/order_entity.dart';
 import '../../domain/repositories/orders_repository.dart';
 import '../datasources/orders_remote_data_source.dart';
 import '../models/order_model.dart';
+import '../../domain/entities/order_receipt.dart';
 
 class OrdersRepositoryImpl implements OrdersRepository {
   const OrdersRepositoryImpl(this._remoteDataSource);
@@ -30,6 +31,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
     String? receiptFileName,
     double? deliveryLatitude,
     double? deliveryLongitude,
+    ReceiptImage? receipt,
   }) async {
     final model = OrderModel(
       id: orderId,
@@ -51,15 +53,21 @@ class OrdersRepositoryImpl implements OrdersRepository {
       customerName: customerName,
       paymentStatus: PaymentStatus.pendingVerification,
       orderStatus: OrderStatus.processing,
-      receiptFileName: receiptFileName,
+      // The marker the company sees; the image itself lives in order_receipts.
+      receiptFileName: receipt?.fileName ?? receiptFileName,
       deliveryLatitude: deliveryLatitude,
       deliveryLongitude: deliveryLongitude,
       createdAt: DateTime.now(),
     );
 
-    final generatedId = await _remoteDataSource.createOrder(model);
+    final generatedId =
+        await _remoteDataSource.createOrder(model, receipt: receipt);
     return model.toEntity().copyWith(id: generatedId);
   }
+
+  @override
+  Future<OrderReceipt?> getReceipt(String orderId) =>
+      _remoteDataSource.getReceipt(orderId);
 
   @override
   Future<void> attachReceipt({

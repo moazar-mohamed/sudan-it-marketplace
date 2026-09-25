@@ -1,4 +1,5 @@
 import '../entities/order_entity.dart';
+import '../entities/order_receipt.dart';
 
 abstract interface class OrdersRepository {
   Future<OrderEntity> createOrder({
@@ -22,7 +23,12 @@ abstract interface class OrdersRepository {
     String? receiptFileName,
     double? deliveryLatitude,
     double? deliveryLongitude,
+    ReceiptImage? receipt,
   });
+
+  /// The stored receipt image of [orderId]; null when the order has none
+  /// (orders placed before receipts were stored).
+  Future<OrderReceipt?> getReceipt(String orderId);
 
   Future<void> attachReceipt({
     required String orderId,

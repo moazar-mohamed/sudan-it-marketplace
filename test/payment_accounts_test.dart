@@ -128,7 +128,11 @@ void main() {
       expect(find.text('1984205'), findsNothing);
     });
 
-    testWidgets('the receipt preview names the company account holder, never the marketplace',
+    // The screen used to draw an INVENTED "transfer slip" preview naming a
+    // beneficiary. Receipts are now the customer's real image (see
+    // receipt_upload_test.dart), so the only payee shown is the company's own
+    // account, and nothing on the screen can name the marketplace.
+    testWidgets('the payee is only ever the own account of the company, never the marketplace',
         (tester) async {
       await tester.pumpWidget(
         _paymentScreen(
@@ -148,11 +152,9 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.textContaining('Tap to Upload Receipt'));
-      await tester.tap(find.textContaining('Tap to Upload Receipt'));
-      await tester.pumpAndSettle();
 
-      expect(find.textContaining('Beneficiary: ABC Tech Co.'), findsOneWidget);
+      expect(find.text('ABC Tech Co.'), findsOneWidget); // the company's account holder
+      expect(find.textContaining('Beneficiary'), findsNothing); // no invented slip
       expect(find.textContaining('Sudan ICT Marketplace'), findsNothing);
     });
 

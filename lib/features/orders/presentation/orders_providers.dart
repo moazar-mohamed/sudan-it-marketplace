@@ -8,6 +8,7 @@ import '../data/datasources/orders_remote_data_source.dart';
 import '../data/repositories/orders_repository_impl.dart';
 import '../domain/entities/order_entity.dart';
 import '../domain/repositories/orders_repository.dart';
+import '../domain/entities/order_receipt.dart';
 
 final ordersRemoteDataSourceProvider = Provider<OrdersRemoteDataSource>((ref) {
   return FirestoreOrdersRemoteDataSource();
@@ -16,6 +17,18 @@ final ordersRemoteDataSourceProvider = Provider<OrdersRemoteDataSource>((ref) {
 final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {
   return OrdersRepositoryImpl(ref.watch(ordersRemoteDataSourceProvider));
 });
+
+/// The stored receipt image of one order, read on demand (never with the
+/// order lists) and dropped when the screen closes. Null = no image stored.
+///
+/// A failed read is NOT retried automatically (Riverpod's default would repeat
+/// it up to ten times): every read of a receipt spends part of the free daily
+/// read quota, so the reader taps "Try again" instead.
+final orderReceiptProvider =
+    FutureProvider.autoDispose.family<OrderReceipt?, String>(
+  (ref, orderId) => ref.watch(ordersRepositoryProvider).getReceipt(orderId),
+  retry: (retryCount, error) => null,
+);
 
 final customerOrdersStreamProvider = StreamProvider<List<OrderEntity>>((ref) {
   final authState = ref.watch(authControllerProvider);

@@ -57,9 +57,7 @@ class OrderCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  l10n.orderTitleNumber(
-                    order.id.length > 8 ? order.id.substring(0, 8) : order.id,
-                  ),
+                  l10n.orderTitleNumber(order.shortId),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bodyStrong,

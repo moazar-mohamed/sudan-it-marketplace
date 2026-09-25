@@ -1,7 +1,15 @@
 import '../models/order_model.dart';
+import '../../domain/entities/order_receipt.dart';
 
 abstract interface class OrdersRemoteDataSource {
-  Future<String> createOrder(OrderModel order);
+  /// Creates the order. With a [receipt], its image is stored in the SAME
+  /// transaction (`order_receipts/{orderId}`), so an order never exists
+  /// without the receipt it was placed with, nor a receipt without its order.
+  Future<String> createOrder(OrderModel order, {ReceiptImage? receipt});
+
+  /// The stored receipt of [orderId]; null for an order placed before
+  /// receipts were stored (or one without an image).
+  Future<OrderReceipt?> getReceipt(String orderId);
 
   Future<void> attachReceipt({
     required String orderId,

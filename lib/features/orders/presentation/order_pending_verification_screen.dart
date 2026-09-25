@@ -132,7 +132,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                             const SizedBox(width: AppSpacing.s8),
                             Expanded(
                               child: Text(
-                                '#${order.id}',
+                                '#${order.shortId}',
                                 textAlign: TextAlign.end,
                                 textDirection: TextDirection.ltr,
                                 maxLines: 1,

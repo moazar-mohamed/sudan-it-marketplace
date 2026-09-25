@@ -79,9 +79,6 @@ class _RoleRouter extends ConsumerWidget {
         if (profile == null) {
           return customerEntry();
         }
-        // ignore: avoid_print
-        print('[DIAG][RoleRouter] role=${profile.role} '
-            'companyId=${profile.companyId} authEmail=$authEmail');
         return switch (profile.role) {
           // A customer deactivated by the platform admin keeps their account
           // and history but cannot use the app until reactivated.

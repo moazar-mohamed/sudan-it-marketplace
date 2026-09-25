@@ -1548,6 +1548,72 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Payment receipts: ONE immutable compressed JPEG per order, stored as a
+    // Firestore `bytes` field (no Firebase Storage). The receipt is kept apart
+    // from the order on purpose: order listings never download the image, and a
+    // technician, who may read an assigned order, can never read its receipt.
+    // Readable ONLY by the order's customer, the owning company's admin and
+    // Platform Admin. There is no listing, no update and no delete for anyone,
+    // so a company cascade delete can never remove a receipt either.
+    function isValidReceiptCreate(orderId) {
+      let data = request.resource.data;
+      let orderPath = /databases/$(database)/documents/orders/$(orderId);
+      return data.keys().hasOnly([
+          'orderId', 'customerId', 'companyId', 'fileName', 'contentType',
+          'image', 'sizeBytes', 'width', 'height', 'createdAt'
+        ])
+        && data.orderId == orderId
+        && data.customerId == request.auth.uid
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.fileName is string
+        && data.fileName.size() > 0
+        && data.fileName.size() <= 100
+        && data.contentType == 'image/jpeg'
+        && data.image is bytes
+        && data.image.size() > 0
+        && data.image.size() <= 700000
+        && data.sizeBytes is int
+        && data.sizeBytes == data.image.size()
+        && data.width is int && data.width > 0 && data.width <= 4096
+        && data.height is int && data.height > 0 && data.height <= 4096
+        && data.createdAt == request.time
+        // The order must exist once this write (or batch/transaction) is
+        // applied, belong to the same customer and company, and still be
+        // waiting for payment verification.
+        && existsAfter(orderPath)
+        && getAfter(orderPath).data.customerId == request.auth.uid
+        && getAfter(orderPath).data.companyId == data.companyId
+        && getAfter(orderPath).data.paymentStatus == 'pending_verification';
+    }
+
+    // Who may read the receipt of this order when it does not exist (an order
+    // placed before receipts were stored): only the same three parties, judged
+    // by the ORDER. That way a legitimate reader gets a clean "not found"
+    // instead of a permission error, and nobody else learns anything.
+    function isReceiptOrderParty(orderId) {
+      let orderPath = /databases/$(database)/documents/orders/$(orderId);
+      return exists(orderPath)
+        && (get(orderPath).data.customerId == request.auth.uid
+          || isCompanyAdminOf(get(orderPath).data.companyId)
+          || isPlatformAdmin());
+    }
+
+    match /order_receipts/{orderId} {
+      allow get: if isSignedIn()
+        && (resource == null
+          ? isReceiptOrderParty(orderId)
+          : (resource.data.customerId == request.auth.uid
+            || isCompanyAdminOf(resource.data.companyId)
+            || isPlatformAdmin()));
+      allow list: if false;
+      allow create: if isSignedIn()
+        && !isPlatformAdmin()
+        && callerIsNotDeactivated()
+        && isValidReceiptCreate(orderId);
+      allow update, delete: if false;
+    }
+
     // Reviews are visible to Platform Admin only, and read-only.
     match /reviews/{reviewId} {
       allow get, list: if isPlatformAdmin();

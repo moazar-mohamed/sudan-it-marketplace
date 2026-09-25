@@ -12,12 +12,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sudan_it_marketplace/core/theme/app_colors.dart';
 import 'package:sudan_it_marketplace/core/theme/app_theme.dart';
 import 'package:sudan_it_marketplace/core/widgets/app_widgets.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/auth_controller.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/auth_state.dart';
+import 'package:sudan_it_marketplace/features/auth/presentation/forgot_password_screen.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/login_screen.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/register_screen.dart';
 import 'package:sudan_it_marketplace/features/categories/domain/entities/category.dart';
@@ -31,12 +33,19 @@ import 'package:sudan_it_marketplace/features/orders/domain/entities/order_entit
 import 'package:sudan_it_marketplace/features/orders/presentation/checkout_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/order_details_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/order_pending_verification_screen.dart';
+import 'package:sudan_it_marketplace/features/orders/presentation/manual_payment_screen.dart';
+import 'package:sudan_it_marketplace/features/orders/presentation/receipt_picker.dart';
+import 'package:sudan_it_marketplace/features/orders/domain/entities/checkout_order_draft.dart';
+import 'package:sudan_it_marketplace/features/orders/domain/entities/order_receipt.dart';
+import '../helpers/receipt_fakes.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/widgets/order_card.dart';
 import 'package:sudan_it_marketplace/features/products/domain/entities/product.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/product_details_screen.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/products_providers.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/widgets/product_card.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
+import 'package:sudan_it_marketplace/l10n/app_localizations_ar.dart';
+import 'package:sudan_it_marketplace/l10n/app_localizations_en.dart';
 
 class _StubAuth extends AuthController {
   @override
@@ -61,9 +70,10 @@ Future<void> _loadFonts() async {
 
 final _key = GlobalKey();
 
-Widget _frame(Widget home, Locale locale) {
+Widget _frame(Widget home, Locale locale, [List<Override> extra = const []]) {
   return ProviderScope(
     overrides: [
+      ...extra,
       authControllerProvider.overrideWith(_StubAuth.new),
       resolvedCompanyProvider.overrideWith((ref, id) => _company),
       firestoreProductsStreamProvider.overrideWith((ref) => Stream.value(const [])),
@@ -301,6 +311,7 @@ Future<void> _shot(
 }) async {
   tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1;
+  await tester.pumpWidget(const SizedBox()); // drop the previous ProviderScope
   await tester.pumpWidget(_frame(build(), locale));
   await tester.pump(const Duration(milliseconds: 300));
   await tester.runAsync(() async {
@@ -313,6 +324,77 @@ Future<void> _shot(
     await File('$out/$name-${locale.languageCode}-${width.toInt()}.png')
         .writeAsBytes(data!.buffer.asUint8List());
   });
+}
+
+/// The payment screen before and after the customer chooses a receipt.
+Future<void> _paymentShots(WidgetTester tester, Locale locale) async {
+  tester.view.physicalSize = const Size(390, 1500);
+  tester.view.devicePixelRatio = 1;
+  final receipt = ReceiptImage(
+    fileName: 'bankak_screenshot.jpg',
+    bytes: jpg(receiptLikeImage(width: 540, height: 1200)),
+    width: 540,
+    height: 1200,
+  );
+  const draft = CheckoutOrderDraft(
+    orderId: 'o1',
+    customerId: 'u1',
+    companyId: 'c1',
+    companyName: 'Khartoum Tech Solutions',
+    productId: 'p1',
+    productName: 'Dell Latitude 5440 Laptop',
+    quantity: 1,
+    unitPrice: 385000,
+    productSubtotal: 385000,
+    installationSelected: false,
+    installationFee: 0,
+    deliveryFee: 0,
+    totalAmount: 385000,
+    deliveryAddress: 'Khartoum',
+    contactPhone: '0912345678',
+  );
+  final picker = FakePicker(file: PickedReceiptFile(name: 'x.png', bytes: receipt.bytes));
+  final overrides = <Override>[
+    receiptPickerProvider.overrideWithValue(picker.call),
+    receiptCompressorProvider.overrideWithValue(FakeCompressor(result: receipt)),
+  ];
+  await tester.pumpWidget(const SizedBox()); // a fresh ProviderScope (its overrides differ)
+  await tester.pumpWidget(_frame(const ManualPaymentScreen(draft: draft), locale, overrides));
+  await tester.pumpAndSettle();
+
+  Future<void> capture(String name) async {
+    await tester.runAsync(() async {
+      final boundary = _key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 1.5);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      final out = Platform.environment['VISUAL_OUT'] ?? 'build/visual';
+      await Directory(out).create(recursive: true);
+      await File('$out/$name-${locale.languageCode}-390.png').writeAsBytes(data!.buffer.asUint8List());
+    });
+  }
+
+  final scroll = find.byType(Scrollable).first;
+  await tester.drag(scroll, const Offset(0, -700));
+  await tester.pumpAndSettle();
+  await capture('payment-upload');
+
+  final l10n = locale.languageCode == 'ar' ? AppLocalizationsAr() : AppLocalizationsEn();
+  await tester.tap(find.textContaining(l10n.paymentTapToUpload));
+  await tester.pumpAndSettle();
+  await capture('payment-source-sheet');
+  await tester.tap(find.text(l10n.imageChooseFromDevice));
+  await tester.pumpAndSettle();
+  // the harness does not decode images by itself: do it, as a device would
+  await tester.runAsync(() async {
+    await precacheImage(
+      MemoryImage(receipt.bytes),
+      tester.element(find.byType(ManualPaymentScreen)),
+    );
+  });
+  await tester.pumpAndSettle();
+  await tester.drag(scroll, const Offset(0, -900));
+  await tester.pumpAndSettle();
+  await capture('payment-receipt-chosen');
 }
 
 void main() {
@@ -342,6 +424,8 @@ void main() {
       await _shot(tester, 'checkout', () => const CheckoutScreen(product: _priced, quantity: 2), width: 390, height: 1700, locale: locale);
       await _shot(tester, 'shared-refactor', _sharedRefactor, width: 390, height: 1100, locale: locale);
       await _shot(tester, 'profile-fields', _profileFields, width: 390, height: 520, locale: locale);
+      await _paymentShots(tester, locale);
+      await _shot(tester, 'forgot-password', () => const ForgotPasswordScreen(initialEmail: 'customer@example.test'), width: 390, height: 640, locale: locale);
     }
     // Responsive checks on the most layout-sensitive screens.
     for (final width in [375.0, 414.0, 768.0, 1280.0]) {

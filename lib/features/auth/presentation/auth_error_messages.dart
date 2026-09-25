@@ -58,6 +58,21 @@ String authErrorMessage(AppLocalizations l10n, String? code) {
   }
 }
 
+/// Failures of the "forgot password" e-mail request. An address with no
+/// account is not an error here (the screen reports it like a success).
+String passwordResetErrorMessage(AppLocalizations l10n, String? code) {
+  switch (code) {
+    case 'invalid-email':
+      return l10n.authEmailInvalid;
+    case 'too-many-requests':
+      return l10n.authErrorTooManyRequests;
+    case 'network-request-failed':
+      return l10n.authErrorNetwork;
+    default:
+      return l10n.authForgotPasswordFailed;
+  }
+}
+
 /// Failures of the signed-in user's own password change.
 String passwordChangeErrorMessage(AppLocalizations l10n, String code) {
   switch (code) {

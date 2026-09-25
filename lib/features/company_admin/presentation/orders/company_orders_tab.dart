@@ -49,7 +49,9 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
           (o) => [
             SearchField(o.productName, weight: 3),
             SearchField(o.customerName, weight: 3),
-            SearchField(o.shortId, weight: 2),
+            // The full id, so both the short number people read out and the whole
+            // reference match (the short number is its prefix).
+            SearchField(o.id, weight: 2),
             SearchField(o.contactPhone),
           ],
         );

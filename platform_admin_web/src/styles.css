@@ -1102,6 +1102,36 @@ table.data tbody tr:last-child td {
   margin-top: 20px;
 }
 
+.receipt {
+  margin-top: 12px;
+}
+
+.receipt__link {
+  display: block;
+}
+
+.receipt__image {
+  display: block;
+  max-width: 100%;
+  max-height: 480px;
+  width: auto;
+  height: auto;
+  margin-inline: auto;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.receipt__caption {
+  margin: 6px 0 8px;
+  font-size: 12px;
+}
+
+.login__action {
+  margin-top: 10px;
+}
+
 .login__logo {
   display: grid;
   place-items: center;

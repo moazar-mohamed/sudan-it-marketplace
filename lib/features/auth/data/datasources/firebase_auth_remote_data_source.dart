@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../domain/exceptions/auth_exception.dart';
 import '../models/auth_user_model.dart';
 import 'auth_remote_data_source.dart';
+import '../../../../core/logging/debug_log.dart';
 
 /// The auth error code for a failed Google sign-in.
 ///
@@ -91,8 +92,7 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
       } on FirebaseAuthException catch (error) {
         // The account exists either way; the verification screen offers a
         // "Resend" action, so a failed send here must not fail sign-up.
-        // ignore: avoid_print
-        print('[DIAG][FirebaseAuthDS] sendEmailVerification on sign-up failed: '
+        debugLog('FirebaseAuthDS', 'sendEmailVerification on sign-up failed: '
             '${error.code} ${error.message}');
       }
       return user;
@@ -173,6 +173,20 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
   }
 
   @override
+  Future<void> sendPasswordResetEmail({
+    required String email,
+    String? languageCode,
+  }) {
+    return _run(() async {
+      if (languageCode != null) {
+        // Firebase localizes its email template by this code.
+        await _firebaseAuth.setLanguageCode(languageCode);
+      }
+      await _firebaseAuth.sendPasswordResetEmail(email: email.trim());
+    });
+  }
+
+  @override
   Future<AuthUserModel?> reloadCurrentUser() {
     return _run(() async {
       final user = _firebaseAuth.currentUser;
@@ -190,19 +204,14 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
     } on AuthException {
       rethrow;
     } on FirebaseAuthException catch (error) {
-      // DIAG: FirebaseAuthException swallowed here
-      // ignore: avoid_print
-      print('[DIAG][FirebaseAuthDS] FirebaseAuthException code=${error.code} message=${error.message}');
+      debugLog('FirebaseAuthDS', 'FirebaseAuthException code=${error.code} message=${error.message}');
       throw AuthException(_messageForCode(error.code), code: error.code);
     } on GoogleSignInException catch (error) {
-      // ignore: avoid_print
-      print('[DIAG][FirebaseAuthDS] GoogleSignInException code=${error.code} description=${error.description}');
+      debugLog('FirebaseAuthDS', 'GoogleSignInException code=${error.code} description=${error.description}');
       final code = googleSignInFailureCode(error);
       throw AuthException(_messageForCode(code), code: code);
     } catch (error, st) {
-      // DIAG: Unknown exception swallowed here
-      // ignore: avoid_print
-      print('[DIAG][FirebaseAuthDS] Unknown error type=${error.runtimeType} error=$error\n$st');
+      debugLog('FirebaseAuthDS', 'Unknown error type=${error.runtimeType} error=$error\n$st');
       throw const AuthException(
         'Authentication failed. Please try again.',
         code: 'unknown',

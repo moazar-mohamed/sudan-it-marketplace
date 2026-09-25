@@ -1,4 +1,5 @@
 import '../../../location/domain/geo_location.dart';
+import '../../../../core/utils/short_id.dart';
 
 /// Lifecycle of a service request:
 /// pending -> accepted | rejected | cancelled (by the customer),
@@ -76,7 +77,7 @@ class ServiceRequest {
   final DateTime createdAt;
   final DateTime? updatedAt;
 
-  String get shortId => id.length > 8 ? id.substring(0, 8) : id;
+  String get shortId => shortReference(id);
 
   GeoLocation? get coordinates => GeoLocation.tryCreate(latitude, longitude);
 

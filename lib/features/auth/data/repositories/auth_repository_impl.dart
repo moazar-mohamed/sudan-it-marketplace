@@ -3,6 +3,7 @@ import '../../domain/exceptions/auth_exception.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/user_profile_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
+import '../../../../core/logging/debug_log.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(
@@ -106,8 +107,7 @@ class AuthRepositoryImpl implements AuthRepository {
       } catch (error) {
         // The profile screen retries and surfaces any remaining error; log
         // here so a persistent failure is still diagnosable.
-        // ignore: avoid_print
-        print('[DIAG][AuthRepoImpl.signInWithGoogle] profile creation failed: $error');
+        debugLog('AuthRepository', 'profile creation failed: $error');
       }
       return user.toEntity();
     });
@@ -121,6 +121,19 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> sendEmailVerification() {
     return _run(_remoteDataSource.sendEmailVerification);
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail({
+    required String email,
+    String? languageCode,
+  }) {
+    return _run(
+      () => _remoteDataSource.sendPasswordResetEmail(
+        email: email.trim(),
+        languageCode: languageCode,
+      ),
+    );
   }
 
   @override
@@ -155,9 +168,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on AuthException {
       rethrow;
     } catch (error, st) {
-      // DIAG: Unknown exception swallowed here
-      // ignore: avoid_print
-      print('[DIAG][AuthRepoImpl._run] type=${error.runtimeType} error=$error\n$st');
+      debugLog('AuthRepository', 'type=${error.runtimeType} error=$error\n$st');
       throw const AuthException(
         'Authentication failed. Please try again.',
         code: 'unknown',

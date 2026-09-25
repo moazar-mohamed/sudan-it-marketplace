@@ -10,6 +10,7 @@ import '../../settings/presentation/language_selector.dart';
 import 'auth_controller.dart';
 import 'auth_error_messages.dart';
 import 'auth_state.dart';
+import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -80,8 +81,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  void _showForgotPasswordSoon() {
-    showAppSnackBar(context, context.l10n.authForgotPasswordSoon);
+  void _openForgotPassword() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ForgotPasswordScreen(
+          initialEmail: _emailController.text.trim(),
+        ),
+      ),
+    );
   }
 
   @override
@@ -165,9 +172,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Align(
                             alignment: AlignmentDirectional.centerEnd,
                             child: TextButton(
-                              onPressed: _isSubmitting
-                                  ? null
-                                  : _showForgotPasswordSoon,
+                              onPressed:
+                                  _isSubmitting ? null : _openForgotPassword,
                               child: Text(l10n.authForgotPassword),
                             ),
                           ),

@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/error_messages.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../domain/entities/chat_conversation.dart';
 import 'chat_providers.dart';
+import '../../../core/logging/debug_log.dart';
 
 final chatActionsProvider = Provider<ChatActions>((ref) => ChatActions(ref));
 
@@ -54,7 +54,7 @@ class ChatActions {
           .read(chatsRepositoryProvider)
           .markRead(chatId: chatId, role: role);
     } catch (error) {
-      debugPrint('Could not mark chat $chatId as read: $error');
+      debugLog('ChatActions', 'Could not mark chat $chatId as read: $error');
     }
   }
 }
