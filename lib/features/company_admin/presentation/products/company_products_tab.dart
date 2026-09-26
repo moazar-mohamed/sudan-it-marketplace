@@ -46,7 +46,7 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
   Widget build(BuildContext context) {
     final companyId = widget.companyId;
     final productsAsync = ref.watch(companyProductsStreamProvider(companyId));
-    final categoryNames = ref.watch(categoryNamesProvider);
+    final categoryNames = ref.watch(categoryPathNamesProvider);
     final categoriesById = ref.watch(categoriesByIdProvider);
 
     return productsAsync.when(

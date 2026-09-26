@@ -9,8 +9,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../../core/widgets/image_picker_field.dart';
 import '../../../../core/widgets/image_picker_strings.dart';
-import '../../../categories/domain/entities/category.dart';
-import '../../../categories/presentation/category_label.dart';
+import '../../../categories/presentation/category_picker.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../products/domain/entities/product.dart';
@@ -145,26 +144,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     );
   }
 
-  /// Active categories, plus the product's current category if the Platform
-  /// Admin has since deactivated it — so an existing, unchanged assignment
-  /// always has a matching dropdown item instead of crashing the widget.
-  List<Category> _selectableCategories(List<Category> allCategories) {
-    final active = [
-      for (final category in allCategories)
-        if (category.isActive) category,
-    ];
-    final currentId = _categoryId;
-    if (currentId == null || active.any((c) => c.id == currentId)) {
-      return active;
-    }
-    for (final category in allCategories) {
-      if (category.id == currentId) {
-        return [category, ...active];
-      }
-    }
-    return active;
-  }
-
   void _addSpecRow() {
     setState(() => _specRows.add(_SpecRow()));
   }
@@ -265,14 +244,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categoriesAsync = ref.watch(allCategoriesProvider);
-    final categoriesLoaded = categoriesAsync.hasValue;
-    final selectableCategories =
-        _selectableCategories(categoriesAsync.asData?.value ?? const []);
-    // Firestore may first emit an empty snapshot from its cache, so "loaded"
-    // is not enough: the saved category must actually be among the items.
-    final currentIsSelectable = _categoryId == null ||
-        selectableCategories.any((category) => category.id == _categoryId);
+    // The product tree, as Platform Admin has it right now: nothing about it
+    // is stored in the app, so new and moved categories appear straight away.
+    final categoriesLoaded = ref.watch(allCategoriesProvider).hasValue;
+    final categoryTree = ref.watch(categoryTreeProvider);
 
     Widget sectionTitle(String title) => Padding(
           padding: const EdgeInsets.only(
@@ -311,28 +286,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 enabled: !_isSaving,
               ),
               const SizedBox(height: AppSpacing.s16),
-              AppDropdownField<String?>(
-                // The field only reads its initial value once, so it is
-                // rebuilt when the saved category becomes selectable; until
-                // then it is kept in state only.
-                key: ValueKey(currentIsSelectable),
-                initialValue: currentIsSelectable ? _categoryId : null,
+              CategoryPickerField(
+                tree: categoryTree,
+                value: _categoryId,
                 label: context.l10n.formCategoryLabel,
-                items: [
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(context.l10n.formCategoryNone),
-                  ),
-                  for (final category in selectableCategories)
-                    DropdownMenuItem<String?>(
-                      value: category.id,
-                      child: Text(
-                        category.isActive
-                            ? category.localizedName(context)
-                            : '${category.localizedName(context)} ${context.l10n.formCategoryInactiveSuffix}',
-                      ),
-                    ),
-                ],
                 enabled: !_isSaving && categoriesLoaded,
                 onChanged: (value) => setState(() => _categoryId = value),
               ),

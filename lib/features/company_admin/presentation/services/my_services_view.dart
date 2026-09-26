@@ -255,7 +255,7 @@ class _OfferedServiceCard extends ConsumerWidget {
     final name = service?.name ?? link.serviceId;
     final price = link.price;
     final note = link.noteText;
-    final categoryName = ref.watch(categoryNamesProvider)[service?.categoryId];
+    final categoryName = ref.watch(categoryPathNamesProvider)[service?.categoryId];
     final isOwn = service?.isCompanyOwned ?? false;
 
     return AppCard(

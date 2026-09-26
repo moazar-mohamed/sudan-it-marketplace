@@ -45,7 +45,10 @@ const fields = (id: string, extra: Record<string, unknown> = {}) => ({
 });
 
 const create = (uid: string, id: string, extra: Record<string, unknown> = {}) =>
-  setDoc(doc(as(uid), 'categories', id), { ...fields(id, extra), createdAt: serverTimestamp() });
+  setDoc(doc(as(uid), 'categories', id), {
+    ...fields(id, extra),
+    createdAt: serverTimestamp(),
+  });
 
 const edit = (uid: string, id: string, patch: Record<string, unknown>) =>
   updateDoc(doc(as(uid), 'categories', id), patch);
@@ -83,8 +86,15 @@ describe('creating a category with names in both languages', () => {
     );
   });
 
-  it('still accepts a category without the new fields', async () => {
+  it('accepts a category with only the single name (the two names stay optional)', async () => {
     await assertSucceeds(create('admin', 'new2'));
+  });
+
+  it('a new category carries no tree marker (products and services share one tree)', async () => {
+    await assertSucceeds(
+      setDoc(doc(as('admin'), 'categories', 'notype'), { ...fields('notype'), createdAt: serverTimestamp() }),
+    );
+    await assertFails(create('admin', 'badtype', { type: 'product' }));
   });
 
   it('rejects names that are not text or are too long', async () => {
@@ -133,8 +143,13 @@ describe('editing names and position', () => {
 });
 
 describe('deleting a category', () => {
-  it('Platform Admin can delete one, older or new', async () => {
+  const markForDeletion = (id: string) => edit('admin', id, { deletionPending: true, isActive: false });
+
+  it('Platform Admin can delete one, older or new, once it is marked for deletion', async () => {
+    await assertFails(deleteDoc(doc(as('admin'), 'categories', 'legacy'))); // not marked yet
+    await assertSucceeds(markForDeletion('legacy'));
     await assertSucceeds(deleteDoc(doc(as('admin'), 'categories', 'legacy')));
+    await assertSucceeds(markForDeletion('k1'));
     await assertSucceeds(deleteDoc(doc(as('admin'), 'categories', 'k1')));
   });
 
@@ -172,6 +187,7 @@ describe('deleting a category', () => {
         updatedAt: now,
       });
     });
+    await assertSucceeds(markForDeletion('k1'));
     await assertSucceeds(deleteDoc(doc(as('admin'), 'categories', 'k1')));
     // Unchanged reference: the company can still edit stock, price and so on.
     await assertSucceeds(

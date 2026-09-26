@@ -1,13 +1,13 @@
 import {
   collection,
-  deleteDoc,
   doc,
   serverTimestamp,
   setDoc,
   updateDoc,
-  writeBatch,
 } from 'firebase/firestore';
 import { db, firebaseConfig } from '../firebase';
+import * as ops from './categoryOps';
+import type { CategoryFields, NewCategoryInput, RunOptions } from './categoryOps';
 import type { ImageSelection } from './imageRules';
 import { resolveImageSelection } from './imageUpload';
 import { deleteCompanyCascade } from './deleteCompany';
@@ -16,7 +16,7 @@ import {
   secondaryAppProvisioner,
   type NewCompanyInput,
 } from './provisionCompany';
-import type { CompanyStatus } from './types';
+import type { Category, CompanyStatus } from './types';
 
 /*
  * The only writes Platform Admin can make from this dashboard. Each one
@@ -84,54 +84,42 @@ export const updateCustomerProfile = (userId: string, input: CustomerProfileInpu
     updatedAt: serverTimestamp(),
   });
 
-export interface CategoryInput {
-  nameAr: string;
-  nameEn: string;
-  description: string;
-  iconName: string;
-}
+/*
+ * Categories: one tree of any depth, shared by products and services. The
+ * multi-document operations (move, delete a subtree) live in
+ * categoryOps.ts, where they are tested against the Firestore emulator.
+ */
+export type { CategoryFields, DeletionSummary, NewCategoryInput, Progress } from './categoryOps';
 
-/** `name` stays filled (English first) for everything that reads the single name. */
-const legacyName = (input: CategoryInput) => input.nameEn.trim() || input.nameAr.trim();
+export const createCategory = (input: NewCategoryInput, all: readonly Category[]) =>
+  ops.createCategory(db, input, all);
 
-export async function createCategory(input: CategoryInput, sortOrder: number): Promise<void> {
-  const ref = doc(collection(db, 'categories'));
-  await setDoc(ref, {
-    id: ref.id,
-    name: legacyName(input),
-    nameAr: input.nameAr.trim(),
-    nameEn: input.nameEn.trim(),
-    sortOrder,
-    description: input.description.trim(),
-    iconName: input.iconName.trim(),
-    isActive: true,
-    createdAt: serverTimestamp(),
-  });
-}
-
-export const updateCategory = (id: string, input: CategoryInput) =>
-  updateDoc(doc(db, 'categories', id), {
-    name: legacyName(input),
-    nameAr: input.nameAr.trim(),
-    nameEn: input.nameEn.trim(),
-    description: input.description.trim(),
-    iconName: input.iconName.trim(),
-  });
-
-/** Saves the customer-facing order: the category at index i gets position i. */
-export async function saveCategoryOrder(orderedIds: readonly string[]): Promise<void> {
-  const batch = writeBatch(db);
-  orderedIds.forEach((id, index) => {
-    batch.update(doc(db, 'categories', id), { sortOrder: index });
-  });
-  await batch.commit();
-}
+export const updateCategory = (id: string, fields: CategoryFields) =>
+  ops.updateCategoryFields(db, id, fields);
 
 export const setCategoryActive = (id: string, isActive: boolean) =>
-  updateDoc(doc(db, 'categories', id), { isActive });
+  ops.setCategoryActive(db, id, isActive);
 
-/** Removes a category. The page only offers this for one nothing uses. */
-export const deleteCategory = (id: string) => deleteDoc(doc(db, 'categories', id));
+/** Saves the customer-facing order of one set of siblings. */
+export const saveSiblingOrder = (orderedIds: readonly string[]) => ops.saveSiblingOrder(db, orderedIds);
+
+export const moveCategory = (
+  all: readonly Category[],
+  id: string,
+  newParentId: string | null,
+  options?: RunOptions,
+) => ops.moveCategory(db, all, id, newParentId, options);
+
+export const repairCategoryChains = (all: readonly Category[], options?: RunOptions) =>
+  ops.repairCategoryChains(db, all, options);
+
+/** What deleting a category (and everything below it) would remove. */
+export const summarizeCategoryDeletion = (all: readonly Category[], id: string) =>
+  ops.summarizeDeletion(db, all, id);
+
+/** Deletes a category, its sub-categories and the products, services and offers filed in them. */
+export const deleteCategoryTree = (all: readonly Category[], id: string, options?: RunOptions) =>
+  ops.deleteCategoryTree(db, all, id, options);
 
 /** A catalogue service always belongs to one category (categoryId). */
 export interface ServiceInput {

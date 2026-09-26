@@ -792,6 +792,21 @@
   "adminServicesYours": "Your services",
   "formCategoryInactiveSuffix": "(inactive)",
   "formCategoryNone": "No category",
+  "categoryPickerTitle": "Choose a category",
+  "categorySearchHint": "Search categories",
+  "categoryRootCrumb": "All categories",
+  "categorySelect": "Select",
+  "categoryNoResults": "No category matches your search.",
+  "categoryTreeEmpty": "No categories have been added yet.",
+  "categoryUnavailable": "This category is no longer available. Choose another one.",
+  "categorySubCount": "{count} sub-categories",
+  "@categorySubCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeFilterAllCategories": "All",
   "homeCategoriesTitle": "Categories",
   "homeCategoriesMore": "More",

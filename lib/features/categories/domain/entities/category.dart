@@ -9,6 +9,9 @@ class Category {
     this.nameAr = '',
     this.nameEn = '',
     this.sortOrder,
+    this.parentId,
+    this.ancestorIds = const [],
+    this.deletionPending = false,
   });
 
   final String id;
@@ -25,9 +28,19 @@ class Category {
   final bool isActive;
   final DateTime createdAt;
 
-  /// Position in the customer's category list, set by Platform Admin. Categories
-  /// without one come after those with one.
+  /// Position among its siblings, set by Platform Admin. Categories without one
+  /// come after those with one.
   final int? sortOrder;
+
+  /// The category this one sits under; null for a top-level category.
+  final String? parentId;
+
+  /// Ids of every ancestor, top-level first (empty for a top-level category).
+  final List<String> ancestorIds;
+
+  /// True while Platform Admin is deleting this category and its tree. Nothing
+  /// may be filed under it any more.
+  final bool deletionPending;
 
   /// The name to show for [languageCode] ('ar' or 'en'), falling back to
   /// [name] when that language has none.

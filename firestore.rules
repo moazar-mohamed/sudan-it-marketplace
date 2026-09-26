@@ -292,12 +292,44 @@ service cloud.firestore {
         'name',
         'nameAr',
         'nameEn',
+        'parentId',
+        'ancestorIds',
+        'deletionPending',
         'sortOrder',
         'description',
         'iconName',
         'isActive',
         'createdAt'
       ]);
+    }
+
+    // ── Category tree ──────────────────────────────────────────────────────
+    // Categories form ONE tree shared by products and services. A category
+    // names its parent (`parentId`, absent/null for a top-level one) and stores
+    // the ids of every ancestor, root first (`ancestorIds`), so a cycle can be
+    // refused with ONE lookup and any depth works. Categories created before
+    // trees existed have no parent: they are simply top-level ones.
+    function categoryPath(categoryId) {
+      return /databases/$(database)/documents/categories/$(categoryId);
+    }
+
+    // The parent as it will be AFTER this write or batch, so a move can rewrite
+    // a category and its descendants together. It must exist, not be the
+    // category itself or one of its descendants (the category
+    // is not among the parent's ancestors) and not be awaiting deletion; and
+    // the stored chain must be exactly the parent's chain plus the parent.
+    function isValidCategoryParent(categoryId) {
+      let data = request.resource.data;
+      let parentId = data.get('parentId', null);
+      return parentId == null
+        ? data.get('ancestorIds', []) == []
+        : (parentId is string
+          && parentId.size() > 0
+          && parentId != categoryId
+          && getAfter(categoryPath(parentId)).data.get('deletionPending', false) != true
+          && !(categoryId in getAfter(categoryPath(parentId)).data.get('ancestorIds', []))
+          && data.get('ancestorIds', [])
+            == getAfter(categoryPath(parentId)).data.get('ancestorIds', []).concat([parentId]));
     }
 
     function isValidCategoryWrite(categoryId) {
@@ -319,6 +351,10 @@ service cloud.firestore {
         && request.resource.data.description is string
         && request.resource.data.iconName is string
         && request.resource.data.isActive is bool
+        && request.resource.data.get('deletionPending', false) is bool
+        && (request.resource.data.get('parentId', null) == null
+          || request.resource.data.parentId is string)
+        && request.resource.data.get('ancestorIds', []) is list
         && request.resource.data.createdAt is timestamp;
     }
 
@@ -329,6 +365,8 @@ service cloud.firestore {
 
     function isValidCategoryCreate(categoryId) {
       return isValidCategoryWrite(categoryId)
+        && isValidCategoryParent(categoryId)
+        && request.resource.data.get('deletionPending', false) == false
         && request.resource.data.isActive == true
         && request.resource.data.createdAt == request.time;
     }
@@ -337,16 +375,50 @@ service cloud.firestore {
       return isValidCategoryWrite(categoryId)
         && request.resource.data.id == resource.data.id
         && request.resource.data.createdAt == resource.data.createdAt
+        // Where it sits is only checked when it changes (a move, or the rewrite
+        // of a descendant's chain), so renaming or deactivating needs no lookup.
+        && ((request.resource.data.get('parentId', null) == resource.data.get('parentId', null)
+            && request.resource.data.get('ancestorIds', []) == resource.data.get('ancestorIds', []))
+          || isValidCategoryParent(categoryId))
         && request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly([
               'name',
               'nameAr',
               'nameEn',
+              'parentId',
+              'ancestorIds',
+              'deletionPending',
               'sortOrder',
               'description',
               'iconName',
               'isActive'
             ]);
+    }
+
+    // A category a product or service may be newly attached to: it exists, is
+    // active and is not awaiting deletion. Products and services share the
+    // one tree.
+    function categoryAllowsAssignment(categoryId) {
+      let category = get(categoryPath(categoryId)).data;
+      return category.get('isActive', false) == true
+        && category.get('deletionPending', false) != true;
+    }
+
+    // The category exists (Platform Admin's own writes).
+    function categoryExists(categoryId) {
+      return exists(categoryPath(categoryId));
+    }
+
+    // True once a category has been marked for deletion: what its products,
+    // services and service links may be deleted for. One lookup each (the
+    // rules allow only 20 per request, and a batch of deletes shares them).
+    function categoryIsPending(categoryId) {
+      return get(categoryPath(categoryId)).data.get('deletionPending', false) == true;
+    }
+
+    function serviceIsInPendingCategory(serviceId) {
+      return categoryIsPending(
+        get(/databases/$(database)/documents/services/$(serviceId)).data.categoryId);
     }
 
     function hasRequiredServiceKeys() {
@@ -392,11 +464,11 @@ service cloud.firestore {
             .hasOnly(['categoryId', 'name', 'description', 'isActive']);
     }
 
-    // A category a company may assign to its own service: it must exist and
-    // be active (get() fails, denying the write, when it does not exist).
+    // A category a company may assign to its own service: it must exist, be
+    // active and not awaiting deletion (get() fails, denying the write, when it
+    // does not exist).
     function isActiveCategory(categoryId) {
-      return get(/databases/$(database)/documents/categories/$(categoryId))
-        .data.isActive == true;
+      return categoryAllowsAssignment(categoryId);
     }
 
     // A company admin creates a service of their own company: it is owned by
@@ -516,10 +588,12 @@ service cloud.firestore {
       allow update: if isPlatformAdmin()
         && isSafeCategoryUpdate(categoryId);
 
-      // Platform Admin removes a category it no longer wants. The dashboard
-      // only offers this for a category no product or service uses; anything
-      // that still points at a deleted one keeps working, uncategorized.
-      allow delete: if isPlatformAdmin();
+      // Platform Admin removes a category only after marking it for deletion
+      // (`deletionPending`, which also stops any new product or service being
+      // attached to it). The dashboard marks the whole subtree, deletes the
+      // products, services and service links in it, then the categories.
+      allow delete: if isPlatformAdmin()
+        && resource.data.get('deletionPending', false) == true;
     }
 
     match /services/{serviceId} {
@@ -528,15 +602,23 @@ service cloud.firestore {
       allow create: if (isPlatformAdmin()
           && request.resource.data.id == serviceId
           && request.resource.data.get('ownerCompanyId', null) == null
-          && isValidServiceCreate(serviceId))
+          && isValidServiceCreate(serviceId)
+          && categoryExists(request.resource.data.categoryId))
         || (request.resource.data.id == serviceId
           && isCompanyOwnServiceCreate(serviceId));
 
+      // Platform Admin may move a service to another existing category.
       allow update: if (isPlatformAdmin()
-          && isSafeServiceUpdate(serviceId))
+          && isSafeServiceUpdate(serviceId)
+          && (request.resource.data.categoryId == resource.data.categoryId
+            || categoryExists(request.resource.data.categoryId)))
         || isCompanyOwnServiceUpdate(serviceId);
 
-      allow delete: if false;
+      // Only while its category is marked for deletion by Platform Admin
+      // (deleting a category deletes the services in its tree). The owning
+      // company, its admins and staff are never touched.
+      allow delete: if isPlatformAdmin()
+        && categoryIsPending(resource.data.categoryId);
     }
 
     // Optional GPS point (companies and orders). Both values are absent/null,
@@ -828,7 +910,7 @@ service cloud.firestore {
       let categoryId = request.resource.data.get('categoryId', null);
       return categoryId == null
         || categoryId == previousCategoryId
-        || get(/databases/$(database)/documents/categories/$(categoryId)).data.isActive == true;
+        || categoryAllowsAssignment(categoryId);
     }
 
     match /products/{productId} {
@@ -858,7 +940,14 @@ service cloud.firestore {
           && resource.data.companyId is string
           && resource.data.companyId.size() > 0
           && !existsAfter(
-            /databases/$(database)/documents/companies/$(resource.data.companyId)));
+            /databases/$(database)/documents/companies/$(resource.data.companyId)))
+        // ... or while its category is marked for deletion by Platform Admin
+        // (deleting a category deletes the products in its tree). The company
+        // that owns the product is never touched.
+        || (isPlatformAdmin()
+          && resource.data.get('categoryId', null) is string
+          && resource.data.categoryId.size() > 0
+          && categoryIsPending(resource.data.categoryId));
     }
 
     function hasRequiredTechnicianKeys() {
@@ -1203,8 +1292,12 @@ service cloud.firestore {
           || isCompanyAdminOf(resource.data.companyId))
         && isSafeCompanyServiceUpdate(companyServiceId);
 
+      // Platform Admin removes the links of a company that is gone, and the
+      // links to a service that sits in a category being deleted (so deleting a
+      // service category leaves no link to a missing service).
       allow delete: if isPlatformAdmin()
-        && companyIsGoneAfter(resource.data.get('companyId', ''));
+        && (companyIsGoneAfter(resource.data.get('companyId', ''))
+          || serviceIsInPendingCategory(resource.data.get('serviceId', '')));
     }
 
     // ── Service requests ───────────────────────────────────────────────────

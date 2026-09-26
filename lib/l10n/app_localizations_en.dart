@@ -1648,6 +1648,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formCategoryNone => 'No category';
 
   @override
+  String get categoryPickerTitle => 'Choose a category';
+
+  @override
+  String get categorySearchHint => 'Search categories';
+
+  @override
+  String get categoryRootCrumb => 'All categories';
+
+  @override
+  String get categorySelect => 'Select';
+
+  @override
+  String get categoryNoResults => 'No category matches your search.';
+
+  @override
+  String get categoryTreeEmpty => 'No categories have been added yet.';
+
+  @override
+  String get categoryUnavailable =>
+      'This category is no longer available. Choose another one.';
+
+  @override
+  String categorySubCount(int count) {
+    return '$count sub-categories';
+  }
+
+  @override
   String get homeFilterAllCategories => 'All';
 
   @override

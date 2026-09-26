@@ -1634,6 +1634,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formCategoryNone => 'بدون فئة';
 
   @override
+  String get categoryPickerTitle => 'اختر تصنيفاً';
+
+  @override
+  String get categorySearchHint => 'ابحث في التصنيفات';
+
+  @override
+  String get categoryRootCrumb => 'كل التصنيفات';
+
+  @override
+  String get categorySelect => 'اختيار';
+
+  @override
+  String get categoryNoResults => 'لا يوجد تصنيف يطابق بحثك.';
+
+  @override
+  String get categoryTreeEmpty => 'لم تتم إضافة تصنيفات بعد.';
+
+  @override
+  String get categoryUnavailable =>
+      'هذا التصنيف لم يعد متاحاً. اختر تصنيفاً آخر.';
+
+  @override
+  String categorySubCount(int count) {
+    return '$count تصنيف فرعي';
+  }
+
+  @override
   String get homeFilterAllCategories => 'الكل';
 
   @override

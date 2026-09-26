@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sudan_it_marketplace/features/categories/domain/entities/category.dart';
+import 'package:sudan_it_marketplace/features/categories/presentation/category_picker.dart';
 import 'package:sudan_it_marketplace/features/categories/presentation/category_providers.dart';
 import 'package:sudan_it_marketplace/features/company_admin/presentation/company_admin_actions.dart';
 import 'package:sudan_it_marketplace/features/company_admin/presentation/services/my_services_view.dart';
@@ -154,7 +155,7 @@ void main() {
       fieldWithLabel('Description'),
       'Cameras and cabling',
     );
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.tap(find.byType(CategoryPickerField));
     await tester.pumpAndSettle();
     // Only active categories are offered.
     expect(find.text('Retired'), findsNothing);

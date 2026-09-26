@@ -370,3 +370,87 @@ class AppDropdownField<T> extends StatelessWidget {
     return _LabeledField(label: label, enabled: enabled, child: field);
   }
 }
+
+/// A field that looks like [AppDropdownField] but opens a chooser of its own
+/// (a sheet, a tree) when tapped, for choices too big for a dropdown.
+///
+/// It is a form field, so a [validator] works with `Form.validate()`. The
+/// field is rebuilt when [value] changes, which also clears an old error.
+class AppSelectorField extends StatelessWidget {
+  const AppSelectorField({
+    super.key,
+    required this.value,
+    required this.display,
+    required this.onTap,
+    this.label,
+    this.hint,
+    this.validator,
+    this.helperText,
+    this.enabled = true,
+  });
+
+  /// The chosen value (checked by [validator]); null when nothing is chosen.
+  final String? value;
+
+  /// What to show for the choice, or null to show [hint].
+  final String? display;
+  final VoidCallback onTap;
+  final String? label;
+  final String? hint;
+  final FormFieldValidator<String?>? validator;
+  final String? helperText;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return _LabeledField(
+      label: label,
+      enabled: enabled,
+      child: FormField<String?>(
+        key: ValueKey('selector-${value ?? ''}'),
+        initialValue: value,
+        validator: validator,
+        builder: (state) {
+          final error = state.errorText;
+          final shown = display;
+          return Semantics(
+            button: true,
+            enabled: enabled,
+            value: shown ?? hint,
+            excludeSemantics: true,
+            onTap: enabled ? onTap : null,
+            child: InkWell(
+              onTap: enabled ? onTap : null,
+              borderRadius: AppRadius.mdAll,
+              child: InputDecorator(
+                isEmpty: shown == null,
+                decoration: InputDecoration(
+                  hintText: hint,
+                  filled: true,
+                  fillColor: enabled ? AppColors.surface : AppColors.bgSubtle,
+                  suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded),
+                  error: error == null
+                      ? null
+                      : _FieldMessage(message: error, isError: true),
+                  helper: helperText == null || error != null
+                      ? null
+                      : _FieldMessage(message: helperText!, isError: false),
+                ),
+                child: shown == null
+                    ? null
+                    : Text(
+                        shown,
+                        style: AppTextStyles.body.copyWith(
+                          color: enabled
+                              ? AppColors.textPrimary
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

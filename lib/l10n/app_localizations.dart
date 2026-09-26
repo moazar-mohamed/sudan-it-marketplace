@@ -3008,6 +3008,54 @@ abstract class AppLocalizations {
   /// **'No category'**
   String get formCategoryNone;
 
+  /// No description provided for @categoryPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a category'**
+  String get categoryPickerTitle;
+
+  /// No description provided for @categorySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search categories'**
+  String get categorySearchHint;
+
+  /// No description provided for @categoryRootCrumb.
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get categoryRootCrumb;
+
+  /// No description provided for @categorySelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get categorySelect;
+
+  /// No description provided for @categoryNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No category matches your search.'**
+  String get categoryNoResults;
+
+  /// No description provided for @categoryTreeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories have been added yet.'**
+  String get categoryTreeEmpty;
+
+  /// No description provided for @categoryUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This category is no longer available. Choose another one.'**
+  String get categoryUnavailable;
+
+  /// No description provided for @categorySubCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sub-categories'**
+  String categorySubCount(int count);
+
   /// No description provided for @homeFilterAllCategories.
   ///
   /// In en, this message translates to:

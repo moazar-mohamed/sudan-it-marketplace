@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sudan_it_marketplace/core/services/image_upload_service.dart';
 import 'package:sudan_it_marketplace/features/categories/domain/entities/category.dart';
+import 'package:sudan_it_marketplace/features/categories/presentation/category_picker.dart';
 import 'package:sudan_it_marketplace/features/categories/presentation/category_providers.dart';
 import 'package:sudan_it_marketplace/features/companies/presentation/companies_providers.dart';
 import 'package:sudan_it_marketplace/features/company_admin/presentation/products/product_form_screen.dart';
@@ -108,7 +109,7 @@ void main() {
         (tester) async {
       await pumpAdd(tester);
 
-      await tester.tap(find.byType(DropdownButtonFormField<String?>));
+      await tester.tap(find.byType(CategoryPickerField));
       await tester.pumpAndSettle();
 
       expect(find.text('Electronics'), findsOneWidget);
@@ -121,7 +122,7 @@ void main() {
       await pumpAdd(tester);
       await fillRequiredFields(tester);
 
-      await tester.tap(find.byType(DropdownButtonFormField<String?>));
+      await tester.tap(find.byType(CategoryPickerField));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Electronics').last);
       await tester.pumpAndSettle();

@@ -136,7 +136,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     final unitPrice = stock.price;
     final totalPrice = unitPrice == null ? null : unitPrice * quantity;
     final categoryName =
-        ref.watch(categoryNamesProvider)[widget.product.categoryId]?.trim() ??
+        ref.watch(categoryPathNamesProvider)[widget.product.categoryId]?.trim() ??
             '';
     final companyName = widget.product.companyName ?? '';
     final specs = widget.product.specifications.entries.toList();

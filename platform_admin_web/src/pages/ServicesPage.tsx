@@ -8,7 +8,7 @@ import {
   updateService,
   type ServiceInput,
 } from '../data/actions';
-import { categoryDisplayName, sortCategories } from '../data/categoryIcons';
+import { buildIndex, isEffectivelyActive, pathLabel } from '../data/categoryTree';
 import { useCategories, useServices } from '../data/hooks';
 import type { CatalogService, Category } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
@@ -29,11 +29,14 @@ function ServiceForm({
   const [categoryId, setCategoryId] = useState(service?.categoryId ?? '');
   const [showError, setShowError] = useState(false);
 
-  // Active categories, plus the service's current one even if it was
+  // Categories that are shown to customers (active, under active parents),
+  // each with its full path, plus the service's current one even if it was
   // deactivated since, so editing never silently changes it.
-  const options = sortCategories(categories).filter(
-    (c) => c.isActive || c.id === service?.categoryId,
-  );
+  const index = buildIndex(categories);
+  const options = categories
+    .filter((c) => isEffectivelyActive(index, c.id) || c.id === service?.categoryId)
+    .map((c) => ({ id: c.id, label: pathLabel(index, c.id, locale) || c.id }))
+    .sort((a, b) => a.label.localeCompare(b.label));
   const nameMissing = !name.trim();
   const categoryMissing = !categoryId;
 
@@ -78,7 +81,7 @@ function ServiceForm({
             <option value="">{t('services.categoryPlaceholder')}</option>
             {options.map((c) => (
               <option key={c.id} value={c.id}>
-                {categoryDisplayName(c, locale) || c.id}
+                {c.label}
               </option>
             ))}
           </select>
@@ -119,10 +122,8 @@ export function ServicesPage() {
   // `undefined` = closed, `null` = adding a new service.
   const [editing, setEditing] = useState<CatalogService | null | undefined>(undefined);
 
-  const categoryName = (id: string) => {
-    const category = categories.data.find((c) => c.id === id);
-    return (category && categoryDisplayName(category, locale)) || '—';
-  };
+  const categoryIndex = buildIndex(categories.data);
+  const categoryName = (id: string) => pathLabel(categoryIndex, id, locale) || '—';
 
   const toggle = async (s: CatalogService) => {
     if (s.isActive) {

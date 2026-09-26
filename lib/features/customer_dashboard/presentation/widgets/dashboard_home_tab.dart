@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/utils/search_ranking.dart';
 import '../../../../core/widgets/app_widgets.dart';
-import '../../../categories/domain/entities/category.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../companies/presentation/widgets/company_card.dart';
@@ -14,7 +13,7 @@ import '../../../products/presentation/products_providers.dart';
 import '../../../products/presentation/widgets/product_card.dart';
 import '../../../services/presentation/service_providers.dart';
 import '../../../services/presentation/widgets/service_card.dart';
-import 'category_grid.dart';
+import 'category_browser.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
 class DashboardHomeTab extends ConsumerStatefulWidget {
@@ -40,7 +39,11 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
   /// same text once they pause, which is what the lists filter by.
   bool _hasSearchText = false;
   String _searchQuery = '';
-  String? _categoryFilter;
+
+  /// The category being browsed in each tree (its whole subtree is the
+  /// filter); null = every product or service.
+  String? _productCategory;
+  String? _serviceCategory;
   _HomeTab _selectedTab = _HomeTab.products;
 
   @override
@@ -82,24 +85,15 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
     final mockProducts = ref.watch(marketplaceProductsProvider);
     final categoryNames = ref.watch(categoryNamesProvider);
     final categoriesById = ref.watch(categoriesByIdProvider);
-    final allCategories =
-        ref.watch(allCategoriesProvider).asData?.value ?? const <Category>[];
+    final productTree = ref.watch(categoryTreeProvider);
 
-    // Only active categories that at least one listed product uses become
-    // filter chips, so a chip never leads to an empty list.
-    final usedCategoryIds = {
-      for (final product in mockProducts)
-        if (product.categoryId != null) product.categoryId,
-    };
-    final filterCategories = [
-      for (final category in allCategories)
-        if (category.isActive && usedCategoryIds.contains(category.id))
-          category,
-    ];
-    final activeFilter =
-        filterCategories.any((category) => category.id == _categoryFilter)
-            ? _categoryFilter
-            : null;
+    final productCategory = CategoryBrowser.validCurrent(
+      productTree,
+      _productCategory,
+    );
+    final productScope = productCategory == null
+        ? null
+        : productTree.subtreeIds(productCategory);
 
     final filteredCompanies = searchRanked(
       mockCompanies,
@@ -114,12 +108,16 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
 
     final filteredProducts = searchRanked(
       mockProducts.where(
-        (product) => activeFilter == null || product.categoryId == activeFilter,
+        (product) =>
+            productScope == null || productScope.contains(product.categoryId),
       ),
       _searchQuery,
       (product) => [
         SearchField(product.name, weight: 3),
-        SearchField(categoriesById[product.categoryId]?.searchText ?? '', weight: 2),
+        SearchField(
+          categoriesById[product.categoryId]?.searchText ?? '',
+          weight: 2,
+        ),
         SearchField(product.companyName ?? ''),
         SearchField(product.description ?? ''),
         SearchField(
@@ -155,18 +153,6 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           },
         ),
         const SizedBox(height: 16),
-        if (filterCategories.isNotEmpty) ...[
-          CategoryGrid(
-            categories: filterCategories,
-            selectedId: activeFilter,
-            // Picking a category shows its products, whichever tab was open.
-            onSelected: (id) => setState(() {
-              _categoryFilter = id;
-              if (id != null) _selectedTab = _HomeTab.products;
-            }),
-          ),
-          const SizedBox(height: 16),
-        ],
         AppUnderlineTabs(
           labels: [
             context.l10n.navProducts,
@@ -177,6 +163,17 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           onChanged: (index) => _selectTab(_HomeTab.values[index]),
         ),
         const SizedBox(height: 16),
+        // Products and services browse the same category tree; companies has none.
+        if (isProductsTab) ...[
+          CategoryBrowser(
+            tree: productTree,
+            currentId: productCategory,
+            onChanged: (id) => setState(() => _productCategory = id),
+          ),
+          if (productTree.activeChildrenOf(productCategory).isNotEmpty ||
+              productCategory != null)
+            const SizedBox(height: 16),
+        ],
         if (isProductsTab)
           if (filteredProducts.isEmpty)
             AppEmptyState(
@@ -197,7 +194,11 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
               ],
             )
         else if (isServicesTab)
-          _ServicesList(searchQuery: _searchQuery)
+          _ServicesList(
+            searchQuery: _searchQuery,
+            categoryId: _serviceCategory,
+            onCategoryChanged: (id) => setState(() => _serviceCategory = id),
+          )
         else if (filteredCompanies.isEmpty)
           AppEmptyState(
             icon: Icons.search_off_rounded,
@@ -222,15 +223,24 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
 /// Watched only while the tab is shown, so the catalogue is not loaded until
 /// the customer asks for it.
 class _ServicesList extends ConsumerWidget {
-  const _ServicesList({required this.searchQuery});
+  const _ServicesList({
+    required this.searchQuery,
+    required this.categoryId,
+    required this.onCategoryChanged,
+  });
 
   final String searchQuery;
+
+  /// The service category being browsed (its subtree is the filter).
+  final String? categoryId;
+  final ValueChanged<String?> onCategoryChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final servicesAsync = ref.watch(marketplaceServicesProvider);
     final categoryNames = ref.watch(categoryNamesProvider);
     final categoriesById = ref.watch(categoriesByIdProvider);
+    final serviceTree = ref.watch(categoryTreeProvider);
 
     return servicesAsync.when(
       loading: () => const AppSkeletonList(count: 2),
@@ -239,23 +249,44 @@ class _ServicesList extends ConsumerWidget {
         onRetry: () => ref.invalidate(activeServicesProvider(null)),
       ),
       data: (services) {
+        final current = CategoryBrowser.validCurrent(serviceTree, categoryId);
+        final scope = current == null ? null : serviceTree.subtreeIds(current);
         final filtered = searchRanked(
-          services,
+          services.where(
+            (service) => scope == null || scope.contains(service.categoryId),
+          ),
           searchQuery,
           (service) => [
             SearchField(service.name, weight: 3),
-            SearchField(categoriesById[service.categoryId]?.searchText ?? '', weight: 2),
+            SearchField(
+              categoriesById[service.categoryId]?.searchText ?? '',
+              weight: 2,
+            ),
             SearchField(service.description),
           ],
         );
+        final browser = CategoryBrowser(
+          tree: serviceTree,
+          currentId: current,
+          onChanged: onCategoryChanged,
+        );
         if (filtered.isEmpty) {
-          return AppEmptyState(
-            icon: Icons.search_off_rounded,
-            message: context.l10n.homeNoServices,
+          return Column(
+            children: [
+              browser,
+              AppEmptyState(
+                icon: Icons.search_off_rounded,
+                message: context.l10n.homeNoServices,
+              ),
+            ],
           );
         }
         return Column(
           children: [
+            browser,
+            if (serviceTree.activeChildrenOf(current).isNotEmpty ||
+                current != null)
+              const SizedBox(height: 16),
             for (int i = 0; i < filtered.length; i++) ...[
               ServiceCard(
                 service: filtered[i],

@@ -946,6 +946,67 @@ table.data tbody tr:last-child td {
   background: var(--danger-soft);
 }
 
+.alert--warning {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+/* ---------- Category trees ---------- */
+
+.category-tree .tree-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tree-toggle {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  flex: none;
+}
+
+.tree-toggle:hover {
+  background: var(--info-soft);
+}
+
+.tree-toggle--leaf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tree-meta {
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.category-tree tr.row--match td {
+  background: var(--info-soft);
+}
+
+.impact-list {
+  margin: 0 0 12px;
+  padding-inline-start: 20px;
+  line-height: 1.7;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 13px;
+}
+
 /* ---------- States ---------- */
 
 .state {

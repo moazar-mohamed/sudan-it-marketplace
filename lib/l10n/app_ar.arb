@@ -492,6 +492,21 @@
   "adminServicesYours": "خدماتك",
   "formCategoryInactiveSuffix": "(غير نشطة)",
   "formCategoryNone": "بدون فئة",
+  "categoryPickerTitle": "اختر تصنيفاً",
+  "categorySearchHint": "ابحث في التصنيفات",
+  "categoryRootCrumb": "كل التصنيفات",
+  "categorySelect": "اختيار",
+  "categoryNoResults": "لا يوجد تصنيف يطابق بحثك.",
+  "categoryTreeEmpty": "لم تتم إضافة تصنيفات بعد.",
+  "categoryUnavailable": "هذا التصنيف لم يعد متاحاً. اختر تصنيفاً آخر.",
+  "categorySubCount": "{count} تصنيف فرعي",
+  "@categorySubCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeFilterAllCategories": "الكل",
   "homeCategoriesTitle": "الأقسام",
   "homeCategoriesMore": "المزيد",

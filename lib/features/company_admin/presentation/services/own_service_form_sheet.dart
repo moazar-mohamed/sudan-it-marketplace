@@ -7,8 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
-import '../../../categories/domain/entities/category.dart';
-import '../../../categories/presentation/category_label.dart';
+import '../../../categories/presentation/category_picker.dart';
 import '../../../categories/presentation/category_providers.dart';
 
 /// Saves a service the company created itself; returns null on success or a
@@ -143,29 +142,10 @@ class _OwnServiceFormState extends ConsumerState<_OwnServiceForm> {
     );
   }
 
-  /// Active categories, plus the service's current one if it was deactivated
-  /// since, so an unchanged assignment always has a matching item.
-  List<Category> _selectable(List<Category> all) {
-    final active = [
-      for (final category in all)
-        if (category.isActive) category,
-    ];
-    final currentId = widget.initialCategoryId;
-    if (currentId == null || active.any((c) => c.id == currentId)) {
-      return active;
-    }
-    for (final category in all) {
-      if (category.id == currentId) return [category, ...active];
-    }
-    return active;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final categoriesAsync = ref.watch(allCategoriesProvider);
-    final categories = _selectable(categoriesAsync.asData?.value ?? const []);
-    final currentIsSelectable =
-        _categoryId == null || categories.any((c) => c.id == _categoryId);
+    // The service tree as Platform Admin has it right now (see the product form).
+    final categoryTree = ref.watch(categoryTreeProvider);
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
@@ -198,24 +178,12 @@ class _OwnServiceFormState extends ConsumerState<_OwnServiceForm> {
                   : null,
             ),
             const SizedBox(height: AppSpacing.s12),
-            AppDropdownField<String>(
-              // The field reads its initial value only once, so it is
-              // rebuilt when the saved category becomes one of the items.
-              key: ValueKey(currentIsSelectable),
-              initialValue: currentIsSelectable ? _categoryId : null,
+            CategoryPickerField(
+              tree: categoryTree,
+              value: _categoryId,
               label: context.l10n.formCategoryLabel,
-              items: [
-                for (final category in categories)
-                  DropdownMenuItem(
-                    value: category.id,
-                    child: Text(
-                      category.isActive
-                          ? category.localizedName(context)
-                          : '${category.localizedName(context)} ${context.l10n.formCategoryInactiveSuffix}',
-                    ),
-                  ),
-              ],
               enabled: !_saving,
+              allowNone: false,
               onChanged: (value) => setState(() => _categoryId = value),
               validator: (value) => value == null
                   ? context.l10n.adminServiceCategoryRequired

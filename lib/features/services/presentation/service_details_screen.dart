@@ -22,7 +22,7 @@ class ServiceDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final offersAsync = ref.watch(serviceOffersProvider(service.id));
     final categoryName =
-        ref.watch(categoryNamesProvider)[service.categoryId]?.trim() ?? '';
+        ref.watch(categoryPathNamesProvider)[service.categoryId]?.trim() ?? '';
     final description = service.description.trim();
     final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
 

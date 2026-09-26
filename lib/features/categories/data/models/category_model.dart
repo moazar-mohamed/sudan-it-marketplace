@@ -11,6 +11,9 @@ class CategoryModel extends Category {
     super.nameAr,
     super.nameEn,
     super.sortOrder,
+    super.parentId,
+    super.ancestorIds,
+    super.deletionPending,
   });
 
   factory CategoryModel.fromMap(String id, Map<String, dynamic> data) {
@@ -20,6 +23,16 @@ class CategoryModel extends Category {
       nameAr: data['nameAr'] as String? ?? '',
       nameEn: data['nameEn'] as String? ?? '',
       sortOrder: (data['sortOrder'] as num?)?.toInt(),
+      parentId: switch (data['parentId']) {
+        final String id when id.isNotEmpty => id,
+        _ => null,
+      },
+      ancestorIds: [
+        if (data['ancestorIds'] is List)
+          for (final id in data['ancestorIds'] as List)
+            if (id is String) id,
+      ],
+      deletionPending: data['deletionPending'] == true,
       description: data['description'] as String? ?? '',
       iconName: data['iconName'] as String? ?? '',
       isActive: data['isActive'] as bool? ?? false,

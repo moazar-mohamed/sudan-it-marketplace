@@ -103,6 +103,12 @@ export interface Category {
   name: string;
   nameAr: string;
   nameEn: string;
+  /** The category this one sits under; null for a top-level category. */
+  parentId: string | null;
+  /** Ids of every ancestor, top-level first; empty for a top-level category. */
+  ancestorIds: string[];
+  /** True while a deletion of this category (and its tree) is under way. */
+  deletionPending: boolean;
   /** Position in the customer's list; null sorts after the ones that have one. */
   sortOrder: number | null;
   description: string;

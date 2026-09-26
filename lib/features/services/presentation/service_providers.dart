@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../categories/domain/category_tree.dart';
 import '../../categories/domain/entities/category.dart';
 import '../../categories/presentation/category_providers.dart';
 import '../data/datasources/firestore_service_remote_data_source.dart';
@@ -35,19 +36,21 @@ final allServicesProvider = StreamProvider.family<List<CatalogService>, String?>
 );
 
 /// Catalogue services customers can browse: active services, minus those of
-/// a category the Platform Admin has deactivated.
+/// a category Platform Admin has deactivated or that sits under a deactivated
+/// one (or is being deleted).
 final marketplaceServicesProvider =
     Provider<AsyncValue<List<CatalogService>>>((ref) {
   final services = ref.watch(activeServicesProvider(null));
   final categories = ref.watch(allCategoriesProvider).asData?.value ??
       const <Category>[];
-  final inactiveCategoryIds = {
+  final tree = CategoryTree(categories);
+  final hiddenCategoryIds = {
     for (final category in categories)
-      if (!category.isActive) category.id,
+      if (!tree.isEffectivelyActive(category.id)) category.id,
   };
   return services.whenData(
     (list) => list
-        .where((service) => !inactiveCategoryIds.contains(service.categoryId))
+        .where((service) => !hiddenCategoryIds.contains(service.categoryId))
         .toList(),
   );
 });

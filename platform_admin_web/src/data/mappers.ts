@@ -180,6 +180,11 @@ export function mapCategory(id: string, d: DocumentData): Category {
     name: str(d.name),
     nameAr: str(d.nameAr),
     nameEn: str(d.nameEn),
+    parentId: typeof d.parentId === 'string' && d.parentId ? d.parentId : null,
+    ancestorIds: Array.isArray(d.ancestorIds)
+      ? d.ancestorIds.filter((x: unknown): x is string => typeof x === 'string')
+      : [],
+    deletionPending: d.deletionPending === true,
     sortOrder: typeof d.sortOrder === 'number' ? d.sortOrder : null,
     description: str(d.description),
     iconName: str(d.iconName),
