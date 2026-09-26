@@ -795,6 +795,7 @@
   "categoryPickerTitle": "Choose a category",
   "categorySearchHint": "Search categories",
   "categoryRootCrumb": "All categories",
+  "categoryBack": "Back",
   "categorySelect": "Select",
   "categoryNoResults": "No category matches your search.",
   "categoryTreeEmpty": "No categories have been added yet.",

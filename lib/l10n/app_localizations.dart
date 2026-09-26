@@ -3026,6 +3026,12 @@ abstract class AppLocalizations {
   /// **'All categories'**
   String get categoryRootCrumb;
 
+  /// No description provided for @categoryBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get categoryBack;
+
   /// No description provided for @categorySelect.
   ///
   /// In en, this message translates to:

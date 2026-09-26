@@ -1643,6 +1643,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get categoryRootCrumb => 'كل التصنيفات';
 
   @override
+  String get categoryBack => 'رجوع';
+
+  @override
   String get categorySelect => 'اختيار';
 
   @override

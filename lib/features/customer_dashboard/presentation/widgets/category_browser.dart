@@ -44,6 +44,23 @@ class CategoryBrowser extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (current != null)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              key: const ValueKey('browse-back'),
+              // One level up: the parent, or all categories from the top level.
+              onPressed: () =>
+                  onChanged(path.length > 1 ? path[path.length - 2].id : null),
+              icon: const Icon(Icons.arrow_back_rounded, size: AppSize.iconSm),
+              label: Text(context.l10n.categoryBack),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textBrand,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
+                minimumSize: const Size(0, 36),
+              ),
+            ),
+          ),
+        if (current != null)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.s8),
             child: Wrap(

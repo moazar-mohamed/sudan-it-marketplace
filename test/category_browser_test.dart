@@ -199,6 +199,46 @@ void main() {
       },
     );
 
+    testWidgets('a Back button goes up one level, and is absent at the top', (tester) async {
+      await pumpHome(tester);
+      final back = find.byKey(const ValueKey('browse-back'));
+      expect(back, findsNothing);
+
+      await tapTile(tester, 'Networking');
+      await tapTile(tester, 'Routers');
+      await tapTile(tester, 'Wi-Fi 6');
+      expect(back, findsOneWidget);
+      expect(find.text('Cisco Router'), findsNothing); // narrowed to Wi-Fi 6
+
+      await tester.tap(back); // Wi-Fi 6 -> Routers
+      await tester.pumpAndSettle();
+      expect(find.text('Cisco Router'), findsOneWidget);
+      expect(tile('Wi-Fi 6'), findsOneWidget);
+
+      await tester.tap(back); // Routers -> Networking
+      await tester.pumpAndSettle();
+      expect(tile('Routers'), findsOneWidget);
+      expect(tile('Switches'), findsOneWidget);
+
+      await tester.tap(back); // Networking -> all categories
+      await tester.pumpAndSettle();
+      expect(tile('Laptops'), findsOneWidget);
+      expect(find.text('Dell Latitude'), findsOneWidget);
+      expect(back, findsNothing);
+    });
+
+    testWidgets('the Back button works on the services tab too', (tester) async {
+      await pumpHome(tester);
+      await tester.tap(find.text('Services'));
+      await tester.pumpAndSettle();
+      await tapTile(tester, 'Installation');
+      expect(find.text('Help desk'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('browse-back')));
+      await tester.pumpAndSettle();
+      expect(find.text('Help desk'), findsOneWidget);
+      expect(find.byKey(const ValueKey('browse-back')), findsNothing);
+    });
+
     testWidgets(
       'a category deactivated by Platform Admin disappears with everything under it',
       (tester) async {

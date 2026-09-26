@@ -1657,6 +1657,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryRootCrumb => 'All categories';
 
   @override
+  String get categoryBack => 'Back';
+
+  @override
   String get categorySelect => 'Select';
 
   @override
