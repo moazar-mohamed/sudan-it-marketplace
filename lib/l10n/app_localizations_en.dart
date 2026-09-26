@@ -1460,6 +1460,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminChangeTechnician => 'Change Technician';
 
   @override
+  String get adminPickTechnicianHint =>
+      'Choose who will carry out this installation.';
+
+  @override
+  String get adminTechnicianSearchHint => 'Search technicians';
+
+  @override
+  String get adminTechnicianNoMatch => 'No technician matches your search.';
+
+  @override
+  String get adminTechnicianCurrent => 'Assigned';
+
+  @override
   String get adminTechnicianSection => 'Technician';
 
   @override

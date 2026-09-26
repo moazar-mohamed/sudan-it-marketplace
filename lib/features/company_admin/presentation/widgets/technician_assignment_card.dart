@@ -11,6 +11,7 @@ import '../../../technicians/domain/entities/technician.dart';
 import '../../../technicians/presentation/technicians_providers.dart';
 import '../company_admin_actions.dart';
 import 'admin_section_card.dart';
+import 'technician_picker_sheet.dart';
 
 /// Lets the company admin assign one of their own technicians to this
 /// installation job. The order stays a normal product order; only its
@@ -36,7 +37,9 @@ class _TechnicianAssignmentCardState
 
   Future<void> _assign(Technician technician) async {
     setState(() => _isSaving = true);
-    final error = await ref.read(companyAdminActionsProvider).assignTechnician(
+    final error = await ref
+        .read(companyAdminActionsProvider)
+        .assignTechnician(
           widget.order,
           technicianId: technician.id,
           technicianName: technician.fullName,
@@ -53,20 +56,13 @@ class _TechnicianAssignmentCardState
   }
 
   Future<void> _pickTechnician(List<Technician> technicians) async {
-    final selected = await showDialog<Technician>(
-      context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: Text(context.l10n.adminAssignTechnician),
-        children: [
-          for (final technician in technicians)
-            SimpleDialogOption(
-              onPressed: () => Navigator.of(dialogContext).pop(technician),
-              child: Text(technician.fullName),
-            ),
-        ],
-      ),
+    final selected = await showTechnicianPicker(
+      context,
+      technicians: technicians,
+      assignedId: widget.order.technicianId,
     );
-    if (selected != null) {
+    // Choosing the technician who already has the job changes nothing.
+    if (selected != null && selected.id != widget.order.technicianId) {
       await _assign(selected);
     }
   }
@@ -74,8 +70,9 @@ class _TechnicianAssignmentCardState
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
-    final techniciansAsync =
-        ref.watch(companyTechniciansStreamProvider(widget.companyId));
+    final techniciansAsync = ref.watch(
+      companyTechniciansStreamProvider(widget.companyId),
+    );
     final assignedName = order.technicianName ?? '';
 
     return AdminSectionCard(
@@ -83,7 +80,9 @@ class _TechnicianAssignmentCardState
       children: [
         AdminInfoRow(
           label: context.l10n.adminAssignedTo,
-          value: assignedName.isEmpty ? context.l10n.adminNotAssigned : assignedName,
+          value: assignedName.isEmpty
+              ? context.l10n.adminNotAssigned
+              : assignedName,
         ),
         const SizedBox(height: AppSpacing.s8),
         techniciansAsync.when(
@@ -97,8 +96,9 @@ class _TechnicianAssignmentCardState
             if (active.isEmpty) {
               return Text(
                 context.l10n.adminAddTechnicianFirst,
-                style: AppTextStyles.caption
-                    .copyWith(color: AppColors.textSecondary),
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               );
             }
             return AppButton.outlined(

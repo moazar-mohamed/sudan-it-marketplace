@@ -2648,6 +2648,30 @@ abstract class AppLocalizations {
   /// **'Change Technician'**
   String get adminChangeTechnician;
 
+  /// No description provided for @adminPickTechnicianHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who will carry out this installation.'**
+  String get adminPickTechnicianHint;
+
+  /// No description provided for @adminTechnicianSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search technicians'**
+  String get adminTechnicianSearchHint;
+
+  /// No description provided for @adminTechnicianNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No technician matches your search.'**
+  String get adminTechnicianNoMatch;
+
+  /// No description provided for @adminTechnicianCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned'**
+  String get adminTechnicianCurrent;
+
   /// No description provided for @adminTechnicianSection.
   ///
   /// In en, this message translates to:

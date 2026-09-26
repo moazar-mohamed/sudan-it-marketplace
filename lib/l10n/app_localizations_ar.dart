@@ -1447,6 +1447,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminChangeTechnician => 'تغيير الفني';
 
   @override
+  String get adminPickTechnicianHint => 'اختر من سينفّذ هذا التركيب.';
+
+  @override
+  String get adminTechnicianSearchHint => 'ابحث عن فني';
+
+  @override
+  String get adminTechnicianNoMatch => 'لا يوجد فني مطابق لبحثك.';
+
+  @override
+  String get adminTechnicianCurrent => 'معيّن';
+
+  @override
   String get adminTechnicianSection => 'الفني';
 
   @override
