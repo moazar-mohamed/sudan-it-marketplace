@@ -47,6 +47,22 @@ bool searchMatches(String query, List<SearchField> fields) {
   return tokens.isEmpty || _score(tokens, tokens.join(' '), fields) > 0;
 }
 
+/// The query as the matcher sees it (normalized words, synonyms applied), to
+/// pass to [searchWordHit] for every word of a displayed text.
+List<String> searchQueryTokens(String query) => _tokens(query);
+
+/// Whether one displayed [word] is one the query matched, by the same rules
+/// as [searchRanked] (so "لابتوب" highlights "Laptop").
+bool searchWordHit(String word, List<String> queryTokens) {
+  final wordTokens = _tokens(word);
+  for (final query in queryTokens) {
+    for (final token in wordTokens) {
+      if (_tokenScore(query, token) > 0) return true;
+    }
+  }
+  return false;
+}
+
 // ── scoring ────────────────────────────────────────────────────────────────
 
 const _exact = 10;

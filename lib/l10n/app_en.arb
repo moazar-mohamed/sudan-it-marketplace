@@ -274,8 +274,6 @@
   },
   "commonPhoneInvalid": "Enter a valid phone number.",
   "commonViewOrderStatus": "View Order Status",
-  "homeSearchProducts": "Search products...",
-  "homeSearchCompanies": "Search companies...",
   "homeNoProducts": "No products found",
   "homeNoCompanies": "No companies found",
   "productInStockCount": "In Stock ({count})",
@@ -998,8 +996,71 @@
   "navServices": "Services",
   "navChats": "Chats",
   "navMore": "More",
-  "homeSearchServices": "Search services...",
   "homeNoServices": "No services found",
+  "searchHint": "Search products, services and companies",
+  "searchRecent": "Recent searches",
+  "searchRemoveRecent": "Remove from history",
+  "searchBrowseCategories": "Browse categories",
+  "searchFor": "Search for “{query}”",
+  "@searchFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchAll": "All ({count})",
+  "@searchAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchProducts": "Products ({count})",
+  "@searchProducts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchServices": "Services ({count})",
+  "@searchServices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchCompanies": "Companies ({count})",
+  "@searchCompanies": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchSeeAll": "See all ({count})",
+  "@searchSeeAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchNoResults": "No results for “{query}”",
+  "@searchNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchNoResultsTip": "Check the spelling, try a shorter word, or browse a category.",
+  "searchTypeProduct": "Product",
+  "searchTypeService": "Service",
+  "searchTypeCompany": "Company",
   "homeServicesLoadFailed": "Services could not be loaded.",
   "ordersTabProducts": "Products",
   "ordersTabServices": "Services",

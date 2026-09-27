@@ -1388,18 +1388,6 @@ abstract class AppLocalizations {
   /// **'View Order Status'**
   String get commonViewOrderStatus;
 
-  /// No description provided for @homeSearchProducts.
-  ///
-  /// In en, this message translates to:
-  /// **'Search products...'**
-  String get homeSearchProducts;
-
-  /// No description provided for @homeSearchCompanies.
-  ///
-  /// In en, this message translates to:
-  /// **'Search companies...'**
-  String get homeSearchCompanies;
-
   /// No description provided for @homeNoProducts.
   ///
   /// In en, this message translates to:
@@ -3722,17 +3710,101 @@ abstract class AppLocalizations {
   /// **'More'**
   String get navMore;
 
-  /// No description provided for @homeSearchServices.
-  ///
-  /// In en, this message translates to:
-  /// **'Search services...'**
-  String get homeSearchServices;
-
   /// No description provided for @homeNoServices.
   ///
   /// In en, this message translates to:
   /// **'No services found'**
   String get homeNoServices;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search products, services and companies'**
+  String get searchHint;
+
+  /// No description provided for @searchRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent searches'**
+  String get searchRecent;
+
+  /// No description provided for @searchRemoveRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from history'**
+  String get searchRemoveRecent;
+
+  /// No description provided for @searchBrowseCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse categories'**
+  String get searchBrowseCategories;
+
+  /// No description provided for @searchFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for “{query}”'**
+  String searchFor(String query);
+
+  /// No description provided for @searchAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All ({count})'**
+  String searchAll(int count);
+
+  /// No description provided for @searchProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Products ({count})'**
+  String searchProducts(int count);
+
+  /// No description provided for @searchServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services ({count})'**
+  String searchServices(int count);
+
+  /// No description provided for @searchCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'Companies ({count})'**
+  String searchCompanies(int count);
+
+  /// No description provided for @searchSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all ({count})'**
+  String searchSeeAll(int count);
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for “{query}”'**
+  String searchNoResults(String query);
+
+  /// No description provided for @searchNoResultsTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the spelling, try a shorter word, or browse a category.'**
+  String get searchNoResultsTip;
+
+  /// No description provided for @searchTypeProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Product'**
+  String get searchTypeProduct;
+
+  /// No description provided for @searchTypeService.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get searchTypeService;
+
+  /// No description provided for @searchTypeCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get searchTypeCompany;
 
   /// No description provided for @homeServicesLoadFailed.
   ///

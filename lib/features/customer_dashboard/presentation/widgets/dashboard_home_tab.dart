@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/utils/search_ranking.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
@@ -12,6 +11,7 @@ import '../../../companies/presentation/widgets/company_card.dart';
 import '../../../products/presentation/products_providers.dart';
 import '../../../products/presentation/widgets/product_card.dart';
 import '../../../services/presentation/service_providers.dart';
+import '../../../search/presentation/customer_search_screen.dart';
 import '../../../services/presentation/widgets/service_card.dart';
 import 'category_browser.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -28,17 +28,9 @@ class DashboardHomeTab extends ConsumerStatefulWidget {
 enum _HomeTab { products, services, companies }
 
 class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
-  final TextEditingController _searchController = TextEditingController();
-
   // Owned by this tab so it never binds to the ambient PrimaryScrollController,
   // which the sibling IndexedStack tabs also attach to.
   final ScrollController _scrollController = ScrollController();
-  Timer? _searchDebounce;
-
-  /// What the customer has typed (drives the clear button at once) and the
-  /// same text once they pause, which is what the lists filter by.
-  bool _hasSearchText = false;
-  String _searchQuery = '';
 
   /// The category being browsed in each tree (its whole subtree is the
   /// filter); null = every product or service.
@@ -48,28 +40,8 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
 
   @override
   void dispose() {
-    _searchDebounce?.cancel();
-    _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onSearchChanged(String value) {
-    final hasText = value.trim().isNotEmpty;
-    if (hasText != _hasSearchText) setState(() => _hasSearchText = hasText);
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
-      if (mounted) setState(() => _searchQuery = value);
-    });
-  }
-
-  void _clearSearch() {
-    _searchDebounce?.cancel();
-    _searchController.clear();
-    setState(() {
-      _hasSearchText = false;
-      _searchQuery = '';
-    });
   }
 
   void _selectTab(_HomeTab tab) {
@@ -84,7 +56,6 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
     final mockCompanies = ref.watch(marketplaceCompaniesProvider);
     final mockProducts = ref.watch(marketplaceProductsProvider);
     final categoryNames = ref.watch(categoryNamesProvider);
-    final categoriesById = ref.watch(categoriesByIdProvider);
     final productTree = ref.watch(categoryTreeProvider);
 
     final productCategory = CategoryBrowser.validCurrent(
@@ -95,39 +66,12 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
         ? null
         : productTree.subtreeIds(productCategory);
 
-    final filteredCompanies = searchRanked(
-      mockCompanies,
-      _searchQuery,
-      (company) => [
-        SearchField(company.name, weight: 3),
-        SearchField(company.city ?? ''),
-        SearchField(company.address ?? ''),
-        SearchField(company.description ?? ''),
-      ],
-    );
-
-    final filteredProducts = searchRanked(
-      mockProducts.where(
-        (product) =>
-            productScope == null || productScope.contains(product.categoryId),
-      ),
-      _searchQuery,
-      (product) => [
-        SearchField(product.name, weight: 3),
-        SearchField(
-          categoriesById[product.categoryId]?.searchText ?? '',
-          weight: 2,
-        ),
-        SearchField(product.companyName ?? ''),
-        SearchField(product.description ?? ''),
-        SearchField(
-          [
-            for (final spec in product.specifications.entries)
-              '${spec.key} ${spec.value}',
-          ].join(' '),
-        ),
-      ],
-    );
+    final filteredCompanies = mockCompanies;
+    final filteredProducts = [
+      for (final product in mockProducts)
+        if (productScope == null || productScope.contains(product.categoryId))
+          product,
+    ];
 
     final isProductsTab = _selectedTab == _HomeTab.products;
     final isServicesTab = _selectedTab == _HomeTab.services;
@@ -142,16 +86,7 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
         16,
       ),
       children: [
-        AppSearchField(
-          controller: _searchController,
-          onChanged: _onSearchChanged,
-          onCleared: _clearSearch,
-          hint: switch (_selectedTab) {
-            _HomeTab.products => context.l10n.homeSearchProducts,
-            _HomeTab.services => context.l10n.homeSearchServices,
-            _HomeTab.companies => context.l10n.homeSearchCompanies,
-          },
-        ),
+        const _SearchLauncher(),
         const SizedBox(height: 16),
         AppUnderlineTabs(
           labels: [
@@ -195,7 +130,6 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             )
         else if (isServicesTab)
           _ServicesList(
-            searchQuery: _searchQuery,
             categoryId: _serviceCategory,
             onCategoryChanged: (id) => setState(() => _serviceCategory = id),
           )
@@ -219,17 +153,14 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
   }
 }
 
-/// The Services tab: active catalogue services, filtered by the search box.
+/// The Services tab: active catalogue services of the browsed category.
 /// Watched only while the tab is shown, so the catalogue is not loaded until
 /// the customer asks for it.
 class _ServicesList extends ConsumerWidget {
   const _ServicesList({
-    required this.searchQuery,
     required this.categoryId,
     required this.onCategoryChanged,
   });
-
-  final String searchQuery;
 
   /// The service category being browsed (its subtree is the filter).
   final String? categoryId;
@@ -239,7 +170,6 @@ class _ServicesList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final servicesAsync = ref.watch(marketplaceServicesProvider);
     final categoryNames = ref.watch(categoryNamesProvider);
-    final categoriesById = ref.watch(categoriesByIdProvider);
     final serviceTree = ref.watch(categoryTreeProvider);
 
     return servicesAsync.when(
@@ -251,20 +181,10 @@ class _ServicesList extends ConsumerWidget {
       data: (services) {
         final current = CategoryBrowser.validCurrent(serviceTree, categoryId);
         final scope = current == null ? null : serviceTree.subtreeIds(current);
-        final filtered = searchRanked(
-          services.where(
-            (service) => scope == null || scope.contains(service.categoryId),
-          ),
-          searchQuery,
-          (service) => [
-            SearchField(service.name, weight: 3),
-            SearchField(
-              categoriesById[service.categoryId]?.searchText ?? '',
-              weight: 2,
-            ),
-            SearchField(service.description),
-          ],
-        );
+        final filtered = [
+          for (final service in services)
+            if (scope == null || scope.contains(service.categoryId)) service,
+        ];
         final browser = CategoryBrowser(
           tree: serviceTree,
           currentId: current,
@@ -297,6 +217,59 @@ class _ServicesList extends ConsumerWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Looks like a search box; opens the full search, which covers products,
+/// services and companies at once.
+class _SearchLauncher extends StatelessWidget {
+  const _SearchLauncher();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Semantics(
+      button: true,
+      label: context.l10n.searchHint,
+      excludeSemantics: true,
+      child: Material(
+        key: const ValueKey('home-search-launcher'),
+        color: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.smAll,
+          side: BorderSide(color: colors.borderInput),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const CustomerSearchScreen(),
+            ),
+          ),
+          child: SizedBox(
+            height: AppSize.controlLg,
+            child: Row(
+              children: [
+                const SizedBox(width: AppSpacing.s12),
+                Icon(Icons.search_rounded, color: colors.iconMuted),
+                const SizedBox(width: AppSpacing.s8),
+                Expanded(
+                  child: Text(
+                    context.l10n.searchHint,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.body.copyWith(
+                      color: colors.textTertiary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.s12),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

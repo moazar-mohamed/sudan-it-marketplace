@@ -318,7 +318,7 @@ void main() {
           ),
         ];
 
-    testWidgets('Products | Services | Companies, services are searchable',
+    testWidgets('Products | Services | Companies, with the active services',
         (tester) async {
       await tester.pumpWidget(_app(
         const Scaffold(body: DashboardHomeTab()),
@@ -336,11 +336,6 @@ void main() {
       expect(find.text('Network Setup'), findsOneWidget);
       // A service of a deactivated category is not offered to customers.
       expect(find.text('Old Service'), findsNothing);
-
-      await tester.enterText(find.byType(TextField), 'network');
-      await tester.pumpAndSettle();
-      expect(find.text('Network Setup'), findsOneWidget);
-      expect(find.text('Software Installation'), findsNothing);
     });
 
     testWidgets('the tabs are translated in Arabic', (tester) async {

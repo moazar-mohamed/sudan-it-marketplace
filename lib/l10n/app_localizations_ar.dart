@@ -741,12 +741,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonViewOrderStatus => 'عرض حالة الطلب';
 
   @override
-  String get homeSearchProducts => 'ابحث عن المنتجات...';
-
-  @override
-  String get homeSearchCompanies => 'ابحث عن الشركات...';
-
-  @override
   String get homeNoProducts => 'لم يتم العثور على منتجات';
 
   @override
@@ -2028,10 +2022,67 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navMore => 'المزيد';
 
   @override
-  String get homeSearchServices => 'ابحث عن خدمة...';
+  String get homeNoServices => 'لا توجد خدمات';
 
   @override
-  String get homeNoServices => 'لا توجد خدمات';
+  String get searchHint => 'ابحث عن منتجات وخدمات وشركات';
+
+  @override
+  String get searchRecent => 'عمليات البحث الأخيرة';
+
+  @override
+  String get searchRemoveRecent => 'حذف من السجل';
+
+  @override
+  String get searchBrowseCategories => 'تصفح الأقسام';
+
+  @override
+  String searchFor(String query) {
+    return 'ابحث عن «$query»';
+  }
+
+  @override
+  String searchAll(int count) {
+    return 'الكل ($count)';
+  }
+
+  @override
+  String searchProducts(int count) {
+    return 'منتجات ($count)';
+  }
+
+  @override
+  String searchServices(int count) {
+    return 'خدمات ($count)';
+  }
+
+  @override
+  String searchCompanies(int count) {
+    return 'شركات ($count)';
+  }
+
+  @override
+  String searchSeeAll(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String searchNoResults(String query) {
+    return 'لا توجد نتائج لـ «$query»';
+  }
+
+  @override
+  String get searchNoResultsTip =>
+      'تأكد من الإملاء، أو جرّب كلمة أقصر، أو تصفح أحد الأقسام.';
+
+  @override
+  String get searchTypeProduct => 'منتج';
+
+  @override
+  String get searchTypeService => 'خدمة';
+
+  @override
+  String get searchTypeCompany => 'شركة';
 
   @override
   String get homeServicesLoadFailed => 'تعذر تحميل الخدمات.';

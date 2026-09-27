@@ -14,11 +14,15 @@ class ProductCard extends StatelessWidget {
     required this.product,
     this.openedFromCompany = false,
     this.categoryName,
+    this.highlight,
   });
 
   final Product product;
   final bool openedFromCompany;
   final String? categoryName;
+
+  /// A search query whose matching words are marked in the name.
+  final String? highlight;
 
   String _formatPrice(double price) {
     final parts = price.toStringAsFixed(0).split('.');
@@ -45,8 +49,9 @@ class ProductCard extends StatelessWidget {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          HighlightedText(
             product.name,
+            query: highlight,
             style: AppTextStyles.bodyStrong,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

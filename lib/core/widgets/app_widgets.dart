@@ -10,5 +10,6 @@ export 'app_step_tracker.dart';
 export 'app_stepper.dart';
 export 'app_surfaces.dart';
 export 'app_text_field.dart';
+export 'highlighted_text.dart';
 export 'state_views.dart';
 export 'status_chip.dart';

@@ -750,12 +750,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonViewOrderStatus => 'View Order Status';
 
   @override
-  String get homeSearchProducts => 'Search products...';
-
-  @override
-  String get homeSearchCompanies => 'Search companies...';
-
-  @override
   String get homeNoProducts => 'No products found';
 
   @override
@@ -2047,10 +2041,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navMore => 'More';
 
   @override
-  String get homeSearchServices => 'Search services...';
+  String get homeNoServices => 'No services found';
 
   @override
-  String get homeNoServices => 'No services found';
+  String get searchHint => 'Search products, services and companies';
+
+  @override
+  String get searchRecent => 'Recent searches';
+
+  @override
+  String get searchRemoveRecent => 'Remove from history';
+
+  @override
+  String get searchBrowseCategories => 'Browse categories';
+
+  @override
+  String searchFor(String query) {
+    return 'Search for “$query”';
+  }
+
+  @override
+  String searchAll(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String searchProducts(int count) {
+    return 'Products ($count)';
+  }
+
+  @override
+  String searchServices(int count) {
+    return 'Services ($count)';
+  }
+
+  @override
+  String searchCompanies(int count) {
+    return 'Companies ($count)';
+  }
+
+  @override
+  String searchSeeAll(int count) {
+    return 'See all ($count)';
+  }
+
+  @override
+  String searchNoResults(String query) {
+    return 'No results for “$query”';
+  }
+
+  @override
+  String get searchNoResultsTip =>
+      'Check the spelling, try a shorter word, or browse a category.';
+
+  @override
+  String get searchTypeProduct => 'Product';
+
+  @override
+  String get searchTypeService => 'Service';
+
+  @override
+  String get searchTypeCompany => 'Company';
 
   @override
   String get homeServicesLoadFailed => 'Services could not be loaded.';

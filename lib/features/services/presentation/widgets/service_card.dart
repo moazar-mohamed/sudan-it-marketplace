@@ -8,10 +8,18 @@ import '../service_details_screen.dart';
 
 /// A catalogue service in the customer marketplace. Opens its details.
 class ServiceCard extends StatelessWidget {
-  const ServiceCard({super.key, required this.service, this.categoryName});
+  const ServiceCard({
+    super.key,
+    required this.service,
+    this.categoryName,
+    this.highlight,
+  });
 
   final CatalogService service;
   final String? categoryName;
+
+  /// A search query whose matching words are marked in the name.
+  final String? highlight;
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +39,9 @@ class ServiceCard extends StatelessWidget {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          HighlightedText(
             service.name,
+            query: highlight,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodyStrong,

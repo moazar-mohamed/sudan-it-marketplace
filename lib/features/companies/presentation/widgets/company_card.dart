@@ -12,9 +12,13 @@ class CompanyCard extends StatelessWidget {
   const CompanyCard({
     super.key,
     required this.company,
+    this.highlight,
   });
 
   final Company company;
+
+  /// A search query whose matching words are marked in the name.
+  final String? highlight;
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +37,9 @@ class CompanyCard extends StatelessWidget {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          HighlightedText(
             company.name,
+            query: highlight,
             style: AppTextStyles.bodyStrong,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
