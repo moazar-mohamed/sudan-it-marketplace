@@ -13,12 +13,14 @@ class ChatModels {
     final data = snapshot.data() ?? const <String, dynamic>{};
     return ChatConversation(
       id: snapshot.id,
-      serviceRequestId: data['serviceRequestId'] as String? ?? snapshot.id,
+      serviceRequestId: data['serviceRequestId'] as String?,
+      orderId: data['orderId'] as String?,
       customerId: data['customerId'] as String? ?? '',
       companyId: data['companyId'] as String? ?? '',
       customerName: data['customerName'] as String? ?? '',
       companyName: data['companyName'] as String? ?? '',
       serviceName: data['serviceName'] as String? ?? '',
+      productName: data['productName'] as String? ?? '',
       createdAt: _date(data, 'createdAt') ?? DateTime.now(),
       lastMessageText: data['lastMessageText'] as String?,
       lastMessageAt: _date(data, 'lastMessageAt'),
@@ -47,7 +49,7 @@ class ChatModels {
   }
 
   /// The conversation written together with a brand-new service request.
-  static Map<String, dynamic> conversationCreateMap({
+  static Map<String, dynamic> serviceRequestChatCreateMap({
     required String serviceRequestId,
     required String customerId,
     required String companyId,
@@ -55,14 +57,63 @@ class ChatModels {
     required String companyName,
     required String serviceName,
   }) {
+    return _createMap(
+      id: serviceRequestId,
+      serviceRequestId: serviceRequestId,
+      orderId: null,
+      customerId: customerId,
+      companyId: companyId,
+      customerName: customerName,
+      companyName: companyName,
+      serviceName: serviceName,
+      productName: '',
+    );
+  }
+
+  /// The conversation for one order: written together with a brand-new
+  /// order, or on its own for an order placed before conversations existed.
+  static Map<String, dynamic> orderChatCreateMap({
+    required String orderId,
+    required String customerId,
+    required String companyId,
+    required String customerName,
+    required String companyName,
+    required String productName,
+  }) {
+    return _createMap(
+      id: orderId,
+      serviceRequestId: null,
+      orderId: orderId,
+      customerId: customerId,
+      companyId: companyId,
+      customerName: customerName,
+      companyName: companyName,
+      serviceName: '',
+      productName: productName,
+    );
+  }
+
+  static Map<String, dynamic> _createMap({
+    required String id,
+    required String? serviceRequestId,
+    required String? orderId,
+    required String customerId,
+    required String companyId,
+    required String customerName,
+    required String companyName,
+    required String serviceName,
+    required String productName,
+  }) {
     return {
-      'id': serviceRequestId,
+      'id': id,
       'serviceRequestId': serviceRequestId,
+      'orderId': orderId,
       'customerId': customerId,
       'companyId': companyId,
       'customerName': customerName,
       'companyName': companyName,
       'serviceName': serviceName,
+      'productName': productName,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };

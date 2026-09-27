@@ -30,6 +30,16 @@ final orderReceiptProvider =
   retry: (retryCount, error) => null,
 );
 
+/// One order by id, live - for a screen that only needs a single order (its
+/// own conversation, for instance) rather than a whole list.
+final orderStreamProvider =
+    StreamProvider.family<OrderEntity?, String>((ref, orderId) {
+  if (orderId.isEmpty) {
+    return Stream.value(null);
+  }
+  return ref.watch(ordersRepositoryProvider).watchOrder(orderId);
+});
+
 final customerOrdersStreamProvider = StreamProvider<List<OrderEntity>>((ref) {
   final authState = ref.watch(authControllerProvider);
   final customerId = switch (authState) {

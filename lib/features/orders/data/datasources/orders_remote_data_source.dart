@@ -18,6 +18,8 @@ abstract interface class OrdersRemoteDataSource {
 
   Future<OrderModel?> getOrderById(String orderId);
 
+  Stream<OrderModel?> watchOrder(String orderId);
+
   Stream<List<OrderModel>> watchCustomerOrders(String customerId);
 
   Stream<List<OrderModel>> watchCompanyOrders(String companyId);
@@ -35,5 +37,16 @@ abstract interface class OrdersRemoteDataSource {
     required String orderId,
     required String technicianId,
     required String technicianName,
+  });
+
+  /// Opens the conversation with the order's company, for an order placed
+  /// before every order got one automatically. A no-op if it already exists.
+  Future<void> startChat({
+    required String orderId,
+    required String customerId,
+    required String companyId,
+    required String customerName,
+    required String companyName,
+    required String productName,
   });
 }

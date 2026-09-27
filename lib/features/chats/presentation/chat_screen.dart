@@ -6,6 +6,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/app_widgets.dart';
+import '../../orders/presentation/order_details_screen.dart';
+import '../../orders/presentation/order_labels.dart';
+import '../../orders/presentation/orders_providers.dart';
 import '../../service_requests/presentation/service_request_details_screen.dart';
 import '../../service_requests/presentation/service_request_labels.dart';
 import '../../service_requests/presentation/service_request_providers.dart';
@@ -107,7 +110,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
             if (conversation != null)
               Text(
-                conversation.serviceName,
+                conversation.subjectLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 // Readable on the app bar's own colour.
@@ -116,19 +119,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            tooltip: context.l10n.serviceRequestViewDetails,
-            icon: const Icon(Icons.info_outline),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => ServiceRequestDetailsScreen(
-                  requestId: widget.chatId,
-                  asCompany: !isCustomer,
-                  showChatAction: false,
-                ),
-              ),
-            ),
-          ),
+          if (conversation != null)
+            _DetailsButton(conversation: conversation, isCustomer: isCustomer),
         ],
       ),
       body: conversationAsync.when(
@@ -141,7 +133,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ? AppErrorState(message: context.l10n.chatNotFound)
             : Column(
                 children: [
-                  _RequestStatusBar(requestId: widget.chatId),
+                  _StatusBar(conversation: conversation),
                   Expanded(
                     child: _MessagesList(
                       chatId: widget.chatId,
@@ -160,30 +152,104 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 }
 
-/// The status of the conversation's service request, kept in view.
-class _RequestStatusBar extends ConsumerWidget {
-  const _RequestStatusBar({required this.requestId});
+/// Opens the request or order this conversation is about. An order's company
+/// side has no matching deep-link (only its own Orders tab), so it gets none.
+class _DetailsButton extends StatelessWidget {
+  const _DetailsButton({required this.conversation, required this.isCustomer});
 
-  final String requestId;
+  final ChatConversation conversation;
+  final bool isCustomer;
+
+  @override
+  Widget build(BuildContext context) {
+    if (conversation.isOrderChat) {
+      if (!isCustomer) return const SizedBox.shrink();
+      return Consumer(
+        builder: (context, ref, _) {
+          final order =
+              ref.watch(orderStreamProvider(conversation.id)).asData?.value;
+          if (order == null) return const SizedBox.shrink();
+          return IconButton(
+            tooltip: context.l10n.orderViewDetails,
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => OrderDetailsScreen(order: order),
+              ),
+            ),
+          );
+        },
+      );
+    }
+    return IconButton(
+      tooltip: context.l10n.serviceRequestViewDetails,
+      icon: const Icon(Icons.info_outline),
+      onPressed: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ServiceRequestDetailsScreen(
+            requestId: conversation.id,
+            asCompany: !isCustomer,
+            showChatAction: false,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The status of the conversation's service request or order, kept in view.
+class _StatusBar extends ConsumerWidget {
+  const _StatusBar({required this.conversation});
+
+  final ChatConversation conversation;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final request = ref.watch(serviceRequestStreamProvider(requestId)).asData?.value;
+    if (conversation.isOrderChat) {
+      final order =
+          ref.watch(orderStreamProvider(conversation.id)).asData?.value;
+      if (order == null) return const SizedBox.shrink();
+      return _Bar(
+        icon: Icons.local_shipping_outlined,
+        tone: order.orderStatus.tone,
+        text: context.l10n.orderChatStatusLine(
+          order.orderStatus.label(context.l10n),
+        ),
+      );
+    }
+    final request =
+        ref.watch(serviceRequestStreamProvider(conversation.id)).asData?.value;
     if (request == null) return const SizedBox.shrink();
-    final tone = request.status.tone;
+    return _Bar(
+      icon: Icons.assignment_outlined,
+      tone: request.status.tone,
+      text: context.l10n.serviceRequestStatusLine(
+        request.status.label(context.l10n),
+      ),
+    );
+  }
+}
+
+class _Bar extends StatelessWidget {
+  const _Bar({required this.icon, required this.tone, required this.text});
+
+  final IconData icon;
+  final AppTone tone;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: tone.background,
       child: Row(
         children: [
-          Icon(Icons.assignment_outlined, size: 18, color: tone.accent),
+          Icon(icon, size: 18, color: tone.accent),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              context.l10n.serviceRequestStatusLine(
-                request.status.label(context.l10n),
-              ),
+              text,
               style: AppTextStyles.captionStrong.copyWith(color: tone.foreground),
             ),
           ),

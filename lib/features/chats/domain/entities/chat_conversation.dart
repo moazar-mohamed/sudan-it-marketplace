@@ -15,18 +15,21 @@ enum ChatParticipantRole {
   }
 }
 
-/// The conversation of one service request, between its customer and the
-/// company it was sent to. It has the same id as the service request and
-/// never exists without one.
+/// The conversation between a customer and the company they contacted, about
+/// either a service request or a product order - told apart by which of
+/// [serviceRequestId]/[orderId] is set. It has the same id as the service
+/// request or order it belongs to, and never exists without one.
 class ChatConversation {
   const ChatConversation({
     required this.id,
-    required this.serviceRequestId,
+    this.serviceRequestId,
+    this.orderId,
     required this.customerId,
     required this.companyId,
     required this.customerName,
     required this.companyName,
-    required this.serviceName,
+    this.serviceName = '',
+    this.productName = '',
     required this.createdAt,
     this.lastMessageText,
     this.lastMessageAt,
@@ -36,18 +39,29 @@ class ChatConversation {
   });
 
   final String id;
-  final String serviceRequestId;
+  final String? serviceRequestId;
+  final String? orderId;
   final String customerId;
   final String companyId;
   final String customerName;
   final String companyName;
+
+  /// The service it is about; empty for an order's conversation.
   final String serviceName;
+
+  /// The product it is about; empty for a service request's conversation.
+  final String productName;
   final DateTime createdAt;
   final String? lastMessageText;
   final DateTime? lastMessageAt;
   final ChatParticipantRole? lastMessageSenderRole;
   final DateTime? customerLastReadAt;
   final DateTime? companyLastReadAt;
+
+  bool get isOrderChat => orderId != null;
+
+  /// What the conversation is about: the service name, or the product name.
+  String get subjectLabel => isOrderChat ? productName : serviceName;
 
   /// When anything last happened here (used to order the conversation list).
   DateTime get activityAt => lastMessageAt ?? createdAt;

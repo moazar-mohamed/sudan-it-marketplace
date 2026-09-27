@@ -2170,6 +2170,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String orderChatStatusLine(String status) {
+    return 'Order status: $status';
+  }
+
+  @override
+  String get orderViewDetails => 'Order details';
+
+  @override
+  String get orderStartChat => 'Start a conversation';
+
+  @override
+  String get chatStartDenied =>
+      'You cannot start a conversation about this order.';
+
+  @override
+  String get chatStartFailed =>
+      'The conversation could not be started. Please try again.';
+
+  @override
   String get chatsEmptyCustomer =>
       'No chats yet. When you request a service, your conversation with the company appears here.';
 

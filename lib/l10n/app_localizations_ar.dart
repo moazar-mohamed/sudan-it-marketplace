@@ -2148,6 +2148,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String orderChatStatusLine(String status) {
+    return 'حالة الطلب: $status';
+  }
+
+  @override
+  String get orderViewDetails => 'تفاصيل الطلب';
+
+  @override
+  String get orderStartChat => 'ابدأ محادثة';
+
+  @override
+  String get chatStartDenied => 'لا يمكنك بدء محادثة حول هذا الطلب.';
+
+  @override
+  String get chatStartFailed => 'تعذر بدء المحادثة. يرجى المحاولة مرة أخرى.';
+
+  @override
   String get chatsEmptyCustomer =>
       'لا توجد محادثات بعد. عندما تطلب خدمة، ستظهر محادثتك مع الشركة هنا.';
 

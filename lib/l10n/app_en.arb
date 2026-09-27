@@ -1010,6 +1010,18 @@
       }
     }
   },
+  "orderChatStatusLine": "Order status: {status}",
+  "@orderChatStatusLine": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "orderViewDetails": "Order details",
+  "orderStartChat": "Start a conversation",
+  "chatStartDenied": "You cannot start a conversation about this order.",
+  "chatStartFailed": "The conversation could not be started. Please try again.",
   "chatsEmptyCustomer": "No chats yet. When you request a service, your conversation with the company appears here.",
   "chatsEmptyCompany": "No chats yet. Each service request sent to your company opens a conversation here.",
   "chatNoMessagesYet": "No messages yet",

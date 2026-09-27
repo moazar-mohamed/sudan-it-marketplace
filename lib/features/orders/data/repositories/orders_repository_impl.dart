@@ -87,6 +87,13 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
+  Stream<OrderEntity?> watchOrder(String orderId) {
+    return _remoteDataSource
+        .watchOrder(orderId)
+        .map((model) => model?.toEntity());
+  }
+
+  @override
   Stream<List<OrderEntity>> watchCustomerOrders(String customerId) {
     return _remoteDataSource
         .watchCustomerOrders(customerId)
@@ -133,6 +140,18 @@ class OrdersRepositoryImpl implements OrdersRepository {
       orderId: orderId,
       technicianId: technicianId,
       technicianName: technicianName,
+    );
+  }
+
+  @override
+  Future<void> startChat(OrderEntity order) {
+    return _remoteDataSource.startChat(
+      orderId: order.id,
+      customerId: order.customerId,
+      companyId: order.companyId,
+      customerName: order.customerName,
+      companyName: order.companyName,
+      productName: order.productName,
     );
   }
 }

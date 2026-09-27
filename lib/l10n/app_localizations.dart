@@ -3962,6 +3962,36 @@ abstract class AppLocalizations {
   /// **'Request status: {status}'**
   String serviceRequestStatusLine(String status);
 
+  /// No description provided for @orderChatStatusLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Order status: {status}'**
+  String orderChatStatusLine(String status);
+
+  /// No description provided for @orderViewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Order details'**
+  String get orderViewDetails;
+
+  /// No description provided for @orderStartChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a conversation'**
+  String get orderStartChat;
+
+  /// No description provided for @chatStartDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot start a conversation about this order.'**
+  String get chatStartDenied;
+
+  /// No description provided for @chatStartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The conversation could not be started. Please try again.'**
+  String get chatStartFailed;
+
   /// No description provided for @chatsEmptyCustomer.
   ///
   /// In en, this message translates to:

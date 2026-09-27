@@ -130,7 +130,7 @@ class _ChatTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  conversation.serviceName,
+                  conversation.subjectLabel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.labelSmall

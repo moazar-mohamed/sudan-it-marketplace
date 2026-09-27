@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../../../chats/domain/entities/chat_conversation.dart';
+import '../../../chats/presentation/chat_providers.dart';
+import '../../../chats/presentation/chat_screen.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../location/presentation/location_strings.dart';
+import '../../../orders/presentation/order_chat_actions.dart';
 import '../../../orders/presentation/orders_providers.dart';
 import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../company_admin_format.dart';
@@ -54,6 +60,11 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                 _OrderSummaryCard(order: order),
                 const SizedBox(height: 12),
                 OrderStatusActions(order: order),
+                const SizedBox(height: 12),
+                AdminSectionCard(
+                  title: context.l10n.adminContact,
+                  children: [_CompanyOrderChatButton(order: order)],
+                ),
                 const SizedBox(height: 12),
                 AdminSectionCard(
                   title: context.l10n.adminCustomer,
@@ -208,6 +219,76 @@ class _OrderSummaryCard extends StatelessWidget {
           valueColor: CompanyAdminFormat.orderStatusColor(order.orderStatus),
         ),
       ],
+    );
+  }
+}
+
+/// Opens the conversation with the order's customer: most orders already
+/// have one (opened together with the order); an older order gets one on
+/// demand.
+class _CompanyOrderChatButton extends ConsumerStatefulWidget {
+  const _CompanyOrderChatButton({required this.order});
+
+  final OrderEntity order;
+
+  @override
+  ConsumerState<_CompanyOrderChatButton> createState() =>
+      _CompanyOrderChatButtonState();
+}
+
+class _CompanyOrderChatButtonState
+    extends ConsumerState<_CompanyOrderChatButton> {
+  bool _starting = false;
+
+  Future<void> _openChat() {
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChatScreen(
+          chatId: widget.order.id,
+          role: ChatParticipantRole.company,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _start() async {
+    setState(() => _starting = true);
+    final error =
+        await ref.read(orderChatActionsProvider).start(widget.order);
+    if (!mounted) return;
+    setState(() => _starting = false);
+    if (error != null) {
+      showAppSnackBar(context, error, tone: AppTone.error);
+      return;
+    }
+    await _openChat();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final conversationAsync =
+        ref.watch(chatConversationProvider(widget.order.id));
+    return conversationAsync.when(
+      loading: () => const SizedBox(
+        height: AppSize.controlLg,
+        child: Center(child: AppSpinner()),
+      ),
+      error: (_, _) => AppButton.outlined(
+        expand: true,
+        icon: Icons.chat_bubble_outline,
+        label: context.l10n.orderStartChat,
+        loading: _starting,
+        onPressed: _start,
+      ),
+      data: (conversation) => AppButton.outlined(
+        expand: true,
+        icon: Icons.chat_bubble_outline,
+        loading: _starting,
+        label: conversation == null
+            ? context.l10n.orderStartChat
+            : context.l10n.serviceRequestOpenChat,
+        onPressed: conversation == null ? _start : _openChat,
+      ),
     );
   }
 }

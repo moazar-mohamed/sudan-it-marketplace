@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sudan_it_marketplace/features/chats/presentation/chat_providers.dart';
 import 'package:sudan_it_marketplace/features/company_admin/presentation/orders/company_order_details_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/domain/entities/order_entity.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/orders_providers.dart';
@@ -32,6 +33,8 @@ Widget _screen(OrderEntity order, List<Technician> technicians) {
       companyOrdersStreamProvider('c1').overrideWith((_) => Stream.value([order])),
       companyTechniciansStreamProvider('c1')
           .overrideWith((_) => Stream.value(technicians)),
+      // The order's conversation is not this test's concern.
+      chatConversationProvider(order.id).overrideWith((_) => Stream.value(null)),
     ],
     child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -55,6 +58,8 @@ void main() {
       300,
       scrollable: find.byType(Scrollable).first,
     );
+    await tester.ensureVisible(find.text('Assign Technician'));
+    await tester.pumpAndSettle();
     expect(find.text('Assign Technician'), findsOneWidget);
     expect(find.text('Not assigned'), findsOneWidget);
 

@@ -1475,36 +1475,76 @@ service cloud.firestore {
       return isChatCustomer(chat) || isChatCompany(chat);
     }
 
-    // The conversation is created by the customer in the same batch as the
-    // brand-new service request it belongs to, and copies that request's
-    // participants and names.
+    // A conversation belongs to EITHER a service request or an order (never
+    // both), told apart by which of `serviceRequestId`/`orderId` is set; both
+    // share the same id as the document they belong to.
     function isValidChatCreate(chatId) {
       let data = request.resource.data;
-      let requestPath = /databases/$(database)/documents/service_requests/$(chatId);
-      let serviceRequest = getAfter(requestPath).data;
+      let hasRequestId = data.get('serviceRequestId', null) != null;
+      let hasOrderId = data.get('orderId', null) != null;
       return data.keys().hasOnly([
           'id',
           'serviceRequestId',
+          'orderId',
           'customerId',
           'companyId',
           'customerName',
           'companyName',
           'serviceName',
+          'productName',
           'createdAt',
           'updatedAt'
         ])
         && data.id == chatId
-        && data.serviceRequestId == chatId
         && data.customerId == request.auth.uid
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.customerName is string
+        && data.companyName is string
+        && data.get('serviceName', '') is string
+        && data.get('productName', '') is string
         && data.createdAt == request.time
         && data.updatedAt == request.time
+        && (hasRequestId != hasOrderId)
+        && (hasRequestId
+          ? isValidServiceRequestChatCreate(chatId, data)
+          : isValidOrderChatCreate(chatId, data));
+    }
+
+    // The conversation is created by the customer in the same batch as the
+    // brand-new service request it belongs to, and copies that request's
+    // participants and names.
+    function isValidServiceRequestChatCreate(chatId, data) {
+      let requestPath = /databases/$(database)/documents/service_requests/$(chatId);
+      let serviceRequest = getAfter(requestPath).data;
+      return data.serviceRequestId == chatId
+        && data.customerName.size() <= 120
+        && data.companyName.size() > 0
+        && data.companyName.size() <= 200
         && !exists(requestPath)
         && existsAfter(requestPath)
         && serviceRequest.customerId == request.auth.uid
         && serviceRequest.companyId == data.companyId
         && serviceRequest.customerName == data.customerName
         && serviceRequest.companyName == data.companyName
-        && serviceRequest.serviceName == data.serviceName;
+        && serviceRequest.serviceName == data.get('serviceName', '');
+    }
+
+    // An order's conversation is created by its own customer, either together
+    // with the brand-new order (one batch, like a service request) or, for an
+    // order placed before conversations existed, on its own any time
+    // afterwards. Either way it must copy that order's own participants and
+    // product name - never someone else's order.
+    function isValidOrderChatCreate(chatId, data) {
+      let orderPath = /databases/$(database)/documents/orders/$(chatId);
+      let order = getAfter(orderPath).data;
+      return data.orderId == chatId
+        && existsAfter(orderPath)
+        && order.customerId == request.auth.uid
+        && order.companyId == data.companyId
+        && order.get('customerName', '') == data.customerName
+        && order.get('companyName', '') == data.companyName
+        && order.productName == data.get('productName', '');
     }
 
     // The role the caller speaks as in this conversation.

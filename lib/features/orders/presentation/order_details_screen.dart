@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/app_widgets.dart';
+import '../../chats/domain/entities/chat_conversation.dart';
+import '../../chats/presentation/chat_providers.dart';
+import '../../chats/presentation/chat_screen.dart';
 import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../location/presentation/location_strings.dart';
 import '../domain/entities/order_entity.dart';
+import 'order_chat_actions.dart';
 import 'widgets/order_location_widgets.dart';
 import 'widgets/price_summary_row.dart';
 import 'order_labels.dart';
 import '../../../core/localization/l10n_extension.dart';
 import 'widgets/receipt_viewer.dart';
 
-class OrderDetailsScreen extends StatelessWidget {
+class OrderDetailsScreen extends ConsumerWidget {
   const OrderDetailsScreen({
     super.key,
     required this.order,
@@ -49,7 +54,7 @@ class OrderDetailsScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final companyName = _resolveCompanyName();
     final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
@@ -71,6 +76,12 @@ class OrderDetailsScreen extends StatelessWidget {
               children: [
                 // Processing -> Out for delivery -> Completed.
                 _buildStatusFlowCard(context),
+                gap,
+
+                SectionCard(
+                  title: l10n.adminContact,
+                  children: [_OrderChatButton(order: order)],
+                ),
                 gap,
 
                 SectionCard(
@@ -273,6 +284,73 @@ class OrderDetailsScreen extends StatelessWidget {
           allDone: order.orderStatus == OrderStatus.completed,
         ),
       ],
+    );
+  }
+}
+
+/// Opens the conversation with the order's company: most orders already have
+/// one (opened together with the order); an older order gets one on demand.
+class _OrderChatButton extends ConsumerStatefulWidget {
+  const _OrderChatButton({required this.order});
+
+  final OrderEntity order;
+
+  @override
+  ConsumerState<_OrderChatButton> createState() => _OrderChatButtonState();
+}
+
+class _OrderChatButtonState extends ConsumerState<_OrderChatButton> {
+  bool _starting = false;
+
+  Future<void> _openChat() {
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChatScreen(
+          chatId: widget.order.id,
+          role: ChatParticipantRole.customer,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _start() async {
+    setState(() => _starting = true);
+    final error =
+        await ref.read(orderChatActionsProvider).start(widget.order);
+    if (!mounted) return;
+    setState(() => _starting = false);
+    if (error != null) {
+      showAppSnackBar(context, error, tone: AppTone.error);
+      return;
+    }
+    await _openChat();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final conversationAsync =
+        ref.watch(chatConversationProvider(widget.order.id));
+    return conversationAsync.when(
+      loading: () => const SizedBox(
+        height: AppSize.controlLg,
+        child: Center(child: AppSpinner()),
+      ),
+      error: (_, _) => AppButton.outlined(
+        expand: true,
+        icon: Icons.chat_bubble_outline,
+        label: context.l10n.orderStartChat,
+        loading: _starting,
+        onPressed: _start,
+      ),
+      data: (conversation) => AppButton.outlined(
+        expand: true,
+        icon: Icons.chat_bubble_outline,
+        loading: _starting,
+        label: conversation == null
+            ? context.l10n.orderStartChat
+            : context.l10n.serviceRequestOpenChat,
+        onPressed: conversation == null ? _start : _openChat,
+      ),
     );
   }
 }

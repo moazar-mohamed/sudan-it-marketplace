@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/errors/app_exception.dart';
+import '../../../chats/data/models/chat_models.dart';
 import '../../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../../products/data/models/product_model.dart';
 import '../../../products/domain/stock_reservation.dart';
@@ -18,6 +19,7 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
 
   static const _ordersCollection = 'orders';
   static const _productsCollection = 'products';
+  static const _chatsCollection = 'chats';
   static const _writeAcknowledgementTimeout = Duration(seconds: 20);
   // A receipt adds a few hundred KB to the commit: allow for slow mobile links.
   static const _receiptWriteAcknowledgementTimeout = Duration(seconds: 60);
@@ -61,6 +63,17 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
               companyId: order.companyId,
               image: receipt,
             );
+      // The conversation with the company shares the order's id too, and is
+      // written in the same transaction so no order is ever left without one.
+      final chatRef = _firestore.collection(_chatsCollection).doc(docRef.id);
+      final chatData = ChatModels.orderChatCreateMap(
+        orderId: docRef.id,
+        customerId: order.customerId,
+        companyId: order.companyId,
+        customerName: order.customerName,
+        companyName: order.companyName,
+        productName: order.productName,
+      );
       final acknowledgementTimeout = receipt == null
           ? _writeAcknowledgementTimeout
           : _receiptWriteAcknowledgementTimeout;
@@ -77,6 +90,8 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
                   data,
                   receiptRef,
                   receiptData,
+                  chatRef,
+                  chatData,
                 ),
               )
               .timeout(acknowledgementTimeout);
@@ -117,12 +132,15 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
     Map<String, dynamic> orderData,
     DocumentReference<Map<String, dynamic>>? receiptRef,
     Map<String, dynamic>? receiptData,
+    DocumentReference<Map<String, dynamic>> chatRef,
+    Map<String, dynamic> chatData,
   ) async {
     void writeReceipt() {
       if (receiptRef != null && receiptData != null) {
         transaction.set(receiptRef, receiptData);
       }
     }
+    void writeChat() => transaction.set(chatRef, chatData);
 
     final productSnapshot = await transaction.get(productRef);
     if (!productSnapshot.exists) {
@@ -136,6 +154,7 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
       }
       transaction.set(orderRef, orderData);
       writeReceipt();
+      writeChat();
       return;
     }
 
@@ -161,6 +180,7 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
     });
     transaction.set(orderRef, orderData);
     writeReceipt();
+    writeChat();
   }
 
   Future<void> _confirmOrderWasWritten(
@@ -365,6 +385,17 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
   }
 
   @override
+  Stream<OrderModel?> watchOrder(String orderId) {
+    return _firestore
+        .collection(_ordersCollection)
+        .doc(orderId)
+        .snapshots()
+        .map((snapshot) => snapshot.exists && snapshot.data() != null
+            ? OrderModel.fromFirestore(snapshot)
+            : null);
+  }
+
+  @override
   Future<void> updateOrderStatus({
     required String orderId,
     required String orderStatus,
@@ -417,6 +448,34 @@ class FirestoreOrdersRemoteDataSource implements OrdersRemoteDataSource {
         AppErrorCode.orderAssignTechnicianDenied,
         AppErrorCode.orderAssignTechnicianFailed,
       );
+    }
+  }
+
+  @override
+  Future<void> startChat({
+    required String orderId,
+    required String customerId,
+    required String companyId,
+    required String customerName,
+    required String companyName,
+    required String productName,
+  }) async {
+    try {
+      await _firestore.collection(_chatsCollection).doc(orderId).set(
+            ChatModels.orderChatCreateMap(
+              orderId: orderId,
+              customerId: customerId,
+              companyId: companyId,
+              customerName: customerName,
+              companyName: companyName,
+              productName: productName,
+            ),
+          );
+    } on FirebaseException catch (error) {
+      // Somebody else already opened it (a race with another tap, or the
+      // order already had one): nothing to do.
+      if (error.code == 'permission-denied') return;
+      throw AppException(AppErrorCode.chatStartFailed, detail: error.code);
     }
   }
 

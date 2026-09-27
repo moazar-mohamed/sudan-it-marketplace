@@ -37,6 +37,10 @@ abstract interface class OrdersRepository {
 
   Future<OrderEntity?> getOrderById(String orderId);
 
+  /// Live updates to one order, for a screen that only needs a single order
+  /// (its own conversation, for instance) rather than a whole list.
+  Stream<OrderEntity?> watchOrder(String orderId);
+
   Stream<List<OrderEntity>> watchCustomerOrders(String customerId);
 
   Stream<List<OrderEntity>> watchCompanyOrders(String companyId);
@@ -59,4 +63,9 @@ abstract interface class OrdersRepository {
     required String technicianId,
     required String technicianName,
   });
+
+  /// Opens the conversation with the order's company, for an order placed
+  /// before every order got one automatically. A no-op (never throws) if the
+  /// conversation already exists.
+  Future<void> startChat(OrderEntity order);
 }

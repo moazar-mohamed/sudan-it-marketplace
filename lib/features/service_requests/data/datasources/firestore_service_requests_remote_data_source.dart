@@ -33,7 +33,7 @@ class FirestoreServiceRequestsRemoteDataSource
       ..set(requestRef, ServiceRequestModel.toCreateMap(request))
       ..set(
         chatRef,
-        ChatModels.conversationCreateMap(
+        ChatModels.serviceRequestChatCreateMap(
           serviceRequestId: request.id,
           customerId: request.customerId,
           companyId: request.companyId,
