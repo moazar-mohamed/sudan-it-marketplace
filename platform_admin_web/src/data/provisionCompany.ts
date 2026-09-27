@@ -11,7 +11,7 @@ import type { CompanyInput } from './actions';
 import {
   companyDocumentData,
   registrationProblems,
-  type PreparedDocumentImage,
+  type PreparedDocumentFile,
 } from './companyDocuments';
 import { isValidEmail, normalizeEmail, passwordProblem } from './companyAccount';
 import { NO_IMAGE, type ImageSelection } from './imageRules';
@@ -46,7 +46,7 @@ export interface NewCompanyInput extends CompanyInput {
   /** Commercial registration / licence number (required). */
   registrationNumber: string;
   /** Photo of the registration document, already compressed (required). */
-  registrationDocument: PreparedDocumentImage | null;
+  registrationDocument: PreparedDocumentFile | null;
 }
 
 export interface ProvisionedAccount {

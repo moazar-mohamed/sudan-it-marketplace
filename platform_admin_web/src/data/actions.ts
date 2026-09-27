@@ -13,7 +13,7 @@ import { resolveImageSelection } from './imageUpload';
 import {
   fetchCompanyDocument,
   saveCompanyDocument,
-  type PreparedDocumentImage,
+  type PreparedDocumentFile,
 } from './companyDocuments';
 import { deleteCompanyCascade } from './deleteCompany';
 import {
@@ -70,7 +70,7 @@ export const loadCompanyDocument = (companyId: string) => fetchCompanyDocument(d
 export const saveCompanyRegistration = (
   companyId: string,
   registrationNumber: string,
-  image: PreparedDocumentImage,
+  image: PreparedDocumentFile,
 ) => saveCompanyDocument(db, companyId, registrationNumber, image);
 
 /**

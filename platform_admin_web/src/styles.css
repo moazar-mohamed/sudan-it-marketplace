@@ -1217,6 +1217,15 @@ table.data tbody tr:last-child td {
   background: var(--surface);
 }
 
+.document-preview__file {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 14px;
+}
+
 .login__action {
   margin-top: 10px;
 }

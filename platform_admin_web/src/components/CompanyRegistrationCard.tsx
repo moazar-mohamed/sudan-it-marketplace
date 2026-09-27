@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import {
   registrationProblems,
   type CompanyDocument,
-  type PreparedDocumentImage,
+  type PreparedDocumentFile,
   type RegistrationInput,
 } from '../data/companyDocuments';
 import { useI18n } from '../i18n/I18nProvider';
@@ -27,7 +27,7 @@ export function CompanyRegistrationCard({
 }: {
   companyId: string;
   load: (companyId: string) => Promise<CompanyDocument | null>;
-  save: (companyId: string, number: string, image: PreparedDocumentImage) => Promise<void>;
+  save: (companyId: string, number: string, file: PreparedDocumentFile) => Promise<void>;
 }) {
   const { t, date } = useI18n();
   const [state, setState] = useState<State>({ status: 'loading' });
@@ -53,16 +53,30 @@ export function CompanyRegistrationCard({
   };
 
   const current = state.status === 'ready' ? state.document : null;
+  const isImage = current?.contentType === 'image/jpeg';
   const imageUrl = useMemo(
     () =>
-      current && showImage
+      current && isImage && showImage
         ? URL.createObjectURL(new Blob([current.bytes as BlobPart], { type: current.contentType }))
         : null,
-    [current, showImage],
+    [current, isImage, showImage],
   );
   useEffect(() => () => {
     if (imageUrl) URL.revokeObjectURL(imageUrl);
   }, [imageUrl]);
+
+  // A PDF is opened in a new tab (the browser renders it natively) instead
+  // of being embedded; an image toggles inline, as before.
+  const openDocument = () => {
+    if (!current) return;
+    if (isImage) {
+      setShowImage((s) => !s);
+      return;
+    }
+    const url = URL.createObjectURL(new Blob([current.bytes as BlobPart], { type: current.contentType }));
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
 
   return (
     <Card
@@ -97,8 +111,8 @@ export function CompanyRegistrationCard({
               {current.updatedAt ? date(current.updatedAt) : '—'}
             </KeyValue>
           </dl>
-          <button type="button" className="btn btn--sm" onClick={() => setShowImage((s) => !s)}>
-            {showImage ? t('registration.hide') : t('registration.view')}
+          <button type="button" className="btn btn--sm" onClick={openDocument}>
+            {isImage && showImage ? t('registration.hide') : t('registration.view')}
           </button>
           {imageUrl && (
             <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="receipt__link">
@@ -114,6 +128,7 @@ export function CompanyRegistrationCard({
             document: current
               ? {
                   bytes: current.bytes,
+                  contentType: current.contentType,
                   width: current.width,
                   height: current.height,
                   fileName: current.fileName,

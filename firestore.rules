@@ -1765,14 +1765,17 @@ service cloud.firestore {
         && data.fileName is string
         && data.fileName.size() > 0
         && data.fileName.size() <= 100
-        && data.contentType == 'image/jpeg'
+        && data.contentType in ['image/jpeg', 'application/pdf']
         && data.image is bytes
         && data.image.size() > 0
         && data.image.size() <= 700000
         && data.sizeBytes is int
         && data.sizeBytes == data.image.size()
-        && data.width is int && data.width > 0 && data.width <= 4096
-        && data.height is int && data.height > 0 && data.height <= 4096
+        // A PDF is stored exactly as picked, so it carries no pixel size.
+        && (data.contentType == 'application/pdf'
+          ? !('width' in data) && !('height' in data)
+          : (data.width is int && data.width > 0 && data.width <= 4096
+            && data.height is int && data.height > 0 && data.height <= 4096))
         && data.updatedAt == request.time
         && existsAfter(/databases/$(database)/documents/companies/$(companyId));
     }

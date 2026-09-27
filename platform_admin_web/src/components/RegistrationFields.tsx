@@ -1,51 +1,53 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  DocumentImageError,
-  prepareDocumentImage,
+  DOCUMENT_MAX_BYTES,
+  DocumentFileError,
+  prepareDocumentFile,
   REGISTRATION_NUMBER_MAX,
   registrationProblems,
-  type PreparedDocumentImage,
+  type PreparedDocumentFile,
   type RegistrationInput,
 } from '../data/companyDocuments';
-import type { TranslationKey } from '../i18n/dictionary';
 import { useI18n } from '../i18n/I18nProvider';
 
-const IMAGE_ERRORS: Record<DocumentImageError['code'], TranslationKey> = {
-  'not-an-image': 'registration.notImage',
-  unreadable: 'registration.unreadable',
-  'too-large': 'registration.tooLarge',
-};
+const KB = 1024;
+const formatKB = (bytes: number) => `${Math.max(1, Math.round(bytes / KB))} KB`;
+const MAX_LABEL = formatKB(DOCUMENT_MAX_BYTES);
 
 /**
- * The registration number and the document photo. The photo is compressed as
- * soon as it is picked, so what is previewed is exactly what will be stored.
+ * The registration number and the document file (an image or a PDF). An
+ * image is compressed as soon as it is picked, so what is previewed is
+ * exactly what will be stored; a PDF is kept as picked and only shown by
+ * name, since it is refused outright if it does not already fit.
  */
 export function RegistrationFields({
   value,
   onChange,
   showErrors,
   disabled = false,
-  prepare = prepareDocumentImage,
+  prepare = prepareDocumentFile,
 }: {
   value: RegistrationInput;
   onChange: (value: RegistrationInput) => void;
   showErrors: boolean;
   disabled?: boolean;
   /** Replaceable in tests, where there is no canvas. */
-  prepare?: (file: File) => Promise<PreparedDocumentImage>;
+  prepare?: (file: File) => Promise<PreparedDocumentFile>;
 }) {
   const { t } = useI18n();
   const input = useRef<HTMLInputElement>(null);
   const [preparing, setPreparing] = useState(false);
-  const [imageError, setImageError] = useState<TranslationKey | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const problems = registrationProblems(value);
+  const document = value.document;
+  const isImage = document?.contentType === 'image/jpeg';
 
   const preview = useMemo(
     () =>
-      value.document
-        ? URL.createObjectURL(new Blob([value.document.bytes as BlobPart], { type: 'image/jpeg' }))
+      document && isImage
+        ? URL.createObjectURL(new Blob([document.bytes as BlobPart], { type: 'image/jpeg' }))
         : null,
-    [value.document],
+    [document, isImage],
   );
   useEffect(() => () => {
     if (preview) URL.revokeObjectURL(preview);
@@ -53,14 +55,25 @@ export function RegistrationFields({
 
   const pick = async (file: File | undefined) => {
     if (!file) return;
-    setImageError(null);
+    setFileError(null);
     setPreparing(true);
     try {
       onChange({ ...value, document: await prepare(file) });
     } catch (error) {
-      setImageError(
-        error instanceof DocumentImageError ? IMAGE_ERRORS[error.code] : 'registration.unreadable',
-      );
+      if (error instanceof DocumentFileError) {
+        setFileError(
+          error.code === 'too-large'
+            ? t('registration.tooLarge', {
+                size: formatKB(error.sizeBytes ?? file.size),
+                max: MAX_LABEL,
+              })
+            : t(
+                error.code === 'unsupported-type' ? 'registration.unsupportedType' : 'registration.unreadable',
+              ),
+        );
+      } else {
+        setFileError(t('registration.unreadable'));
+      }
     } finally {
       setPreparing(false);
       if (input.current) input.current.value = '';
@@ -88,12 +101,16 @@ export function RegistrationFields({
       </label>
       <div className="field">
         <span>{t('registration.document')}</span>
-        {preview && value.document && (
+        {document && (
           <div className="document-preview">
-            <img src={preview} alt={t('registration.alt')} />
+            {preview ? (
+              <img src={preview} alt={t('registration.alt')} />
+            ) : (
+              <p className="document-preview__file">📄 {document.fileName}</p>
+            )}
             <small className="note">
               <bdi dir="ltr">
-                {value.document.fileName} · {Math.round(value.document.bytes.length / 1024)} KB
+                {document.fileName} · {formatKB(document.bytes.length)}
               </bdi>
             </small>
           </div>
@@ -107,11 +124,11 @@ export function RegistrationFields({
           >
             {preparing
               ? t('registration.preparing')
-              : value.document
+              : document
                 ? t('registration.change')
                 : t('registration.choose')}
           </button>
-          {value.document && !preparing && (
+          {document && !preparing && (
             <button
               type="button"
               className="btn"
@@ -125,16 +142,16 @@ export function RegistrationFields({
         <input
           ref={input}
           type="file"
-          accept="image/*"
+          accept="image/*,application/pdf"
           hidden
           data-testid="registration-file"
           onChange={(e) => void pick(e.target.files?.[0])}
         />
-        {imageError && <small className="field__error">{t(imageError)}</small>}
-        {!imageError && showErrors && problems.includes('document-required') && (
+        {fileError && <small className="field__error">{fileError}</small>}
+        {!fileError && showErrors && problems.includes('document-required') && (
           <small className="field__error">{t('registration.documentRequired')}</small>
         )}
-        <small className="note">{t('registration.documentHint')}</small>
+        <small className="note">{t('registration.documentHint', { max: MAX_LABEL })}</small>
       </div>
     </fieldset>
   );

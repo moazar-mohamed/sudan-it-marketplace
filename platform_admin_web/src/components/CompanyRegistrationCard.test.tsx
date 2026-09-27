@@ -5,7 +5,7 @@ import {
   documentFileName,
   registrationProblems,
   type CompanyDocument,
-  type PreparedDocumentImage,
+  type PreparedDocumentFile,
 } from '../data/companyDocuments';
 import { ar, en } from '../i18n/dictionary';
 import { I18nProvider } from '../i18n/I18nProvider';
@@ -24,8 +24,17 @@ const stored: CompanyDocument = {
   updatedAt: new Date(2026, 8, 20),
 };
 
-const picked: PreparedDocumentImage = {
+const storedPdf: CompanyDocument = {
+  ...stored,
+  fileName: 'licence.pdf',
+  contentType: 'application/pdf',
+  width: 0,
+  height: 0,
+};
+
+const picked: PreparedDocumentFile = {
   bytes: new Uint8Array(1024).fill(5),
+  contentType: 'image/jpeg',
   width: 800,
   height: 1000,
   fileName: 'new-scan.jpg',
@@ -64,15 +73,18 @@ describe('registration rules shared by both forms', () => {
     expect(registrationProblems({ registrationNumber: 'CR-1', document: picked })).toEqual([]);
   });
 
-  it('the stored file name is always a .jpg of reasonable length', () => {
-    expect(documentFileName('Scan 2024.PNG')).toBe('Scan 2024.jpg');
-    expect(documentFileName('')).toBe('document.jpg');
-    expect(documentFileName(`${'a'.repeat(200)}.heic`)).toHaveLength(99);
+  it('an image is always renamed to .jpg; a PDF keeps its name', () => {
+    expect(documentFileName('Scan 2024.PNG', 'image/jpeg')).toBe('Scan 2024.jpg');
+    expect(documentFileName('', 'image/jpeg')).toBe('document.jpg');
+    expect(documentFileName(`${'a'.repeat(200)}.heic`, 'image/jpeg')).toHaveLength(99);
+    expect(documentFileName('Commercial Register.pdf', 'application/pdf')).toBe(
+      'Commercial Register.pdf',
+    );
   });
 });
 
 describe('the registration card on a company page', () => {
-  it('shows the number, and the document only when asked', async () => {
+  it('shows the number, and the image only when asked', async () => {
     renderCard(async () => stored);
     await settle();
     expect(screen.getByText('CR-2024-0091')).toBeTruthy();
@@ -82,6 +94,19 @@ describe('the registration card on a company page', () => {
     expect(screen.getByRole('img', { name: en['registration.alt'] })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: en['registration.hide'] }));
     expect(screen.queryByRole('img')).toBeNull();
+  });
+
+  it('a PDF opens in a new tab instead of embedding', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+    renderCard(async () => storedPdf);
+    await settle();
+    // One action, not a view/hide toggle: there is nothing to embed.
+    expect(screen.queryByRole('button', { name: en['registration.hide'] })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: en['registration.view'] }));
+    expect(openSpy).toHaveBeenCalledWith('blob:test/doc', '_blank', 'noopener');
+    expect(screen.queryByRole('img')).toBeNull();
+    openSpy.mockRestore();
   });
 
   it('a company added before documents were required says so and can get one', async () => {
@@ -97,7 +122,7 @@ describe('the registration card on a company page', () => {
     expect(screen.getByText(en['registration.documentRequired'])).toBeTruthy();
   });
 
-  it('updating keeps the stored photo unless a new one is picked', async () => {
+  it('updating keeps the stored file unless a new one is picked', async () => {
     const save = vi.fn(async () => undefined);
     renderCard(async () => stored, save);
     await settle();
@@ -127,8 +152,8 @@ describe('the registration card on a company page', () => {
   });
 });
 
-describe('picking the document photo', () => {
-  const renderFields = (prepare: (file: File) => Promise<PreparedDocumentImage>) => {
+describe('picking the document file', () => {
+  const renderFields = (prepare: (file: File) => Promise<PreparedDocumentFile>) => {
     const onChange = vi.fn();
     render(
       <I18nProvider>
@@ -152,16 +177,67 @@ describe('picking the document photo', () => {
     expect(onChange).toHaveBeenCalledWith({ registrationNumber: '', document: picked });
   });
 
-  it('an unusable photo shows why', async () => {
-    const { DocumentImageError } = await import('../data/companyDocuments');
-    renderFields(async () => {
-      throw new DocumentImageError('too-large');
-    });
-    const file = new File(['x'], 'huge.jpg', { type: 'image/jpeg' });
+  it('a small enough PDF is kept exactly as picked, not re-encoded', async () => {
+    const pdf: PreparedDocumentFile = {
+      bytes: new Uint8Array(2048).fill(1),
+      contentType: 'application/pdf',
+      width: 0,
+      height: 0,
+      fileName: 'register.pdf',
+    };
+    const onChange = renderFields(async () => pdf);
+    const file = new File(['x'], 'register.pdf', { type: 'application/pdf' });
     await act(async () => {
       fireEvent.change(screen.getByTestId('registration-file'), { target: { files: [file] } });
     });
-    expect(screen.getByText(en['registration.tooLarge'])).toBeTruthy();
+    expect(onChange).toHaveBeenCalledWith({ registrationNumber: '', document: pdf });
+  });
+
+  it('a picked PDF is shown by name only, never inline (a controlled re-render)', () => {
+    render(
+      <I18nProvider>
+        <RegistrationFields
+          value={{
+            registrationNumber: '',
+            document: {
+              bytes: new Uint8Array(8).fill(1),
+              contentType: 'application/pdf',
+              width: 0,
+              height: 0,
+              fileName: 'register.pdf',
+            },
+          }}
+          onChange={vi.fn()}
+          showErrors={false}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(screen.getAllByText(/register\.pdf/).length).toBeGreaterThan(0);
+  });
+
+  it('a file over the limit is refused with its actual size in the message', async () => {
+    const { DocumentFileError } = await import('../data/companyDocuments');
+    renderFields(async () => {
+      throw new DocumentFileError('too-large', 900_000);
+    });
+    const file = new File(['x'], 'huge.pdf', { type: 'application/pdf' });
+    await act(async () => {
+      fireEvent.change(screen.getByTestId('registration-file'), { target: { files: [file] } });
+    });
+    expect(screen.getByText('This file is 879 KB; the limit is 684 KB. Choose a smaller file, or a photo instead of a PDF.')).toBeTruthy();
+  });
+
+  it('an unsupported file type says so', async () => {
+    const { DocumentFileError } = await import('../data/companyDocuments');
+    renderFields(async () => {
+      throw new DocumentFileError('unsupported-type');
+    });
+    const file = new File(['x'], 'notes.docx', { type: 'application/msword' });
+    await act(async () => {
+      fireEvent.change(screen.getByTestId('registration-file'), { target: { files: [file] } });
+    });
+    expect(screen.getByText(en['registration.unsupportedType'])).toBeTruthy();
   });
 
   it('every text has an Arabic translation', () => {

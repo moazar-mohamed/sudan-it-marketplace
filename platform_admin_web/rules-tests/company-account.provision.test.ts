@@ -88,7 +88,7 @@ const input = (extra: Partial<NewCompanyInput> = {}): NewCompanyInput => ({
   pickupAddress: 'Depot',
   initialPassword: 'Abc@2026',
   registrationNumber: 'CR-2024-0091',
-  registrationDocument: { bytes: new Uint8Array(512).fill(9), width: 800, height: 1000, fileName: 'cr.jpg' },
+  registrationDocument: { bytes: new Uint8Array(512).fill(9), contentType: 'image/jpeg', width: 800, height: 1000, fileName: 'cr.jpg' },
   ...extra,
 });
 

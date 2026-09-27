@@ -59,13 +59,25 @@ const user = (id: string, role: string, extra: Record<string, unknown> = {}) => 
 
 const image = (size = 2048) => ({
   bytes: new Uint8Array(size).fill(7),
+  contentType: 'image/jpeg' as const,
   width: 1200,
   height: 1600,
   fileName: 'licence.jpg',
 });
 
+const pdf = (size = 2048) => ({
+  bytes: new Uint8Array(size).fill(7),
+  contentType: 'application/pdf' as const,
+  width: 0,
+  height: 0,
+  fileName: 'licence.pdf',
+});
+
 const payload = (companyId = 'c1', number = 'CR-2024-0091', size?: number) =>
   companyDocumentData(companyId, number, image(size));
+
+const pdfPayload = (companyId = 'c1', number = 'CR-2024-0091', size?: number) =>
+  companyDocumentData(companyId, number, pdf(size));
 
 beforeEach(async () => {
   await env.clearFirestore();
@@ -182,6 +194,25 @@ describe('adding and updating', () => {
     const withoutImage: Record<string, unknown> = { ...payload() };
     delete withoutImage.image;
     await assertFails(setDoc(ref, withoutImage));
+  });
+
+  it('a PDF is accepted as picked, with no pixel size', async () => {
+    await assertSucceeds(setDoc(doc(as('pa1'), 'company_documents', 'c1'), pdfPayload()));
+  });
+
+  it('a PDF is refused if it is too large, or carries a width/height', async () => {
+    const db = as('pa1');
+    const ref = doc(db, 'company_documents', 'c1');
+    await assertFails(setDoc(ref, pdfPayload('c1', 'CR-1', 700_001)));
+    await assertFails(setDoc(ref, { ...pdfPayload(), width: 100 }));
+    await assertFails(setDoc(ref, { ...pdfPayload(), height: 100 }));
+  });
+
+  it('an image still needs a real width and height', async () => {
+    const db = as('pa1');
+    const ref = doc(db, 'company_documents', 'c1');
+    await assertFails(setDoc(ref, { ...payload(), width: 0 }));
+    await assertFails(setDoc(ref, { ...payload(), height: -1 }));
   });
 
   it('one field cannot be patched on its own', async () => {
