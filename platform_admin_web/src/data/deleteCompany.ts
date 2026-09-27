@@ -30,6 +30,7 @@ import {
  *   products         companyId == id       the catalogue
  *   company_services companyId == id       services offered
  *   reviews          companyId == id       reviews of the company
+ *   company_documents  document id == id    its registration document
  *   notifications    company_admin -> id   the admin's notifications
  *   notifications    technician -> tech    the employees' notifications
  *
@@ -62,6 +63,8 @@ export interface CompanyOwnedData {
   products: DocumentReference[];
   services: DocumentReference[];
   reviews: DocumentReference[];
+  /** The registration document (0 or 1). */
+  registration: DocumentReference[];
   adminNotifications: DocumentReference[];
   technicianNotifications: DocumentReference[];
 }
@@ -72,7 +75,7 @@ export interface CompanyDeletionSummary {
   technicians: number; // employee records + their profiles
   invites: number;
   products: number;
-  other: number; // services, reviews, notifications
+  other: number; // services, reviews, registration document, notifications
   /** Orders that still exist for this company after the delete; null if it could not be counted. */
   ordersKept: number | null;
 }
@@ -101,6 +104,8 @@ const staffWithRole = (db: Firestore, id: string, role: string) =>
 async function findWhileCompanyExists(db: Firestore, id: string) {
   const companyRef = doc(db, 'companies', id);
   const company = (await getDoc(companyRef)).exists() ? companyRef : null;
+  const registrationRef = doc(db, 'company_documents', id);
+  const registration = (await getDoc(registrationRef)).exists() ? [registrationRef] : [];
   const [technicians, invites, products, services, reviews] = await Promise.all([
     byCompany(db, 'technicians', id),
     byCompany(db, 'technicianInvites', id),
@@ -115,7 +120,7 @@ async function findWhileCompanyExists(db: Firestore, id: string) {
       where('recipientId', '==', id),
     ),
   );
-  return { company, technicians, invites, products, services, reviews, adminNotifications };
+  return { company, technicians, invites, products, services, reviews, registration, adminNotifications };
 }
 
 /** Stage 2 lookups: the admin / employee profiles of a company that is gone. */
@@ -187,6 +192,7 @@ export async function deleteCompanyCascade(db: Firestore, companyId: string): Pr
     ...one.products,
     ...one.services,
     ...one.reviews,
+    ...one.registration,
     ...one.adminNotifications,
   ]);
 
@@ -221,7 +227,11 @@ export async function deleteCompanyCascade(db: Firestore, companyId: string): Pr
     invites: one.invites.length,
     products: one.products.length,
     other:
-      one.services.length + one.reviews.length + one.adminNotifications.length + technicianNotifications.length,
+      one.services.length +
+      one.reviews.length +
+      one.registration.length +
+      one.adminNotifications.length +
+      technicianNotifications.length,
     ordersKept: await countOrders(db, id),
   };
 }

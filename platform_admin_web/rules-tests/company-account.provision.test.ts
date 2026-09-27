@@ -87,6 +87,8 @@ const input = (extra: Partial<NewCompanyInput> = {}): NewCompanyInput => ({
   email: 'Abc@Gmail.com',
   pickupAddress: 'Depot',
   initialPassword: 'Abc@2026',
+  registrationNumber: 'CR-2024-0091',
+  registrationDocument: { bytes: new Uint8Array(512).fill(9), width: 800, height: 1000, fileName: 'cr.jpg' },
   ...extra,
 });
 
@@ -128,7 +130,7 @@ async function changePasswordLikeTheApp(email: string, temporary: string, next: 
 async function allDocuments() {
   const dump: Record<string, unknown> = {};
   await env.withSecurityRulesDisabled(async (ctx) => {
-    for (const name of ['users', 'companies', 'products', 'orders']) {
+    for (const name of ['users', 'companies', 'company_documents', 'products', 'orders']) {
       const snap = await getDocs(collection(ctx.firestore(), name));
       snap.forEach((d) => (dump[`${name}/${d.id}`] = d.data()));
     }
@@ -236,6 +238,29 @@ describe.skipIf(!authHost)('creating a company with an initial password', () => 
       createCompanyWithAdminAccount(input({ email: 'not-an-email' }), deps()),
     ).rejects.toBeInstanceOf(CompanyAccountError);
     expect(Object.keys(await allDocuments()).filter((k) => k.startsWith('companies/'))).toHaveLength(0);
+  });
+
+  it('requires the registration number and document before anything is created', async () => {
+    for (const extra of [
+      { registrationNumber: '  ' },
+      { registrationDocument: null },
+    ] as Partial<NewCompanyInput>[]) {
+      await expect(createCompanyWithAdminAccount(input(extra), deps())).rejects.toMatchObject({
+        code: 'company-account/registration-required',
+      });
+    }
+    expect(Object.keys(await allDocuments()).filter((k) => k.startsWith('companies/'))).toHaveLength(0);
+    await expect(signIn('abc@gmail.com', 'Abc@2026')).rejects.toBeDefined();
+  });
+
+  it('stores the registration beside the company, not in its public document', async () => {
+    const { companyId } = await createCompanyWithAdminAccount(input(), deps());
+    const dump = await allDocuments();
+    const company = dump[`companies/${companyId}`] as Record<string, unknown>;
+    expect(Object.keys(company)).not.toContain('registrationNumber');
+    const registration = dump[`company_documents/${companyId}`] as Record<string, unknown>;
+    expect(registration.registrationNumber).toBe('CR-2024-0091');
+    expect(registration.companyId).toBe(companyId);
   });
 
   it('refuses an email that already has an account, and creates no second company', async () => {

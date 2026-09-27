@@ -94,6 +94,8 @@ const input = (name: string, email: string): NewCompanyInput => ({
   email,
   pickupAddress: '',
   initialPassword: 'Pass@2026',
+  registrationNumber: 'CR-2024-0091',
+  registrationDocument: { bytes: new Uint8Array(512).fill(9), width: 800, height: 1000, fileName: 'cr.jpg' },
 });
 
 const provisionDeps = (): ProvisionDeps => ({
@@ -364,8 +366,10 @@ describe.skipIf(!authHost)('deleting a company cascades, but keeps every order',
     expect(await exists('reviews', 'A-r1')).toBe(false);
     expect(await exists('notifications', 'A-n-admin')).toBe(false);
     expect(await exists('notifications', 'A-n-tech')).toBe(false);
+    expect(await exists('company_documents', a.companyId)).toBe(false);
     expect(summary).toMatchObject({ admins: 1, technicians: 1, invites: 1, products: 2, ordersKept: 1 });
-    expect(summary.other).toBe(4); // service, review, admin + technician notification
+    // service, review, registration document, admin + technician notification
+    expect(summary.other).toBe(5);
   });
 
   it('9-10. never deletes an order, and orders stay readable as history', async () => {

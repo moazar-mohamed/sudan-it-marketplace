@@ -1747,6 +1747,44 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // A company's registration: its commercial registration / licence number
+    // and a compressed JPEG of the document, as bytes (no Cloud Storage on
+    // this plan). Platform Admin only - never the company, customers or staff.
+    // Written with the company when it is added, or later from its page; the
+    // company must exist once the write is applied. Deleted with the company.
+    function isValidCompanyDocumentWrite(companyId) {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+          'companyId', 'registrationNumber', 'fileName', 'contentType',
+          'image', 'sizeBytes', 'width', 'height', 'updatedAt'
+        ])
+        && data.companyId == companyId
+        && data.registrationNumber is string
+        && data.registrationNumber.trim().size() > 0
+        && data.registrationNumber.size() <= 60
+        && data.fileName is string
+        && data.fileName.size() > 0
+        && data.fileName.size() <= 100
+        && data.contentType == 'image/jpeg'
+        && data.image is bytes
+        && data.image.size() > 0
+        && data.image.size() <= 700000
+        && data.sizeBytes is int
+        && data.sizeBytes == data.image.size()
+        && data.width is int && data.width > 0 && data.width <= 4096
+        && data.height is int && data.height > 0 && data.height <= 4096
+        && data.updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/companies/$(companyId));
+    }
+
+    match /company_documents/{companyId} {
+      allow get: if isPlatformAdmin();
+      allow list: if false;
+      allow create, update: if isPlatformAdmin()
+        && isValidCompanyDocumentWrite(companyId);
+      allow delete: if isPlatformAdmin() && companyIsGoneAfter(companyId);
+    }
+
     // Reviews are visible to Platform Admin only, and read-only.
     match /reviews/{reviewId} {
       allow get, list: if isPlatformAdmin();

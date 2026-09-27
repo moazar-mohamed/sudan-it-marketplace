@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { createCompany } from '../data/actions';
 import { isValidEmail, passwordProblem } from '../data/companyAccount';
+import { registrationProblems } from '../data/companyDocuments';
 import { NO_IMAGE } from '../data/imageRules';
 import type { NewCompanyInput } from '../data/provisionCompany';
 import { useI18n } from '../i18n/I18nProvider';
@@ -8,6 +9,7 @@ import { useRunner } from './feedback';
 import { ImagePickerField } from './ImagePickerField';
 import { LocationField } from './LocationField';
 import { MapPicker } from './MapPicker';
+import { RegistrationFields } from './RegistrationFields';
 import { Modal } from './ui';
 
 const EMPTY: NewCompanyInput = {
@@ -22,6 +24,8 @@ const EMPTY: NewCompanyInput = {
   pickupAddress: '',
   initialPassword: '',
   logo: NO_IMAGE,
+  registrationNumber: '',
+  registrationDocument: null,
 };
 
 export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
@@ -42,10 +46,15 @@ export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
   const nameMissing = !form.name.trim();
   const emailInvalid = !isValidEmail(form.email);
   const passwordIssue = passwordProblem(form.initialPassword);
+  const registration = {
+    registrationNumber: form.registrationNumber,
+    document: form.registrationDocument,
+  };
+  const registrationIncomplete = registrationProblems(registration).length > 0;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (nameMissing || emailInvalid || passwordIssue) {
+    if (nameMissing || emailInvalid || passwordIssue || registrationIncomplete) {
       setShowError(true);
       return;
     }
@@ -170,6 +179,18 @@ export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
             dir="auto"
           />
         </label>
+        <RegistrationFields
+          value={registration}
+          onChange={(next) =>
+            setForm((prev) => ({
+              ...prev,
+              registrationNumber: next.registrationNumber,
+              registrationDocument: next.document,
+            }))
+          }
+          showErrors={showError}
+          disabled={busy === 'create'}
+        />
         <p className="note">{t('companies.addHint')}</p>
         <div className="modal__actions">
           <button type="button" className="btn" onClick={onClose}>

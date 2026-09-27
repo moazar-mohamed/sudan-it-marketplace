@@ -136,7 +136,9 @@ export function useRunner() {
                   ? t('companies.emailRequired')
                   : code === 'company-account/weak-password'
                     ? t('companies.error.weakPassword')
-                    : t('error.action'),
+                    : code === 'company-account/registration-required'
+                      ? t('registration.required')
+                      : t('error.action'),
           'error',
         );
         return false;

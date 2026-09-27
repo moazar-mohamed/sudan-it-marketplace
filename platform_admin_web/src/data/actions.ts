@@ -10,6 +10,11 @@ import * as ops from './categoryOps';
 import type { CategoryFields, NewCategoryInput, RunOptions } from './categoryOps';
 import type { ImageSelection } from './imageRules';
 import { resolveImageSelection } from './imageUpload';
+import {
+  fetchCompanyDocument,
+  saveCompanyDocument,
+  type PreparedDocumentImage,
+} from './companyDocuments';
 import { deleteCompanyCascade } from './deleteCompany';
 import {
   createCompanyWithAdminAccount,
@@ -58,6 +63,15 @@ export const createCompany = (input: NewCompanyInput) =>
     provisionAccount: secondaryAppProvisioner(firebaseConfig),
     resolveLogo: resolveImageSelection,
   });
+
+/** The company's registration document (Platform Admin only). */
+export const loadCompanyDocument = (companyId: string) => fetchCompanyDocument(db, companyId);
+
+export const saveCompanyRegistration = (
+  companyId: string,
+  registrationNumber: string,
+  image: PreparedDocumentImage,
+) => saveCompanyDocument(db, companyId, registrationNumber, image);
 
 /**
  * Deletes a company together with its admin, employees, invitations, products

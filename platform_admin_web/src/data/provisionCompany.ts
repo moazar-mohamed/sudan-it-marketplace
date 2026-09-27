@@ -8,6 +8,11 @@ import {
 } from 'firebase/auth';
 import { collection, doc, getDoc, serverTimestamp, writeBatch, type Firestore } from 'firebase/firestore';
 import type { CompanyInput } from './actions';
+import {
+  companyDocumentData,
+  registrationProblems,
+  type PreparedDocumentImage,
+} from './companyDocuments';
 import { isValidEmail, normalizeEmail, passwordProblem } from './companyAccount';
 import { NO_IMAGE, type ImageSelection } from './imageRules';
 import { toGeoPoint } from './location';
@@ -26,8 +31,9 @@ import { toGeoPoint } from './location';
  *     (createUserWithEmailAndPassword signs the new user in on whichever Auth
  *     instance it is called on). The password goes to Firebase Authentication
  *     only; it is never written to Firestore.
- *  3. The company and the company-admin's users/{uid} profile are written in
- *     ONE batch, so either both exist or neither does. The profile carries
+ *  3. The company, its registration document (company_documents, Platform
+ *     Admin only) and the company-admin's users/{uid} profile are written in
+ *     ONE batch, so either all exist or none does. The profile carries
  *     mustChangePassword: true, so the company must choose its own password on
  *     first login.
  *  4. If that batch is refused, the new Auth account is deleted again so no
@@ -37,6 +43,10 @@ import { toGeoPoint } from './location';
 export interface NewCompanyInput extends CompanyInput {
   /** Temporary password for the company's login; sent to Firebase Auth only. */
   initialPassword: string;
+  /** Commercial registration / licence number (required). */
+  registrationNumber: string;
+  /** Photo of the registration document, already compressed (required). */
+  registrationDocument: PreparedDocumentImage | null;
 }
 
 export interface ProvisionedAccount {
@@ -58,6 +68,7 @@ export interface ProvisionDeps {
 export type CompanyAccountErrorCode =
   | 'company-account/invalid-email'
   | 'company-account/weak-password'
+  | 'company-account/registration-required'
   | 'company-account/email-in-use'
   | 'company-account/link-mismatch';
 
@@ -151,6 +162,14 @@ export async function createCompanyWithAdminAccount(
   if (passwordProblem(input.initialPassword)) {
     throw new CompanyAccountError('company-account/weak-password');
   }
+  const registrationDocument = input.registrationDocument;
+  if (
+    !registrationDocument ||
+    registrationProblems({ registrationNumber: input.registrationNumber, document: registrationDocument })
+      .length > 0
+  ) {
+    throw new CompanyAccountError('company-account/registration-required');
+  }
 
   const companyRef = doc(collection(deps.db, 'companies'));
   const logoUrl = await deps.resolveLogo(input.logo ?? NO_IMAGE, `company-logos/${companyRef.id}`);
@@ -165,6 +184,10 @@ export async function createCompanyWithAdminAccount(
   try {
     const batch = writeBatch(deps.db);
     batch.set(companyRef, companyDocument(input, email, logoUrl));
+    batch.set(
+      doc(deps.db, 'company_documents', companyRef.id),
+      companyDocumentData(companyRef.id, input.registrationNumber, registrationDocument),
+    );
     // No password field, ever: it lives only in Firebase Authentication.
     batch.set(doc(deps.db, 'users', account.uid), {
       id: account.uid,

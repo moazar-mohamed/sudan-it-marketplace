@@ -1,4 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { CompanyRegistrationCard } from '../components/CompanyRegistrationCard';
 import { CompanyStatusActions } from '../components/CompanyStatusActions';
 import { CompanyStatusBadge } from '../components/StatusBadges';
 import {
@@ -10,6 +11,7 @@ import {
   Text,
   Thumb,
 } from '../components/ui';
+import { loadCompanyDocument, saveCompanyRegistration } from '../data/actions';
 import { useCompanies, useOrders, useProducts } from '../data/hooks';
 import { formatCoordinate, osmViewUrl, toGeoPoint } from '../data/location';
 import { useI18n } from '../i18n/I18nProvider';
@@ -93,6 +95,12 @@ export function CompanyDetailsPage() {
                 </dl>
               </Card>
             </div>
+
+            <CompanyRegistrationCard
+              companyId={company.id}
+              load={loadCompanyDocument}
+              save={saveCompanyRegistration}
+            />
 
             <Card title={t('company.section.activity')}>
               <dl className="kv-list">
