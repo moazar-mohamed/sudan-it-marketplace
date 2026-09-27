@@ -2264,12 +2264,6 @@ abstract class AppLocalizations {
   /// **'Installation Jobs'**
   String get adminInstallationJobs;
 
-  /// No description provided for @adminNavInstallations.
-  ///
-  /// In en, this message translates to:
-  /// **'Installations'**
-  String get adminNavInstallations;
-
   /// No description provided for @adminCompanyProfile.
   ///
   /// In en, this message translates to:
@@ -2593,18 +2587,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mark Processing'**
   String get adminMarkProcessing;
-
-  /// No description provided for @adminInstallationJobsLoadFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not load installation jobs.'**
-  String get adminInstallationJobsLoadFailed;
-
-  /// No description provided for @adminInstallationJobsEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'No installation jobs yet.\nOrders with Product + Installation appear here.'**
-  String get adminInstallationJobsEmpty;
 
   /// No description provided for @adminInstallationJob.
   ///
@@ -2936,24 +2918,6 @@ abstract class AppLocalizations {
   /// **'Verify payment'**
   String get adminAttentionVerifyPayment;
 
-  /// No description provided for @adminQuickTechnician.
-  ///
-  /// In en, this message translates to:
-  /// **'Technician'**
-  String get adminQuickTechnician;
-
-  /// No description provided for @adminQuickService.
-  ///
-  /// In en, this message translates to:
-  /// **'Service'**
-  String get adminQuickService;
-
-  /// No description provided for @adminQuickProduct.
-  ///
-  /// In en, this message translates to:
-  /// **'Product'**
-  String get adminQuickProduct;
-
   /// No description provided for @adminStatLowStock.
   ///
   /// In en, this message translates to:
@@ -2984,16 +2948,76 @@ abstract class AppLocalizations {
   /// **'Needs your attention'**
   String get adminNeedsAttention;
 
-  /// No description provided for @adminMenuTitle.
+  /// No description provided for @navCatalog.
   ///
   /// In en, this message translates to:
-  /// **'Menu'**
-  String get adminMenuTitle;
+  /// **'Catalog'**
+  String get navCatalog;
+
+  /// No description provided for @navAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get navAccount;
+
+  /// No description provided for @adminAddNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get adminAddNew;
+
+  /// No description provided for @adminAddNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new'**
+  String get adminAddNewTitle;
+
+  /// No description provided for @adminAddService.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Service'**
+  String get adminAddService;
+
+  /// No description provided for @adminOrdersPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup ({count})'**
+  String adminOrdersPickup(int count);
+
+  /// No description provided for @adminOrdersDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery ({count})'**
+  String adminOrdersDelivery(int count);
+
+  /// No description provided for @adminOrdersInstallation.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation ({count})'**
+  String adminOrdersInstallation(int count);
+
+  /// No description provided for @adminOrdersServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services ({count})'**
+  String adminOrdersServices(int count);
+
+  /// No description provided for @adminAccountViewProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View company profile'**
+  String get adminAccountViewProfile;
+
+  /// No description provided for @adminTechniciansActive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String adminTechniciansActive(int count);
 
   /// No description provided for @adminSearchOrders.
   ///
   /// In en, this message translates to:
-  /// **'Search by product or customer'**
+  /// **'Search orders and service requests'**
   String get adminSearchOrders;
 
   /// No description provided for @adminSearchProducts.
@@ -4129,18 +4153,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Write a message of up to 2000 characters.'**
   String get chatMessageInvalid;
-
-  /// No description provided for @adminServiceRequestsTab.
-  ///
-  /// In en, this message translates to:
-  /// **'Requests'**
-  String get adminServiceRequestsTab;
-
-  /// No description provided for @adminMyServicesTab.
-  ///
-  /// In en, this message translates to:
-  /// **'My services'**
-  String get adminMyServicesTab;
 
   /// No description provided for @adminServicesLoadFailed.
   ///

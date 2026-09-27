@@ -12,10 +12,8 @@ import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
 import '../company_admin_format.dart';
 import '../orders/company_order_details_screen.dart';
+import '../orders/company_orders_tab.dart';
 import '../products/company_product_details_screen.dart';
-import '../products/product_form_screen.dart';
-import '../services/my_services_view.dart';
-import '../technicians/technician_form_screen.dart';
 import '../widgets/company_order_tile.dart';
 
 /// A product with this many units or fewer counts as low on stock.
@@ -25,11 +23,15 @@ class CompanyDashboardTab extends ConsumerWidget {
   const CompanyDashboardTab({
     super.key,
     required this.companyId,
-    this.onSelectTab,
+    this.onOpenOrders,
+    this.onOpenCatalog,
   });
 
   final String companyId;
-  final ValueChanged<int>? onSelectTab;
+
+  /// Opens the Orders tab at a section.
+  final ValueChanged<CompanyOrdersSection>? onOpenOrders;
+  final VoidCallback? onOpenCatalog;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -120,13 +122,15 @@ class CompanyDashboardTab extends ConsumerWidget {
                           label: context.l10n.adminStatNewOrders,
                           value: ordersAsync.hasValue ? '$newOrders' : '…',
                           icon: Icons.receipt_long_outlined,
-                          onTap: () => onSelectTab?.call(2),
+                          onTap: () =>
+                              onOpenOrders?.call(CompanyOrdersSection.all),
                         ),
                         _StatTile(
                           label: context.l10n.adminInstallationJobs,
                           value: ordersAsync.hasValue ? '$installJobs' : '…',
                           icon: Icons.handyman_outlined,
-                          onTap: () => onSelectTab?.call(3),
+                          onTap: () => onOpenOrders
+                              ?.call(CompanyOrdersSection.installation),
                         ),
                         _StatTile(
                           label: context.l10n.adminStatSalesWeek,
@@ -134,7 +138,8 @@ class CompanyDashboardTab extends ConsumerWidget {
                               ? CompanyAdminFormat.price(weekSales)
                               : '…',
                           icon: Icons.trending_up,
-                          onTap: () => onSelectTab?.call(2),
+                          onTap: () =>
+                              onOpenOrders?.call(CompanyOrdersSection.all),
                         ),
                         _StatTile(
                           label: context.l10n.adminStatLowStock,
@@ -145,7 +150,7 @@ class CompanyDashboardTab extends ConsumerWidget {
                           tone: lowStock.isEmpty
                               ? AppTone.brand
                               : AppTone.warning,
-                          onTap: () => onSelectTab?.call(1),
+                          onTap: onOpenCatalog,
                         ),
                       ];
                       return Wrap(
@@ -157,45 +162,6 @@ class CompanyDashboardTab extends ConsumerWidget {
                         ],
                       );
                     },
-                  ),
-                  const SizedBox(height: AppSpacing.s16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _QuickAction(
-                          icon: Icons.add_box_outlined,
-                          label: context.l10n.adminQuickProduct,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) =>
-                                  ProductFormScreen.add(companyId: companyId),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.s8),
-                      Expanded(
-                        child: _QuickAction(
-                          icon: Icons.design_services_outlined,
-                          label: context.l10n.adminQuickService,
-                          onTap: () =>
-                              showCreateOwnService(context, ref, companyId),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.s8),
-                      Expanded(
-                        child: _QuickAction(
-                          icon: Icons.engineering_outlined,
-                          label: context.l10n.adminQuickTechnician,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) =>
-                                  TechnicianFormScreen.add(companyId: companyId),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                   const SizedBox(height: AppSpacing.s24),
                   Text(context.l10n.adminNeedsAttention, style: AppTextStyles.h3),
@@ -222,7 +188,8 @@ class CompanyDashboardTab extends ConsumerWidget {
                   SectionHeader(
                     title: context.l10n.adminRecentOrders,
                     actionLabel: context.l10n.adminViewAll,
-                    onAction: () => onSelectTab?.call(2),
+                    onAction: () =>
+                        onOpenOrders?.call(CompanyOrdersSection.all),
                   ),
                   const SizedBox(height: AppSpacing.s8),
                   ordersAsync.when(
@@ -306,45 +273,6 @@ class _StatTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.caption
                 .copyWith(color: context.colors.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      onTap: onTap,
-      color: context.colors.brandPrimarySubtle,
-      borderColor: context.colors.brandPrimarySubtle,
-      padding: const EdgeInsets.symmetric(
-        vertical: AppSpacing.s12,
-        horizontal: AppSpacing.s4,
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: context.colors.iconBrand),
-          const SizedBox(height: AppSpacing.s4),
-          Text(
-            label,
-            maxLines: 2,
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.labelMedium
-                .copyWith(color: context.colors.textBrand),
           ),
         ],
       ),

@@ -112,24 +112,9 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
             AppSpacing.s24,
           ),
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: AppSearchField(
-                    hint: context.l10n.adminSearchProducts,
-                    onChanged: (value) => setState(() => _query = value),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.s8),
-                IconButton.filled(
-                  style: IconButton.styleFrom(
-                    foregroundColor: context.colors.onPrimary,
-                  ),
-                  tooltip: context.l10n.adminAddProduct,
-                  icon: const Icon(Icons.add),
-                  onPressed: _openAdd,
-                ),
-              ],
+            AppSearchField(
+              hint: context.l10n.adminSearchProducts,
+              onChanged: (value) => setState(() => _query = value),
             ),
             if (usedCategoryIds.isNotEmpty || hasUncategorized) ...[
               const SizedBox(height: 10),

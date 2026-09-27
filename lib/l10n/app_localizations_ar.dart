@@ -1236,9 +1236,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminInstallationJobs => 'مهام التركيب';
 
   @override
-  String get adminNavInstallations => 'التركيبات';
-
-  @override
   String get adminCompanyProfile => 'ملف الشركة';
 
   @override
@@ -1413,13 +1410,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get adminMarkProcessing => 'تحويل إلى: قيد المعالجة';
-
-  @override
-  String get adminInstallationJobsLoadFailed => 'تعذر تحميل مهام التركيب.';
-
-  @override
-  String get adminInstallationJobsEmpty =>
-      'لا توجد مهام تركيب بعد.\nتظهر هنا الطلبات التي تتضمن منتج + تركيب.';
 
   @override
   String get adminInstallationJob => 'مهمة تركيب';
@@ -1598,15 +1588,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminAttentionVerifyPayment => 'تحقق من الدفع';
 
   @override
-  String get adminQuickTechnician => 'فني';
-
-  @override
-  String get adminQuickService => 'خدمة';
-
-  @override
-  String get adminQuickProduct => 'منتج';
-
-  @override
   String get adminStatLowStock => 'مخزون منخفض';
 
   @override
@@ -1622,10 +1603,50 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminNeedsAttention => 'يحتاج انتباهك';
 
   @override
-  String get adminMenuTitle => 'القائمة';
+  String get navCatalog => 'الكتالوج';
 
   @override
-  String get adminSearchOrders => 'ابحث بالمنتج أو العميل';
+  String get navAccount => 'حسابي';
+
+  @override
+  String get adminAddNew => 'إضافة';
+
+  @override
+  String get adminAddNewTitle => 'إضافة جديد';
+
+  @override
+  String get adminAddService => 'إضافة خدمة';
+
+  @override
+  String adminOrdersPickup(int count) {
+    return 'استلام ($count)';
+  }
+
+  @override
+  String adminOrdersDelivery(int count) {
+    return 'توصيل ($count)';
+  }
+
+  @override
+  String adminOrdersInstallation(int count) {
+    return 'تركيب ($count)';
+  }
+
+  @override
+  String adminOrdersServices(int count) {
+    return 'خدمات ($count)';
+  }
+
+  @override
+  String get adminAccountViewProfile => 'عرض ملف الشركة';
+
+  @override
+  String adminTechniciansActive(int count) {
+    return 'النشطون: $count';
+  }
+
+  @override
+  String get adminSearchOrders => 'ابحث في الطلبات وطلبات الخدمة';
 
   @override
   String get adminSearchProducts => 'ابحث في المنتجات';
@@ -2238,12 +2259,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatMessageInvalid => 'اكتب رسالة لا تتجاوز 2000 حرف.';
-
-  @override
-  String get adminServiceRequestsTab => 'الطلبات';
-
-  @override
-  String get adminMyServicesTab => 'خدماتي';
 
   @override
   String get adminServicesLoadFailed => 'تعذر تحميل الخدمات.';

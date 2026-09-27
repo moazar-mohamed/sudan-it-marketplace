@@ -90,23 +90,7 @@ class MyServicesView extends ConsumerWidget {
 
     return AppCenteredList(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                context.l10n.adminServicesYours,
-                style: AppTextStyles.h3,
-              ),
-            ),
-            if (offered.isNotEmpty)
-              AppButton.primary(
-                icon: Icons.add,
-                label: context.l10n.adminServiceNew,
-                size: AppButtonSize.medium,
-                onPressed: () => showCreateOwnService(context, ref, companyId),
-              ),
-          ],
-        ),
+        Text(context.l10n.adminServicesYours, style: AppTextStyles.h3),
         const SizedBox(height: AppSpacing.s12),
         if (offered.isEmpty)
           AppEmptyState(

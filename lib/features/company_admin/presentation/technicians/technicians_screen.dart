@@ -12,8 +12,9 @@ import '../widgets/status_badge.dart';
 import 'technician_form_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
-class TechniciansTab extends ConsumerWidget {
-  const TechniciansTab({super.key, required this.companyId});
+/// The company's technicians, opened from Account.
+class TechniciansScreen extends ConsumerWidget {
+  const TechniciansScreen({super.key, required this.companyId});
 
   final String companyId;
 
@@ -60,6 +61,7 @@ class TechniciansTab extends ConsumerWidget {
         ref.watch(companyTechniciansStreamProvider(companyId));
 
     return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.navTechnicians)),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'company_add_technician',
         onPressed: () => _openAdd(context),

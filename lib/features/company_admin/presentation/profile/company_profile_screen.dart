@@ -15,8 +15,9 @@ import 'edit_company_profile_screen.dart';
 import 'payment_accounts_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
-class CompanyProfileTab extends ConsumerWidget {
-  const CompanyProfileTab({super.key, required this.companyId});
+/// The company's own profile, opened from Account. Signing out lives here.
+class CompanyProfileScreen extends ConsumerWidget {
+  const CompanyProfileScreen({super.key, required this.companyId});
 
   final String companyId;
 
@@ -27,13 +28,18 @@ class CompanyProfileTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final companyAsync = ref.watch(companyStreamProvider(companyId));
     final signOutButton = AppButton.destructiveOutlined(
-      onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
+      onPressed: () {
+        // Back to the root first: this screen sits above the shell, and the
+        // sign-in screen replaces only the root.
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        ref.read(authControllerProvider.notifier).signOut();
+      },
       icon: Icons.logout,
       label: context.l10n.commonSignOut,
       expand: true,
     );
 
-    return companyAsync.when(
+    final body = companyAsync.when(
       loading: () => const AppLoadingState(),
       error: (_, _) => AppCenteredList(
         children: [
@@ -155,6 +161,11 @@ class CompanyProfileTab extends ConsumerWidget {
           ],
         );
       },
+    );
+
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.adminCompanyProfile)),
+      body: body,
     );
   }
 }

@@ -592,7 +592,6 @@
   },
   "navTechnicians": "Technicians",
   "adminInstallationJobs": "Installation Jobs",
-  "adminNavInstallations": "Installations",
   "adminCompanyProfile": "Company Profile",
   "adminCompanyDashboard": "Company Dashboard",
   "techShellDashboard": "Technician Dashboard",
@@ -695,8 +694,6 @@
   "adminMarkCompletedInstalled": "Mark Completed (Installed)",
   "adminMarkCompleted": "Mark Completed",
   "adminMarkProcessing": "Mark Processing",
-  "adminInstallationJobsLoadFailed": "Could not load installation jobs.",
-  "adminInstallationJobsEmpty": "No installation jobs yet.\nOrders with Product + Installation appear here.",
   "adminInstallationJob": "Installation Job",
   "adminJobTitleNumber": "Job #{id}",
   "@adminJobTitleNumber": {
@@ -780,16 +777,58 @@
   "adminAttentionRestock": "Restock",
   "adminAttentionAssignTechnician": "Assign technician",
   "adminAttentionVerifyPayment": "Verify payment",
-  "adminQuickTechnician": "Technician",
-  "adminQuickService": "Service",
-  "adminQuickProduct": "Product",
   "adminStatLowStock": "Low stock",
   "adminStatSalesWeek": "Sales this week",
   "adminStatNewOrders": "New orders",
   "adminNothingToDo": "Nothing needs your attention right now.",
   "adminNeedsAttention": "Needs your attention",
-  "adminMenuTitle": "Menu",
-  "adminSearchOrders": "Search by product or customer",
+  "navCatalog": "Catalog",
+  "navAccount": "Account",
+  "adminAddNew": "Add",
+  "adminAddNewTitle": "Add new",
+  "adminAddService": "Add Service",
+  "adminOrdersPickup": "Pickup ({count})",
+  "@adminOrdersPickup": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminOrdersDelivery": "Delivery ({count})",
+  "@adminOrdersDelivery": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminOrdersInstallation": "Installation ({count})",
+  "@adminOrdersInstallation": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminOrdersServices": "Services ({count})",
+  "@adminOrdersServices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminAccountViewProfile": "View company profile",
+  "adminTechniciansActive": "{count} active",
+  "@adminTechniciansActive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminSearchOrders": "Search orders and service requests",
   "adminSearchProducts": "Search products",
   "adminServiceOwnBadge": "Created by you",
   "adminServiceCategoryInvalid": "Choose a valid category.",
@@ -1059,8 +1098,6 @@
   "chatSendDenied": "You cannot send messages in this conversation.",
   "chatSendFailed": "The message could not be sent. Please try again.",
   "chatMessageInvalid": "Write a message of up to 2000 characters.",
-  "adminServiceRequestsTab": "Requests",
-  "adminMyServicesTab": "My services",
   "adminServicesLoadFailed": "Services could not be loaded.",
   "adminServicesOffered": "Services you offer",
   "adminServicesOfferedEmpty": "You do not offer any services yet. Create one to start receiving requests.",

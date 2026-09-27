@@ -1248,9 +1248,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminInstallationJobs => 'Installation Jobs';
 
   @override
-  String get adminNavInstallations => 'Installations';
-
-  @override
   String get adminCompanyProfile => 'Company Profile';
 
   @override
@@ -1425,14 +1422,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminMarkProcessing => 'Mark Processing';
-
-  @override
-  String get adminInstallationJobsLoadFailed =>
-      'Could not load installation jobs.';
-
-  @override
-  String get adminInstallationJobsEmpty =>
-      'No installation jobs yet.\nOrders with Product + Installation appear here.';
 
   @override
   String get adminInstallationJob => 'Installation Job';
@@ -1613,15 +1602,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminAttentionVerifyPayment => 'Verify payment';
 
   @override
-  String get adminQuickTechnician => 'Technician';
-
-  @override
-  String get adminQuickService => 'Service';
-
-  @override
-  String get adminQuickProduct => 'Product';
-
-  @override
   String get adminStatLowStock => 'Low stock';
 
   @override
@@ -1637,10 +1617,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminNeedsAttention => 'Needs your attention';
 
   @override
-  String get adminMenuTitle => 'Menu';
+  String get navCatalog => 'Catalog';
 
   @override
-  String get adminSearchOrders => 'Search by product or customer';
+  String get navAccount => 'Account';
+
+  @override
+  String get adminAddNew => 'Add';
+
+  @override
+  String get adminAddNewTitle => 'Add new';
+
+  @override
+  String get adminAddService => 'Add Service';
+
+  @override
+  String adminOrdersPickup(int count) {
+    return 'Pickup ($count)';
+  }
+
+  @override
+  String adminOrdersDelivery(int count) {
+    return 'Delivery ($count)';
+  }
+
+  @override
+  String adminOrdersInstallation(int count) {
+    return 'Installation ($count)';
+  }
+
+  @override
+  String adminOrdersServices(int count) {
+    return 'Services ($count)';
+  }
+
+  @override
+  String get adminAccountViewProfile => 'View company profile';
+
+  @override
+  String adminTechniciansActive(int count) {
+    return '$count active';
+  }
+
+  @override
+  String get adminSearchOrders => 'Search orders and service requests';
 
   @override
   String get adminSearchProducts => 'Search products';
@@ -2263,12 +2283,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMessageInvalid => 'Write a message of up to 2000 characters.';
-
-  @override
-  String get adminServiceRequestsTab => 'Requests';
-
-  @override
-  String get adminMyServicesTab => 'My services';
 
   @override
   String get adminServicesLoadFailed => 'Services could not be loaded.';
