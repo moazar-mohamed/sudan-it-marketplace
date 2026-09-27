@@ -148,63 +148,56 @@ class AppButton extends StatelessWidget {
         textStyle: WidgetStatePropertyAll(_textStyle),
       );
 
-  ButtonStyle _secondaryStyle() => ButtonStyle(
+  ButtonStyle _secondaryStyle(AppColorTokens c) => ButtonStyle(
         backgroundColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.disabled)
-              ? AppColors.disabledBg
+              ? c.disabledBg
               : (s.contains(WidgetState.pressed) ||
                       s.contains(WidgetState.hovered))
-                  ? AppColors.brandPrimarySubtleStrong
-                  : AppColors.brandPrimarySubtle,
+                  ? c.brandPrimarySubtleStrong
+                  : c.brandPrimarySubtle,
         ),
         foregroundColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.disabled)
-              ? AppColors.disabledFg
-              : AppColors.textBrand,
+          (s) => s.contains(WidgetState.disabled) ? c.disabledFg : c.textBrand,
         ),
       );
 
-  ButtonStyle _destructiveStyle() => ButtonStyle(
+  ButtonStyle _destructiveStyle(AppColorTokens c) => ButtonStyle(
         backgroundColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.disabled)
-              ? AppColors.disabledBg
+              ? c.disabledBg
               : (s.contains(WidgetState.pressed) ||
                       s.contains(WidgetState.hovered))
-                  ? AppColors.errorText
-                  : AppColors.error,
+                  ? c.errorText
+                  : c.error,
         ),
         foregroundColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.disabled)
-              ? AppColors.disabledFg
-              : AppColors.onPrimary,
+          (s) => s.contains(WidgetState.disabled) ? c.disabledFg : c.onPrimary,
         ),
       );
 
-  ButtonStyle _destructiveOutlinedStyle() => ButtonStyle(
+  ButtonStyle _destructiveOutlinedStyle(AppColorTokens c) => ButtonStyle(
         foregroundColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.disabled)
-              ? AppColors.disabledFg
-              : AppColors.errorText,
+          (s) => s.contains(WidgetState.disabled) ? c.disabledFg : c.errorText,
         ),
         backgroundColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.pressed)
-              ? AppColors.errorSubtle
-              : AppColors.surface,
+          (s) => s.contains(WidgetState.pressed) ? c.errorSubtle : c.surface,
         ),
         side: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.disabled)
-              ? AppBorder.card
-              : const BorderSide(color: AppColors.borderError),
+              ? AppBorder.card(c)
+              : BorderSide(color: c.borderError),
         ),
       );
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final foreground = switch (variant) {
       AppButtonVariant.primary || AppButtonVariant.destructive =>
-        AppColors.onPrimary,
-      AppButtonVariant.destructiveOutlined => AppColors.errorText,
-      _ => AppColors.textBrand,
+        colors.onPrimary,
+      AppButtonVariant.destructiveOutlined => colors.errorText,
+      _ => colors.textBrand,
     };
 
     final content = Row(
@@ -240,12 +233,12 @@ class AppButton extends StatelessWidget {
         ),
       AppButtonVariant.secondary => FilledButton(
           onPressed: handler,
-          style: _secondaryStyle().merge(base),
+          style: _secondaryStyle(colors).merge(base),
           child: content,
         ),
       AppButtonVariant.destructive => FilledButton(
           onPressed: handler,
-          style: _destructiveStyle().merge(base),
+          style: _destructiveStyle(colors).merge(base),
           child: content,
         ),
       AppButtonVariant.outlined => OutlinedButton(
@@ -255,7 +248,7 @@ class AppButton extends StatelessWidget {
         ),
       AppButtonVariant.destructiveOutlined => OutlinedButton(
           onPressed: handler,
-          style: _destructiveOutlinedStyle().merge(base),
+          style: _destructiveOutlinedStyle(colors).merge(base),
           child: content,
         ),
       AppButtonVariant.text => TextButton(

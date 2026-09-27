@@ -153,7 +153,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           Text(
             l10n.authForgotPasswordBody,
             textAlign: TextAlign.center,
-            style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.body.copyWith(color: context.colors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.s24),
           AppTextField(
@@ -218,7 +218,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         Text(
           l10n.authForgotPasswordSentBody(_sentTo!),
           textAlign: TextAlign.center,
-          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+          style: AppTextStyles.body.copyWith(color: context.colors.textSecondary),
         ),
         if (_errorCode != null) ...[
           const SizedBox(height: AppSpacing.s16),

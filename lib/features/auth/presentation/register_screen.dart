@@ -122,7 +122,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             l10n.authCreateAccountSubtitle,
                             textAlign: TextAlign.center,
                             style: AppTextStyles.bodyLarge
-                                .copyWith(color: AppColors.textSecondary),
+                                .copyWith(color: context.colors.textSecondary),
                           ),
                           const SizedBox(height: AppSpacing.s32),
                           AppTextField(

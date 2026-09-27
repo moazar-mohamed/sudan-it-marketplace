@@ -139,7 +139,7 @@ class _PaymentAccountsScreenState extends ConsumerState<PaymentAccountsScreen> {
                   l10n.paymentAccountLimit(PaymentAccount.maxPerCompany),
                   textAlign: TextAlign.center,
                   style: AppTextStyles.caption
-                      .copyWith(color: AppColors.textSecondary),
+                      .copyWith(color: context.colors.textSecondary),
                 ),
               ],
             ],
@@ -179,10 +179,10 @@ class _AccountCard extends StatelessWidget {
           IconButton(
             tooltip: l10n.commonRemove,
             onPressed: enabled ? onRemove : null,
-            icon: const Icon(
+            icon: Icon(
               Icons.delete_outline,
               size: AppSize.iconMd,
-              color: AppColors.errorText,
+              color: context.colors.errorText,
             ),
           ),
         ],

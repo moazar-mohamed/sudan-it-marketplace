@@ -147,6 +147,16 @@ void _tall(WidgetTester tester) {
 ProviderContainer _container(WidgetTester tester) =>
     ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
 
+/// Opens the Language row of Settings and picks [label] in its sheet.
+Future<void> _chooseLanguage(WidgetTester tester, String label) async {
+  await tester.tap(find.byKey(const ValueKey('settings-language')));
+  await tester.pumpAndSettle();
+  await tester.tap(
+    find.descendant(of: find.byType(BottomSheet), matching: find.text(label)),
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
   group('translation files', () {
     Map<String, dynamic> load(String lang) => jsonDecode(
@@ -498,16 +508,14 @@ void main() {
       expect(find.byType(SettingsScreen), findsOneWidget);
       expect(_direction(tester, find.text('Language')), TextDirection.ltr);
 
-      await tester.tap(find.text('العربية'));
-      await tester.pumpAndSettle();
+      await _chooseLanguage(tester, 'العربية');
       expect(find.text('الإعدادات'), findsWidgets);
       expect(find.text('اللغة'), findsOneWidget);
       expect(_direction(tester, find.text('اللغة')), TextDirection.rtl);
       expect(prefs.getString('language'), 'ar');
       expect(profiles.saved, ['ar']);
 
-      await tester.tap(find.text('English'));
-      await tester.pumpAndSettle();
+      await _chooseLanguage(tester, 'English');
       expect(find.text('Settings'), findsWidgets);
       expect(_direction(tester, find.text('Language')), TextDirection.ltr);
       expect(prefs.getString('language'), 'en');
@@ -526,8 +534,7 @@ void main() {
 
       await tester.tap(find.byTooltip('Settings'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('العربية'));
-      await tester.pumpAndSettle();
+      await _chooseLanguage(tester, 'العربية');
       Navigator.of(tester.element(find.byType(SettingsScreen))).pop();
       await tester.pumpAndSettle();
 
@@ -553,7 +560,9 @@ void main() {
 
       await tester.tap(find.byTooltip('Settings'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('العربية'));
+      await tester.tap(find.byKey(const ValueKey('settings-language')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('settings-option-ar')));
       // Not settled: the message disappears by itself after a few seconds.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));

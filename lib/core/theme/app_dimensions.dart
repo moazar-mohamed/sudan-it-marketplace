@@ -83,10 +83,10 @@ class AppBorder {
   static const double thin = 1;
   static const double thick = 2;
 
-  static BorderSide get card =>
-      const BorderSide(color: AppColors.borderDefault, width: thin);
-  static BorderSide get input =>
-      const BorderSide(color: AppColors.borderInput, width: thin);
+  static BorderSide card(AppColorTokens c) =>
+      BorderSide(color: c.borderDefault, width: thin);
+  static BorderSide input(AppColorTokens c) =>
+      BorderSide(color: c.borderInput, width: thin);
 }
 
 /// Elevation styles (Figma effect styles). Cards rely on a 1 px border, not

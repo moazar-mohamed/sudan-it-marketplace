@@ -27,9 +27,9 @@ class PriceSummaryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final defaultLabel = total
         ? AppTextStyles.h3
-        : AppTextStyles.body.copyWith(color: AppColors.textSecondary);
+        : AppTextStyles.body.copyWith(color: context.colors.textSecondary);
     final defaultValue = total
-        ? AppTextStyles.h2.copyWith(color: AppColors.textBrand)
+        ? AppTextStyles.h2.copyWith(color: context.colors.textBrand)
         : AppTextStyles.bodyStrong;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

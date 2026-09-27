@@ -55,9 +55,9 @@ class ServiceOfferCard extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.star_rounded,
-                          color: AppColors.warning,
+                          color: context.colors.warning,
                           size: AppSize.iconMd,
                         ),
                         const SizedBox(width: AppSpacing.s2),
@@ -67,10 +67,10 @@ class ServiceOfferCard extends StatelessWidget {
                         ),
                         if (city.isNotEmpty) ...[
                           const SizedBox(width: AppSpacing.s12),
-                          const Icon(
+                          Icon(
                             Icons.location_on_outlined,
                             size: AppSize.iconSm,
-                            color: AppColors.iconDefault,
+                            color: context.colors.iconDefault,
                           ),
                           const SizedBox(width: AppSpacing.s2),
                           Flexible(
@@ -79,7 +79,7 @@ class ServiceOfferCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyles.caption
-                                  .copyWith(color: AppColors.textSecondary),
+                                  .copyWith(color: context.colors.textSecondary),
                             ),
                           ),
                         ],
@@ -94,7 +94,7 @@ class ServiceOfferCard extends StatelessWidget {
                 Text(
                   formatServicePrice(price),
                   style: AppTextStyles.bodyStrong
-                      .copyWith(color: AppColors.textBrand),
+                      .copyWith(color: context.colors.textBrand),
                 ),
               ],
             ],
@@ -104,7 +104,7 @@ class ServiceOfferCard extends StatelessWidget {
             Text(
               note,
               style: AppTextStyles.caption
-                  .copyWith(color: AppColors.textSecondary),
+                  .copyWith(color: context.colors.textSecondary),
             ),
           ],
           const SizedBox(height: AppSpacing.s12),

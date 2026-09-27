@@ -452,7 +452,7 @@ class _ProfileContent extends StatelessWidget {
                       Text(
                         l10n.profileChangePasswordSubtitle,
                         style: AppTextStyles.caption
-                            .copyWith(color: AppColors.textSecondary),
+                            .copyWith(color: context.colors.textSecondary),
                       ),
                     ],
                   ),

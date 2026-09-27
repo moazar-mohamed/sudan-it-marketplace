@@ -200,8 +200,8 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                       : '${_formatPrice(unitPrice)} ${widget.product.currency}',
                   style: unitPrice == null
                       ? AppTextStyles.h2
-                          .copyWith(color: AppColors.textSecondary)
-                      : AppTextStyles.stat.copyWith(color: AppColors.textBrand),
+                          .copyWith(color: context.colors.textSecondary)
+                      : AppTextStyles.stat.copyWith(color: context.colors.textBrand),
                 ),
                 const SizedBox(height: AppSpacing.s16),
                 if (matchedCompany != null || companyName.isNotEmpty) ...[
@@ -230,9 +230,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                         if (matchedCompany != null)
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.star_rounded,
-                                color: AppColors.warning,
+                                color: context.colors.warning,
                                 size: AppSize.iconMd,
                               ),
                               const SizedBox(width: AppSpacing.s4),
@@ -248,7 +248,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.textSecondary,
+                                    color: context.colors.textSecondary,
                                   ),
                                 ),
                               ),

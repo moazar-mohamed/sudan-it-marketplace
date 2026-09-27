@@ -168,6 +168,7 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                       label: context.l10n.orderPaymentStatus,
                       value: order.paymentStatus.label(context.l10n),
                       valueColor: CompanyAdminFormat.paymentStatusColor(
+                        context,
                         order.paymentStatus,
                       ),
                     ),
@@ -216,7 +217,8 @@ class _OrderSummaryCard extends StatelessWidget {
         AdminInfoRow(
           label: context.l10n.orderOrderStatus,
           value: order.orderStatus.label(context.l10n),
-          valueColor: CompanyAdminFormat.orderStatusColor(order.orderStatus),
+          valueColor:
+              CompanyAdminFormat.orderStatusColor(context, order.orderStatus),
         ),
       ],
     );

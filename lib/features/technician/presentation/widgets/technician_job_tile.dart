@@ -57,7 +57,7 @@ class TechnicianJobTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.caption
-                .copyWith(color: AppColors.textSecondary),
+                .copyWith(color: context.colors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.s8),
           Text(
@@ -73,7 +73,7 @@ class TechnicianJobTile extends StatelessWidget {
             TechnicianFormat.date(order.createdAt),
             textDirection: TextDirection.ltr,
             style: AppTextStyles.labelSmall
-                .copyWith(color: AppColors.textSecondary),
+                .copyWith(color: context.colors.textSecondary),
           ),
         ],
       ),

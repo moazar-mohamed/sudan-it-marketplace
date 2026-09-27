@@ -80,7 +80,7 @@ class ServiceRequestTile extends StatelessWidget {
                     '#${request.shortId} · ${formatServiceDate(request.createdAt)}',
                     textDirection: TextDirection.ltr,
                     style: AppTextStyles.caption
-                        .copyWith(color: AppColors.textSecondary),
+                        .copyWith(color: context.colors.textSecondary),
                   ),
                 ),
               ),
@@ -89,7 +89,7 @@ class ServiceRequestTile extends StatelessWidget {
                 Text(
                   formatServicePrice(price),
                   style: AppTextStyles.captionStrong
-                      .copyWith(color: AppColors.textBrand),
+                      .copyWith(color: context.colors.textBrand),
                 ),
             ],
           ),

@@ -144,9 +144,9 @@ class _TechnicianTile extends StatelessWidget {
           ? null
           : IconButton(
               tooltip: context.l10n.adminDeactivateTechnician,
-              icon: const Icon(
+              icon: Icon(
                 Icons.person_off_outlined,
-                color: AppColors.errorText,
+                color: context.colors.errorText,
               ),
               onPressed: onDeactivate,
             ),
@@ -166,7 +166,7 @@ class _TechnicianTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textDirection: TextDirection.ltr,
               style: AppTextStyles.caption
-                  .copyWith(color: AppColors.textSecondary),
+                  .copyWith(color: context.colors.textSecondary),
             ),
           const SizedBox(height: AppSpacing.s6),
           StatusBadge(

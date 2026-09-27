@@ -132,7 +132,7 @@ class _StateColumn extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.body.copyWith(color: context.colors.textSecondary),
             ),
             if (action != null) ...[
               const SizedBox(height: AppSpacing.s16),
@@ -166,7 +166,7 @@ class AppLoadingState extends StatelessWidget {
               Text(
                 label!,
                 style: AppTextStyles.body.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ],
@@ -185,11 +185,11 @@ class AppSkeletonList extends StatelessWidget {
 
   final int count;
 
-  Widget _bar(double width, double height) => Container(
+  Widget _bar(BuildContext context, double width, double height) => Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.bgMuted,
+          color: context.colors.bgMuted,
           borderRadius: BorderRadius.circular(AppRadius.xs),
         ),
       );
@@ -207,7 +207,7 @@ class AppSkeletonList extends StatelessWidget {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: AppColors.bgMuted,
+                      color: context.colors.bgMuted,
                       borderRadius: AppRadius.smAll,
                     ),
                   ),
@@ -216,11 +216,11 @@ class AppSkeletonList extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _bar(180, 14),
+                        _bar(context, 180, 14),
                         const SizedBox(height: AppSpacing.s8),
-                        _bar(110, 10),
+                        _bar(context, 110, 10),
                         const SizedBox(height: AppSpacing.s8),
-                        _bar(70, 12),
+                        _bar(context, 70, 12),
                       ],
                     ),
                   ),

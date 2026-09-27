@@ -219,22 +219,22 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                 children: [
                   // 1. Amount to transfer.
                   AppCard(
-                    color: AppColors.brandPrimarySubtle,
-                    borderColor: AppColors.brandPrimarySubtleStrong,
+                    color: context.colors.brandPrimarySubtle,
+                    borderColor: context.colors.brandPrimarySubtleStrong,
                     padding: const EdgeInsets.all(AppSpacing.s16),
                     child: Column(
                       children: [
                         Text(
                           l10n.paymentAmountToTransfer,
                           style: AppTextStyles.bodyStrong.copyWith(
-                            color: AppColors.textSecondary,
+                            color: context.colors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.s4),
                         Text(
                           '${_formatPrice(widget.draft.totalAmount)} SDG',
                           style: AppTextStyles.stat.copyWith(
-                            color: AppColors.textBrand,
+                            color: context.colors.textBrand,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.s4),
@@ -242,7 +242,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                           l10n.paymentOrderCreatedAfter,
                           textAlign: TextAlign.center,
                           style: AppTextStyles.caption.copyWith(
-                            color: AppColors.textSecondary,
+                            color: context.colors.textSecondary,
                           ),
                         ),
                       ],
@@ -286,7 +286,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                   Text(
                     l10n.paymentUploadHint,
                     style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.s12),
@@ -334,7 +334,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
   Widget _buildUploadTrigger(BuildContext context) {
     return AppCard(
       onTap: _onPickReceipt,
-      borderColor: AppColors.primary,
+      borderColor: context.colors.borderFocus,
       borderWidth: AppBorder.thick,
       padding: const EdgeInsets.symmetric(
         vertical: AppSpacing.s24,
@@ -355,20 +355,20 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             Text(
               context.l10n.receiptPreparing,
               style: AppTextStyles.bodyStrong.copyWith(
-                color: AppColors.textBrand,
+                color: context.colors.textBrand,
               ),
             )
           else
             Text(
               context.l10n.paymentTapToUpload,
               style: AppTextStyles.bodyStrong.copyWith(
-                color: AppColors.textBrand,
+                color: context.colors.textBrand,
               ),
             ),
           Text(
             context.l10n.paymentSupports,
             style: AppTextStyles.caption.copyWith(
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ],
@@ -379,16 +379,16 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
   Widget _buildReceiptPreview(BuildContext context) {
     final l10n = context.l10n;
     return AppCard(
-      borderColor: AppColors.success,
+      borderColor: context.colors.success,
       padding: const EdgeInsets.all(AppSpacing.s12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.check_circle_rounded,
-                color: AppColors.success,
+                color: context.colors.success,
                 size: AppSize.iconMd,
               ),
               const SizedBox(width: AppSpacing.s6),
@@ -398,7 +398,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bodyStrong.copyWith(
-                    color: AppColors.successText,
+                    color: context.colors.successText,
                   ),
                 ),
               ),
@@ -407,7 +407,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
                 icon: const Icon(Icons.delete_outline, size: AppSize.iconMd),
                 label: Text(l10n.commonRemove),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.errorText,
+                  foregroundColor: context.colors.errorText,
                 ),
               ),
             ],
@@ -417,7 +417,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
           ClipRRect(
             borderRadius: AppRadius.smAll,
             child: ColoredBox(
-              color: AppColors.bgSubtle,
+              color: context.colors.bgSubtle,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 260),
                 child: SizedBox(
@@ -435,17 +435,17 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
           const SizedBox(height: AppSpacing.s8),
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.image_outlined,
                 size: AppSize.iconMd,
-                color: AppColors.iconDefault,
+                color: context.colors.iconDefault,
               ),
               const SizedBox(width: AppSpacing.s6),
               Expanded(
                 child: Text(
                   '${_receipt!.fileName} (${_formatSize(_receipt!.sizeBytes)})',
                   style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -524,10 +524,10 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
         IconButton(
           tooltip: context.l10n.commonCopy,
           onPressed: () => _copyToClipboard(value, copiedLabel),
-          icon: const Icon(
+          icon: Icon(
             Icons.copy_rounded,
             size: AppSize.iconMd,
-            color: AppColors.primary,
+            color: context.colors.iconBrand,
           ),
         ),
       ],

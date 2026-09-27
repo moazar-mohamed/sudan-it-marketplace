@@ -79,7 +79,7 @@ class CompanyProfileTab extends ConsumerWidget {
                 company.description!,
                 textAlign: TextAlign.center,
                 style: AppTextStyles.body
-                    .copyWith(color: AppColors.textSecondary),
+                    .copyWith(color: context.colors.textSecondary),
               ),
             ],
             const SizedBox(height: AppSpacing.s16),
@@ -130,7 +130,7 @@ class CompanyProfileTab extends ConsumerWidget {
                   Text(
                     context.l10n.paymentAccountsEmpty,
                     style: AppTextStyles.caption
-                        .copyWith(color: AppColors.textSecondary),
+                        .copyWith(color: context.colors.textSecondary),
                   ),
                 for (final account in company.paymentAccounts)
                   AdminInfoRow(

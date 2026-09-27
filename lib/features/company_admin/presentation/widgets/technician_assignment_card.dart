@@ -89,7 +89,7 @@ class _TechnicianAssignmentCardState
           loading: () => const AppLoadingState(),
           error: (_, _) => Text(
             context.l10n.adminTechniciansLoadFailedShort,
-            style: AppTextStyles.caption.copyWith(color: AppColors.errorText),
+            style: AppTextStyles.caption.copyWith(color: context.colors.errorText),
           ),
           data: (technicians) {
             final active = technicians.where((t) => t.isActive).toList();
@@ -97,7 +97,7 @@ class _TechnicianAssignmentCardState
               return Text(
                 context.l10n.adminAddTechnicianFirst,
                 style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               );
             }

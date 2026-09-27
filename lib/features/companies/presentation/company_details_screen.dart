@@ -79,9 +79,9 @@ class CompanyDetailsScreen extends ConsumerWidget {
                                 const SizedBox(height: AppSpacing.s4),
                                 Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.star_rounded,
-                                      color: AppColors.warning,
+                                      color: context.colors.warning,
                                       size: AppSize.iconMd,
                                     ),
                                     const SizedBox(width: AppSpacing.s4),
@@ -94,7 +94,7 @@ class CompanyDetailsScreen extends ConsumerWidget {
                                       child: Text(
                                         l10n.reviewsCount(company.reviewCount),
                                         style: AppTextStyles.caption.copyWith(
-                                          color: AppColors.textSecondary,
+                                          color: context.colors.textSecondary,
                                         ),
                                       ),
                                     ),
@@ -105,10 +105,10 @@ class CompanyDetailsScreen extends ConsumerWidget {
                                   const SizedBox(height: AppSpacing.s4),
                                   Row(
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.location_on_outlined,
                                         size: AppSize.iconSm,
-                                        color: AppColors.iconBrand,
+                                        color: context.colors.iconBrand,
                                       ),
                                       const SizedBox(width: AppSpacing.s4),
                                       Expanded(
@@ -120,7 +120,7 @@ class CompanyDetailsScreen extends ConsumerWidget {
                                                   company.address ??
                                                   ''),
                                           style: AppTextStyles.caption.copyWith(
-                                            color: AppColors.textSecondary,
+                                            color: context.colors.textSecondary,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -165,10 +165,10 @@ class CompanyDetailsScreen extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.s12),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.phone_outlined,
                               size: AppSize.iconSm,
-                              color: AppColors.iconBrand,
+                              color: context.colors.iconBrand,
                             ),
                             const SizedBox(width: AppSpacing.s6),
                             Text(

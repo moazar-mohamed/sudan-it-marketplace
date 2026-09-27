@@ -31,7 +31,7 @@ class StatusChip extends StatelessWidget {
         vertical: AppSpacing.s4,
       ),
       decoration: BoxDecoration(
-        color: tone.background,
+        color: tone.background(context.colors),
         borderRadius: AppRadius.smAll,
       ),
       child: Row(
@@ -42,7 +42,7 @@ class StatusChip extends StatelessWidget {
               width: 8,
               height: 8,
               decoration:
-                  BoxDecoration(color: tone.accent, shape: BoxShape.circle),
+                  BoxDecoration(color: tone.accent(context.colors), shape: BoxShape.circle),
             ),
             const SizedBox(width: AppSpacing.s6),
           ],
@@ -51,7 +51,7 @@ class StatusChip extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.labelMedium.copyWith(color: tone.foreground),
+              style: AppTextStyles.labelMedium.copyWith(color: tone.foreground(context.colors)),
             ),
           ),
         ],

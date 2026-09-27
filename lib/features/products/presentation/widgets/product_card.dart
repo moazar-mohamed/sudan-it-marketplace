@@ -57,7 +57,7 @@ class ProductCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.captionStrong
-                  .copyWith(color: AppColors.textBrand),
+                  .copyWith(color: context.colors.textBrand),
             ),
           const SizedBox(height: AppSpacing.s4),
           // A product without a price says so; it is never shown as 0.
@@ -69,8 +69,8 @@ class ProductCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodyStrong.copyWith(
               color: product.price == null
-                  ? AppColors.textSecondary
-                  : AppColors.textBrand,
+                  ? context.colors.textSecondary
+                  : context.colors.textBrand,
             ),
           ),
         ],

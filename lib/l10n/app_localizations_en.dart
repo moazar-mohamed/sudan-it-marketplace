@@ -98,6 +98,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'The language was changed on this device, but could not be saved to your account yet.';
 
   @override
+  String get settingsPreferences => 'Preferences';
+
+  @override
+  String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsAppearanceSubtitle => 'Choose how the app looks';
+
+  @override
+  String get themeSystem => 'System default';
+
+  @override
+  String get themeSystemHint => 'Follows your phone\'s setting';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
   String get authWelcomeBack => 'Welcome back. Sign in to continue.';
 
   @override

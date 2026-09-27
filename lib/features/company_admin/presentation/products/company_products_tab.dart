@@ -123,7 +123,7 @@ class _CompanyProductsTabState extends ConsumerState<CompanyProductsTab> {
                 const SizedBox(width: AppSpacing.s8),
                 IconButton.filled(
                   style: IconButton.styleFrom(
-                    foregroundColor: AppColors.onPrimary,
+                    foregroundColor: context.colors.onPrimary,
                   ),
                   tooltip: context.l10n.adminAddProduct,
                   icon: const Icon(Icons.add),
@@ -218,7 +218,7 @@ class _CompanyProductTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.captionStrong
-                  .copyWith(color: AppColors.textBrand),
+                  .copyWith(color: context.colors.textBrand),
             ),
           Text(
             product.price == null
@@ -228,8 +228,8 @@ class _CompanyProductTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodyStrong.copyWith(
               color: product.price == null
-                  ? AppColors.textSecondary
-                  : AppColors.textBrand,
+                  ? context.colors.textSecondary
+                  : context.colors.textBrand,
             ),
           ),
           const SizedBox(height: AppSpacing.s6),

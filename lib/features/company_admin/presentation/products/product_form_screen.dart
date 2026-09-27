@@ -367,9 +367,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                       child: IconButton(
                         tooltip: context.l10n.commonRemove,
                         onPressed: _isSaving ? null : () => _removeSpecRow(i),
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.remove_circle_outline,
-                          color: AppColors.errorText,
+                          color: context.colors.errorText,
                         ),
                       ),
                     ),

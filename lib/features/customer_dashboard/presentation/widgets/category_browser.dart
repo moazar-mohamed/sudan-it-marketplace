@@ -54,7 +54,7 @@ class CategoryBrowser extends StatelessWidget {
               icon: const Icon(Icons.arrow_back_rounded, size: AppSize.iconSm),
               label: Text(context.l10n.categoryBack),
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.textBrand,
+                foregroundColor: context.colors.textBrand,
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
                 minimumSize: const Size(0, 36),
               ),
@@ -72,10 +72,10 @@ class CategoryBrowser extends StatelessWidget {
                   onTap: () => onChanged(null),
                 ),
                 for (final category in path) ...[
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
                     size: AppSize.iconSm,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                   _Crumb(
                     key: ValueKey('browse-crumb-${category.id}'),
@@ -117,7 +117,7 @@ class _Crumb extends StatelessWidget {
       child: Text(
         label,
         style: AppTextStyles.labelMedium.copyWith(
-          color: onTap == null ? AppColors.textPrimary : AppColors.textBrand,
+          color: onTap == null ? context.colors.textPrimary : context.colors.textBrand,
           fontWeight: onTap == null ? FontWeight.w700 : FontWeight.w600,
         ),
       ),

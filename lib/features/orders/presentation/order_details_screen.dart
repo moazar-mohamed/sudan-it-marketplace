@@ -104,17 +104,17 @@ class OrderDetailsScreen extends ConsumerWidget {
                               ),
                               Row(
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.business_outlined,
                                     size: AppSize.iconSm,
-                                    color: AppColors.iconDefault,
+                                    color: context.colors.iconDefault,
                                   ),
                                   const SizedBox(width: AppSpacing.s4),
                                   Expanded(
                                     child: Text(
                                       companyName,
                                       style: AppTextStyles.caption.copyWith(
-                                        color: AppColors.textSecondary,
+                                        color: context.colors.textSecondary,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -129,7 +129,7 @@ class OrderDetailsScreen extends ConsumerWidget {
                                 ),
                                 value: l10n.orderQtyLine(order.quantity),
                                 labelStyle: AppTextStyles.caption
-                                    .copyWith(color: AppColors.textSecondary),
+                                    .copyWith(color: context.colors.textSecondary),
                                 valueStyle: AppTextStyles.captionStrong,
                               ),
                               Text(
@@ -137,7 +137,7 @@ class OrderDetailsScreen extends ConsumerWidget {
                                   _formatPrice(order.productSubtotal),
                                 ),
                                 style: AppTextStyles.bodyStrong
-                                    .copyWith(color: AppColors.textBrand),
+                                    .copyWith(color: context.colors.textBrand),
                               ),
                             ],
                           ),
@@ -174,7 +174,7 @@ class OrderDetailsScreen extends ConsumerWidget {
                         value: l10n.orderTypeInstallation(
                           _formatPrice(order.installationFee),
                         ),
-                        valueColor: AppColors.textBrand,
+                        valueColor: context.colors.textBrand,
                       ),
                     if (order.deliveryMethod == DeliveryMethod.delivery)
                       KeyValueRow(
@@ -200,7 +200,7 @@ class OrderDetailsScreen extends ConsumerWidget {
                         Text(
                           l10n.orderStatusLabel,
                           style: AppTextStyles.body
-                              .copyWith(color: AppColors.textSecondary),
+                              .copyWith(color: context.colors.textSecondary),
                         ),
                         StatusChip(
                           label: order.paymentStatus.label(l10n),
@@ -212,7 +212,7 @@ class OrderDetailsScreen extends ConsumerWidget {
                       KeyValueRow(
                         label: l10n.orderReceiptAttached,
                         value: order.receiptFileName!,
-                        valueColor: AppColors.successText,
+                        valueColor: context.colors.successText,
                       ),
                     if (order.receiptFileName != null)
                       ReceiptViewButton(orderId: order.id),

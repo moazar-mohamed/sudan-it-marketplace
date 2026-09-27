@@ -173,8 +173,8 @@ class _Tile extends StatelessWidget {
       excludeSemantics: true,
       child: AppCard(
         onTap: onTap,
-        color: selected ? AppColors.brandPrimarySubtle : AppColors.surface,
-        borderColor: selected ? AppColors.primary : AppColors.borderDefault,
+        color: selected ? context.colors.brandPrimarySubtle : context.colors.surface,
+        borderColor: selected ? context.colors.borderFocus : context.colors.borderDefault,
         borderWidth: selected ? AppBorder.thick : AppBorder.thin,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.s4,
@@ -186,7 +186,7 @@ class _Tile extends StatelessWidget {
             Icon(
               categoryIconFor(category),
               size: AppSize.iconXl,
-              color: AppColors.primary,
+              color: context.colors.iconBrand,
             ),
             const SizedBox(height: AppSpacing.s6),
             Text(
@@ -195,7 +195,7 @@ class _Tile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: AppTextStyles.labelMedium.copyWith(
-                color: selected ? AppColors.textBrand : AppColors.textPrimary,
+                color: selected ? context.colors.textBrand : context.colors.textPrimary,
                 fontWeight: FontWeight.w600,
                 height: 1.2,
               ),

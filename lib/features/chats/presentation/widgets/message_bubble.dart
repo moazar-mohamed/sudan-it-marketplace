@@ -23,9 +23,9 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final background = isMine ? AppColors.primary : AppColors.bgMuted;
-    final foreground = isMine ? AppColors.onPrimary : AppColors.textPrimary;
-    final meta = isMine ? AppColors.onPrimary : AppColors.textSecondary;
+    final background = isMine ? context.colors.primary : context.colors.bgMuted;
+    final foreground = isMine ? context.colors.onPrimary : context.colors.textPrimary;
+    final meta = isMine ? context.colors.onPrimary : context.colors.textSecondary;
     final sender = isMine
         ? context.l10n.chatYou
         : (message.senderName.trim().isEmpty
@@ -45,7 +45,7 @@ class MessageBubble extends StatelessWidget {
               child: Text(
                 sender,
                 style: AppTextStyles.labelSmall
-                    .copyWith(color: AppColors.textSecondary),
+                    .copyWith(color: context.colors.textSecondary),
               ),
             ),
           ConstrainedBox(

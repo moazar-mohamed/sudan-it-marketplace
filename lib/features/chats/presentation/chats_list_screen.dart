@@ -117,7 +117,7 @@ class _ChatTile extends StatelessWidget {
           Text(
             formatChatTime(context, conversation.activityAt),
             style: AppTextStyles.labelSmall.copyWith(
-              color: unread ? AppColors.textBrand : AppColors.textSecondary,
+              color: unread ? context.colors.textBrand : context.colors.textSecondary,
               fontWeight: unread ? FontWeight.w700 : FontWeight.w400,
             ),
           ),
@@ -134,7 +134,7 @@ class _ChatTile extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.labelSmall
-                      .copyWith(color: AppColors.textBrand),
+                      .copyWith(color: context.colors.textBrand),
                 ),
                 Text(
                   preview,
@@ -142,8 +142,8 @@ class _ChatTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.caption.copyWith(
                     color: unread
-                        ? AppColors.textPrimary
-                        : AppColors.textSecondary,
+                        ? context.colors.textPrimary
+                        : context.colors.textSecondary,
                     fontWeight: unread ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),

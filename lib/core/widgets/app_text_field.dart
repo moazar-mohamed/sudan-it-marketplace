@@ -130,8 +130,8 @@ class _AppTextFieldState extends State<AppTextField> {
       // lighter border, NOT by pale text: label and value stay AA-readable.
       style: widget.enabled
           ? AppTextStyles.body
-          : AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-      cursorColor: AppColors.primary,
+          : AppTextStyles.body.copyWith(color: context.colors.textSecondary),
+      cursorColor: context.colors.iconBrand,
       errorBuilder: (context, message) => _FieldMessage(
         message: message,
         isError: true,
@@ -144,7 +144,7 @@ class _AppTextFieldState extends State<AppTextField> {
             : Icon(widget.prefixIcon, size: AppSize.iconMd),
         suffixIcon: trailing,
         filled: true,
-        fillColor: widget.enabled ? AppColors.surface : AppColors.bgSubtle,
+        fillColor: widget.enabled ? context.colors.surface : context.colors.bgSubtle,
         helper: widget.helperText == null
             ? null
             : _FieldMessage(message: widget.helperText!, isError: false),
@@ -194,12 +194,12 @@ class _LabeledField extends StatelessWidget {
                     TextSpan(
                       text: '  ${context.l10n.commonOptional}',
                       style: AppTextStyles.caption
-                          .copyWith(color: AppColors.textSecondary),
+                          .copyWith(color: context.colors.textSecondary),
                     ),
                 ],
               ),
               style: AppTextStyles.labelLarge.copyWith(
-                color: enabled ? AppColors.textPrimary : AppColors.textSecondary,
+                color: enabled ? context.colors.textPrimary : context.colors.textSecondary,
               ),
             ),
           ),
@@ -221,19 +221,19 @@ class _FieldMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isError ? AppColors.errorText : AppColors.textSecondary;
+    final color = isError ? context.colors.errorText : context.colors.textSecondary;
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.s2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (isError) ...[
-            const Padding(
-              padding: EdgeInsets.only(top: 1),
+            Padding(
+              padding: const EdgeInsets.only(top: 1),
               child: Icon(
                 Icons.error_outline_rounded,
                 size: AppSize.iconSm,
-                color: AppColors.error,
+                color: context.colors.error,
               ),
             ),
             const SizedBox(width: AppSpacing.s6),
@@ -353,7 +353,7 @@ class AppDropdownField<T> extends StatelessWidget {
       onChanged: enabled ? onChanged : null,
       validator: validator,
       style: AppTextStyles.body,
-      dropdownColor: AppColors.surface,
+      dropdownColor: context.colors.surface,
       borderRadius: AppRadius.mdAll,
       icon: const Icon(Icons.keyboard_arrow_down_rounded),
       errorBuilder: (context, message) =>
@@ -361,7 +361,7 @@ class AppDropdownField<T> extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
-        fillColor: enabled ? AppColors.surface : AppColors.bgSubtle,
+        fillColor: enabled ? context.colors.surface : context.colors.bgSubtle,
         helper: helperText == null
             ? null
             : _FieldMessage(message: helperText!, isError: false),
@@ -427,7 +427,7 @@ class AppSelectorField extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: hint,
                   filled: true,
-                  fillColor: enabled ? AppColors.surface : AppColors.bgSubtle,
+                  fillColor: enabled ? context.colors.surface : context.colors.bgSubtle,
                   suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded),
                   error: error == null
                       ? null
@@ -442,8 +442,8 @@ class AppSelectorField extends StatelessWidget {
                         shown,
                         style: AppTextStyles.body.copyWith(
                           color: enabled
-                              ? AppColors.textPrimary
-                              : AppColors.textSecondary,
+                              ? context.colors.textPrimary
+                              : context.colors.textSecondary,
                         ),
                       ),
               ),

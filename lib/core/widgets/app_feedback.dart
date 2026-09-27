@@ -77,13 +77,13 @@ class AppBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.s12),
       decoration: BoxDecoration(
-        color: tone.background,
+        color: tone.background(context.colors),
         borderRadius: AppRadius.mdAll,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon ?? defaultIcon(tone), size: AppSize.iconMd, color: tone.accent),
+          Icon(icon ?? defaultIcon(tone), size: AppSize.iconMd, color: tone.accent(context.colors)),
           const SizedBox(width: AppSpacing.s12),
           Expanded(
             child: Column(
@@ -93,7 +93,7 @@ class AppBanner extends StatelessWidget {
                   Text(
                     title!,
                     style: AppTextStyles.labelLarge
-                        .copyWith(color: tone.foreground),
+                        .copyWith(color: tone.foreground(context.colors)),
                   ),
                 Text(message, style: AppTextStyles.caption),
                 if (action != null) ...[
@@ -121,14 +121,14 @@ void showAppSnackBar(
   ScaffoldMessengerState? messenger,
 }) {
   final leading = switch (tone) {
-    AppTone.success => const Icon(
+    AppTone.success => Icon(
         Icons.check_circle_outline_rounded,
-        color: AppColors.success,
+        color: context.colors.success,
         size: AppSize.iconMd,
       ),
-    AppTone.error => const Icon(
+    AppTone.error => Icon(
         Icons.error_outline_rounded,
-        color: AppColors.error,
+        color: context.colors.error,
         size: AppSize.iconMd,
       ),
     _ => null,

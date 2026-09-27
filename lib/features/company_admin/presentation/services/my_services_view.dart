@@ -281,14 +281,14 @@ class _OfferedServiceCard extends ConsumerWidget {
                       if (isOwn) context.l10n.adminServiceOwnBadge,
                     ].join(' · '),
                     style: AppTextStyles.captionStrong
-                        .copyWith(color: AppColors.textBrand),
+                        .copyWith(color: context.colors.textBrand),
                   ),
                 // Nothing is shown when the company set no price.
                 if (price != null)
                   Text(
                     formatServicePrice(price),
                     style: AppTextStyles.bodyStrong
-                        .copyWith(color: AppColors.textBrand),
+                        .copyWith(color: context.colors.textBrand),
                   ),
                 if (note != null)
                   Text(
@@ -296,7 +296,7 @@ class _OfferedServiceCard extends ConsumerWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.caption
-                        .copyWith(color: AppColors.textSecondary),
+                        .copyWith(color: context.colors.textSecondary),
                   ),
               ],
             ),
@@ -319,7 +319,7 @@ class _OfferedServiceCard extends ConsumerWidget {
                 value: 'remove',
                 child: Text(
                   context.l10n.commonRemove,
-                  style: const TextStyle(color: AppColors.errorText),
+                  style: TextStyle(color: context.colors.errorText),
                 ),
               ),
             ],

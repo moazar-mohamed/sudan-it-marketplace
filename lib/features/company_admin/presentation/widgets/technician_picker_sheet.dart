@@ -89,7 +89,7 @@ class _TechnicianSheetState extends State<_TechnicianSheet> {
         const SizedBox(height: AppSpacing.s4),
         Text(
           context.l10n.adminPickTechnicianHint,
-          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+          style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.s16),
         if (widget.technicians.length > technicianSearchThreshold) ...[
@@ -112,7 +112,7 @@ class _TechnicianSheetState extends State<_TechnicianSheet> {
               context.l10n.adminTechnicianNoMatch,
               textAlign: TextAlign.center,
               style: AppTextStyles.body.copyWith(
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           )
@@ -147,11 +147,11 @@ class _TechnicianTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final phone = technician.phone.trim();
     return Material(
-      color: assigned ? AppColors.brandPrimarySubtle : AppColors.bgSurface,
+      color: assigned ? context.colors.brandPrimarySubtle : context.colors.bgSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
-          color: assigned ? AppColors.primary : AppColors.borderDefault,
+          color: assigned ? context.colors.borderFocus : context.colors.borderDefault,
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -185,7 +185,7 @@ class _TechnicianTile extends StatelessWidget {
                           child: Text(
                             phone,
                             style: AppTextStyles.caption.copyWith(
-                              color: AppColors.textSecondary,
+                              color: context.colors.textSecondary,
                             ),
                           ),
                         ),
@@ -196,24 +196,24 @@ class _TechnicianTile extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.check_circle_rounded,
-                        color: AppColors.primary,
+                        color: context.colors.iconBrand,
                         size: AppSize.iconMd,
                       ),
                       const SizedBox(width: AppSpacing.s4),
                       Text(
                         context.l10n.adminTechnicianCurrent,
                         style: AppTextStyles.labelMedium.copyWith(
-                          color: AppColors.textBrand,
+                          color: context.colors.textBrand,
                         ),
                       ),
                     ],
                   )
                 else
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
               ],
             ),

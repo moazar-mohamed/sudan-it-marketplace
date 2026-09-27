@@ -72,7 +72,7 @@ class _TechnicianJobStatusActionsState
         if (next == null)
           Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: AppColors.success),
+              Icon(Icons.check_circle_rounded, color: context.colors.success),
               const SizedBox(width: AppSpacing.s8),
               Expanded(
                 child: Text(

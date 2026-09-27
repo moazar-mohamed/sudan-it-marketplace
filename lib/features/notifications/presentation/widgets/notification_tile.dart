@@ -46,7 +46,7 @@ class NotificationTile extends StatelessWidget {
         '${NotificationFormat.body(context.l10n, notification)}\n${NotificationFormat.date(notification.createdAt)}',
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
-        style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+        style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary),
       ),
       isThreeLine: true,
       // The dot is decoration; the bold title carries "unread" for readers

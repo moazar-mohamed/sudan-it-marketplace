@@ -22,9 +22,9 @@ class AppUnderlineTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(bottom: BorderSide(color: AppColors.borderDefault)),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        border: Border(bottom: BorderSide(color: context.colors.borderDefault)),
       ),
       child: Row(
         children: [
@@ -50,8 +50,8 @@ class AppUnderlineTabs extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.labelLarge.copyWith(
                             color: i == selectedIndex
-                                ? AppColors.textBrand
-                                : AppColors.textSecondary,
+                                ? context.colors.textBrand
+                                : context.colors.textSecondary,
                             fontWeight: i == selectedIndex
                                 ? FontWeight.w700
                                 : FontWeight.w500,
@@ -62,7 +62,7 @@ class AppUnderlineTabs extends StatelessWidget {
                         height: 3,
                         decoration: BoxDecoration(
                           color: i == selectedIndex
-                              ? AppColors.primary
+                              ? context.colors.iconBrand
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(2),
                         ),
@@ -165,14 +165,14 @@ class AppFilterChips extends StatelessWidget {
               onSelected: (_) => onChanged(i),
               side: BorderSide(
                 color: i == selectedIndex
-                    ? AppColors.primary
-                    : AppColors.borderInput,
+                    ? context.colors.borderFocus
+                    : context.colors.borderInput,
               ),
               visualDensity: VisualDensity.standard,
               labelStyle: AppTextStyles.labelLarge.copyWith(
                 color: i == selectedIndex
-                    ? AppColors.textBrand
-                    : AppColors.textPrimary,
+                    ? context.colors.textBrand
+                    : context.colors.textPrimary,
               ),
             ),
           ],
@@ -206,7 +206,7 @@ class AppOptionCard extends StatelessWidget {
       selected: selected,
       inMutuallyExclusiveGroup: true,
       child: Material(
-        color: selected ? AppColors.brandPrimarySubtle : AppColors.surface,
+        color: selected ? context.colors.brandPrimarySubtle : context.colors.surface,
         borderRadius: AppRadius.smAll,
         child: InkWell(
           onTap: onTap,
@@ -220,7 +220,7 @@ class AppOptionCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: AppRadius.smAll,
               border: Border.all(
-                color: selected ? AppColors.primary : AppColors.borderInput,
+                color: selected ? context.colors.borderFocus : context.colors.borderInput,
                 width: selected ? AppBorder.thick : AppBorder.thin,
               ),
             ),
@@ -231,7 +231,7 @@ class AppOptionCard extends StatelessWidget {
                   selected
                       ? Icons.radio_button_checked
                       : Icons.radio_button_unchecked,
-                  color: selected ? AppColors.primary : AppColors.iconMuted,
+                  color: selected ? context.colors.iconBrand : context.colors.iconMuted,
                   size: AppSize.iconMd,
                 ),
                 const SizedBox(height: AppSpacing.s6),
@@ -241,7 +241,7 @@ class AppOptionCard extends StatelessWidget {
                   style: AppTextStyles.labelLarge.copyWith(
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                     color:
-                        selected ? AppColors.textBrand : AppColors.textPrimary,
+                        selected ? context.colors.textBrand : context.colors.textPrimary,
                   ),
                 ),
                 if (subtitle != null)
@@ -250,8 +250,8 @@ class AppOptionCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: AppTextStyles.caption.copyWith(
                       color: selected
-                          ? AppColors.textBrand
-                          : AppColors.textSecondary,
+                          ? context.colors.textBrand
+                          : context.colors.textSecondary,
                     ),
                   ),
               ],

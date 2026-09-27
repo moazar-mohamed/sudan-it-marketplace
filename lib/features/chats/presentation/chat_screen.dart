@@ -114,7 +114,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 // Readable on the app bar's own colour.
-                style: AppTextStyles.caption.copyWith(color: AppColors.onPrimary),
+                style: AppTextStyles.caption.copyWith(
+                  color: Theme.of(context).appBarTheme.foregroundColor,
+                ),
               ),
           ],
         ),
@@ -242,15 +244,15 @@ class _Bar extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: tone.background,
+      color: tone.background(context.colors),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: tone.accent),
+          Icon(icon, size: 18, color: tone.accent(context.colors)),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: AppTextStyles.captionStrong.copyWith(color: tone.foreground),
+              style: AppTextStyles.captionStrong.copyWith(color: tone.foreground(context.colors)),
             ),
           ),
         ],
@@ -349,7 +351,7 @@ class _Composer extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.s6),
           IconButton.filled(
-            style: IconButton.styleFrom(foregroundColor: AppColors.onPrimary),
+            style: IconButton.styleFrom(foregroundColor: context.colors.onPrimary),
             tooltip: context.l10n.chatSend,
             onPressed: sending ? null : onSend,
             icon: sending

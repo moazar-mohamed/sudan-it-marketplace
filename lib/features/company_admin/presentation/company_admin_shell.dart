@@ -98,7 +98,7 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
                   leading: Icon(icon),
                   title: Text(label),
                   selected: section == _currentIndex,
-                  selectedColor: AppColors.textBrand,
+                  selectedColor: context.colors.textBrand,
                   minTileHeight: AppSize.touchMin,
                   onTap: () => Navigator.of(sheetContext).pop(section),
                 ),

@@ -12,8 +12,8 @@ class AppCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(AppSpacing.s12),
     this.onTap,
-    this.color = AppColors.surface,
-    this.borderColor = AppColors.borderDefault,
+    this.color,
+    this.borderColor,
     this.borderWidth = AppBorder.thin,
     this.semanticLabel,
   });
@@ -21,15 +21,20 @@ class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
-  final Color color;
-  final Color borderColor;
+
+  /// Defaults to the current surface colour.
+  final Color? color;
+
+  /// Defaults to the current default border colour.
+  final Color? borderColor;
   final double borderWidth;
   final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     final card = Material(
-      color: color,
+      color: color ?? colors.surface,
       borderRadius: AppRadius.mdAll,
       child: InkWell(
         onTap: onTap,
@@ -39,7 +44,10 @@ class AppCard extends StatelessWidget {
           padding: padding,
           decoration: BoxDecoration(
             borderRadius: AppRadius.mdAll,
-            border: Border.all(color: borderColor, width: borderWidth),
+            border: Border.all(
+              color: borderColor ?? colors.borderDefault,
+              width: borderWidth,
+            ),
           ),
           child: child,
         ),
@@ -124,7 +132,7 @@ class KeyValueRow extends StatelessWidget {
             flex: 2,
             child: Text(
               label,
-              style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.body.copyWith(color: context.colors.textSecondary),
             ),
           ),
           const SizedBox(width: AppSpacing.s12),
@@ -141,7 +149,7 @@ class KeyValueRow extends StatelessWidget {
                 textDirection: valueTextDirection,
                 style: AppTextStyles.bodyStrong.copyWith(
                   color: valueColor ??
-                      (emphasize ? AppColors.textBrand : AppColors.textPrimary),
+                      (emphasize ? context.colors.textBrand : context.colors.textPrimary),
                 ),
               ),
             ),
@@ -209,10 +217,10 @@ class AppIconTile extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: tone.background,
+        color: tone.background(context.colors),
         borderRadius: BorderRadius.circular(radius),
       ),
-      child: Icon(icon, size: iconSize ?? size * 0.5, color: tone.accent),
+      child: Icon(icon, size: iconSize ?? size * 0.5, color: tone.accent(context.colors)),
     );
   }
 }
@@ -238,7 +246,7 @@ class AppAvatar extends StatelessWidget {
       child: Text(
         initial,
         style: AppTextStyles.h3.copyWith(
-          color: AppColors.textBrand,
+          color: context.colors.textBrand,
           fontSize: size * 0.4,
           height: 1,
         ),
@@ -249,8 +257,8 @@ class AppAvatar extends StatelessWidget {
       width: size,
       height: size,
       clipBehavior: Clip.antiAlias,
-      decoration: const BoxDecoration(
-        color: AppColors.brandPrimarySubtle,
+      decoration: BoxDecoration(
+        color: context.colors.brandPrimarySubtle,
         shape: BoxShape.circle,
       ),
       child: AppNetworkImage(url: url, fallback: fallback),
@@ -289,10 +297,10 @@ class AppImageTile extends StatelessWidget {
     final text = fallbackText?.trim() ?? '';
     final Widget fallback = Center(
       child: text.isEmpty
-          ? Icon(fallbackIcon, size: size * 0.46, color: tone.accent)
+          ? Icon(fallbackIcon, size: size * 0.46, color: tone.accent(context.colors))
           : Text(
               text.characters.first.toUpperCase(),
-              style: AppTextStyles.h3.copyWith(color: tone.foreground),
+              style: AppTextStyles.h3.copyWith(color: tone.foreground(context.colors)),
             ),
     );
     final url = imageUrl ?? '';
@@ -301,7 +309,7 @@ class AppImageTile extends StatelessWidget {
       height: size,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: tone.background,
+        color: tone.background(context.colors),
         borderRadius: BorderRadius.circular(radius),
       ),
       child: AppNetworkImage(url: url, fallback: fallback),
@@ -346,9 +354,9 @@ class AppListCard extends StatelessWidget {
             trailing!,
           ] else if (showChevron) ...[
             const SizedBox(width: AppSpacing.s4),
-            const Icon(
+            Icon(
               Icons.chevron_right_rounded,
-              color: AppColors.iconMuted,
+              color: context.colors.iconMuted,
             ),
           ],
         ],
@@ -434,8 +442,8 @@ class AppUnreadDot extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
+      decoration: BoxDecoration(
+        color: context.colors.iconBrand,
         shape: BoxShape.circle,
       ),
     );
@@ -460,9 +468,9 @@ class AppBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.borderDefault)),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        border: Border(top: BorderSide(color: context.colors.borderDefault)),
       ),
       child: SafeArea(
         top: false,

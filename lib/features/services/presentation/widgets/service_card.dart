@@ -43,7 +43,7 @@ class ServiceCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.captionStrong
-                  .copyWith(color: AppColors.textBrand),
+                  .copyWith(color: context.colors.textBrand),
             ),
           if (description.isNotEmpty)
             Text(
@@ -51,7 +51,7 @@ class ServiceCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.caption
-                  .copyWith(color: AppColors.textSecondary),
+                  .copyWith(color: context.colors.textSecondary),
             ),
         ],
       ),

@@ -320,10 +320,17 @@ void main() {
           .map((c) => c.decoration)
           .whereType<BoxDecoration>();
       expect(
-        decorated.any((d) => d.color == AppTone.warning.background),
+        decorated.any(
+          (d) => d.color == AppTone.warning.background(AppColorTokens.light),
+        ),
         isTrue,
       );
-      expect(decorated.any((d) => d.color == AppTone.warning.accent), isTrue);
+      expect(
+        decorated.any(
+          (d) => d.color == AppTone.warning.accent(AppColorTokens.light),
+        ),
+        isTrue,
+      );
     });
 
     testWidgets('the error state offers a localized retry', (tester) async {

@@ -82,17 +82,17 @@ class OrderCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.s4),
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.business_outlined,
                 size: AppSize.iconSm,
-                color: AppColors.iconDefault,
+                color: context.colors.iconDefault,
               ),
               const SizedBox(width: AppSpacing.s4),
               Expanded(
                 child: Text(
                   companyName,
                   style: AppTextStyles.caption
-                      .copyWith(color: AppColors.textSecondary),
+                      .copyWith(color: context.colors.textSecondary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -111,12 +111,12 @@ class OrderCard extends StatelessWidget {
                   Text(
                     l10n.orderTotalAmount,
                     style: AppTextStyles.caption
-                        .copyWith(color: AppColors.textSecondary),
+                        .copyWith(color: context.colors.textSecondary),
                   ),
                   Text(
                     '${_formatPrice(order.totalAmount)} SDG',
                     style: AppTextStyles.bodyStrong
-                        .copyWith(color: AppColors.textBrand),
+                        .copyWith(color: context.colors.textBrand),
                   ),
                 ],
               ),
@@ -125,12 +125,12 @@ class OrderCard extends StatelessWidget {
                   Text(
                     l10n.orderDetailsButton,
                     style: AppTextStyles.captionStrong
-                        .copyWith(color: AppColors.textBrand),
+                        .copyWith(color: context.colors.textBrand),
                   ),
                   const SizedBox(width: AppSpacing.s4),
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
-                    color: AppColors.primary,
+                    color: context.colors.iconBrand,
                     size: AppSize.iconMd,
                   ),
                 ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../orders/domain/entities/order_entity.dart';
 import '../../orders/presentation/order_labels.dart';
@@ -30,10 +31,11 @@ class CompanyAdminFormat {
   }
 
   /// Text colour for a status shown as plain text (not as a chip).
-  static Color orderStatusColor(OrderStatus status) => status.tone.foreground;
+  static Color orderStatusColor(BuildContext context, OrderStatus status) =>
+      status.tone.foreground(context.colors);
 
-  static Color paymentStatusColor(PaymentStatus status) =>
-      status.tone.foreground;
+  static Color paymentStatusColor(BuildContext context, PaymentStatus status) =>
+      status.tone.foreground(context.colors);
 
   /// Installation jobs follow their product order's lifecycle.
   static String installationJobStatus(

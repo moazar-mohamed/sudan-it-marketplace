@@ -221,10 +221,10 @@ class _Breadcrumb extends StatelessWidget {
           onTap: current == null ? null : () => onGo(null),
         ),
         for (final category in path) ...[
-          const Icon(
+          Icon(
             Icons.chevron_right_rounded,
             size: AppSize.iconSm,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
           _Crumb(
             key: ValueKey('category-crumb-${category.id}'),
@@ -254,7 +254,7 @@ class _Crumb extends StatelessWidget {
       child: Text(
         label,
         style: AppTextStyles.labelMedium.copyWith(
-          color: onTap == null ? AppColors.textPrimary : AppColors.textBrand,
+          color: onTap == null ? context.colors.textPrimary : context.colors.textBrand,
           fontWeight: onTap == null ? FontWeight.w700 : FontWeight.w600,
         ),
       ),
@@ -287,10 +287,10 @@ class _Row extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       selected: selected,
-      selectedColor: AppColors.textBrand,
-      selectedTileColor: AppColors.brandPrimarySubtle,
+      selectedColor: context.colors.textBrand,
+      selectedTileColor: context.colors.brandPrimarySubtle,
       contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
-      leading: icon == null ? null : Icon(icon, color: AppColors.primary),
+      leading: icon == null ? null : Icon(icon, color: context.colors.iconBrand),
       title: Text(title, style: AppTextStyles.body),
       subtitle: subtitle == null
           ? null
@@ -301,11 +301,11 @@ class _Row extends StatelessWidget {
               children: [
                 ?trailing,
                 if (selected)
-                  const Icon(Icons.check_rounded, color: AppColors.primary),
+                  Icon(Icons.check_rounded, color: context.colors.iconBrand),
                 if (showChevron)
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
               ],
             )
@@ -325,7 +325,7 @@ class _Empty extends StatelessWidget {
     child: Center(
       child: Text(
         message,
-        style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+        style: AppTextStyles.body.copyWith(color: context.colors.textSecondary),
         textAlign: TextAlign.center,
       ),
     ),

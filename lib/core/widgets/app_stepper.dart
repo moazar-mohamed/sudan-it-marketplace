@@ -28,9 +28,9 @@ class AppQuantityStepper extends StatelessWidget {
     final l10n = context.l10n;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: AppRadius.smAll,
-        border: Border.all(color: AppColors.borderInput),
+        border: Border.all(color: context.colors.borderInput),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

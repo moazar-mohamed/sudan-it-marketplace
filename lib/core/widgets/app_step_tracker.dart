@@ -43,8 +43,8 @@ class AppStepTracker extends StatelessWidget {
                     fontWeight:
                         i == currentIndex ? FontWeight.w700 : FontWeight.w500,
                     color: i <= currentIndex
-                        ? AppColors.textPrimary
-                        : AppColors.textSecondary,
+                        ? context.colors.textPrimary
+                        : context.colors.textSecondary,
                   ),
                 ),
               ],
@@ -56,8 +56,8 @@ class AppStepTracker extends StatelessWidget {
                 height: 2,
                 margin: const EdgeInsets.only(top: 13),
                 color: i < currentIndex
-                    ? AppColors.primary
-                    : AppColors.borderDefault,
+                    ? context.colors.iconBrand
+                    : context.colors.borderDefault,
               ),
             ),
         ],
@@ -78,17 +78,17 @@ class _Dot extends StatelessWidget {
       width: 28,
       height: 28,
       decoration: BoxDecoration(
-        color: reached ? AppColors.primary : AppColors.surface,
+        color: reached ? context.colors.primary : context.colors.surface,
         shape: BoxShape.circle,
         border: Border.all(
-          color: reached ? AppColors.primary : AppColors.borderInput,
+          color: reached ? context.colors.primary : context.colors.borderInput,
           width: AppBorder.thick,
         ),
       ),
       child: Icon(
         done ? Icons.check : (reached ? Icons.circle : Icons.circle_outlined),
         size: 14,
-        color: reached ? AppColors.onPrimary : AppColors.iconMuted,
+        color: reached ? context.colors.onPrimary : context.colors.iconMuted,
       ),
     );
   }

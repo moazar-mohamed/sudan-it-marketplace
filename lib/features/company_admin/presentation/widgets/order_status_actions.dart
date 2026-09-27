@@ -73,7 +73,7 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
           Text(
             context.l10n.adminVerifyReceipt,
             style: AppTextStyles.caption
-                .copyWith(color: AppColors.textSecondary),
+                .copyWith(color: context.colors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.s12),
           AppButton.outlined(
@@ -101,7 +101,7 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
         if (next == null)
           Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: AppColors.success),
+              Icon(Icons.check_circle_rounded, color: context.colors.success),
               const SizedBox(width: AppSpacing.s8),
               Expanded(
                 child: Text(
@@ -118,7 +118,7 @@ class _OrderStatusActionsState extends ConsumerState<OrderStatusActions> {
               child: Text(
                 context.l10n.adminMarkCompletedHint,
                 style: AppTextStyles.caption
-                    .copyWith(color: AppColors.textSecondary),
+                    .copyWith(color: context.colors.textSecondary),
               ),
             ),
           AppButton.primary(

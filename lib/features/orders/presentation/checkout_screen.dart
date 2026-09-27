@@ -236,7 +236,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                         currency,
                                       ),
                                       style: AppTextStyles.caption.copyWith(
-                                        color: AppColors.textSecondary,
+                                        color: context.colors.textSecondary,
                                       ),
                                     ),
                                   ),
@@ -252,7 +252,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                   currency,
                                 ),
                                 style: AppTextStyles.bodyStrong
-                                    .copyWith(color: AppColors.textBrand),
+                                    .copyWith(color: context.colors.textBrand),
                               ),
                             ],
                           ),
@@ -326,7 +326,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                     Text(
                                       _pickupLocation(context),
                                       style: AppTextStyles.body.copyWith(
-                                        color: AppColors.textSecondary,
+                                        color: context.colors.textSecondary,
                                       ),
                                     ),
                                     if (_pickupCoordinates() != null) ...[
@@ -406,9 +406,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         children: [
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.handyman_outlined,
-                                color: AppColors.primary,
+                                color: context.colors.iconBrand,
                                 size: AppSize.iconMd,
                               ),
                               const SizedBox(width: AppSpacing.s8),
@@ -427,7 +427,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               currency,
                             ),
                             style: AppTextStyles.caption
-                                .copyWith(color: AppColors.textSecondary),
+                                .copyWith(color: context.colors.textSecondary),
                           ),
                           const SizedBox(height: AppSpacing.s12),
                           // Equal-height options, whatever their text wraps to.

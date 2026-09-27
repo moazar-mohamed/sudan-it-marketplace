@@ -76,7 +76,7 @@ class LocationField extends StatelessWidget {
                 child: Text(
                   strings.or,
                   style: AppTextStyles.caption
-                      .copyWith(color: AppColors.textSecondary),
+                      .copyWith(color: context.colors.textSecondary),
                 ),
               ),
               const Expanded(child: Divider()),
@@ -94,16 +94,16 @@ class LocationField extends StatelessWidget {
         else
           AppCard(
             key: const Key('location-selected-card'),
-            color: AppColors.brandPrimarySubtle,
-            borderColor: AppColors.brandPrimarySubtleStrong,
+            color: context.colors.brandPrimarySubtle,
+            borderColor: context.colors.brandPrimarySubtleStrong,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.location_on,
-                      color: AppColors.error,
+                      color: context.colors.error,
                       size: AppSize.iconMd,
                     ),
                     const SizedBox(width: AppSpacing.s6),

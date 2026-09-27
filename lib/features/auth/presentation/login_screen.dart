@@ -129,7 +129,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             l10n.authWelcomeBack,
                             textAlign: TextAlign.center,
                             style: AppTextStyles.bodyLarge
-                                .copyWith(color: AppColors.textSecondary),
+                                .copyWith(color: context.colors.textSecondary),
                           ),
                           const SizedBox(height: AppSpacing.s32),
                           AppTextField(
@@ -203,7 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 child: Text(
                                   l10n.commonOr,
                                   style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.textSecondary,
+                                    color: context.colors.textSecondary,
                                   ),
                                 ),
                               ),

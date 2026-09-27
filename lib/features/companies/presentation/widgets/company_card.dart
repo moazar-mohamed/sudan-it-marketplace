@@ -42,9 +42,9 @@ class CompanyCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.s4),
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.star_rounded,
-                color: AppColors.warning,
+                color: context.colors.warning,
                 size: AppSize.iconMd,
               ),
               const SizedBox(width: AppSpacing.s4),
@@ -59,7 +59,7 @@ class CompanyCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.caption
-                      .copyWith(color: AppColors.textSecondary),
+                      .copyWith(color: context.colors.textSecondary),
                 ),
               ),
             ],

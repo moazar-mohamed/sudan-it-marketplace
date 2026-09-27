@@ -71,7 +71,7 @@ class ReceiptViewerScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: ColoredBox(
-                  color: AppColors.bgInverse,
+                  color: context.colors.bgInverse,
                   child: InteractiveViewer(
                     minScale: 1,
                     maxScale: 5,
@@ -94,7 +94,7 @@ class ReceiptViewerScreen extends ConsumerWidget {
                     '${data.image.fileName} · ${(data.image.sizeBytes / 1024).round()} KB',
                     textDirection: TextDirection.ltr,
                     style: AppTextStyles.caption
-                        .copyWith(color: AppColors.textSecondary),
+                        .copyWith(color: context.colors.textSecondary),
                   ),
                 ),
               ),

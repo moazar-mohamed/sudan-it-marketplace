@@ -146,8 +146,8 @@ class _ProductDetailsBody extends StatelessWidget {
               ? ProductPriceStrings.priceOnRequest(context)
               : CompanyAdminFormat.price(product.price!, product.currency),
           style: product.price == null
-              ? AppTextStyles.h2.copyWith(color: AppColors.textSecondary)
-              : AppTextStyles.stat.copyWith(color: AppColors.textBrand),
+              ? AppTextStyles.h2.copyWith(color: context.colors.textSecondary)
+              : AppTextStyles.stat.copyWith(color: context.colors.textBrand),
         ),
         const SizedBox(height: AppSpacing.s16),
         AdminSectionCard(
@@ -161,8 +161,8 @@ class _ProductDetailsBody extends StatelessWidget {
                       ? l10n.adminUnavailable
                       : l10n.adminOutOfStock,
               valueColor: product.isAvailable
-                  ? AppColors.successText
-                  : AppColors.errorText,
+                  ? context.colors.successText
+                  : context.colors.errorText,
             ),
             AdminInfoRow(label: l10n.adminStock, value: '${product.stockCount}'),
           ],

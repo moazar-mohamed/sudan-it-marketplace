@@ -305,7 +305,7 @@ class _StatTile extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.caption
-                .copyWith(color: AppColors.textSecondary),
+                .copyWith(color: context.colors.textSecondary),
           ),
         ],
       ),
@@ -328,15 +328,15 @@ class _QuickAction extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       onTap: onTap,
-      color: AppColors.brandPrimarySubtle,
-      borderColor: AppColors.brandPrimarySubtle,
+      color: context.colors.brandPrimarySubtle,
+      borderColor: context.colors.brandPrimarySubtle,
       padding: const EdgeInsets.symmetric(
         vertical: AppSpacing.s12,
         horizontal: AppSpacing.s4,
       ),
       child: Column(
         children: [
-          Icon(icon, color: AppColors.primary),
+          Icon(icon, color: context.colors.iconBrand),
           const SizedBox(height: AppSpacing.s4),
           Text(
             label,
@@ -344,7 +344,7 @@ class _QuickAction extends StatelessWidget {
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.labelMedium
-                .copyWith(color: AppColors.textBrand),
+                .copyWith(color: context.colors.textBrand),
           ),
         ],
       ),
@@ -382,7 +382,7 @@ class _AttentionRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.iconDefault),
+            Icon(icon, color: context.colors.iconDefault),
             const SizedBox(width: AppSpacing.s12),
             Expanded(
               child: Column(
@@ -399,7 +399,7 @@ class _AttentionRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.caption
-                        .copyWith(color: AppColors.textSecondary),
+                        .copyWith(color: context.colors.textSecondary),
                   ),
                 ],
               ),

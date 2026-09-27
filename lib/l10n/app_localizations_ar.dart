@@ -98,6 +98,27 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم تغيير اللغة على هذا الجهاز، لكن تعذر حفظها في حسابك حاليًا.';
 
   @override
+  String get settingsPreferences => 'التفضيلات';
+
+  @override
+  String get settingsAppearance => 'المظهر';
+
+  @override
+  String get settingsAppearanceSubtitle => 'اختر شكل التطبيق';
+
+  @override
+  String get themeSystem => 'حسب الجهاز';
+
+  @override
+  String get themeSystemHint => 'يتبع إعداد هاتفك';
+
+  @override
+  String get themeLight => 'فاتح';
+
+  @override
+  String get themeDark => 'داكن';
+
+  @override
   String get authWelcomeBack => 'مرحبًا بعودتك. سجّل الدخول للمتابعة.';
 
   @override

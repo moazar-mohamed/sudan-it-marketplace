@@ -183,13 +183,14 @@ class ImagePickerField extends StatelessWidget {
   Widget _preview(BuildContext context, ImagePickerStrings strings) {
     final picked = controller.picked;
     final fallback = Center(
-      child: Icon(fallbackIcon, color: AppColors.primary, size: 40),
+      child: Icon(fallbackIcon, color: context.colors.iconBrand, size: 40),
     );
     final Widget image = picked != null
         ? Image.memory(picked.bytes, fit: BoxFit.cover)
         : AppNetworkImage(url: controller.url, fallback: fallback);
 
     return _frame(
+      context,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -224,10 +225,11 @@ class ImagePickerField extends StatelessWidget {
   }
 
   Widget _empty(BuildContext context, ImagePickerStrings strings) {
-    const primary = AppColors.primary;
+    final primary = context.colors.iconBrand;
     return _frame(
-      borderColor: AppColors.primary,
-      background: AppColors.brandPrimarySubtle,
+      context,
+      borderColor: primary,
+      background: context.colors.brandPrimarySubtle,
       child: InkWell(
         onTap: enabled ? () => _open(context) : null,
         child: Center(
@@ -236,13 +238,13 @@ class ImagePickerField extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.add, color: primary),
+                Icon(Icons.add, color: primary),
                 const SizedBox(height: 4),
                 Text(
                   strings.addImage,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.textBrand,
+                  style: TextStyle(
+                    color: context.colors.textBrand,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -254,17 +256,18 @@ class ImagePickerField extends StatelessWidget {
     );
   }
 
-  Widget _frame({
+  Widget _frame(
+    BuildContext context, {
     required Widget child,
     Color? borderColor,
     Color? background,
   }) {
     final decoration = BoxDecoration(
-      color: background ?? AppColors.bgSubtle,
+      color: background ?? context.colors.bgSubtle,
       shape: _isCircle ? BoxShape.circle : BoxShape.rectangle,
       borderRadius: _isCircle ? null : AppRadius.mdAll,
       border: Border.all(
-        color: borderColor ?? AppColors.borderDefault,
+        color: borderColor ?? context.colors.borderDefault,
         width: borderColor == null ? AppBorder.thin : AppBorder.thick,
       ),
     );

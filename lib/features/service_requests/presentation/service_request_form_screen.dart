@@ -139,7 +139,7 @@ class _ServiceRequestFormScreenState
                           Text(
                             widget.company.name,
                             style: AppTextStyles.body
-                                .copyWith(color: AppColors.textSecondary),
+                                .copyWith(color: context.colors.textSecondary),
                           ),
                           // Only a price the company actually set is shown.
                           if (price != null) ...[
@@ -147,7 +147,7 @@ class _ServiceRequestFormScreenState
                             Text(
                               formatServicePrice(price),
                               style: AppTextStyles.bodyStrong
-                                  .copyWith(color: AppColors.textBrand),
+                                  .copyWith(color: context.colors.textBrand),
                             ),
                           ],
                         ],

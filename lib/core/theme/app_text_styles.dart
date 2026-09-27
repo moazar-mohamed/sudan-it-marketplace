@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
-
 /// Typography tokens (Figma: "04 — Typography"). One family, Cairo, carries
 /// both Latin and Arabic in four weights. Line heights are generous so Arabic
 /// diacritics never clip.
@@ -14,13 +12,16 @@ class AppFonts {
 class AppTextStyles {
   AppTextStyles._();
 
+  // No colour baked in here on purpose: an un-styled Text picks up the
+  // ambient Material text colour (theme.colorScheme.onSurface), which is
+  // already the current appearance's text colour - light or dark. A caller
+  // that wants a specific token still does `.copyWith(color: context.colors.x)`.
   static TextStyle _s(double size, double lineHeight, FontWeight weight) =>
       TextStyle(
         fontFamily: AppFonts.family,
         fontSize: size,
         height: lineHeight / size,
         fontWeight: weight,
-        color: AppColors.textPrimary,
       );
 
   static final TextStyle display = _s(32, 44, FontWeight.w700);

@@ -81,8 +81,8 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                 children: [
                   // Waiting for the company to verify the transfer.
                   AppCard(
-                    color: AppTone.warning.background,
-                    borderColor: AppTone.warning.accent,
+                    color: AppTone.warning.background(context.colors),
+                    borderColor: AppTone.warning.accent(context.colors),
                     padding: const EdgeInsets.all(AppSpacing.s20),
                     child: Column(
                       children: [
@@ -102,7 +102,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                           l10n.pendingTitle,
                           textAlign: TextAlign.center,
                           style: AppTextStyles.h3.copyWith(
-                            color: AppTone.warning.foreground,
+                            color: AppTone.warning.foreground(context.colors),
                           ),
                         ),
                         const SizedBox(height: AppSpacing.s8),
@@ -110,7 +110,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                           l10n.pendingBody,
                           textAlign: TextAlign.center,
                           style: AppTextStyles.body.copyWith(
-                            color: AppTone.warning.foreground,
+                            color: AppTone.warning.foreground(context.colors),
                           ),
                         ),
                       ],
@@ -138,7 +138,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: AppTextStyles.bodyStrong.copyWith(
-                                  color: AppColors.textBrand,
+                                  color: context.colors.textBrand,
                                 ),
                               ),
                             ),
@@ -162,7 +162,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                             Text(
                               l10n.orderQtyLine(order.quantity),
                               style: AppTextStyles.bodyStrong.copyWith(
-                                color: AppColors.textSecondary,
+                                color: context.colors.textSecondary,
                               ),
                             ),
                           ],
@@ -183,7 +183,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                             value: l10n.pendingInstallationIncluded(
                               _formatPrice(order.installationFee),
                             ),
-                            valueColor: AppColors.textBrand,
+                            valueColor: context.colors.textBrand,
                           ),
                         if (order.deliveryMethod == DeliveryMethod.delivery)
                           KeyValueRow(
@@ -193,17 +193,17 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                         KeyValueRow(
                           label: l10n.orderReceiptAttached,
                           value: order.receiptFileName ?? l10n.pendingUploaded,
-                          valueColor: AppColors.successText,
+                          valueColor: context.colors.successText,
                         ),
                         KeyValueRow(
                           label: l10n.orderOrderStatus,
                           value: order.orderStatus.label(l10n),
-                          valueColor: AppColors.textBrand,
+                          valueColor: context.colors.textBrand,
                         ),
                         KeyValueRow(
                           label: l10n.orderPaymentStatus,
                           value: order.paymentStatus.label(l10n),
-                          valueColor: AppTone.warning.foreground,
+                          valueColor: AppTone.warning.foreground(context.colors),
                         ),
                         const SizedBox(height: AppSpacing.s8),
                         const Divider(height: 1),

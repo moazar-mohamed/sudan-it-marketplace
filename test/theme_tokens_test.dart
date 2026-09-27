@@ -58,12 +58,14 @@ void main() {
     });
 
     test('every tone is readable: foreground on its tinted background', () {
-      for (final tone in AppTone.values) {
-        expect(
-          contrast(tone.foreground, tone.background),
-          greaterThanOrEqualTo(4.5),
-          reason: tone.name,
-        );
+      for (final tokens in [AppColorTokens.light, AppColorTokens.dark]) {
+        for (final tone in AppTone.values) {
+          expect(
+            contrast(tone.foreground(tokens), tone.background(tokens)),
+            greaterThanOrEqualTo(4.5),
+            reason: '${tone.name} (${tokens == AppColorTokens.light ? 'light' : 'dark'})',
+          );
+        }
       }
     });
 
@@ -79,6 +81,61 @@ void main() {
           greaterThanOrEqualTo(3.0),
         );
       }
+    });
+  });
+
+  group('dark palette (WCAG AA)', () {
+    final dark = AppColorTokens.dark;
+
+    test('brand marks keep their true colour even in dark mode', () {
+      expect(dark.primary, const Color(0xFF1565C0));
+      expect(dark.secondary, const Color(0xFF00A8E8));
+    });
+
+    test('text tokens reach 4.5:1 on the surfaces they are used on', () {
+      final pairs = <String, (Color, Color)>{
+        'primary on app bg': (dark.textPrimary, dark.bgApp),
+        'primary on surface': (dark.textPrimary, dark.bgSurface),
+        'secondary on surface': (dark.textSecondary, dark.bgSurface),
+        'secondary on muted': (dark.textSecondary, dark.bgMuted),
+        'secondary on subtle': (dark.textSecondary, dark.bgSubtle),
+        'tertiary on surface': (dark.textTertiary, dark.bgSurface),
+        'on primary': (dark.textOnPrimary, dark.primary),
+        'on primary pressed': (dark.textOnPrimary, dark.brandPrimaryPressed),
+        'on error': (dark.textOnPrimary, dark.error),
+        'brand on surface': (dark.textBrand, dark.bgSurface),
+        'brand on subtle': (dark.textBrand, dark.brandPrimarySubtle),
+        'inverse on inverse': (dark.textInverse, dark.bgInverse),
+      };
+      for (final entry in pairs.entries) {
+        expect(
+          contrast(entry.value.$1, entry.value.$2),
+          greaterThanOrEqualTo(4.5),
+          reason: entry.key,
+        );
+      }
+    });
+
+    test('control borders and muted icons reach 3:1 on the surface', () {
+      for (final color in [
+        dark.borderInput,
+        dark.borderStrong,
+        dark.borderFocus,
+        dark.iconMuted,
+      ]) {
+        expect(contrast(color, dark.bgSurface), greaterThanOrEqualTo(3.0));
+      }
+    });
+
+    test('the dark theme is built on the dark tokens', () {
+      final scheme = AppTheme.dark.colorScheme;
+      expect(scheme.primary, dark.primary);
+      expect(scheme.brightness, Brightness.dark);
+      expect(AppTheme.dark.scaffoldBackgroundColor, dark.bgApp);
+      expect(
+        AppTheme.dark.extension<AppColorTokens>(),
+        dark,
+      );
     });
   });
 
