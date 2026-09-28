@@ -498,3 +498,23 @@ class AppLogo extends StatelessWidget {
     );
   }
 }
+
+/// The small emblem from the logo, for the customer home app bar. It keeps
+/// its white tile in dark mode too, like an app icon.
+class AppLogoMark extends StatelessWidget {
+  const AppLogoMark({super.key, this.size = 34});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: Image.asset(
+        'assets/images/app_mark.png',
+        width: size,
+        height: size,
+      ),
+    );
+  }
+}

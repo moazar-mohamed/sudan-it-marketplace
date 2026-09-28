@@ -9,6 +9,7 @@ import 'customer_profile_screen.dart';
 import 'widgets/customer_orders_tab.dart';
 import 'widgets/dashboard_home_tab.dart';
 import '../../../core/localization/l10n_extension.dart';
+import '../../../core/widgets/app_surfaces.dart';
 import '../../settings/presentation/settings_screen.dart';
 
 class CustomerDashboardScreen extends ConsumerStatefulWidget {
@@ -51,12 +52,24 @@ class _CustomerDashboardScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(switch (_currentIndex) {
-          1 => context.l10n.navMyOrders,
-          2 => context.l10n.navChats,
-          3 => context.l10n.navProfile,
-          _ => context.l10n.appName,
-        }),
+        title: switch (_currentIndex) {
+          1 => Text(context.l10n.navMyOrders),
+          2 => Text(context.l10n.navChats),
+          3 => Text(context.l10n.navProfile),
+          _ => Row(
+              children: [
+                const AppLogoMark(),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    context.l10n.appName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+        },
         actions: [
           const SettingsButton(),
           IconButton(
