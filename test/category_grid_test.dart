@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sudan_it_marketplace/features/categories/domain/entities/category.dart';
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/category_grid.dart';
+import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/category_grid_style.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 
 Category _category(String id, String name, {String iconName = ''}) => Category(
@@ -26,15 +27,31 @@ void main() {
   ];
 
   group('the categories section', () {
-    testWidgets('shows the first eight tiles and a More link', (tester) async {
+    testWidgets('shows the first nine tiles and a More link', (tester) async {
       await tester.pumpWidget(
         _app(CategoryGrid(categories: many, selectedId: null, onSelected: (_) {})),
       );
 
       expect(find.text('Categories'), findsOneWidget);
       expect(find.text('Category 1'), findsOneWidget);
-      expect(find.text('Category 8'), findsOneWidget);
-      expect(find.text('Category 9'), findsNothing);
+      expect(find.text('Category 9'), findsOneWidget);
+      expect(find.text('Category 10'), findsNothing);
+      expect(find.text('More'), findsOneWidget);
+    });
+
+    testWidgets('shows as many tiles as the style asks for', (tester) async {
+      await tester.pumpWidget(
+        _app(
+          CategoryGrid(
+            categories: many,
+            selectedId: null,
+            onSelected: (_) {},
+            style: const CategoryGridStyle(previewCount: 4),
+          ),
+        ),
+      );
+      expect(find.text('Category 4'), findsOneWidget);
+      expect(find.text('Category 5'), findsNothing);
       expect(find.text('More'), findsOneWidget);
     });
 
@@ -110,10 +127,10 @@ void main() {
     testWidgets('a selected category hidden behind More still shows selected',
         (tester) async {
       await tester.pumpWidget(
-        _app(CategoryGrid(categories: many, selectedId: 'c10', onSelected: (_) {})),
+        _app(CategoryGrid(categories: many, selectedId: 'c11', onSelected: (_) {})),
       );
-      expect(find.text('Category 10'), findsOneWidget);
-      expect(find.text('Category 8'), findsNothing);
+      expect(find.text('Category 11'), findsOneWidget);
+      expect(find.text('Category 9'), findsNothing);
     });
 
     testWidgets('is right-to-left and translated in Arabic', (tester) async {
@@ -129,6 +146,24 @@ void main() {
       );
       expect(find.text('الأقسام'), findsOneWidget);
       expect(find.text('لابتوب وكمبيوتر'), findsOneWidget);
+    });
+  });
+
+  group('the colour of a category', () {
+    const style = CategoryGridStyle.standard;
+    Color colour(String id, String name) {
+      final category = _category(id, name);
+      return style.colorFor(categoryIconFor(category), category.id);
+    }
+
+    test('follows its icon, so similar categories match', () {
+      expect(colour('a', 'Cybersecurity'), colour('b', 'الأمن السيبراني'));
+      expect(colour('a', 'Cybersecurity'), isNot(colour('c', 'Cloud')));
+    });
+
+    test('is picked from the id when the icon has none, and never changes', () {
+      expect(colour('misc-1', 'Misc'), colour('misc-1', 'Other name'));
+      expect(style.palette, contains(colour('misc-1', 'Misc')));
     });
   });
 
