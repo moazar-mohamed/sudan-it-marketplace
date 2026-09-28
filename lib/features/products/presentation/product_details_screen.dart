@@ -13,6 +13,7 @@ import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../orders/presentation/checkout_screen.dart';
 import '../domain/entities/product.dart';
 import 'product_price_strings.dart';
+import 'widgets/product_offer_price.dart';
 import 'products_providers.dart';
 import '../../../core/localization/l10n_extension.dart';
 
@@ -133,7 +134,8 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       ref.watch(firestoreProductsStreamProvider),
     );
     final quantity = _effectiveQuantity(stock);
-    final unitPrice = stock.price;
+    // The offer price while an offer runs.
+    final unitPrice = stock.salePrice;
     final totalPrice = unitPrice == null ? null : unitPrice * quantity;
     final categoryName =
         ref.watch(categoryPathNamesProvider)[widget.product.categoryId]?.trim() ??
@@ -194,15 +196,21 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 ],
                 const SizedBox(height: AppSpacing.s8),
                 // A product without a price says so; it is never shown as 0.
-                Text(
-                  unitPrice == null
-                      ? ProductPriceStrings.priceOnRequest(context)
-                      : '${_formatPrice(unitPrice)} ${widget.product.currency}',
-                  style: unitPrice == null
-                      ? AppTextStyles.h2
-                          .copyWith(color: context.colors.textSecondary)
-                      : AppTextStyles.stat.copyWith(color: context.colors.textBrand),
+                ProductOfferPrice(
+                  product: stock,
+                  style: unitPrice == null ? AppTextStyles.h2 : AppTextStyles.stat,
                 ),
+                if (stock.hasActiveOffer && stock.offerEndsAt != null) ...[
+                  const SizedBox(height: AppSpacing.s4),
+                  Text(
+                    context.l10n.offerEndsOn(
+                      MaterialLocalizations.of(context)
+                          .formatMediumDate(stock.offerEndsAt!),
+                    ),
+                    style: AppTextStyles.caption
+                        .copyWith(color: context.colors.errorText),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.s16),
                 if (matchedCompany != null || companyName.isNotEmpty) ...[
                   AppListCard(

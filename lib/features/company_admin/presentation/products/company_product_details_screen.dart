@@ -10,6 +10,7 @@ import '../../../products/presentation/products_providers.dart';
 import '../../../products/presentation/product_price_strings.dart';
 import '../company_admin_actions.dart';
 import '../company_admin_format.dart';
+import '../offers/offer_form_screen.dart';
 import '../widgets/admin_section_card.dart';
 import 'product_form_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -150,6 +151,8 @@ class _ProductDetailsBody extends StatelessWidget {
               : AppTextStyles.stat.copyWith(color: context.colors.textBrand),
         ),
         const SizedBox(height: AppSpacing.s16),
+        ProductOfferSection(product: product),
+        const SizedBox(height: AppSpacing.s12),
         AdminSectionCard(
           title: l10n.adminAvailability,
           children: [

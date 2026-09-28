@@ -6,7 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../domain/entities/product.dart';
 import '../product_details_screen.dart';
-import '../product_price_strings.dart';
+import 'product_offer_price.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({
@@ -23,12 +23,6 @@ class ProductCard extends StatelessWidget {
 
   /// A search query whose matching words are marked in the name.
   final String? highlight;
-
-  String _formatPrice(double price) {
-    final parts = price.toStringAsFixed(0).split('.');
-    final regExp = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    return parts[0].replaceAllMapped(regExp, (Match m) => '${m[1]},');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,18 +60,7 @@ class ProductCard extends StatelessWidget {
             ),
           const SizedBox(height: AppSpacing.s4),
           // A product without a price says so; it is never shown as 0.
-          Text(
-            product.price == null
-                ? ProductPriceStrings.priceOnRequest(context)
-                : '${_formatPrice(product.price!)} ${product.currency}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodyStrong.copyWith(
-              color: product.price == null
-                  ? context.colors.textSecondary
-                  : context.colors.textBrand,
-            ),
-          ),
+          ProductOfferPrice(product: product, style: AppTextStyles.bodyStrong),
         ],
       ),
     );

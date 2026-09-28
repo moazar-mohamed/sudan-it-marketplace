@@ -14,6 +14,7 @@ import '../../../services/presentation/service_providers.dart';
 import '../../../search/presentation/customer_search_screen.dart';
 import '../../../services/presentation/widgets/service_card.dart';
 import 'category_browser.dart';
+import 'featured_offers_strip.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
 class DashboardHomeTab extends ConsumerStatefulWidget {
@@ -73,6 +74,8 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           product,
     ];
 
+    final offers = productsOnOffer(filteredProducts);
+
     final isProductsTab = _selectedTab == _HomeTab.products;
     final isServicesTab = _selectedTab == _HomeTab.services;
 
@@ -108,6 +111,11 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           if (productTree.activeChildrenOf(productCategory).isNotEmpty ||
               productCategory != null)
             const SizedBox(height: 16),
+          // Under the categories: the offers of the category being browsed.
+          if (offers.isNotEmpty) ...[
+            FeaturedOffersStrip(offers: offers),
+            const SizedBox(height: 16),
+          ],
         ],
         if (isProductsTab)
           if (filteredProducts.isEmpty)

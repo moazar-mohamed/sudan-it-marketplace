@@ -2390,4 +2390,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get companyServiceNotFound => 'This service is no longer available.';
+
+  @override
+  String offerDiscountBadge(int percent) {
+    return '$percent% off';
+  }
+
+  @override
+  String get homeFeaturedOffers => 'Featured offers';
+
+  @override
+  String get adminAddOffer => 'Add offer';
+
+  @override
+  String get offerPickProductTitle => 'Choose a product';
+
+  @override
+  String get offerPickProductEmpty =>
+      'Add a product with a price first, then put it on offer.';
+
+  @override
+  String get offerFormTitle => 'Product offer';
+
+  @override
+  String offerNormalPrice(String price, String currency) {
+    return 'Normal price: $price $currency';
+  }
+
+  @override
+  String get offerPriceLabel => 'Offer price (SDG)';
+
+  @override
+  String get offerPriceRequired => 'Enter the offer price.';
+
+  @override
+  String get offerPriceTooHigh =>
+      'The offer price must be lower than the normal price.';
+
+  @override
+  String get offerEndsLabel => 'Offer ends on (optional)';
+
+  @override
+  String get offerNoEndDate => 'No end date';
+
+  @override
+  String get offerClearEndDate => 'Remove date';
+
+  @override
+  String get offerEndsHint =>
+      'After this date the product goes back to its normal price and leaves the offers.';
+
+  @override
+  String get offerPreviewLabel => 'How customers will see it';
+
+  @override
+  String get offerSave => 'Save offer';
+
+  @override
+  String get offerRemove => 'End offer';
+
+  @override
+  String get offerSaved => 'Offer saved.';
+
+  @override
+  String get offerRemoved => 'Offer ended.';
+
+  @override
+  String offerEndsOn(String date) {
+    return 'Ends $date';
+  }
+
+  @override
+  String get offerEdit => 'Edit offer';
+
+  @override
+  String get offerNone => 'This product has no offer.';
+
+  @override
+  String get offerNeedsPrice =>
+      'Set a price for this product first to put it on offer.';
+
+  @override
+  String formPriceBelowOffer(String price) {
+    return 'This product is on offer at $price. The price must be higher than that, or end the offer first.';
+  }
 }

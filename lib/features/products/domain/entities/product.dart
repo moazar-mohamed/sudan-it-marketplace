@@ -15,6 +15,8 @@ class Product {
     this.isDeliveryAvailable = true,
     this.isInstallationAvailable = false,
     this.installationPrice,
+    this.offerPrice,
+    this.offerEndsAt,
     this.createdAt,
   });
 
@@ -42,9 +44,35 @@ class Product {
   final bool isDeliveryAvailable;
   final bool isInstallationAvailable;
   final double? installationPrice;
+
+  /// The discounted price while the company runs an offer on this product.
+  /// [price] stays the normal price, so the offer ends on its own at
+  /// [offerEndsAt] with nothing to restore. Always below [price].
+  final double? offerPrice;
+
+  /// When the offer stops; `null` means it runs until the company ends it.
+  final DateTime? offerEndsAt;
   final DateTime? createdAt;
 
   bool get hasPrice => price != null;
+
+  /// An offer is running: it has a price below the normal one and has not
+  /// reached its end date.
+  bool get hasActiveOffer {
+    final offer = offerPrice;
+    final normal = price;
+    if (offer == null || normal == null || offer >= normal) return false;
+    final ends = offerEndsAt;
+    return ends == null || DateTime.now().isBefore(ends);
+  }
+
+  /// What a customer pays for one unit right now: the offer price while an
+  /// offer runs, otherwise the normal price.
+  double? get salePrice => hasActiveOffer ? offerPrice : price;
+
+  /// The offer's discount as a whole percentage, or 0 without an offer.
+  int get offerDiscountPercent =>
+      hasActiveOffer ? ((1 - offerPrice! / price!) * 100).round() : 0;
 
   /// Units remain. Products with no stock are hidden from customers (they stay
   /// visible to their company so it can restock).
@@ -74,6 +102,31 @@ class Product {
         isDeliveryAvailable: isDeliveryAvailable,
         isInstallationAvailable: isInstallationAvailable,
         installationPrice: installationPrice,
+        offerPrice: offerPrice,
+        offerEndsAt: offerEndsAt,
+        createdAt: createdAt,
+      );
+
+  /// This product with [offerPrice] until [offerEndsAt]; a `null` offer
+  /// price removes the offer.
+  Product withOffer(double? offerPrice, DateTime? offerEndsAt) => Product(
+        id: id,
+        name: name,
+        price: price,
+        currency: currency,
+        imageUrl: imageUrl,
+        companyId: companyId,
+        companyName: companyName,
+        categoryId: categoryId,
+        description: description,
+        inStock: inStock,
+        stockCount: stockCount,
+        specifications: specifications,
+        isDeliveryAvailable: isDeliveryAvailable,
+        isInstallationAvailable: isInstallationAvailable,
+        installationPrice: installationPrice,
+        offerPrice: offerPrice,
+        offerEndsAt: offerPrice == null ? null : offerEndsAt,
         createdAt: createdAt,
       );
 }

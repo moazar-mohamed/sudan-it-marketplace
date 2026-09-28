@@ -2364,4 +2364,86 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get companyServiceNotFound => 'هذه الخدمة لم تعد متاحة.';
+
+  @override
+  String offerDiscountBadge(int percent) {
+    return 'خصم $percent%';
+  }
+
+  @override
+  String get homeFeaturedOffers => 'عروض مميزة';
+
+  @override
+  String get adminAddOffer => 'إضافة عرض';
+
+  @override
+  String get offerPickProductTitle => 'اختر المنتج';
+
+  @override
+  String get offerPickProductEmpty =>
+      'أضف منتجًا له سعر أولًا، ثم اعمل عليه عرضًا.';
+
+  @override
+  String get offerFormTitle => 'عرض على المنتج';
+
+  @override
+  String offerNormalPrice(String price, String currency) {
+    return 'السعر العادي: $price $currency';
+  }
+
+  @override
+  String get offerPriceLabel => 'سعر العرض (SDG)';
+
+  @override
+  String get offerPriceRequired => 'أدخل سعر العرض.';
+
+  @override
+  String get offerPriceTooHigh => 'يجب أن يكون سعر العرض أقل من السعر العادي.';
+
+  @override
+  String get offerEndsLabel => 'ينتهي العرض في (اختياري)';
+
+  @override
+  String get offerNoEndDate => 'بدون تاريخ انتهاء';
+
+  @override
+  String get offerClearEndDate => 'إزالة التاريخ';
+
+  @override
+  String get offerEndsHint =>
+      'بعد هذا التاريخ يعود المنتج لسعره العادي ويختفي من العروض.';
+
+  @override
+  String get offerPreviewLabel => 'هكذا سيظهر للعميل';
+
+  @override
+  String get offerSave => 'حفظ العرض';
+
+  @override
+  String get offerRemove => 'إلغاء العرض';
+
+  @override
+  String get offerSaved => 'تم حفظ العرض.';
+
+  @override
+  String get offerRemoved => 'تم إلغاء العرض.';
+
+  @override
+  String offerEndsOn(String date) {
+    return 'ينتهي في $date';
+  }
+
+  @override
+  String get offerEdit => 'تعديل العرض';
+
+  @override
+  String get offerNone => 'لا يوجد عرض على هذا المنتج.';
+
+  @override
+  String get offerNeedsPrice => 'حدّد سعرًا للمنتج أولًا لتعمل عليه عرضًا.';
+
+  @override
+  String formPriceBelowOffer(String price) {
+    return 'على المنتج عرض بسعر $price. يجب أن يكون السعر أكبر منه، أو ألغِ العرض أولًا.';
+  }
 }

@@ -15,6 +15,7 @@ class ProductModel {
       });
     }
     final rawCreatedAt = map['createdAt'];
+    final rawOfferEndsAt = map['offerEndsAt'];
     return Product(
       id: doc.id,
       name: map['name'] as String? ?? '',
@@ -31,6 +32,9 @@ class ProductModel {
       isDeliveryAvailable: map['isDeliveryAvailable'] as bool? ?? true,
       isInstallationAvailable: map['isInstallationAvailable'] as bool? ?? false,
       installationPrice: (map['installationPrice'] as num?)?.toDouble(),
+      offerPrice: (map['offerPrice'] as num?)?.toDouble(),
+      offerEndsAt:
+          rawOfferEndsAt is Timestamp ? rawOfferEndsAt.toDate() : null,
       createdAt: rawCreatedAt is Timestamp ? rawCreatedAt.toDate() : null,
     );
   }
@@ -59,6 +63,11 @@ class ProductModel {
       'installationPrice': product.isInstallationAvailable
           ? (product.installationPrice ?? 0)
           : null,
+      // An offer lives on the product; null fields mean no offer.
+      'offerPrice': product.offerPrice,
+      'offerEndsAt': product.offerPrice == null || product.offerEndsAt == null
+          ? null
+          : Timestamp.fromDate(product.offerEndsAt!),
     };
   }
 }

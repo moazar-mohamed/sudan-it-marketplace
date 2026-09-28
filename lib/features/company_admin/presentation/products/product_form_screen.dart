@@ -14,6 +14,7 @@ import '../../../categories/presentation/category_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../company_admin_actions.dart';
+import '../company_admin_format.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
 /// Add Product and Edit Product share this form and its rules:
@@ -132,8 +133,19 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     return null;
   }
 
-  /// The price may be left empty; when given it must still be greater than 0.
+  /// The price may be left empty; when given it must still be greater than 0,
+  /// and above the price of an offer that is running on the product.
   String? _validateOptionalPrice(String? value) {
+    final existing = widget.product;
+    final offer = existing != null && existing.hasActiveOffer
+        ? existing.offerPrice
+        : null;
+    final price = double.tryParse(value?.trim() ?? '');
+    if (offer != null && (price == null || price <= offer)) {
+      return context.l10n.formPriceBelowOffer(
+        CompanyAdminFormat.price(offer, existing!.currency),
+      );
+    }
     if ((value?.trim() ?? '').isEmpty) {
       return null;
     }
@@ -218,6 +230,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       installationPrice: _installationAvailable
           ? double.parse(_installationPriceController.text.trim())
           : null,
+      // Editing keeps a running offer; one that has ended is cleared.
+      offerPrice: existing != null && existing.hasActiveOffer
+          ? existing.offerPrice
+          : null,
+      offerEndsAt: existing?.offerEndsAt,
     );
 
     final error = existing == null

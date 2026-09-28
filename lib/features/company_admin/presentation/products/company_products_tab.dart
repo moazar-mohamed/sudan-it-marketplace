@@ -9,8 +9,7 @@ import '../../../../core/utils/search_ranking.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
-import '../../../products/presentation/product_price_strings.dart';
-import '../company_admin_format.dart';
+import '../../../products/presentation/widgets/product_offer_price.dart';
 import 'company_product_details_screen.dart';
 import 'product_form_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -205,18 +204,8 @@ class _CompanyProductTile extends StatelessWidget {
               style: AppTextStyles.captionStrong
                   .copyWith(color: context.colors.textBrand),
             ),
-          Text(
-            product.price == null
-                ? ProductPriceStrings.priceOnRequest(context)
-                : CompanyAdminFormat.price(product.price!, product.currency),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodyStrong.copyWith(
-              color: product.price == null
-                  ? context.colors.textSecondary
-                  : context.colors.textBrand,
-            ),
-          ),
+          // Shows a running offer the way customers see it.
+          ProductOfferPrice(product: product, style: AppTextStyles.bodyStrong),
           const SizedBox(height: AppSpacing.s6),
           Wrap(
             spacing: AppSpacing.s6,

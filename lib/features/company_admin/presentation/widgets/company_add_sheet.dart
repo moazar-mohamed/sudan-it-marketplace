@@ -6,14 +6,15 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../offers/offer_form_screen.dart';
 import '../products/product_form_screen.dart';
 import '../services/my_services_view.dart';
 import '../technicians/technician_form_screen.dart';
 
-enum _AddChoice { product, service, technician }
+enum _AddChoice { product, offer, service, technician }
 
 /// The bottom bar's Add button: one sheet for everything the company can
-/// create - a product, a service, a technician.
+/// create - a product, an offer on a product, a service, a technician.
 Future<void> showCompanyAddSheet(
   BuildContext context,
   WidgetRef ref,
@@ -39,6 +40,7 @@ Future<void> showCompanyAddSheet(
             const SizedBox(height: AppSpacing.s12),
             for (final (choice, icon, label) in [
               (_AddChoice.product, Icons.inventory_2_outlined, l10n.adminAddProduct),
+              (_AddChoice.offer, Icons.local_offer_outlined, l10n.adminAddOffer),
               (_AddChoice.service, Icons.design_services_outlined, l10n.adminAddService),
               (_AddChoice.technician, Icons.engineering_outlined, l10n.adminAddTechnician),
             ])
@@ -76,6 +78,8 @@ Future<void> showCompanyAddSheet(
           builder: (_) => ProductFormScreen.add(companyId: companyId),
         ),
       );
+    case _AddChoice.offer:
+      await showAddOfferFlow(context, ref, companyId);
     case _AddChoice.service:
       showCreateOwnService(context, ref, companyId);
     case _AddChoice.technician:

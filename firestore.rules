@@ -861,6 +861,8 @@ service cloud.firestore {
         'isDeliveryAvailable',
         'isInstallationAvailable',
         'installationPrice',
+        'offerPrice',
+        'offerEndsAt',
         'createdAt',
         'updatedAt'
       ]);
@@ -897,6 +899,16 @@ service cloud.firestore {
             && data.installationPrice > 0)
           || (data.isInstallationAvailable == false
             && data.installationPrice == null))
+        // Optional offer: a positive price below the normal price, with an
+        // optional end time. No offer price means no end time either.
+        && ((data.get('offerPrice', null) == null
+            && data.get('offerEndsAt', null) == null)
+          || (data.get('offerPrice', null) is number
+            && data.offerPrice > 0
+            && data.get('price', null) is number
+            && data.offerPrice < data.price
+            && (data.get('offerEndsAt', null) == null
+              || data.offerEndsAt is timestamp)))
         && data.updatedAt == request.time;
     }
 

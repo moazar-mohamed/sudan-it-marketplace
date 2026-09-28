@@ -54,8 +54,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   late bool _useDelivery = widget.product.isDeliveryAvailable;
 
   /// Checkout is only reachable for a priced product: Buy Now is disabled while
-  /// a product has no price, and a missing price is never treated as 0.
-  double get _unitPrice => widget.product.price!;
+  /// a product has no price, and a missing price is never treated as 0. While
+  /// an offer runs the customer pays the offer price.
+  double get _unitPrice => widget.product.salePrice!;
 
   double get _deliveryFee => _useDelivery ? _standardDeliveryFee : 0.0;
 
