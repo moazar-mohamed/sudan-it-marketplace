@@ -8,6 +8,8 @@ import '../../companies/presentation/companies_providers.dart';
 import '../../company_services/presentation/company_service_error_message.dart';
 import '../../company_services/presentation/company_service_providers.dart';
 import '../../notifications/presentation/notification_events.dart';
+import '../../offers/domain/offer_pricing.dart';
+import '../../offers/presentation/offer_price.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../../orders/domain/entities/order_entity.dart';
 import '../../orders/presentation/orders_providers.dart';
@@ -184,11 +186,43 @@ class CompanyAdminActions {
     );
   }
 
+  /// Puts one company service on offer, or ends its offer when [offerPrice]
+  /// is null.
+  Future<String?> setServiceOffer({
+    required String companyServiceId,
+    double? offerPrice,
+    DateTime? offerEndsAt,
+    OfferBadge? offerBadge,
+  }) {
+    return _guardCompanyService(
+      () => _ref.read(companyServiceRepositoryProvider).setCompanyServiceOffer(
+            companyServiceId: companyServiceId,
+            offerPrice: offerPrice,
+            offerEndsAt: offerEndsAt,
+            offerBadge: offerBadge,
+          ),
+    );
+  }
+
+  /// The price of a service on offer must stay above its offer price; an
+  /// error message when [price] would not, else null.
+  String? priceBelowOffer(double? price, double? offerPrice) {
+    if (offerPrice == null || (price != null && price > offerPrice)) {
+      return null;
+    }
+    return _ref
+        .read(appLocalizationsProvider)
+        .formPriceBelowOffer(formatProductPrice(offerPrice));
+  }
+
   Future<String?> updateCompanyService({
     required String companyServiceId,
     double? price,
     String? note,
-  }) {
+    double? offerPrice,
+  }) async {
+    final blocked = priceBelowOffer(price, offerPrice);
+    if (blocked != null) return blocked;
     return _guardCompanyService(
       () => _ref
           .read(companyServiceRepositoryProvider)
@@ -258,7 +292,10 @@ class CompanyAdminActions {
     required String description,
     double? price,
     String? note,
-  }) {
+    double? offerPrice,
+  }) async {
+    final blocked = priceBelowOffer(price, offerPrice);
+    if (blocked != null) return blocked;
     return _guardOwnService(() async {
       await _ref.read(serviceRepositoryProvider).updateService(
             id: serviceId,

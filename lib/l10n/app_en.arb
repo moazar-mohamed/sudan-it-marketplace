@@ -1183,31 +1183,140 @@
   "companyServiceAlreadyOffered": "Your company already offers this service.",
   "companyServiceNotFound": "This service is no longer available.",
   "offerDiscountBadge": "{percent}% off",
-  "@offerDiscountBadge": {"placeholders": {"percent": {"type": "int"}}},
+  "@offerDiscountBadge": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "homeFeaturedOffers": "Featured offers",
-  "adminAddOffer": "Add offer",
+  "adminAddOffer": "Add Offer",
   "offerPickProductTitle": "Choose a product",
   "offerPickProductEmpty": "Add a product with a price first, then put it on offer.",
-  "offerFormTitle": "Product offer",
   "offerNormalPrice": "Normal price: {price} {currency}",
-  "@offerNormalPrice": {"placeholders": {"price": {"type": "String"}, "currency": {"type": "String"}}},
-  "offerPriceLabel": "Offer price (SDG)",
-  "offerPriceRequired": "Enter the offer price.",
+  "@offerNormalPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "offerPriceTooHigh": "The offer price must be lower than the normal price.",
-  "offerEndsLabel": "Offer ends on (optional)",
   "offerNoEndDate": "No end date",
-  "offerClearEndDate": "Remove date",
   "offerEndsHint": "After this date the product goes back to its normal price and leaves the offers.",
-  "offerPreviewLabel": "How customers will see it",
-  "offerSave": "Save offer",
   "offerRemove": "End offer",
   "offerSaved": "Offer saved.",
   "offerRemoved": "Offer ended.",
   "offerEndsOn": "Ends {date}",
-  "@offerEndsOn": {"placeholders": {"date": {"type": "String"}}},
+  "@offerEndsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "offerEdit": "Edit offer",
-  "offerNone": "This product has no offer.",
   "offerNeedsPrice": "Set a price for this product first to put it on offer.",
   "formPriceBelowOffer": "This product is on offer at {price}. The price must be higher than that, or end the offer first.",
-  "@formPriceBelowOffer": {"placeholders": {"price": {"type": "String"}}}
+  "@formPriceBelowOffer": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "offerKindProduct": "Product",
+  "offerKindService": "Service",
+  "offerBadgeDiscount": "% off",
+  "offerBadgeSpecial": "Special offer",
+  "offerBadgeLimited": "Limited time",
+  "offerNewTitle": "New offer",
+  "offerOnLabel": "Offer on",
+  "offerChooseItem": "Choose from your catalog",
+  "offerChange": "Change",
+  "offerNewProduct": "New product on offer",
+  "offerNewService": "New service on offer",
+  "offerPickServiceTitle": "Choose a service",
+  "offerSearchHint": "Search by name",
+  "offerItemNoPrice": "No price - set one first",
+  "offerPickServiceEmpty": "Add a service with a price first, then put it on offer.",
+  "offerDiscountMethod": "Discount",
+  "offerModePercent": "Percentage",
+  "offerModePrice": "New price",
+  "offerPercentLabel": "Discount (%)",
+  "offerPercentInvalid": "Enter a percentage from 1 to 99.",
+  "offerComputedPrice": "Offer price: {price} {currency}",
+  "@offerComputedPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "offerDuration": "Duration",
+  "offerDuration3Days": "3 days",
+  "offerDurationWeek": "1 week",
+  "offerDurationMonth": "1 month",
+  "offerDurationNone": "No end",
+  "offerDurationCustom": "Pick a date",
+  "offerEndDatePast": "Choose an end date in the future.",
+  "offerBadgeLabel": "Badge",
+  "offerPreviewEmpty": "Choose a product or service to preview the offer as customers will see it.",
+  "offerSaves": "Saves {amount} {currency}",
+  "@offerSaves": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "offerPublish": "Publish offer",
+  "offerPublished": "Offer published.",
+  "offerEndConfirmTitle": "End this offer?",
+  "offerEndConfirmBody": "“{name}” goes back to its normal price and leaves the offers.",
+  "@offerEndConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "offerPickItemRequired": "Choose a product or service for the offer.",
+  "catalogOffers": "Offers",
+  "offersRunning": "Running ({count})",
+  "@offersRunning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "offersEnded": "Ended ({count})",
+  "@offersEnded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "offersEmpty": "No offers yet. Put any product or service on offer to show it to customers in Featured offers.",
+  "offerEndedOn": "Ended {date}",
+  "@offerEndedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "offerAddCta": "Add offer"
 }

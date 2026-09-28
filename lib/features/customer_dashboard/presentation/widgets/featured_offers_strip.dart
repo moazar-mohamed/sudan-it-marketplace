@@ -4,27 +4,17 @@ import '../../../../core/localization/l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/app_widgets.dart';
-import '../../../products/domain/entities/product.dart';
-import '../../../products/presentation/product_details_screen.dart';
-import '../../../products/presentation/widgets/product_card.dart';
-import '../../../products/presentation/widgets/product_offer_price.dart';
+import '../../../offers/domain/offer_item.dart';
+import '../../../offers/presentation/offer_card.dart';
 
-/// Products with a running offer, biggest discount first.
-List<Product> productsOnOffer(Iterable<Product> products) =>
-    products.where((product) => product.hasActiveOffer).toList()
-      ..sort((a, b) => b.offerDiscountPercent.compareTo(a.offerDiscountPercent));
-
-/// "Featured offers" on the customer home: a sideways row of the products on
-/// offer, with "View all" opening every one of them. Shows nothing when no
-/// offer runs.
+/// "Featured offers" on the customer home: a sideways row of the products
+/// and services on offer, with "View all" opening every one of them. Shows
+/// nothing when no offer runs.
 class FeaturedOffersStrip extends StatelessWidget {
   const FeaturedOffersStrip({super.key, required this.offers});
 
-  /// Products on offer, already filtered by [productsOnOffer].
-  final List<Product> offers;
-
-  static const double _cardWidth = 156;
+  /// Running offers, already sorted by [runningOffers].
+  final List<OfferItem> offers;
 
   @override
   Widget build(BuildContext context) {
@@ -66,14 +56,14 @@ class FeaturedOffersStrip extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.s8),
         SizedBox(
-          height: 236,
+          height: OfferCard.height,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: offers.length,
             separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.s12),
-            itemBuilder: (context, index) => SizedBox(
-              width: _cardWidth,
-              child: _OfferCard(product: offers[index]),
+            itemBuilder: (context, index) => OfferCard(
+              item: offers[index],
+              onTap: () => openOfferItem(context, offers[index]),
             ),
           ),
         ),
@@ -82,108 +72,27 @@ class FeaturedOffersStrip extends StatelessWidget {
   }
 }
 
-class _OfferCard extends StatelessWidget {
-  const _OfferCard({required this.product});
-
-  final Product product;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final company = product.companyName?.trim() ?? '';
-    return Material(
-      color: colors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.mdAll,
-        side: BorderSide(color: colors.borderDefault),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => ProductDetailsScreen(product: product),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                AppImageTile(
-                  imageUrl: product.imageUrl,
-                  size: 120,
-                  radius: 0,
-                  expand: true,
-                ),
-                PositionedDirectional(
-                  top: AppSpacing.s8,
-                  start: AppSpacing.s8,
-                  child: OfferDiscountBadge(product: product),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.s8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bodyStrong,
-                  ),
-                  if (company.isNotEmpty)
-                    Text(
-                      company,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.caption
-                          .copyWith(color: colors.textSecondary),
-                    ),
-                  const SizedBox(height: AppSpacing.s4),
-                  Text(
-                    '${formatProductPrice(product.salePrice!)} ${product.currency}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bodyStrong
-                        .copyWith(color: colors.textBrand),
-                  ),
-                  Text(
-                    formatProductPrice(product.price!),
-                    maxLines: 1,
-                    style: AppTextStyles.caption.copyWith(
-                      color: colors.textTertiary,
-                      decoration: TextDecoration.lineThrough,
-                      decorationColor: colors.textTertiary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Every product on offer, from the home strip's "View all".
+/// Every running offer, from the home row's "View all".
 class OffersScreen extends StatelessWidget {
   const OffersScreen({super.key, required this.offers});
 
-  final List<Product> offers;
+  final List<OfferItem> offers;
 
   @override
   Widget build(BuildContext context) {
     final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.homeFeaturedOffers)),
-      body: ListView.separated(
+      body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
-        itemCount: offers.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
-        itemBuilder: (context, index) => ProductCard(product: offers[index]),
+        child: Wrap(
+          spacing: AppSpacing.s12,
+          runSpacing: AppSpacing.s12,
+          children: [
+            for (final item in offers)
+              OfferCard(item: item, onTap: () => openOfferItem(context, item)),
+          ],
+        ),
       ),
     );
   }

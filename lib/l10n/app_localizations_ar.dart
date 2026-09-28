@@ -2384,49 +2384,28 @@ class AppLocalizationsAr extends AppLocalizations {
       'أضف منتجًا له سعر أولًا، ثم اعمل عليه عرضًا.';
 
   @override
-  String get offerFormTitle => 'عرض على المنتج';
-
-  @override
   String offerNormalPrice(String price, String currency) {
     return 'السعر العادي: $price $currency';
   }
 
   @override
-  String get offerPriceLabel => 'سعر العرض (SDG)';
-
-  @override
-  String get offerPriceRequired => 'أدخل سعر العرض.';
-
-  @override
   String get offerPriceTooHigh => 'يجب أن يكون سعر العرض أقل من السعر العادي.';
 
   @override
-  String get offerEndsLabel => 'ينتهي العرض في (اختياري)';
-
-  @override
   String get offerNoEndDate => 'بدون تاريخ انتهاء';
-
-  @override
-  String get offerClearEndDate => 'إزالة التاريخ';
 
   @override
   String get offerEndsHint =>
       'بعد هذا التاريخ يعود المنتج لسعره العادي ويختفي من العروض.';
 
   @override
-  String get offerPreviewLabel => 'هكذا سيظهر للعميل';
-
-  @override
-  String get offerSave => 'حفظ العرض';
-
-  @override
-  String get offerRemove => 'إلغاء العرض';
+  String get offerRemove => 'إنهاء العرض';
 
   @override
   String get offerSaved => 'تم حفظ العرض.';
 
   @override
-  String get offerRemoved => 'تم إلغاء العرض.';
+  String get offerRemoved => 'تم إنهاء العرض.';
 
   @override
   String offerEndsOn(String date) {
@@ -2437,13 +2416,151 @@ class AppLocalizationsAr extends AppLocalizations {
   String get offerEdit => 'تعديل العرض';
 
   @override
-  String get offerNone => 'لا يوجد عرض على هذا المنتج.';
-
-  @override
   String get offerNeedsPrice => 'حدّد سعرًا للمنتج أولًا لتعمل عليه عرضًا.';
 
   @override
   String formPriceBelowOffer(String price) {
     return 'على المنتج عرض بسعر $price. يجب أن يكون السعر أكبر منه، أو ألغِ العرض أولًا.';
   }
+
+  @override
+  String get offerKindProduct => 'منتج';
+
+  @override
+  String get offerKindService => 'خدمة';
+
+  @override
+  String get offerBadgeDiscount => 'خصم %';
+
+  @override
+  String get offerBadgeSpecial => 'عرض خاص';
+
+  @override
+  String get offerBadgeLimited => 'لفترة محدودة';
+
+  @override
+  String get offerNewTitle => 'عرض جديد';
+
+  @override
+  String get offerOnLabel => 'العرض على';
+
+  @override
+  String get offerChooseItem => 'اختر من الكتالوج';
+
+  @override
+  String get offerChange => 'تغيير';
+
+  @override
+  String get offerNewProduct => 'منتج جديد عليه عرض';
+
+  @override
+  String get offerNewService => 'خدمة جديدة عليها عرض';
+
+  @override
+  String get offerPickServiceTitle => 'اختر الخدمة';
+
+  @override
+  String get offerSearchHint => 'ابحث بالاسم';
+
+  @override
+  String get offerItemNoPrice => 'بدون سعر، حدّد سعرًا أولًا';
+
+  @override
+  String get offerPickServiceEmpty =>
+      'أضف خدمة لها سعر أولًا، ثم اعمل عليها عرضًا.';
+
+  @override
+  String get offerDiscountMethod => 'طريقة الخصم';
+
+  @override
+  String get offerModePercent => 'نسبة خصم %';
+
+  @override
+  String get offerModePrice => 'سعر جديد';
+
+  @override
+  String get offerPercentLabel => 'نسبة الخصم (%)';
+
+  @override
+  String get offerPercentInvalid => 'أدخل نسبة بين 1 و 99.';
+
+  @override
+  String offerComputedPrice(String price, String currency) {
+    return 'سعر العرض: $price $currency';
+  }
+
+  @override
+  String get offerDuration => 'مدة العرض';
+
+  @override
+  String get offerDuration3Days => '3 أيام';
+
+  @override
+  String get offerDurationWeek => 'أسبوع';
+
+  @override
+  String get offerDurationMonth => 'شهر';
+
+  @override
+  String get offerDurationNone => 'بدون نهاية';
+
+  @override
+  String get offerDurationCustom => 'تاريخ محدد';
+
+  @override
+  String get offerEndDatePast => 'اختر تاريخ انتهاء قادمًا.';
+
+  @override
+  String get offerBadgeLabel => 'شارة العرض';
+
+  @override
+  String get offerPreviewEmpty =>
+      'اختر منتجًا أو خدمة لتظهر هنا معاينة العرض كما يراه العميل.';
+
+  @override
+  String offerSaves(String amount, String currency) {
+    return 'يوفّر $amount $currency';
+  }
+
+  @override
+  String get offerPublish => 'نشر العرض';
+
+  @override
+  String get offerPublished => 'تم نشر العرض.';
+
+  @override
+  String get offerEndConfirmTitle => 'إنهاء العرض؟';
+
+  @override
+  String offerEndConfirmBody(String name) {
+    return 'سيعود «$name» لسعره العادي ويختفي من العروض.';
+  }
+
+  @override
+  String get offerPickItemRequired => 'اختر منتجًا أو خدمة للعرض.';
+
+  @override
+  String get catalogOffers => 'العروض';
+
+  @override
+  String offersRunning(int count) {
+    return 'العروض الحالية ($count)';
+  }
+
+  @override
+  String offersEnded(int count) {
+    return 'العروض المنتهية ($count)';
+  }
+
+  @override
+  String get offersEmpty =>
+      'لا توجد عروض بعد. أضف عرضًا على أي منتج أو خدمة ليظهر للعملاء في «عروض مميزة».';
+
+  @override
+  String offerEndedOn(String date) {
+    return 'انتهى في $date';
+  }
+
+  @override
+  String get offerAddCta => 'إضافة عرض';
 }

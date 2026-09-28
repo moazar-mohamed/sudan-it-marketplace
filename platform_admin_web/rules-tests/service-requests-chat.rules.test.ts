@@ -21,6 +21,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
   updateDoc,
   where,
   writeBatch,
@@ -529,5 +530,63 @@ describe('chats: conversations and messages', () => {
         updatedAt: serverTimestamp(),
       }),
     );
+  });
+});
+
+describe('service offers', () => {
+  const later = () => Timestamp.fromDate(new Date(Date.now() + 7 * 86400000));
+  const setOffer = (uid: string, linkId: string, offer: Record<string, unknown>) =>
+    updateDoc(doc(as(uid), 'company_services', linkId), {
+      ...offer,
+      updatedAt: serverTimestamp(),
+    });
+
+  it('a company puts its service on offer below its price, with a badge', async () => {
+    await assertSucceeds(
+      setOffer('ca1', 'c1_svc1', { offerPrice: 12000, offerEndsAt: later(), offerBadge: 'special' }),
+    );
+    await assertSucceeds(
+      setOffer('ca1', 'c1_svc1', { offerPrice: 11000, offerEndsAt: null, offerBadge: 'discount' }),
+    );
+  });
+
+  it('refuses an offer at or above the price, a bad badge, or on an unpriced service', async () => {
+    await assertFails(setOffer('ca1', 'c1_svc1', { offerPrice: 15000, offerEndsAt: null, offerBadge: null }));
+    await assertFails(setOffer('ca1', 'c1_svc1', { offerPrice: 12000, offerEndsAt: null, offerBadge: 'free' }));
+    await assertFails(setOffer('ca1', 'c1_svc1', { offerPrice: null, offerEndsAt: later(), offerBadge: null }));
+    await assertFails(setOffer('ca1', 'c1_svc2', { offerPrice: 10, offerEndsAt: null, offerBadge: null }));
+  });
+
+  it("another company cannot touch the offer", async () => {
+    await assertFails(setOffer('ca2', 'c1_svc1', { offerPrice: 1, offerEndsAt: null, offerBadge: null }));
+  });
+
+  it('the price cannot drop to the offer price while the offer is set', async () => {
+    await assertSucceeds(setOffer('ca1', 'c1_svc1', { offerPrice: 12000, offerEndsAt: null, offerBadge: null }));
+    await assertFails(
+      updateDoc(doc(as('ca1'), 'company_services', 'c1_svc1'), { price: 12000, updatedAt: serverTimestamp() }),
+    );
+  });
+
+  it('a customer requests the service at the offer price while it runs', async () => {
+    await assertSucceeds(setOffer('ca1', 'c1_svc1', { offerPrice: 12000, offerEndsAt: later(), offerBadge: null }));
+    await assertSucceeds(sendRequest(as('cust1'), 'rOffer', 'cust1', 'c1_svc1', { request: { price: 12000 } }));
+  });
+
+  it('the offer price is refused once the offer has ended, and any other price always', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'company_services', 'c1_svc1'), {
+        offerPrice: 12000,
+        offerEndsAt: Timestamp.fromDate(new Date(Date.now() - 86400000)),
+      });
+    });
+    await assertFails(sendRequest(as('cust1'), 'rOld', 'cust1', 'c1_svc1', { request: { price: 12000 } }));
+    await assertFails(sendRequest(as('cust1'), 'rCheap', 'cust1', 'c1_svc1', { request: { price: 1 } }));
+    await assertSucceeds(sendRequest(as('cust1'), 'rNormal', 'cust1', 'c1_svc1', { request: { price: 15000 } }));
+  });
+
+  it('the offer is ended by clearing it', async () => {
+    await assertSucceeds(setOffer('ca1', 'c1_svc1', { offerPrice: 12000, offerEndsAt: null, offerBadge: null }));
+    await assertSucceeds(setOffer('ca1', 'c1_svc1', { offerPrice: null, offerEndsAt: null, offerBadge: null }));
   });
 });

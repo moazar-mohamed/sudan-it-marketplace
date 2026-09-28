@@ -47,6 +47,10 @@ class FirestoreCompanyServiceRemoteDataSource
           'isActive': true,
           'price': resolvedPrice,
           'note': resolvedNote,
+          // An offer from before it was removed does not come back.
+          'offerPrice': null,
+          'offerEndsAt': null,
+          'offerBadge': null,
           'updatedAt': FieldValue.serverTimestamp(),
         });
         return existing.id;
@@ -88,6 +92,32 @@ class FirestoreCompanyServiceRemoteDataSource
         'updatedAt': FieldValue.serverTimestamp(),
       });
     });
+  }
+
+  @override
+  Future<void> setCompanyServiceOffer({
+    required String companyServiceId,
+    double? offerPrice,
+    DateTime? offerEndsAt,
+    String? offerBadge,
+  }) {
+    return _run(() async {
+      final ends = offerPrice == null ? null : offerEndsAt;
+      await _companyServices.doc(companyServiceId.trim()).update({
+        'offerPrice': offerPrice,
+        'offerEndsAt': ends == null ? null : Timestamp.fromDate(ends),
+        'offerBadge': offerPrice == null ? null : offerBadge,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
+  @override
+  Stream<List<CompanyServiceModel>> watchAllActiveServices() {
+    return _activeQuery()
+        .snapshots()
+        .map((snapshot) => _filterAndSort(snapshot.docs.map(_mapDoc)))
+        .handleError(_throwMappedError);
   }
 
   @override

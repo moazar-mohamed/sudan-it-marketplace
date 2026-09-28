@@ -14,6 +14,18 @@ abstract class CompanyServiceRemoteDataSource {
     String? note,
   });
 
+  /// Sets the offer on one company service; a `null` [offerPrice] ends it.
+  Future<void> setCompanyServiceOffer({
+    required String companyServiceId,
+    double? offerPrice,
+    DateTime? offerEndsAt,
+    String? offerBadge,
+  });
+
+  /// Every active company service of every company (offers are picked from
+  /// these for the customer home).
+  Stream<List<CompanyServiceModel>> watchAllActiveServices();
+
   Future<void> removeServiceFromCompany({
     required String companyId,
     required String serviceId,

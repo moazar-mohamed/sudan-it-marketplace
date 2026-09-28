@@ -1,3 +1,4 @@
+import '../../../offers/domain/offer_pricing.dart';
 import '../entities/company_service.dart';
 
 abstract class CompanyServiceRepository {
@@ -14,6 +15,17 @@ abstract class CompanyServiceRepository {
     double? price,
     String? note,
   });
+
+  /// Sets the offer on one company service; a `null` [offerPrice] ends it.
+  Future<void> setCompanyServiceOffer({
+    required String companyServiceId,
+    double? offerPrice,
+    DateTime? offerEndsAt,
+    OfferBadge? offerBadge,
+  });
+
+  /// Every active company service of every company.
+  Stream<List<CompanyService>> watchAllActiveServices();
 
   Future<void> removeServiceFromCompany({
     required String companyId,

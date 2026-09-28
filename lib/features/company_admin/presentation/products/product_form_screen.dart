@@ -235,6 +235,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           ? existing.offerPrice
           : null,
       offerEndsAt: existing?.offerEndsAt,
+      offerBadge: existing?.offerBadge,
     );
 
     final error = existing == null
@@ -256,7 +257,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           : context.l10n.formProductUpdated,
       tone: AppTone.success,
     );
-    Navigator.of(context).pop();
+    // The saved product, for a caller that goes on with it (a new offer).
+    Navigator.of(context).pop(product);
   }
 
   @override

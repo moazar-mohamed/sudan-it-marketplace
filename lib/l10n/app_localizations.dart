@@ -4337,7 +4337,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminAddOffer.
   ///
   /// In en, this message translates to:
-  /// **'Add offer'**
+  /// **'Add Offer'**
   String get adminAddOffer;
 
   /// No description provided for @offerPickProductTitle.
@@ -4352,29 +4352,11 @@ abstract class AppLocalizations {
   /// **'Add a product with a price first, then put it on offer.'**
   String get offerPickProductEmpty;
 
-  /// No description provided for @offerFormTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Product offer'**
-  String get offerFormTitle;
-
   /// No description provided for @offerNormalPrice.
   ///
   /// In en, this message translates to:
   /// **'Normal price: {price} {currency}'**
   String offerNormalPrice(String price, String currency);
-
-  /// No description provided for @offerPriceLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Offer price (SDG)'**
-  String get offerPriceLabel;
-
-  /// No description provided for @offerPriceRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the offer price.'**
-  String get offerPriceRequired;
 
   /// No description provided for @offerPriceTooHigh.
   ///
@@ -4382,41 +4364,17 @@ abstract class AppLocalizations {
   /// **'The offer price must be lower than the normal price.'**
   String get offerPriceTooHigh;
 
-  /// No description provided for @offerEndsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Offer ends on (optional)'**
-  String get offerEndsLabel;
-
   /// No description provided for @offerNoEndDate.
   ///
   /// In en, this message translates to:
   /// **'No end date'**
   String get offerNoEndDate;
 
-  /// No description provided for @offerClearEndDate.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove date'**
-  String get offerClearEndDate;
-
   /// No description provided for @offerEndsHint.
   ///
   /// In en, this message translates to:
   /// **'After this date the product goes back to its normal price and leaves the offers.'**
   String get offerEndsHint;
-
-  /// No description provided for @offerPreviewLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'How customers will see it'**
-  String get offerPreviewLabel;
-
-  /// No description provided for @offerSave.
-  ///
-  /// In en, this message translates to:
-  /// **'Save offer'**
-  String get offerSave;
 
   /// No description provided for @offerRemove.
   ///
@@ -4448,12 +4406,6 @@ abstract class AppLocalizations {
   /// **'Edit offer'**
   String get offerEdit;
 
-  /// No description provided for @offerNone.
-  ///
-  /// In en, this message translates to:
-  /// **'This product has no offer.'**
-  String get offerNone;
-
   /// No description provided for @offerNeedsPrice.
   ///
   /// In en, this message translates to:
@@ -4465,6 +4417,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This product is on offer at {price}. The price must be higher than that, or end the offer first.'**
   String formPriceBelowOffer(String price);
+
+  /// No description provided for @offerKindProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Product'**
+  String get offerKindProduct;
+
+  /// No description provided for @offerKindService.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get offerKindService;
+
+  /// No description provided for @offerBadgeDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'% off'**
+  String get offerBadgeDiscount;
+
+  /// No description provided for @offerBadgeSpecial.
+  ///
+  /// In en, this message translates to:
+  /// **'Special offer'**
+  String get offerBadgeSpecial;
+
+  /// No description provided for @offerBadgeLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited time'**
+  String get offerBadgeLimited;
+
+  /// No description provided for @offerNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New offer'**
+  String get offerNewTitle;
+
+  /// No description provided for @offerOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer on'**
+  String get offerOnLabel;
+
+  /// No description provided for @offerChooseItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from your catalog'**
+  String get offerChooseItem;
+
+  /// No description provided for @offerChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get offerChange;
+
+  /// No description provided for @offerNewProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'New product on offer'**
+  String get offerNewProduct;
+
+  /// No description provided for @offerNewService.
+  ///
+  /// In en, this message translates to:
+  /// **'New service on offer'**
+  String get offerNewService;
+
+  /// No description provided for @offerPickServiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a service'**
+  String get offerPickServiceTitle;
+
+  /// No description provided for @offerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name'**
+  String get offerSearchHint;
+
+  /// No description provided for @offerItemNoPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'No price - set one first'**
+  String get offerItemNoPrice;
+
+  /// No description provided for @offerPickServiceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a service with a price first, then put it on offer.'**
+  String get offerPickServiceEmpty;
+
+  /// No description provided for @offerDiscountMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get offerDiscountMethod;
+
+  /// No description provided for @offerModePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentage'**
+  String get offerModePercent;
+
+  /// No description provided for @offerModePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'New price'**
+  String get offerModePrice;
+
+  /// No description provided for @offerPercentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount (%)'**
+  String get offerPercentLabel;
+
+  /// No description provided for @offerPercentInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a percentage from 1 to 99.'**
+  String get offerPercentInvalid;
+
+  /// No description provided for @offerComputedPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer price: {price} {currency}'**
+  String offerComputedPrice(String price, String currency);
+
+  /// No description provided for @offerDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get offerDuration;
+
+  /// No description provided for @offerDuration3Days.
+  ///
+  /// In en, this message translates to:
+  /// **'3 days'**
+  String get offerDuration3Days;
+
+  /// No description provided for @offerDurationWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week'**
+  String get offerDurationWeek;
+
+  /// No description provided for @offerDurationMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'1 month'**
+  String get offerDurationMonth;
+
+  /// No description provided for @offerDurationNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No end'**
+  String get offerDurationNone;
+
+  /// No description provided for @offerDurationCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get offerDurationCustom;
+
+  /// No description provided for @offerEndDatePast.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an end date in the future.'**
+  String get offerEndDatePast;
+
+  /// No description provided for @offerBadgeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Badge'**
+  String get offerBadgeLabel;
+
+  /// No description provided for @offerPreviewEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a product or service to preview the offer as customers will see it.'**
+  String get offerPreviewEmpty;
+
+  /// No description provided for @offerSaves.
+  ///
+  /// In en, this message translates to:
+  /// **'Saves {amount} {currency}'**
+  String offerSaves(String amount, String currency);
+
+  /// No description provided for @offerPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish offer'**
+  String get offerPublish;
+
+  /// No description provided for @offerPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer published.'**
+  String get offerPublished;
+
+  /// No description provided for @offerEndConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End this offer?'**
+  String get offerEndConfirmTitle;
+
+  /// No description provided for @offerEndConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{name}” goes back to its normal price and leaves the offers.'**
+  String offerEndConfirmBody(String name);
+
+  /// No description provided for @offerPickItemRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a product or service for the offer.'**
+  String get offerPickItemRequired;
+
+  /// No description provided for @catalogOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Offers'**
+  String get catalogOffers;
+
+  /// No description provided for @offersRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running ({count})'**
+  String offersRunning(int count);
+
+  /// No description provided for @offersEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended ({count})'**
+  String offersEnded(int count);
+
+  /// No description provided for @offersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No offers yet. Put any product or service on offer to show it to customers in Featured offers.'**
+  String get offersEmpty;
+
+  /// No description provided for @offerEndedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended {date}'**
+  String offerEndedOn(String date);
+
+  /// No description provided for @offerAddCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Add offer'**
+  String get offerAddCta;
 }
 
 class _AppLocalizationsDelegate

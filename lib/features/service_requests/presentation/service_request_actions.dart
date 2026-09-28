@@ -54,8 +54,9 @@ class ServiceRequestActions {
       companyServiceId: offer.id,
       serviceId: service.id,
       serviceName: service.name,
-      // The company's price as it is now, or none.
-      price: offer.price,
+      // The company's price as it is now (the offer price while an offer
+      // runs), or none.
+      price: offer.salePrice,
       details: details,
       address: address,
       latitude: location?.latitude,

@@ -135,8 +135,15 @@ describe('product offers', () => {
     await assertSucceeds(edit('onOffer', { price: 90 }));
   });
 
+  it('the badge must be one of the known ones, and only on an offer', async () => {
+    await assertSucceeds(edit('priced', { offerPrice: 80, offerBadge: 'limited' }));
+    await assertSucceeds(edit('priced', { offerPrice: 80, offerBadge: 'special' }));
+    await assertFails(edit('priced', { offerPrice: 80, offerBadge: 'free' }));
+    await assertFails(edit('unpriced', { offerBadge: 'special' }));
+  });
+
   it('the offer is ended by clearing it', async () => {
-    await assertSucceeds(edit('onOffer', { offerPrice: null, offerEndsAt: null }));
+    await assertSucceeds(edit('onOffer', { offerPrice: null, offerEndsAt: null, offerBadge: null }));
   });
 
   it('another company cannot put the product on offer', async () => {

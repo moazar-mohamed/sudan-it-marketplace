@@ -7,7 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../company_services/presentation/company_service_providers.dart';
 import '../../../service_requests/presentation/service_request_form_screen.dart';
-import '../../../service_requests/presentation/service_request_labels.dart';
+import '../../../offers/presentation/offer_price.dart';
 import '../../domain/entities/catalog_service.dart';
 
 /// A company that offers the service, with the company's own price (shown
@@ -88,17 +88,18 @@ class ServiceOfferCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Only a price the company set is shown; nothing otherwise.
-              if (price != null) ...[
-                const SizedBox(width: AppSpacing.s8),
-                Text(
-                  formatServicePrice(price),
-                  style: AppTextStyles.bodyStrong
-                      .copyWith(color: context.colors.textBrand),
-                ),
-              ],
             ],
           ),
+          // Only a price the company set is shown; nothing otherwise. A
+          // running offer shows its price, the struck-through normal price
+          // and its badge.
+          if (price != null) ...[
+            const SizedBox(height: AppSpacing.s8),
+            OfferPriceText(
+              pricing: offer.offer,
+              style: AppTextStyles.bodyStrong,
+            ),
+          ],
           if (note != null) ...[
             const SizedBox(height: AppSpacing.s8),
             Text(

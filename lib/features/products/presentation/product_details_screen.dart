@@ -13,7 +13,7 @@ import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../orders/presentation/checkout_screen.dart';
 import '../domain/entities/product.dart';
 import 'product_price_strings.dart';
-import 'widgets/product_offer_price.dart';
+import '../../offers/presentation/offer_price.dart';
 import 'products_providers.dart';
 import '../../../core/localization/l10n_extension.dart';
 

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../offers/domain/offer_pricing.dart';
 import '../../domain/entities/product.dart';
 
 class ProductModel {
@@ -35,6 +36,7 @@ class ProductModel {
       offerPrice: (map['offerPrice'] as num?)?.toDouble(),
       offerEndsAt:
           rawOfferEndsAt is Timestamp ? rawOfferEndsAt.toDate() : null,
+      offerBadge: OfferBadge.parse(map['offerBadge']),
       createdAt: rawCreatedAt is Timestamp ? rawCreatedAt.toDate() : null,
     );
   }
@@ -68,6 +70,8 @@ class ProductModel {
       'offerEndsAt': product.offerPrice == null || product.offerEndsAt == null
           ? null
           : Timestamp.fromDate(product.offerEndsAt!),
+      'offerBadge':
+          product.offerPrice == null ? null : product.offerBadge?.name,
     };
   }
 }

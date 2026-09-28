@@ -15,6 +15,8 @@ import '../../../search/presentation/customer_search_screen.dart';
 import '../../../services/presentation/widgets/service_card.dart';
 import 'category_browser.dart';
 import 'featured_offers_strip.dart';
+import '../../../offers/domain/offer_item.dart';
+import '../../../offers/presentation/offers_providers.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
 class DashboardHomeTab extends ConsumerStatefulWidget {
@@ -74,7 +76,14 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           product,
     ];
 
-    final offers = productsOnOffer(filteredProducts);
+    // Products and services on offer in the category being browsed.
+    final serviceOffers = ref.watch(marketplaceServiceOffersProvider);
+    final offers = runningOffers([
+      for (final product in filteredProducts) ProductOfferItem(product),
+      for (final item in serviceOffers)
+        if (productScope == null || productScope.contains(item.categoryId))
+          item,
+    ]);
 
     final isProductsTab = _selectedTab == _HomeTab.products;
     final isServicesTab = _selectedTab == _HomeTab.services;

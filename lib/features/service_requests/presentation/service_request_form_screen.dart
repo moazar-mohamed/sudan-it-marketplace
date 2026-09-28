@@ -15,8 +15,8 @@ import '../../customer_dashboard/presentation/profile_controller.dart';
 import '../../location/domain/geo_location.dart';
 import '../../location/presentation/widgets/location_field.dart';
 import '../../services/domain/entities/catalog_service.dart';
+import '../../offers/presentation/offer_price.dart';
 import 'service_request_actions.dart';
-import 'service_request_labels.dart';
 
 /// The customer describes what they need and sends the request to one
 /// company. On success the request's conversation opens.
@@ -144,10 +144,9 @@ class _ServiceRequestFormScreenState
                           // Only a price the company actually set is shown.
                           if (price != null) ...[
                             const SizedBox(height: AppSpacing.s6),
-                            Text(
-                              formatServicePrice(price),
-                              style: AppTextStyles.bodyStrong
-                                  .copyWith(color: context.colors.textBrand),
+                            OfferPriceText(
+                              pricing: widget.offer,
+                              style: AppTextStyles.bodyStrong,
                             ),
                           ],
                         ],

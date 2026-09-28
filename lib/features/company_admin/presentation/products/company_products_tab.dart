@@ -9,7 +9,7 @@ import '../../../../core/utils/search_ranking.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
-import '../../../products/presentation/widgets/product_offer_price.dart';
+import '../../../offers/presentation/offer_price.dart';
 import 'company_product_details_screen.dart';
 import 'product_form_screen.dart';
 import '../../../../core/localization/l10n_extension.dart';

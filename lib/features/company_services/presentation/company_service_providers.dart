@@ -28,6 +28,12 @@ final activeServicesForCompanyProvider =
           .watchActiveServicesForCompany(companyId);
     });
 
+/// Every active company service; the customer home picks the ones on offer.
+final allActiveCompanyServicesProvider =
+    StreamProvider<List<CompanyService>>((ref) {
+  return ref.watch(companyServiceRepositoryProvider).watchAllActiveServices();
+});
+
 final companiesOfferingServiceProvider =
     StreamProvider.family<List<CompanyService>, String>((ref, serviceId) {
       return ref

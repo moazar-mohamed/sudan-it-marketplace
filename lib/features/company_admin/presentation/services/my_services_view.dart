@@ -5,9 +5,9 @@ import '../../../../core/localization/l10n_extension.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../company_services/domain/entities/company_service.dart';
 import '../../../company_services/presentation/company_service_providers.dart';
-import '../../../service_requests/presentation/service_request_labels.dart';
 import '../../../services/domain/entities/catalog_service.dart';
 import '../../../services/presentation/service_providers.dart';
+import '../../../offers/presentation/offer_price.dart';
 import '../company_admin_actions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -18,12 +18,12 @@ import 'company_service_form_sheet.dart';
 import 'own_service_form_sheet.dart';
 
 /// Opens the form that creates a service owned by [companyId].
-void showCreateOwnService(
+Future<void> showCreateOwnService(
   BuildContext context,
   WidgetRef ref,
   String companyId,
 ) {
-  showOwnServiceForm(
+  return showOwnServiceForm(
     context,
     onSave: ({
       required categoryId,
@@ -217,6 +217,7 @@ class _OfferedServiceCard extends ConsumerWidget {
               description: description,
               price: price,
               note: note,
+              offerPrice: link.offerPrice,
             ),
       );
       return;
@@ -230,6 +231,7 @@ class _OfferedServiceCard extends ConsumerWidget {
         companyServiceId: link.id,
         price: price,
         note: note,
+        offerPrice: link.offerPrice,
       ),
     );
   }
@@ -267,12 +269,12 @@ class _OfferedServiceCard extends ConsumerWidget {
                     style: AppTextStyles.captionStrong
                         .copyWith(color: context.colors.textBrand),
                   ),
-                // Nothing is shown when the company set no price.
+                // Nothing is shown when the company set no price; a running
+                // offer shows as customers see it.
                 if (price != null)
-                  Text(
-                    formatServicePrice(price),
-                    style: AppTextStyles.bodyStrong
-                        .copyWith(color: context.colors.textBrand),
+                  OfferPriceText(
+                    pricing: link,
+                    style: AppTextStyles.bodyStrong,
                   ),
                 if (note != null)
                   Text(

@@ -70,6 +70,7 @@ class _RecordingActions extends Fake implements CompanyAdminActions {
     required String description,
     double? price,
     String? note,
+    double? offerPrice,
   }) async {
     updated.add({
       'companyServiceId': companyServiceId,

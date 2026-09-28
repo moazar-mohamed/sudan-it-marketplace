@@ -79,7 +79,11 @@ Future<void> showCompanyAddSheet(
         ),
       );
     case _AddChoice.offer:
-      await showAddOfferFlow(context, ref, companyId);
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => OfferFormScreen(companyId: companyId),
+        ),
+      );
     case _AddChoice.service:
       showCreateOwnService(context, ref, companyId);
     case _AddChoice.technician:

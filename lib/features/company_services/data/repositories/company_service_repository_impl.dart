@@ -1,3 +1,4 @@
+import '../../../offers/domain/offer_pricing.dart';
 import '../../domain/entities/company_service.dart';
 import '../../domain/exceptions/company_service_exception.dart';
 import '../../domain/repositories/company_service_repository.dart';
@@ -38,6 +39,30 @@ class CompanyServiceRepositoryImpl implements CompanyServiceRepository {
         note: note,
       ),
     );
+  }
+
+  @override
+  Future<void> setCompanyServiceOffer({
+    required String companyServiceId,
+    double? offerPrice,
+    DateTime? offerEndsAt,
+    OfferBadge? offerBadge,
+  }) {
+    return _run(
+      () => _remoteDataSource.setCompanyServiceOffer(
+        companyServiceId: companyServiceId,
+        offerPrice: offerPrice,
+        offerEndsAt: offerEndsAt,
+        offerBadge: offerBadge?.name,
+      ),
+    );
+  }
+
+  @override
+  Stream<List<CompanyService>> watchAllActiveServices() {
+    return _remoteDataSource
+        .watchAllActiveServices()
+        .handleError(_throwMappedError);
   }
 
   @override

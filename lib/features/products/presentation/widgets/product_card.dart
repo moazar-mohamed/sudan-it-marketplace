@@ -6,7 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../domain/entities/product.dart';
 import '../product_details_screen.dart';
-import 'product_offer_price.dart';
+import '../../../offers/presentation/offer_price.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({

@@ -2400,7 +2400,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeFeaturedOffers => 'Featured offers';
 
   @override
-  String get adminAddOffer => 'Add offer';
+  String get adminAddOffer => 'Add Offer';
 
   @override
   String get offerPickProductTitle => 'Choose a product';
@@ -2410,41 +2410,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add a product with a price first, then put it on offer.';
 
   @override
-  String get offerFormTitle => 'Product offer';
-
-  @override
   String offerNormalPrice(String price, String currency) {
     return 'Normal price: $price $currency';
   }
-
-  @override
-  String get offerPriceLabel => 'Offer price (SDG)';
-
-  @override
-  String get offerPriceRequired => 'Enter the offer price.';
 
   @override
   String get offerPriceTooHigh =>
       'The offer price must be lower than the normal price.';
 
   @override
-  String get offerEndsLabel => 'Offer ends on (optional)';
-
-  @override
   String get offerNoEndDate => 'No end date';
-
-  @override
-  String get offerClearEndDate => 'Remove date';
 
   @override
   String get offerEndsHint =>
       'After this date the product goes back to its normal price and leaves the offers.';
-
-  @override
-  String get offerPreviewLabel => 'How customers will see it';
-
-  @override
-  String get offerSave => 'Save offer';
 
   @override
   String get offerRemove => 'End offer';
@@ -2464,9 +2443,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offerEdit => 'Edit offer';
 
   @override
-  String get offerNone => 'This product has no offer.';
-
-  @override
   String get offerNeedsPrice =>
       'Set a price for this product first to put it on offer.';
 
@@ -2474,4 +2450,146 @@ class AppLocalizationsEn extends AppLocalizations {
   String formPriceBelowOffer(String price) {
     return 'This product is on offer at $price. The price must be higher than that, or end the offer first.';
   }
+
+  @override
+  String get offerKindProduct => 'Product';
+
+  @override
+  String get offerKindService => 'Service';
+
+  @override
+  String get offerBadgeDiscount => '% off';
+
+  @override
+  String get offerBadgeSpecial => 'Special offer';
+
+  @override
+  String get offerBadgeLimited => 'Limited time';
+
+  @override
+  String get offerNewTitle => 'New offer';
+
+  @override
+  String get offerOnLabel => 'Offer on';
+
+  @override
+  String get offerChooseItem => 'Choose from your catalog';
+
+  @override
+  String get offerChange => 'Change';
+
+  @override
+  String get offerNewProduct => 'New product on offer';
+
+  @override
+  String get offerNewService => 'New service on offer';
+
+  @override
+  String get offerPickServiceTitle => 'Choose a service';
+
+  @override
+  String get offerSearchHint => 'Search by name';
+
+  @override
+  String get offerItemNoPrice => 'No price - set one first';
+
+  @override
+  String get offerPickServiceEmpty =>
+      'Add a service with a price first, then put it on offer.';
+
+  @override
+  String get offerDiscountMethod => 'Discount';
+
+  @override
+  String get offerModePercent => 'Percentage';
+
+  @override
+  String get offerModePrice => 'New price';
+
+  @override
+  String get offerPercentLabel => 'Discount (%)';
+
+  @override
+  String get offerPercentInvalid => 'Enter a percentage from 1 to 99.';
+
+  @override
+  String offerComputedPrice(String price, String currency) {
+    return 'Offer price: $price $currency';
+  }
+
+  @override
+  String get offerDuration => 'Duration';
+
+  @override
+  String get offerDuration3Days => '3 days';
+
+  @override
+  String get offerDurationWeek => '1 week';
+
+  @override
+  String get offerDurationMonth => '1 month';
+
+  @override
+  String get offerDurationNone => 'No end';
+
+  @override
+  String get offerDurationCustom => 'Pick a date';
+
+  @override
+  String get offerEndDatePast => 'Choose an end date in the future.';
+
+  @override
+  String get offerBadgeLabel => 'Badge';
+
+  @override
+  String get offerPreviewEmpty =>
+      'Choose a product or service to preview the offer as customers will see it.';
+
+  @override
+  String offerSaves(String amount, String currency) {
+    return 'Saves $amount $currency';
+  }
+
+  @override
+  String get offerPublish => 'Publish offer';
+
+  @override
+  String get offerPublished => 'Offer published.';
+
+  @override
+  String get offerEndConfirmTitle => 'End this offer?';
+
+  @override
+  String offerEndConfirmBody(String name) {
+    return '“$name” goes back to its normal price and leaves the offers.';
+  }
+
+  @override
+  String get offerPickItemRequired =>
+      'Choose a product or service for the offer.';
+
+  @override
+  String get catalogOffers => 'Offers';
+
+  @override
+  String offersRunning(int count) {
+    return 'Running ($count)';
+  }
+
+  @override
+  String offersEnded(int count) {
+    return 'Ended ($count)';
+  }
+
+  @override
+  String get offersEmpty =>
+      'No offers yet. Put any product or service on offer to show it to customers in Featured offers.';
+
+  @override
+  String offerEndedOn(String date) {
+    return 'Ended $date';
+  }
+
+  @override
+  String get offerAddCta => 'Add offer';
 }

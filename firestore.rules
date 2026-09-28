@@ -494,6 +494,23 @@ service cloud.firestore {
           || isActiveCategory(request.resource.data.categoryId));
     }
 
+    // An optional offer on a priced product or company service: an offer
+    // price above 0 and below the normal price, an optional end time and one
+    // of the known badges. No offer price means no end time and no badge.
+    function isValidOffer(data) {
+      return (data.get('offerPrice', null) == null
+          && data.get('offerEndsAt', null) == null
+          && data.get('offerBadge', null) == null)
+        || (data.get('offerPrice', null) is number
+          && data.offerPrice > 0
+          && data.get('price', null) is number
+          && data.offerPrice < data.price
+          && (data.get('offerEndsAt', null) == null
+            || data.offerEndsAt is timestamp)
+          && (data.get('offerBadge', null) == null
+            || data.offerBadge in ['discount', 'special', 'limited']));
+    }
+
     function hasRequiredCompanyServiceKeys() {
       return request.resource.data.keys().hasOnly([
         'id',
@@ -502,6 +519,9 @@ service cloud.firestore {
         'isActive',
         'price',
         'note',
+        'offerPrice',
+        'offerEndsAt',
+        'offerBadge',
         'createdAt',
         'updatedAt'
       ]);
@@ -523,6 +543,7 @@ service cloud.firestore {
           || (data.price is number && data.price > 0))
         && (!data.keys().hasAny(['note'])
           || (data.note is string && data.note.size() <= 500))
+        && isValidOffer(data)
         && data.createdAt is timestamp;
     }
 
@@ -542,7 +563,8 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time
         && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['isActive', 'price', 'note', 'updatedAt']);
+            .hasOnly(['isActive', 'price', 'note', 'offerPrice', 'offerEndsAt',
+              'offerBadge', 'updatedAt']);
     }
 
     match /users/{uid} {
@@ -863,6 +885,7 @@ service cloud.firestore {
         'installationPrice',
         'offerPrice',
         'offerEndsAt',
+        'offerBadge',
         'createdAt',
         'updatedAt'
       ]);
@@ -899,16 +922,7 @@ service cloud.firestore {
             && data.installationPrice > 0)
           || (data.isInstallationAvailable == false
             && data.installationPrice == null))
-        // Optional offer: a positive price below the normal price, with an
-        // optional end time. No offer price means no end time either.
-        && ((data.get('offerPrice', null) == null
-            && data.get('offerEndsAt', null) == null)
-          || (data.get('offerPrice', null) is number
-            && data.offerPrice > 0
-            && data.get('price', null) is number
-            && data.offerPrice < data.price
-            && (data.get('offerEndsAt', null) == null
-              || data.offerEndsAt is timestamp)))
+        && isValidOffer(data)
         && data.updatedAt == request.time;
     }
 
@@ -1409,11 +1423,20 @@ service cloud.firestore {
         && get(linkPath).data.isActive == true
         && get(linkPath).data.companyId == data.companyId
         && get(linkPath).data.serviceId == data.serviceId
-        && get(linkPath).data.get('price', null) == data.get('price', null)
+        && (get(linkPath).data.get('price', null) == data.get('price', null)
+          || linkOfferPriceIs(get(linkPath).data, data.get('price', null)))
         && exists(companyPath)
         && get(companyPath).data.get('status', 'active') == 'active'
         && catalogServiceExists(data.serviceId)
         && existsAfter(/databases/$(database)/documents/chats/$(requestId));
+    }
+
+    // The request carries the link's offer price while that offer runs.
+    function linkOfferPriceIs(link, price) {
+      return price != null
+        && link.get('offerPrice', null) == price
+        && (link.get('offerEndsAt', null) == null
+          || link.offerEndsAt > request.time);
     }
 
     function isServiceRequestStatusChangeOnly() {
