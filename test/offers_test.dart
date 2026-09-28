@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sudan_it_marketplace/features/companies/domain/entities/company.dart';
 import 'package:sudan_it_marketplace/features/companies/presentation/companies_providers.dart';
 import 'package:sudan_it_marketplace/features/company_admin/presentation/offers/company_offers_tab.dart';
 import 'package:sudan_it_marketplace/features/company_admin/presentation/offers/offer_form_screen.dart';
@@ -12,6 +13,7 @@ import 'package:sudan_it_marketplace/features/company_services/presentation/comp
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/featured_offers_strip.dart';
 import 'package:sudan_it_marketplace/features/offers/domain/offer_item.dart';
 import 'package:sudan_it_marketplace/features/offers/domain/offer_pricing.dart';
+import 'package:sudan_it_marketplace/features/offers/presentation/offers_providers.dart';
 import 'package:sudan_it_marketplace/features/products/data/models/product_model.dart';
 import 'package:sudan_it_marketplace/features/products/domain/entities/product.dart';
 import 'package:sudan_it_marketplace/features/products/domain/repositories/products_repository.dart';
@@ -446,6 +448,57 @@ void main() {
       await tester.pumpAndSettle();
       expect(products.updated.single.offerPrice, isNull);
       expect(products.updated.single.price, 1000000);
+    });
+  });
+
+  group('a deactivated company', () {
+    Company company(String status) => Company(
+          id: 'c1',
+          name: 'Nile Tech',
+          rating: 0,
+          reviewCount: 0,
+          status: status,
+        );
+
+    Future<(List<Product>, List<ServiceOfferItem>)> customerSees(
+      String status,
+    ) async {
+      final container = ProviderContainer(overrides: [
+        firestoreProductsStreamProvider.overrideWith(
+          (ref) => Stream.value([_product(id: 'real1', offerPrice: 850000)]),
+        ),
+        firestoreCompaniesStreamProvider
+            .overrideWith((ref) => Stream.value([company(status)])),
+        allActiveCompanyServicesProvider
+            .overrideWith((ref) => Stream.value([_link(offerPrice: 150000)])),
+        activeServicesProvider
+            .overrideWith((ref, id) => Stream.value([_service])),
+      ]);
+      addTearDown(container.dispose);
+      container
+        ..listen(firestoreProductsStreamProvider, (_, _) {})
+        ..listen(firestoreCompaniesStreamProvider, (_, _) {})
+        ..listen(allActiveCompanyServicesProvider, (_, _) {})
+        ..listen(activeServicesProvider(null), (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      final products = [
+        for (final product in container.read(marketplaceProductsProvider))
+          if (product.id == 'real1') product,
+      ];
+      return (products, container.read(marketplaceServiceOffersProvider));
+    }
+
+    test('hides its product and service offers without deleting them',
+        () async {
+      final (products, services) = await customerSees('inactive');
+      expect(products, isEmpty);
+      expect(services, isEmpty);
+    });
+
+    test('shows them again, unchanged, once it is active again', () async {
+      final (products, services) = await customerSees('active');
+      expect(products.single.offerPrice, 850000);
+      expect(services.single.link.offerPrice, 150000);
     });
   });
 

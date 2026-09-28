@@ -222,13 +222,14 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
       return;
     }
     final provider = activeServicesForCompanyProvider(widget.companyId);
+    // Both lists are watched in build, so they are loaded and stay live.
     final before = {
-      for (final link in ref.read(provider).asData?.value ?? const [])
-        link.id,
+      for (final link in await ref.read(provider.future)) link.id,
     };
+    if (!mounted) return;
     await showCreateOwnService(context, ref, widget.companyId);
-    // The new service arrives through the live list shortly after saving.
-    for (var i = 0; i < 20 && mounted; i++) {
+    // The new service arrives through the live lists shortly after saving.
+    for (var i = 0; i < 40 && mounted; i++) {
       final links = ref.read(provider).asData?.value ?? const [];
       final added = links.where((link) => !before.contains(link.id));
       if (added.isNotEmpty) {
@@ -307,10 +308,15 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colors = context.colors;
+    // Kept live so a service added from here can be picked up at once.
+    ref.watch(activeServicesForCompanyProvider(widget.companyId));
+    ref.watch(allServicesProvider(null));
     final item = _live;
     final normal = item?.pricing.price;
     final offerPrice = _offerPrice(normal);
-    final editing = item?.pricing.hasOffer ?? false;
+    // From the item as it was chosen, so the page does not turn into
+    // "Edit offer" while the new offer is being saved.
+    final editing = _selected?.pricing.hasOffer ?? false;
     final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
 
     Widget label(String text) => Padding(

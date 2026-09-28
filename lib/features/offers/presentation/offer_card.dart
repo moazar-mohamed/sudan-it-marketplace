@@ -29,13 +29,21 @@ void openOfferItem(BuildContext context, OfferItem item) {
 /// offer's badge, name, company, offer price and the struck-through normal
 /// price. Also used as the company's live preview.
 class OfferCard extends StatelessWidget {
-  const OfferCard({super.key, required this.item, this.onTap});
+  const OfferCard({
+    super.key,
+    required this.item,
+    this.onTap,
+    this.width = defaultWidth,
+  });
 
-  static const double width = 156;
-  static const double height = 244;
+  static const double defaultWidth = 156;
+
+  /// Room a row of cards needs; each card is only as tall as its content.
+  static const double rowHeight = 244;
 
   final OfferItem item;
   final VoidCallback? onTap;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +54,6 @@ class OfferCard extends StatelessWidget {
     final isService = item is ServiceOfferItem;
     return SizedBox(
       width: width,
-      height: height,
       child: Material(
         color: colors.surface,
         shape: RoundedRectangleBorder(
@@ -57,6 +64,7 @@ class OfferCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Stack(

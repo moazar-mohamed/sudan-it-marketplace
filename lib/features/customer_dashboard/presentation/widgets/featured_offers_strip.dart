@@ -56,14 +56,18 @@ class FeaturedOffersStrip extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.s8),
         SizedBox(
-          height: OfferCard.height,
+          height: OfferCard.rowHeight,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: offers.length,
             separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.s12),
-            itemBuilder: (context, index) => OfferCard(
-              item: offers[index],
-              onTap: () => openOfferItem(context, offers[index]),
+            // Each card keeps its own height instead of stretching to the row.
+            itemBuilder: (context, index) => Align(
+              alignment: Alignment.topCenter,
+              child: OfferCard(
+                item: offers[index],
+                onTap: () => openOfferItem(context, offers[index]),
+              ),
             ),
           ),
         ),
@@ -85,13 +89,27 @@ class OffersScreen extends StatelessWidget {
       appBar: AppBar(title: Text(context.l10n.homeFeaturedOffers)),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
-        child: Wrap(
-          spacing: AppSpacing.s12,
-          runSpacing: AppSpacing.s12,
-          children: [
-            for (final item in offers)
-              OfferCard(item: item, onTap: () => openOfferItem(context, item)),
-          ],
+        // Two columns or more that fill the width, whatever the screen.
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const gap = AppSpacing.s12;
+            final columns = (constraints.maxWidth / (OfferCard.defaultWidth + gap))
+                .floor()
+                .clamp(2, 6);
+            final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                for (final item in offers)
+                  OfferCard(
+                    item: item,
+                    width: width,
+                    onTap: () => openOfferItem(context, item),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
