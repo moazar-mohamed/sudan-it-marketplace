@@ -128,6 +128,75 @@ class FirestoreChatsRemoteDataSource implements ChatsRemoteDataSource {
     }
   }
 
+  @override
+  Future<void> openProductInquiry({
+    required String customerId,
+    required String customerName,
+    required String companyId,
+    required String companyName,
+    required String productId,
+    required String productName,
+  }) {
+    return _openInquiry(
+      ChatConversation.productInquiryId(customerId, productId),
+      ChatModels.productInquiryChatCreateMap(
+        customerId: customerId,
+        companyId: companyId,
+        customerName: customerName,
+        companyName: companyName,
+        productId: productId,
+        productName: productName,
+      ),
+    );
+  }
+
+  @override
+  Future<void> openServiceInquiry({
+    required String customerId,
+    required String customerName,
+    required String companyId,
+    required String companyName,
+    required String companyServiceId,
+    required String serviceName,
+  }) {
+    return _openInquiry(
+      ChatConversation.serviceInquiryId(customerId, companyServiceId),
+      ChatModels.serviceInquiryChatCreateMap(
+        customerId: customerId,
+        companyId: companyId,
+        customerName: customerName,
+        companyName: companyName,
+        companyServiceId: companyServiceId,
+        serviceName: serviceName,
+      ),
+    );
+  }
+
+  /// Reuses the conversation when it already exists, otherwise creates it.
+  /// The rules refuse reading a conversation that does not exist yet just as
+  /// they refuse a stranger's, so a refused read means "not there yet"; only
+  /// the create can tell a real refusal.
+  Future<void> _openInquiry(String chatId, Map<String, dynamic> data) async {
+    final chatRef = _chats.doc(chatId);
+    try {
+      if ((await chatRef.get()).exists) return;
+    } on FirebaseException catch (error) {
+      if (error.code != 'permission-denied') {
+        throw AppException(AppErrorCode.chatStartFailed, detail: error.code);
+      }
+    }
+    try {
+      await chatRef.set(data);
+    } on FirebaseException catch (error) {
+      throw AppException(
+        error.code == 'permission-denied'
+            ? AppErrorCode.chatInquiryDenied
+            : AppErrorCode.chatStartFailed,
+        detail: error.code,
+      );
+    }
+  }
+
   Never _throwLoadError(Object error, StackTrace stackTrace) {
     throw AppException(
       AppErrorCode.chatLoadFailed,

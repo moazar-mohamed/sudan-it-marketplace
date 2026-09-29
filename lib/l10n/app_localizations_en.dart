@@ -785,11 +785,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productBuyNow => 'Buy Now';
 
   @override
-  String productBuyNowPrice(String price, String currency) {
-    return 'Buy Now • $price $currency';
-  }
-
-  @override
   String get companyAbout => 'About Company';
 
   @override
@@ -2281,12 +2276,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'The conversation could not be started. Please try again.';
 
   @override
+  String get chatContactCompany => 'Contact';
+
+  @override
+  String chatInquirySubject(String subject) {
+    return 'Question: $subject';
+  }
+
+  @override
+  String get chatInquiryStatusLine =>
+      'A question before ordering - no order yet';
+
+  @override
+  String get chatInquiryDenied => 'You can\'t message this company right now.';
+
+  @override
   String get chatsEmptyCustomer =>
-      'No chats yet. When you request a service, your conversation with the company appears here.';
+      'No chats yet. Tap Contact on a product or service, or place an order, and your conversation with the company appears here.';
 
   @override
   String get chatsEmptyCompany =>
-      'No chats yet. Each service request sent to your company opens a conversation here.';
+      'No chats yet. Customers\' questions and every order or service request sent to your company open a conversation here.';
 
   @override
   String get chatNoMessagesYet => 'No messages yet';

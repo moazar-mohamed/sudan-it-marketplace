@@ -25,4 +25,25 @@ abstract class ChatsRepository {
     required String chatId,
     required ChatParticipantRole role,
   });
+
+  /// Makes sure the customer's conversation with a company about one product
+  /// exists (creating it the first time they ask) and returns its id.
+  Future<String> openProductInquiry({
+    required String customerId,
+    required String customerName,
+    required String companyId,
+    required String companyName,
+    required String productId,
+    required String productName,
+  });
+
+  /// The same for one company's offer of a service.
+  Future<String> openServiceInquiry({
+    required String customerId,
+    required String customerName,
+    required String companyId,
+    required String companyName,
+    required String companyServiceId,
+    required String serviceName,
+  });
 }

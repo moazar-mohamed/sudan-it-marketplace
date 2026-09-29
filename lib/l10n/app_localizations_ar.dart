@@ -775,11 +775,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productBuyNow => 'اشترِ الآن';
 
   @override
-  String productBuyNowPrice(String price, String currency) {
-    return 'اشترِ الآن • $price $currency';
-  }
-
-  @override
   String get companyAbout => 'نبذة عن الشركة';
 
   @override
@@ -2258,12 +2253,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatStartFailed => 'تعذر بدء المحادثة. يرجى المحاولة مرة أخرى.';
 
   @override
+  String get chatContactCompany => 'تواصل';
+
+  @override
+  String chatInquirySubject(String subject) {
+    return 'استفسار: $subject';
+  }
+
+  @override
+  String get chatInquiryStatusLine => 'استفسار قبل الطلب، لا يوجد طلب بعد';
+
+  @override
+  String get chatInquiryDenied => 'لا يمكنك مراسلة هذه الشركة الآن.';
+
+  @override
   String get chatsEmptyCustomer =>
-      'لا توجد محادثات بعد. عندما تطلب خدمة، ستظهر محادثتك مع الشركة هنا.';
+      'لا توجد محادثات بعد. اضغط «تواصل» في صفحة أي منتج أو خدمة، أو اطلب شيئاً، وستظهر محادثتك مع الشركة هنا.';
 
   @override
   String get chatsEmptyCompany =>
-      'لا توجد محادثات بعد. كل طلب خدمة يُرسل إلى شركتك يفتح محادثة هنا.';
+      'لا توجد محادثات بعد. أسئلة العملاء وكل طلب أو طلب خدمة يُرسل إلى شركتك يفتح محادثة هنا.';
 
   @override
   String get chatNoMessagesYet => 'لا توجد رسائل بعد';

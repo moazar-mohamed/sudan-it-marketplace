@@ -22,4 +22,22 @@ abstract class ChatsRemoteDataSource {
     required String chatId,
     required ChatParticipantRole role,
   });
+
+  Future<void> openProductInquiry({
+    required String customerId,
+    required String customerName,
+    required String companyId,
+    required String companyName,
+    required String productId,
+    required String productName,
+  });
+
+  Future<void> openServiceInquiry({
+    required String customerId,
+    required String customerName,
+    required String companyId,
+    required String companyName,
+    required String companyServiceId,
+    required String serviceName,
+  });
 }

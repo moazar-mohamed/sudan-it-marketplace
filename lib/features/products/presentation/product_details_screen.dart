@@ -7,6 +7,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../companies/domain/entities/company.dart';
 import '../../categories/presentation/category_providers.dart';
+import '../../chats/presentation/widgets/contact_company_button.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../companies/presentation/company_details_screen.dart';
 import '../../customer_dashboard/data/mock_marketplace_data.dart';
@@ -140,6 +141,11 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     // The offer price while an offer runs.
     final unitPrice = stock.salePrice;
     final totalPrice = unitPrice == null ? null : unitPrice * quantity;
+    final canBuy = stock.isAvailable && stock.hasPrice;
+    // Only a real company can be written to (not the demo catalogue).
+    final contactCompanyId = widget.product.companyId ?? '';
+    final canContact =
+        contactCompanyId.isNotEmpty && !isDemoProduct(widget.product);
     final categoryName =
         ref.watch(categoryPathNamesProvider)[widget.product.categoryId]?.trim() ??
             '';
@@ -305,7 +311,8 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
           ),
         ),
       ),
-      // Sticky bar: quantity and the buy action.
+      // Sticky bar: quantity and total, then "Contact" next to the buy
+      // action (two rows, so both buttons keep a full label on a phone).
       bottomNavigationBar: AppBottomBar(
         padding: EdgeInsets.symmetric(
           horizontal: margin,
@@ -315,31 +322,69 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
           heightFactor: 1,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                AppQuantityStepper(
-                  value: quantity,
-                  canDecrement: quantity > 1,
-                  canIncrement: quantity < stock.maxOrderQuantity,
-                  onDecrement: _decrementQuantity,
-                  onIncrement: _incrementQuantity,
-                ),
-                const SizedBox(width: AppSpacing.s12),
-                Expanded(
-                  child: AppButton.primary(
-                    // Without a price there is nothing to charge, so it
-                    // cannot be bought online; the customer contacts the
-                    // company instead.
-                    onPressed: stock.isAvailable && stock.hasPrice
-                        ? () => _onBuyNow(context)
-                        : null,
-                    label: totalPrice == null
-                        ? ProductPriceStrings.priceOnRequest(context)
-                        : context.l10n.productBuyNowPrice(
-                            _formatPrice(totalPrice),
-                            widget.product.currency,
+                Row(
+                  children: [
+                    AppQuantityStepper(
+                      value: quantity,
+                      canDecrement: quantity > 1,
+                      canIncrement: quantity < stock.maxOrderQuantity,
+                      onDecrement: _decrementQuantity,
+                      onIncrement: _incrementQuantity,
+                    ),
+                    const SizedBox(width: AppSpacing.s12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (totalPrice != null)
+                            Text(
+                              context.l10n.orderTotal,
+                              style: AppTextStyles.caption.copyWith(
+                                color: context.colors.textSecondary,
+                              ),
+                            ),
+                          Text(
+                            totalPrice == null
+                                ? ProductPriceStrings.priceOnRequest(context)
+                                : '${_formatPrice(totalPrice)} '
+                                    '${widget.product.currency}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.h3,
                           ),
-                  ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                Row(
+                  children: [
+                    if (canContact) ...[
+                      Expanded(
+                        child: ContactCompanyButton.product(
+                          companyId: contactCompanyId,
+                          companyName: matchedCompany?.name ?? companyName,
+                          productId: stock.id,
+                          productName: stock.name,
+                          // Without a price (or stock) nothing can be bought
+                          // online, so asking the company is the way on.
+                          primary: !canBuy,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.s12),
+                    ],
+                    Expanded(
+                      child: AppButton.primary(
+                        icon: Icons.shopping_bag_outlined,
+                        onPressed: canBuy ? () => _onBuyNow(context) : null,
+                        label: context.l10n.productBuyNow,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../../../chats/presentation/widgets/contact_company_button.dart';
 import '../../../company_services/presentation/company_service_providers.dart';
 import '../../../service_requests/presentation/service_request_form_screen.dart';
 import '../../../offers/presentation/offer_price.dart';
@@ -14,7 +15,7 @@ import '../../domain/entities/catalog_service.dart';
 
 /// A company that offers the service, with the company's own price (shown
 /// ONLY when the company set one — no placeholder otherwise) and note, and
-/// the action to request the service from it.
+/// the actions to ask the company about it or request it.
 class ServiceOfferCard extends StatelessWidget {
   const ServiceOfferCard({
     super.key,
@@ -109,19 +110,34 @@ class ServiceOfferCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: AppSpacing.s12),
-          AppButton.primary(
-            icon: Icons.send_outlined,
-            label: context.l10n.serviceRequestAction,
-            expand: true,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => ServiceRequestFormScreen(
-                  service: service,
-                  offer: offer.offer,
-                  company: company,
+          Row(
+            children: [
+              Expanded(
+                child: ContactCompanyButton.service(
+                  companyId: company.id,
+                  companyName: company.name,
+                  companyServiceId: offer.offer.id,
+                  serviceName: service.name,
                 ),
               ),
-            ),
+              const SizedBox(width: AppSpacing.s12),
+              Expanded(
+                child: AppButton.primary(
+                  icon: Icons.send_outlined,
+                  label: context.l10n.serviceRequestAction,
+                  expand: true,
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => ServiceRequestFormScreen(
+                        service: service,
+                        offer: offer.offer,
+                        company: company,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

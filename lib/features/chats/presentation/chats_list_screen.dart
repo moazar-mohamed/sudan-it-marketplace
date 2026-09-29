@@ -11,8 +11,9 @@ import 'chat_format.dart';
 import 'chat_providers.dart';
 import 'chat_screen.dart';
 
-/// The service-request conversations of the signed-in customer, or of a
-/// company ([companyId]) when [role] is company.
+/// The conversations (orders, service requests and questions asked before
+/// ordering) of the signed-in customer, or of a company ([companyId]) when
+/// [role] is company.
 class ChatsListScreen extends ConsumerWidget {
   const ChatsListScreen({
     super.key,
@@ -130,7 +131,7 @@ class _ChatTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  conversation.subjectLabel,
+                  chatSubject(context, conversation),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.labelSmall

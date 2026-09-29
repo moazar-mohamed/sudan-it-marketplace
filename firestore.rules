@@ -1490,9 +1490,11 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ── Service request conversations ──────────────────────────────────────
-    // Exactly one conversation per service request, with the same id. Its
-    // participants are that request's customer and the admins of its company.
+    // ── Conversations ──────────────────────────────────────────────────────
+    // Exactly one conversation per service request or order, with the same
+    // id, and one per customer per product or company service asked about
+    // before ordering (an inquiry). Its participants are the customer and the
+    // admins of the company.
 
     function chatDoc(chatId) {
       return get(/databases/$(database)/documents/chats/$(chatId)).data;
@@ -1510,17 +1512,23 @@ service cloud.firestore {
       return isChatCustomer(chat) || isChatCompany(chat);
     }
 
-    // A conversation belongs to EITHER a service request or an order (never
-    // both), told apart by which of `serviceRequestId`/`orderId` is set; both
-    // share the same id as the document they belong to.
+    // A conversation belongs to exactly ONE of a service request, an order, a
+    // product or a company service, told apart by which of
+    // `serviceRequestId`/`orderId`/`productId`/`companyServiceId` is set.
     function isValidChatCreate(chatId) {
       let data = request.resource.data;
       let hasRequestId = data.get('serviceRequestId', null) != null;
       let hasOrderId = data.get('orderId', null) != null;
+      let hasProductId = data.get('productId', null) != null;
+      let hasLinkId = data.get('companyServiceId', null) != null;
+      let anchors = (hasRequestId ? 1 : 0) + (hasOrderId ? 1 : 0)
+        + (hasProductId ? 1 : 0) + (hasLinkId ? 1 : 0);
       return data.keys().hasOnly([
           'id',
           'serviceRequestId',
           'orderId',
+          'productId',
+          'companyServiceId',
           'customerId',
           'companyId',
           'customerName',
@@ -1540,10 +1548,14 @@ service cloud.firestore {
         && data.get('productName', '') is string
         && data.createdAt == request.time
         && data.updatedAt == request.time
-        && (hasRequestId != hasOrderId)
+        && anchors == 1
         && (hasRequestId
           ? isValidServiceRequestChatCreate(chatId, data)
-          : isValidOrderChatCreate(chatId, data));
+          : hasOrderId
+            ? isValidOrderChatCreate(chatId, data)
+            : hasProductId
+              ? isValidProductInquiryChatCreate(chatId, data)
+              : isValidServiceInquiryChatCreate(chatId, data));
     }
 
     // The conversation is created by the customer in the same batch as the
@@ -1580,6 +1592,44 @@ service cloud.firestore {
         && order.get('customerName', '') == data.customerName
         && order.get('companyName', '') == data.companyName
         && order.productName == data.get('productName', '');
+    }
+
+    // A customer asks a company about something before ordering it. The id is
+    // fixed per customer and item, so asking again reopens the same
+    // conversation, and it can only be opened with an active company, for
+    // something that company really offers.
+    function isValidInquiryChatCreate(data) {
+      let companyPath = /databases/$(database)/documents/companies/$(data.companyId);
+      return data.customerName.size() <= 120
+        && data.companyName.size() <= 200
+        && exists(companyPath)
+        && get(companyPath).data.get('status', 'active') == 'active';
+    }
+
+    function isValidProductInquiryChatCreate(chatId, data) {
+      let productPath = /databases/$(database)/documents/products/$(data.productId);
+      return data.productId is string
+        && data.productId.size() > 0
+        && chatId == request.auth.uid + '_product_' + data.productId
+        && data.get('serviceName', '') == ''
+        && isValidInquiryChatCreate(data)
+        && exists(productPath)
+        && get(productPath).data.companyId == data.companyId
+        && get(productPath).data.name == data.get('productName', '');
+    }
+
+    function isValidServiceInquiryChatCreate(chatId, data) {
+      let linkPath = /databases/$(database)/documents/company_services/$(data.companyServiceId);
+      return data.companyServiceId is string
+        && data.companyServiceId.size() > 0
+        && chatId == request.auth.uid + '_service_' + data.companyServiceId
+        && data.get('productName', '') == ''
+        && data.get('serviceName', '').size() > 0
+        && data.get('serviceName', '').size() <= 200
+        && isValidInquiryChatCreate(data)
+        && exists(linkPath)
+        && get(linkPath).data.isActive == true
+        && get(linkPath).data.companyId == data.companyId;
     }
 
     // The role the caller speaks as in this conversation.

@@ -15,11 +15,12 @@ import '../../service_requests/presentation/service_request_providers.dart';
 import '../domain/entities/chat_conversation.dart';
 import '../domain/entities/chat_message.dart';
 import 'chat_actions.dart';
+import 'chat_format.dart';
 import 'chat_providers.dart';
 import 'widgets/message_bubble.dart';
 
-/// The realtime text conversation of one service request, seen by the
-/// customer or by the company ([role]).
+/// The realtime text conversation of one service request, order or question
+/// asked before ordering, seen by the customer or by the company ([role]).
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key, required this.chatId, required this.role});
 
@@ -110,7 +111,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
             if (conversation != null)
               Text(
-                conversation.subjectLabel,
+                chatSubject(context, conversation),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 // Readable on the app bar's own colour.
@@ -155,7 +156,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 }
 
 /// Opens the request or order this conversation is about. An order's company
-/// side has no matching deep-link (only its own Orders tab), so it gets none.
+/// side has no matching deep-link (only its own Orders tab), so it gets none,
+/// and neither does a question asked before ordering (there is nothing yet).
 class _DetailsButton extends StatelessWidget {
   const _DetailsButton({required this.conversation, required this.isCustomer});
 
@@ -164,6 +166,7 @@ class _DetailsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (conversation.isInquiry) return const SizedBox.shrink();
     if (conversation.isOrderChat) {
       if (!isCustomer) return const SizedBox.shrink();
       return Consumer(
@@ -199,7 +202,8 @@ class _DetailsButton extends StatelessWidget {
   }
 }
 
-/// The status of the conversation's service request or order, kept in view.
+/// The status of the conversation's service request or order, kept in view;
+/// a question asked before ordering says there is no order yet.
 class _StatusBar extends ConsumerWidget {
   const _StatusBar({required this.conversation});
 
@@ -207,6 +211,13 @@ class _StatusBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (conversation.isInquiry) {
+      return _Bar(
+        icon: Icons.help_outline,
+        tone: AppTone.info,
+        text: context.l10n.chatInquiryStatusLine,
+      );
+    }
     if (conversation.isOrderChat) {
       final order =
           ref.watch(orderStreamProvider(conversation.id)).asData?.value;

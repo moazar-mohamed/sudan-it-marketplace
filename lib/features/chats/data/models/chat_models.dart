@@ -15,6 +15,8 @@ class ChatModels {
       id: snapshot.id,
       serviceRequestId: data['serviceRequestId'] as String?,
       orderId: data['orderId'] as String?,
+      productId: data['productId'] as String?,
+      companyServiceId: data['companyServiceId'] as String?,
       customerId: data['customerId'] as String? ?? '',
       companyId: data['companyId'] as String? ?? '',
       customerName: data['customerName'] as String? ?? '',
@@ -91,6 +93,57 @@ class ChatModels {
       serviceName: '',
       productName: productName,
     );
+  }
+
+  /// A customer's questions to a company about one product, before ordering.
+  static Map<String, dynamic> productInquiryChatCreateMap({
+    required String customerId,
+    required String companyId,
+    required String customerName,
+    required String companyName,
+    required String productId,
+    required String productName,
+  }) {
+    return {
+      ..._createMap(
+        id: ChatConversation.productInquiryId(customerId, productId),
+        serviceRequestId: null,
+        orderId: null,
+        customerId: customerId,
+        companyId: companyId,
+        customerName: customerName,
+        companyName: companyName,
+        serviceName: '',
+        productName: productName,
+      ),
+      'productId': productId,
+    };
+  }
+
+  /// A customer's questions to a company about its offer of one service,
+  /// before requesting it.
+  static Map<String, dynamic> serviceInquiryChatCreateMap({
+    required String customerId,
+    required String companyId,
+    required String customerName,
+    required String companyName,
+    required String companyServiceId,
+    required String serviceName,
+  }) {
+    return {
+      ..._createMap(
+        id: ChatConversation.serviceInquiryId(customerId, companyServiceId),
+        serviceRequestId: null,
+        orderId: null,
+        customerId: customerId,
+        companyId: companyId,
+        customerName: customerName,
+        companyName: companyName,
+        serviceName: serviceName,
+        productName: '',
+      ),
+      'companyServiceId': companyServiceId,
+    };
   }
 
   static Map<String, dynamic> _createMap({

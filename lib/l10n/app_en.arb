@@ -301,17 +301,6 @@
   "productDescription": "Description",
   "productSpecifications": "Specifications",
   "productBuyNow": "Buy Now",
-  "productBuyNowPrice": "Buy Now • {price} {currency}",
-  "@productBuyNowPrice": {
-    "placeholders": {
-      "price": {
-        "type": "String"
-      },
-      "currency": {
-        "type": "String"
-      }
-    }
-  },
   "companyAbout": "About Company",
   "companyProductsCount": "Products ({count})",
   "@companyProductsCount": {
@@ -1129,8 +1118,19 @@
   "orderStartChat": "Start a conversation",
   "chatStartDenied": "You cannot start a conversation about this order.",
   "chatStartFailed": "The conversation could not be started. Please try again.",
-  "chatsEmptyCustomer": "No chats yet. When you request a service, your conversation with the company appears here.",
-  "chatsEmptyCompany": "No chats yet. Each service request sent to your company opens a conversation here.",
+  "chatContactCompany": "Contact",
+  "chatInquirySubject": "Question: {subject}",
+  "@chatInquirySubject": {
+    "placeholders": {
+      "subject": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInquiryStatusLine": "A question before ordering - no order yet",
+  "chatInquiryDenied": "You can't message this company right now.",
+  "chatsEmptyCustomer": "No chats yet. Tap Contact on a product or service, or place an order, and your conversation with the company appears here.",
+  "chatsEmptyCompany": "No chats yet. Customers' questions and every order or service request sent to your company open a conversation here.",
   "chatNoMessagesYet": "No messages yet",
   "chatEmpty": "No messages yet. Write to start the conversation.",
   "chatInputHint": "Write a message",

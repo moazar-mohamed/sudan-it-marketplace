@@ -177,7 +177,8 @@ void main() {
       await tester.pumpWidget(details(_product(price: 1000), _en));
       await tester.pump();
 
-      expect(find.text('1,000 SDG'), findsOneWidget);
+      // The price line and the bar's total (one unit).
+      expect(find.text('1,000 SDG'), findsNWidgets(2));
       expect(find.text(_onRequestEn), findsNothing);
       expect(_buyButton(tester).onPressed, isNotNull);
     });
@@ -186,7 +187,7 @@ void main() {
       await tester.pumpWidget(details(_product(), _en));
       await tester.pump();
 
-      // The price line and the (disabled) purchase button.
+      // The price line and the bar's total; the purchase button is disabled.
       expect(find.text(_onRequestEn), findsNWidgets(2));
       expect(find.textContaining('SDG'), findsNothing);
       expect(_buyButton(tester).onPressed, isNull);

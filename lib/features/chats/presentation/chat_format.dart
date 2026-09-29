@@ -1,6 +1,15 @@
 import 'package:flutter/widgets.dart';
 
 import '../../../core/localization/l10n_extension.dart';
+import '../domain/entities/chat_conversation.dart';
+
+/// What a conversation is about, as its header and list entry show it: a
+/// question asked before ordering says so ("Question: Router"), so it is not
+/// mistaken for the conversation of an order of the same product.
+String chatSubject(BuildContext context, ChatConversation conversation) =>
+    conversation.isInquiry
+        ? context.l10n.chatInquirySubject(conversation.subjectLabel)
+        : conversation.subjectLabel;
 
 /// "14:05" for today, "Yesterday 14:05", otherwise "2026-09-21 14:05"
 /// (local time), in the active language.

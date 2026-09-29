@@ -54,4 +54,44 @@ class ChatsRepositoryImpl implements ChatsRepository {
     required ChatParticipantRole role,
   }) =>
       _remoteDataSource.markRead(chatId: chatId, role: role);
+
+  @override
+  Future<String> openProductInquiry({
+    required String customerId,
+    required String customerName,
+    required String companyId,
+    required String companyName,
+    required String productId,
+    required String productName,
+  }) async {
+    await _remoteDataSource.openProductInquiry(
+      customerId: customerId,
+      customerName: customerName.trim(),
+      companyId: companyId,
+      companyName: companyName.trim(),
+      productId: productId,
+      productName: productName,
+    );
+    return ChatConversation.productInquiryId(customerId, productId);
+  }
+
+  @override
+  Future<String> openServiceInquiry({
+    required String customerId,
+    required String customerName,
+    required String companyId,
+    required String companyName,
+    required String companyServiceId,
+    required String serviceName,
+  }) async {
+    await _remoteDataSource.openServiceInquiry(
+      customerId: customerId,
+      customerName: customerName.trim(),
+      companyId: companyId,
+      companyName: companyName.trim(),
+      companyServiceId: companyServiceId,
+      serviceName: serviceName,
+    );
+    return ChatConversation.serviceInquiryId(customerId, companyServiceId);
+  }
 }

@@ -66,6 +66,11 @@ final marketplaceProductsProvider = Provider<List<Product>>((ref) {
   ];
 });
 
+/// A product of the built-in demo catalogue: it has no real company behind
+/// it in Firestore, so it cannot be ordered from or asked about for real.
+bool isDemoProduct(Product product) =>
+    mockProducts.any((demo) => demo.id == product.id);
+
 /// The product as the marketplace currently stands, for a screen that was
 /// opened earlier (a stale card or a direct link).
 ///
@@ -78,7 +83,7 @@ Product resolveLiveProduct(
   Product snapshot,
   AsyncValue<List<Product>> catalogue,
 ) {
-  if (mockProducts.any((product) => product.id == snapshot.id)) {
+  if (isDemoProduct(snapshot)) {
     return snapshot;
   }
   final listed = catalogue.asData?.value;

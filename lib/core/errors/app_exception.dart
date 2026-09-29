@@ -48,6 +48,7 @@ enum AppErrorCode {
   chatMessageInvalid,
   chatStartDenied,
   chatStartFailed,
+  chatInquiryDenied,
   reviewSaveDenied,
   reviewSaveFailed,
   reviewReplyFailed,

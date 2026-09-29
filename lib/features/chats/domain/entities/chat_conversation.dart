@@ -16,14 +16,19 @@ enum ChatParticipantRole {
 }
 
 /// The conversation between a customer and the company they contacted, about
-/// either a service request or a product order - told apart by which of
-/// [serviceRequestId]/[orderId] is set. It has the same id as the service
-/// request or order it belongs to, and never exists without one.
+/// a service request, a product order, or - before ordering anything - one
+/// product or service offer (an inquiry). Exactly one of [serviceRequestId],
+/// [orderId], [productId] and [companyServiceId] is set. A request's or an
+/// order's conversation has that request's or order's id; an inquiry has the
+/// fixed id from [productInquiryId]/[serviceInquiryId], so asking about the
+/// same thing again reopens the same conversation.
 class ChatConversation {
   const ChatConversation({
     required this.id,
     this.serviceRequestId,
     this.orderId,
+    this.productId,
+    this.companyServiceId,
     required this.customerId,
     required this.companyId,
     required this.customerName,
@@ -38,18 +43,33 @@ class ChatConversation {
     this.companyLastReadAt,
   });
 
+  /// The conversation id of [customerId]'s questions about one product.
+  static String productInquiryId(String customerId, String productId) =>
+      '${customerId}_product_$productId';
+
+  /// The conversation id of [customerId]'s questions about one company's
+  /// offer of a service (a `company_services` link).
+  static String serviceInquiryId(String customerId, String companyServiceId) =>
+      '${customerId}_service_$companyServiceId';
+
   final String id;
   final String? serviceRequestId;
   final String? orderId;
+
+  /// The product asked about in an inquiry.
+  final String? productId;
+
+  /// The company's service offer asked about in an inquiry.
+  final String? companyServiceId;
   final String customerId;
   final String companyId;
   final String customerName;
   final String companyName;
 
-  /// The service it is about; empty for an order's conversation.
+  /// The service it is about; empty for a product's conversation.
   final String serviceName;
 
-  /// The product it is about; empty for a service request's conversation.
+  /// The product it is about; empty for a service's conversation.
   final String productName;
   final DateTime createdAt;
   final String? lastMessageText;
@@ -60,8 +80,12 @@ class ChatConversation {
 
   bool get isOrderChat => orderId != null;
 
+  /// A question asked before ordering: no order or request behind it yet.
+  bool get isInquiry => orderId == null && serviceRequestId == null;
+
   /// What the conversation is about: the service name, or the product name.
-  String get subjectLabel => isOrderChat ? productName : serviceName;
+  String get subjectLabel =>
+      isOrderChat || productId != null ? productName : serviceName;
 
   /// When anything last happened here (used to order the conversation list).
   DateTime get activityAt => lastMessageAt ?? createdAt;

@@ -1448,12 +1448,6 @@ abstract class AppLocalizations {
   /// **'Buy Now'**
   String get productBuyNow;
 
-  /// No description provided for @productBuyNowPrice.
-  ///
-  /// In en, this message translates to:
-  /// **'Buy Now • {price} {currency}'**
-  String productBuyNowPrice(String price, String currency);
-
   /// No description provided for @companyAbout.
   ///
   /// In en, this message translates to:
@@ -4130,16 +4124,40 @@ abstract class AppLocalizations {
   /// **'The conversation could not be started. Please try again.'**
   String get chatStartFailed;
 
+  /// No description provided for @chatContactCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get chatContactCompany;
+
+  /// No description provided for @chatInquirySubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Question: {subject}'**
+  String chatInquirySubject(String subject);
+
+  /// No description provided for @chatInquiryStatusLine.
+  ///
+  /// In en, this message translates to:
+  /// **'A question before ordering - no order yet'**
+  String get chatInquiryStatusLine;
+
+  /// No description provided for @chatInquiryDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t message this company right now.'**
+  String get chatInquiryDenied;
+
   /// No description provided for @chatsEmptyCustomer.
   ///
   /// In en, this message translates to:
-  /// **'No chats yet. When you request a service, your conversation with the company appears here.'**
+  /// **'No chats yet. Tap Contact on a product or service, or place an order, and your conversation with the company appears here.'**
   String get chatsEmptyCustomer;
 
   /// No description provided for @chatsEmptyCompany.
   ///
   /// In en, this message translates to:
-  /// **'No chats yet. Each service request sent to your company opens a conversation here.'**
+  /// **'No chats yet. Customers\' questions and every order or service request sent to your company open a conversation here.'**
   String get chatsEmptyCompany;
 
   /// No description provided for @chatNoMessagesYet.
