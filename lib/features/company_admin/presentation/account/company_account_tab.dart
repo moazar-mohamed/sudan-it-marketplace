@@ -9,6 +9,7 @@ import '../../../../core/widgets/app_widgets.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../technicians/presentation/technicians_providers.dart';
 import '../profile/company_profile_screen.dart';
+import '../reviews/company_reviews_screen.dart';
 import '../technicians/technicians_screen.dart';
 
 /// The company's Account tab: who the company is (opens its profile) and
@@ -95,6 +96,8 @@ class CompanyAccountTab extends ConsumerWidget {
             ],
           ),
         ),
+        const SizedBox(height: AppSpacing.s12),
+        CompanyReviewsRow(companyId: companyId),
       ],
     );
   }

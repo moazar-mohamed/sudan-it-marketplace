@@ -48,6 +48,10 @@ enum AppErrorCode {
   chatMessageInvalid,
   chatStartDenied,
   chatStartFailed,
+  reviewSaveDenied,
+  reviewSaveFailed,
+  reviewReplyFailed,
+  reviewLoadFailed,
 }
 
 class AppException implements Exception {

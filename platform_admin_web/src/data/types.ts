@@ -170,10 +170,21 @@ export interface ServiceRequest {
 
 export interface Review {
   id: string;
+  /** 'order' or 'service_request'; the review id is that order's / request's id. */
+  sourceType: string;
   customerName: string;
+  companyId: string;
   companyName: string;
+  /** 'product' or 'service' (a company service link). */
+  targetType: string;
+  targetId: string;
+  targetName: string;
+  /** Stars, 1-5. */
   rating: number;
   comment: string;
+  /** The order it rates, when it rates an order. */
   orderId: string;
+  hidden: boolean;
+  reply: string;
   createdAt: Date | null;
 }

@@ -12,6 +12,9 @@ import '../../products/presentation/products_providers.dart';
 import '../../products/presentation/widgets/product_card.dart';
 import '../domain/entities/company.dart';
 import '../../../core/localization/l10n_extension.dart';
+import '../../reviews/domain/review.dart';
+import '../../reviews/presentation/review_widgets.dart';
+import '../../reviews/presentation/reviews_providers.dart';
 
 class CompanyDetailsScreen extends ConsumerWidget {
   const CompanyDetailsScreen({
@@ -77,28 +80,11 @@ class CompanyDetailsScreen extends ConsumerWidget {
                               children: [
                                 Text(company.name, style: AppTextStyles.h3),
                                 const SizedBox(height: AppSpacing.s4),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.star_rounded,
-                                      color: context.colors.warning,
-                                      size: AppSize.iconMd,
-                                    ),
-                                    const SizedBox(width: AppSpacing.s4),
-                                    Text(
-                                      company.rating.toStringAsFixed(1),
-                                      style: AppTextStyles.captionStrong,
-                                    ),
-                                    const SizedBox(width: AppSpacing.s6),
-                                    Flexible(
-                                      child: Text(
-                                        l10n.reviewsCount(company.reviewCount),
-                                        style: AppTextStyles.caption.copyWith(
-                                          color: context.colors.textSecondary,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                RatingLine(
+                                  ratingsKey:
+                                      RatingStats.companyKey(company.id),
+                                  fallbackAverage: company.rating,
+                                  fallbackCount: company.reviewCount,
                                 ),
                                 if (company.city != null ||
                                     company.address != null) ...[
@@ -181,6 +167,10 @@ class CompanyDetailsScreen extends ConsumerWidget {
                       ],
                     ],
                   ),
+                ),
+                ReviewsSection(
+                  provider: companyPublicReviewsProvider(company.id),
+                  padding: const EdgeInsets.only(top: AppSpacing.s16),
                 ),
                 const SizedBox(height: AppSpacing.s24),
                 Text(

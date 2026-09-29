@@ -2563,4 +2563,202 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get offerAddCta => 'إضافة عرض';
+
+  @override
+  String get reviewsTitle => 'التقييمات';
+
+  @override
+  String get reviewsNew => 'جديد';
+
+  @override
+  String get reviewsEmpty => 'لا توجد تقييمات بعد.';
+
+  @override
+  String reviewsSeeAll(int count) {
+    return 'عرض كل التقييمات ($count)';
+  }
+
+  @override
+  String reviewsBasedOn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تقييم',
+      many: '$count تقييمًا',
+      few: '$count تقييمات',
+      two: 'تقييمان',
+      one: 'تقييم واحد',
+      zero: 'لا تقييمات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewPromptTitle => 'كيف كانت تجربتك؟';
+
+  @override
+  String get reviewPromptBody =>
+      'تقييمك يساعد العملاء الآخرين في الاختيار، ويساعد الشركة على التحسّن.';
+
+  @override
+  String get reviewRateAction => 'قيّم';
+
+  @override
+  String get reviewRateOrderTitle => 'قيّم طلبك';
+
+  @override
+  String get reviewRateServiceTitle => 'قيّم الخدمة';
+
+  @override
+  String get reviewYours => 'تقييمك';
+
+  @override
+  String get reviewEditAction => 'تعديل التقييم';
+
+  @override
+  String reviewEditUntil(String date) {
+    return 'يمكنك تعديله حتى $date.';
+  }
+
+  @override
+  String get reviewStars1 => 'سيئ';
+
+  @override
+  String get reviewStars2 => 'مقبول';
+
+  @override
+  String get reviewStars3 => 'جيد';
+
+  @override
+  String get reviewStars4 => 'جيد جدًا';
+
+  @override
+  String get reviewStars5 => 'ممتاز';
+
+  @override
+  String get reviewTapStars => 'اضغط على النجوم للتقييم';
+
+  @override
+  String get reviewStarsRequired => 'اختر عدد النجوم أولًا.';
+
+  @override
+  String reviewStarsSemantics(int count) {
+    return '$count من 5 نجوم';
+  }
+
+  @override
+  String get reviewTagsLabel => 'ما الذي أعجبك؟ (اختياري)';
+
+  @override
+  String get reviewTagQuality => 'الجودة';
+
+  @override
+  String get reviewTagDelivery => 'سرعة التوصيل';
+
+  @override
+  String get reviewTagPunctual => 'الالتزام بالموعد';
+
+  @override
+  String get reviewTagService => 'حسن التعامل';
+
+  @override
+  String get reviewTagPrice => 'سعر مناسب';
+
+  @override
+  String get reviewCommentLabel => 'تعليق';
+
+  @override
+  String get reviewCommentHint => 'اكتب للآخرين عن تجربتك';
+
+  @override
+  String get reviewSubmit => 'إرسال التقييم';
+
+  @override
+  String get reviewSave => 'حفظ التعديل';
+
+  @override
+  String get reviewThanks => 'شكرًا، تم حفظ تقييمك.';
+
+  @override
+  String get reviewUpdated => 'تم تعديل تقييمك.';
+
+  @override
+  String get reviewVerified => 'عميل مؤكَّد';
+
+  @override
+  String get reviewAnonymous => 'عميل';
+
+  @override
+  String get reviewCompanyReply => 'رد الشركة';
+
+  @override
+  String get reviewReplyAction => 'الرد';
+
+  @override
+  String get reviewEditReplyAction => 'تعديل الرد';
+
+  @override
+  String get reviewReplyTitle => 'الرد على العميل';
+
+  @override
+  String get reviewReplyHint => 'اشكر العميل أو وضّح ما حدث';
+
+  @override
+  String get reviewReplySend => 'إرسال الرد';
+
+  @override
+  String get reviewReplySaved => 'تم حفظ الرد.';
+
+  @override
+  String get reviewReplyRequired => 'اكتب الرد أولًا.';
+
+  @override
+  String get reviewHiddenByAdmin => 'أخفته إدارة المنصة';
+
+  @override
+  String get reviewNotRatedYet => 'لم يقيّم العميل هذا الطلب بعد.';
+
+  @override
+  String get companyReviewsTitle => 'تقييمات العملاء';
+
+  @override
+  String companyReviewsNeedReply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تقييم بدون رد',
+      few: '$count تقييمات بدون رد',
+      two: 'تقييمان بدون رد',
+      one: 'تقييم واحد بدون رد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewSaveDenied => 'لا يمكنك تقييم هذا.';
+
+  @override
+  String get reviewSaveFailed => 'تعذّر حفظ التقييم. حاول مرة أخرى.';
+
+  @override
+  String get reviewReplyFailed => 'تعذّر حفظ الرد. حاول مرة أخرى.';
+
+  @override
+  String get reviewLoadFailed => 'تعذّر تحميل التقييمات.';
+
+  @override
+  String get notifNewReviewTitle => 'تقييم جديد';
+
+  @override
+  String notifNewReviewBody(String product) {
+    return 'قيّم عميل «$product».';
+  }
+
+  @override
+  String get notifReviewReplyTitle => 'ردّت الشركة على تقييمك';
+
+  @override
+  String notifReviewReplyBody(String product) {
+    return 'ردّت الشركة على تقييمك لـ«$product».';
+  }
 }

@@ -1,9 +1,11 @@
 import {
   collection,
   doc,
+  increment,
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
 } from 'firebase/firestore';
 import { db, firebaseConfig } from '../firebase';
 import * as ops from './categoryOps';
@@ -21,7 +23,7 @@ import {
   secondaryAppProvisioner,
   type NewCompanyInput,
 } from './provisionCompany';
-import type { Category, CompanyStatus } from './types';
+import type { Category, CompanyStatus, Review } from './types';
 
 /*
  * The only writes Platform Admin can make from this dashboard. Each one
@@ -29,6 +31,30 @@ import type { Category, CompanyStatus } from './types';
  * independently reject anything wider, so a tampered client cannot use these
  * to change roles, ownership, prices, or order/payment data.
  */
+
+/**
+ * Hides an abusive review from customers (or shows it again). A hidden review
+ * leaves the company's and the product's / service's averages, so the same
+ * batch moves both running averages by its stars; the rules check they match.
+ */
+export async function setReviewHidden(review: Review, hidden: boolean) {
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'reviews', review.id), { hidden });
+  for (const key of [`company_${review.companyId}`, `${review.targetType}_${review.targetId}`]) {
+    batch.set(
+      doc(db, 'ratings', key),
+      {
+        companyId: review.companyId,
+        sum: increment(hidden ? -review.rating : review.rating),
+        count: increment(hidden ? -1 : 1),
+        lastReviewId: review.id,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+  }
+  await batch.commit();
+}
 
 export const setCompanyStatus = (companyId: string, status: CompanyStatus) =>
   updateDoc(doc(db, 'companies', companyId), {

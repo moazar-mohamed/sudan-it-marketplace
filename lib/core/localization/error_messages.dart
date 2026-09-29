@@ -88,5 +88,9 @@ String _appException(AppLocalizations l10n, AppException error) {
     AppErrorCode.chatMessageInvalid => l10n.chatMessageInvalid,
     AppErrorCode.chatStartDenied => l10n.chatStartDenied,
     AppErrorCode.chatStartFailed => l10n.chatStartFailed,
+    AppErrorCode.reviewSaveDenied => l10n.reviewSaveDenied,
+    AppErrorCode.reviewSaveFailed => l10n.reviewSaveFailed,
+    AppErrorCode.reviewReplyFailed => l10n.reviewReplyFailed,
+    AppErrorCode.reviewLoadFailed => l10n.reviewLoadFailed,
   };
 }

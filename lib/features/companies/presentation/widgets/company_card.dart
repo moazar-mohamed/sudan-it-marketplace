@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/localization/l10n_extension.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../domain/entities/company.dart';
 import '../company_details_screen.dart';
+import '../../../reviews/domain/review.dart';
+import '../../../reviews/presentation/review_widgets.dart';
 
 class CompanyCard extends StatelessWidget {
   const CompanyCard({
@@ -45,29 +45,10 @@ class CompanyCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: AppSpacing.s4),
-          Row(
-            children: [
-              Icon(
-                Icons.star_rounded,
-                color: context.colors.warning,
-                size: AppSize.iconMd,
-              ),
-              const SizedBox(width: AppSpacing.s4),
-              Text(
-                company.rating.toStringAsFixed(1),
-                style: AppTextStyles.captionStrong,
-              ),
-              const SizedBox(width: AppSpacing.s6),
-              Flexible(
-                child: Text(
-                  context.l10n.reviewsCount(company.reviewCount),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.caption
-                      .copyWith(color: context.colors.textSecondary),
-                ),
-              ),
-            ],
+          RatingLine(
+            ratingsKey: RatingStats.companyKey(company.id),
+            fallbackAverage: company.rating,
+            fallbackCount: company.reviewCount,
           ),
         ],
       ),

@@ -122,4 +122,44 @@ class NotificationEvents {
       createdAt: DateTime.now(),
     );
   }
+
+  /// To the company: a customer rated an order. Only orders notify; the
+  /// notification rules are keyed on orders.
+  static AppNotification newReview({
+    required String id,
+    required String orderId,
+    required String companyId,
+    required String productName,
+    required int stars,
+  }) {
+    return AppNotification(
+      id: id,
+      recipientType: NotificationRecipientType.companyAdmin,
+      recipientId: companyId,
+      orderId: orderId,
+      type: 'new_review',
+      title: 'New rating',
+      body: 'A customer rated "$productName" $stars/5.',
+      createdAt: DateTime.now(),
+    );
+  }
+
+  /// To the customer: the company replied to their rating of an order.
+  static AppNotification reviewReply({
+    required String id,
+    required String orderId,
+    required String customerId,
+    required String productName,
+  }) {
+    return AppNotification(
+      id: id,
+      recipientType: NotificationRecipientType.customer,
+      recipientId: customerId,
+      orderId: orderId,
+      type: 'review_reply',
+      title: 'The company replied',
+      body: 'The company replied to your rating of "$productName".',
+      createdAt: DateTime.now(),
+    );
+  }
 }

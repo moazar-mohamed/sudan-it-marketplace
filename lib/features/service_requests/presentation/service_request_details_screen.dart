@@ -10,6 +10,8 @@ import '../../chats/domain/entities/chat_conversation.dart';
 import '../../chats/presentation/chat_screen.dart';
 import '../../location/presentation/location_strings.dart';
 import '../../location/presentation/widgets/open_location_button.dart';
+import '../../reviews/presentation/review_widgets.dart';
+import '../../reviews/presentation/reviews_providers.dart';
 import '../domain/entities/service_request.dart';
 import 'service_request_actions.dart';
 import 'service_request_labels.dart';
@@ -140,6 +142,12 @@ class _Details extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (request.status == ServiceRequestStatus.completed)
+                  SubjectReviewCard(
+                    subject: ReviewSubject.serviceRequest(request),
+                    asCompany: asCompany,
+                    padding: const EdgeInsets.only(top: AppSpacing.s12),
+                  ),
                 const SizedBox(height: AppSpacing.s12),
                 SectionCard(
                   title: l10n.serviceRequestViewDetails,

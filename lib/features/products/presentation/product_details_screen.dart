@@ -16,6 +16,9 @@ import 'product_price_strings.dart';
 import '../../offers/presentation/offer_price.dart';
 import 'products_providers.dart';
 import '../../../core/localization/l10n_extension.dart';
+import '../../reviews/domain/review.dart';
+import '../../reviews/presentation/review_widgets.dart';
+import '../../reviews/presentation/reviews_providers.dart';
 
 class ProductDetailsScreen extends ConsumerStatefulWidget {
   const ProductDetailsScreen({
@@ -183,6 +186,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 ),
                 const SizedBox(height: AppSpacing.s16),
                 Text(widget.product.name, style: AppTextStyles.h2),
+                const SizedBox(height: AppSpacing.s4),
+                RatingLine(
+                  ratingsKey: RatingStats.productKey(widget.product.id),
+                ),
                 if (categoryName.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.s8),
                   Align(
@@ -235,32 +242,14 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (matchedCompany != null)
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.star_rounded,
-                                color: context.colors.warning,
-                                size: AppSize.iconMd,
-                              ),
-                              const SizedBox(width: AppSpacing.s4),
-                              Text(
-                                matchedCompany.rating.toStringAsFixed(1),
-                                style: AppTextStyles.captionStrong,
-                              ),
-                              const SizedBox(width: AppSpacing.s6),
-                              Flexible(
-                                child: Text(
-                                  context.l10n
-                                      .reviewsCount(matchedCompany.reviewCount),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTextStyles.caption.copyWith(
-                                    color: context.colors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ],
+                        if (matchedCompany != null ||
+                            (widget.product.companyId ?? '').isNotEmpty)
+                          RatingLine(
+                            ratingsKey: RatingStats.companyKey(
+                              matchedCompany?.id ?? widget.product.companyId!,
+                            ),
+                            fallbackAverage: matchedCompany?.rating ?? 0,
+                            fallbackCount: matchedCompany?.reviewCount ?? 0,
                           ),
                       ],
                     ),
@@ -307,6 +296,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   ),
                   const SizedBox(height: AppSpacing.s24),
                 ],
+                // What customers who bought it said (nothing until rated).
+                ReviewsSection(
+                  provider: targetReviewsProvider(widget.product.id),
+                ),
               ],
             ),
           ),

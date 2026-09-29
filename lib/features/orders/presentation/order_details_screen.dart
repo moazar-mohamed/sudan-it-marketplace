@@ -10,6 +10,8 @@ import '../../chats/presentation/chat_providers.dart';
 import '../../chats/presentation/chat_screen.dart';
 import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../location/presentation/location_strings.dart';
+import '../../reviews/presentation/review_widgets.dart';
+import '../../reviews/presentation/reviews_providers.dart';
 import '../domain/entities/order_entity.dart';
 import 'order_chat_actions.dart';
 import 'widgets/order_location_widgets.dart';
@@ -77,6 +79,15 @@ class OrderDetailsScreen extends ConsumerWidget {
                 // Processing -> Out for delivery -> Completed.
                 _buildStatusFlowCard(context),
                 gap,
+
+                // Once delivered, the customer rates it (or sees their rating).
+                if (order.orderStatus == OrderStatus.completed) ...[
+                  SubjectReviewCard(
+                    subject: ReviewSubject.order(order),
+                    asCompany: false,
+                  ),
+                  gap,
+                ],
 
                 SectionCard(
                   title: l10n.adminContact,

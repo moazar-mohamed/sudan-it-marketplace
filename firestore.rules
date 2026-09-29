@@ -1823,10 +1823,198 @@ service cloud.firestore {
       allow delete: if isPlatformAdmin() && companyIsGoneAfter(companyId);
     }
 
-    // Reviews are visible to Platform Admin only, and read-only.
+    // ── Ratings ────────────────────────────────────────────────────────────
+    // A customer rates a completed order (its product) or a completed service
+    // request (the company's service) once: one to five stars, optional quick
+    // tags and a comment. The review has the same id as the order or request,
+    // and the same stars also count for the company.
+    //
+    // Averages live in `ratings/{key}` (key = company_<id>, product_<id> or
+    // service_<companyServiceId>) as a running star sum and count. There is no
+    // server, so the batch that writes a review also moves its two ratings,
+    // and each side checks the other: a review write must carry the ratings
+    // writes, and a ratings write must come with the review write behind it.
+
+    // How long after rating a customer may still change it.
+    function reviewEditWindowOpen(review) {
+      return request.time < review.createdAt + duration.value(7, 'd');
+    }
+
+    function reviewContentValid(data) {
+      return data.stars is int
+        && data.stars >= 1
+        && data.stars <= 5
+        && data.tags is list
+        && data.tags.size() <= 5
+        && data.tags.hasOnly(['quality', 'delivery', 'punctual', 'service', 'price'])
+        && data.comment is string
+        && data.comment.size() <= 500;
+    }
+
+    // The caller's own order or request with this id, completed, for the
+    // same company and product / company service.
+    function reviewSourceMatches(reviewId, data) {
+      return data.sourceType == 'order'
+        ? (data.targetType == 'product'
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.customerId == request.auth.uid
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.companyId == data.companyId
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.productId == data.targetId
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.orderStatus == 'completed')
+        : (data.sourceType == 'service_request'
+          && data.targetType == 'service'
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.customerId == request.auth.uid
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.companyId == data.companyId
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.companyServiceId == data.targetId
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.status == 'completed');
+    }
+
+    // The ratings doc [key] was written in this same request, naming this
+    // review (its own rule checks the numbers).
+    function ratingsWrittenFor(reviewId, key) {
+      let after = getAfter(/databases/$(database)/documents/ratings/$(key)).data;
+      return after.lastReviewId == reviewId && after.updatedAt == request.time;
+    }
+
+    // Both averages the review counts in move with it.
+    function reviewMovesRatings(reviewId, data) {
+      return ratingsWrittenFor(reviewId, 'company_' + data.companyId)
+        && ratingsWrittenFor(reviewId, data.targetType + '_' + data.targetId);
+    }
+
+    function isValidReviewCreate(reviewId) {
+      let data = request.resource.data;
+      return isActiveCustomer()
+        && data.keys().hasOnly([
+          'id', 'sourceType', 'customerId', 'authorName', 'companyId',
+          'companyName', 'targetType', 'targetId', 'targetName', 'stars',
+          'tags', 'comment', 'hidden', 'createdAt', 'updatedAt'
+        ])
+        && data.id == reviewId
+        && data.customerId == request.auth.uid
+        && data.authorName is string
+        && data.authorName.size() <= 60
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.companyName is string
+        && data.companyName.size() <= 200
+        && data.targetId is string
+        && data.targetId.size() > 0
+        && data.targetName is string
+        && data.targetName.size() <= 200
+        && data.hidden == false
+        && reviewContentValid(data)
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && reviewSourceMatches(reviewId, data)
+        && reviewMovesRatings(reviewId, data);
+    }
+
+    // Its customer changes the stars, tags or comment for a while after
+    // rating, unless Platform Admin has hidden it.
+    function isCustomerReviewEdit(reviewId) {
+      let data = request.resource.data;
+      return resource.data.customerId == request.auth.uid
+        && resource.data.hidden == false
+        && reviewEditWindowOpen(resource.data)
+        && data.diff(resource.data).affectedKeys()
+          .hasOnly(['stars', 'tags', 'comment', 'updatedAt'])
+        && reviewContentValid(data)
+        && data.updatedAt == request.time
+        && (data.stars == resource.data.stars || reviewMovesRatings(reviewId, data));
+    }
+
+    // The company answers with one reply, which it may reword.
+    function isCompanyReviewReply() {
+      let data = request.resource.data;
+      return isCompanyAdminOf(resource.data.companyId)
+        && data.diff(resource.data).affectedKeys().hasOnly(['reply', 'replyAt'])
+        && data.reply is string
+        && data.reply.size() > 0
+        && data.reply.size() <= 500
+        && data.replyAt == request.time;
+    }
+
+    // Platform Admin hides an abusive review (it leaves the averages) or
+    // shows it again.
+    function isPlatformAdminReviewModeration(reviewId) {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.diff(resource.data).affectedKeys().hasOnly(['hidden'])
+        && data.hidden is bool
+        && data.hidden != resource.data.hidden
+        && reviewMovesRatings(reviewId, data);
+    }
+
     match /reviews/{reviewId} {
-      allow get, list: if isPlatformAdmin();
-      allow create, update: if false;
+      // Everyone signed in reads the visible ones; a hidden one only its
+      // customer, its company and Platform Admin. A missing one reads as
+      // missing, so a customer can ask whether they rated an order yet.
+      allow get: if isSignedIn()
+        && (resource == null
+          || resource.data.hidden == false
+          || resource.data.customerId == request.auth.uid
+          || isCompanyAdminOf(resource.data.companyId)
+          || isPlatformAdmin());
+
+      allow list: if isSignedIn()
+        && (resource.data.hidden == false
+          || resource.data.customerId == request.auth.uid
+          || isCompanyAdminOf(resource.data.companyId)
+          || isPlatformAdmin());
+
+      allow create: if isSignedIn() && isValidReviewCreate(reviewId);
+
+      allow update: if isSignedIn()
+        && (isCustomerReviewEdit(reviewId)
+          || isCompanyReviewReply()
+          || isPlatformAdminReviewModeration(reviewId));
+
+      allow delete: if isPlatformAdmin()
+        && companyIsGoneAfter(resource.data.get('companyId', ''));
+    }
+
+    // One running average. The review named by lastReviewId was written in
+    // the same request and explains the change exactly: a new review, its
+    // customer changing the stars, or Platform Admin hiding / showing it.
+    function isValidRatingsWrite(key) {
+      let before = resource == null ? {} : resource.data;
+      let data = request.resource.data;
+      let reviewPath = /databases/$(database)/documents/reviews/$(data.lastReviewId);
+      let review = getAfter(reviewPath).data;
+      let sum = before.get('sum', 0);
+      let count = before.get('count', 0);
+      return data.keys().hasOnly(['companyId', 'sum', 'count', 'lastReviewId', 'updatedAt'])
+        && data.lastReviewId is string
+        && data.lastReviewId.size() > 0
+        && data.updatedAt == request.time
+        && data.sum is int
+        && data.count is int
+        && data.sum >= 0
+        && data.count >= 0
+        && (key == 'company_' + review.companyId
+          || key == review.targetType + '_' + review.targetId)
+        && data.companyId == review.companyId
+        && ((!exists(reviewPath)
+            && review.customerId == request.auth.uid
+            && data.count == count + 1
+            && data.sum == sum + review.stars)
+          || (exists(reviewPath)
+            && review.customerId == request.auth.uid
+            && review.hidden == false
+            && get(reviewPath).data.hidden == false
+            && review.updatedAt == request.time
+            && data.count == count
+            && data.sum == sum + review.stars - get(reviewPath).data.stars)
+          || (exists(reviewPath)
+            && isPlatformAdmin()
+            && get(reviewPath).data.hidden != review.hidden
+            && data.count == count + (review.hidden ? -1 : 1)
+            && data.sum == sum + (review.hidden ? -review.stars : review.stars)));
+    }
+
+    match /ratings/{key} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidRatingsWrite(key);
       allow delete: if isPlatformAdmin()
         && companyIsGoneAfter(resource.data.get('companyId', ''));
     }

@@ -4669,6 +4669,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add offer'**
   String get offerAddCta;
+
+  /// No description provided for @reviewsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ratings'**
+  String get reviewsTitle;
+
+  /// No description provided for @reviewsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get reviewsNew;
+
+  /// No description provided for @reviewsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No ratings yet.'**
+  String get reviewsEmpty;
+
+  /// No description provided for @reviewsSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all ratings ({count})'**
+  String reviewsSeeAll(int count);
+
+  /// No description provided for @reviewsBasedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 rating} other{{count} ratings}}'**
+  String reviewsBasedOn(int count);
+
+  /// No description provided for @reviewPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How was your experience?'**
+  String get reviewPromptTitle;
+
+  /// No description provided for @reviewPromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating helps other customers choose, and helps the company improve.'**
+  String get reviewPromptBody;
+
+  /// No description provided for @reviewRateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get reviewRateAction;
+
+  /// No description provided for @reviewRateOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate your order'**
+  String get reviewRateOrderTitle;
+
+  /// No description provided for @reviewRateServiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate the service'**
+  String get reviewRateServiceTitle;
+
+  /// No description provided for @reviewYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating'**
+  String get reviewYours;
+
+  /// No description provided for @reviewEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit rating'**
+  String get reviewEditAction;
+
+  /// No description provided for @reviewEditUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change it until {date}.'**
+  String reviewEditUntil(String date);
+
+  /// No description provided for @reviewStars1.
+  ///
+  /// In en, this message translates to:
+  /// **'Poor'**
+  String get reviewStars1;
+
+  /// No description provided for @reviewStars2.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get reviewStars2;
+
+  /// No description provided for @reviewStars3.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get reviewStars3;
+
+  /// No description provided for @reviewStars4.
+  ///
+  /// In en, this message translates to:
+  /// **'Very good'**
+  String get reviewStars4;
+
+  /// No description provided for @reviewStars5.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get reviewStars5;
+
+  /// No description provided for @reviewTapStars.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the stars to rate'**
+  String get reviewTapStars;
+
+  /// No description provided for @reviewStarsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the stars first.'**
+  String get reviewStarsRequired;
+
+  /// No description provided for @reviewStarsSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of 5 stars'**
+  String reviewStarsSemantics(int count);
+
+  /// No description provided for @reviewTagsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What stood out? (optional)'**
+  String get reviewTagsLabel;
+
+  /// No description provided for @reviewTagQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality'**
+  String get reviewTagQuality;
+
+  /// No description provided for @reviewTagDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast delivery'**
+  String get reviewTagDelivery;
+
+  /// No description provided for @reviewTagPunctual.
+  ///
+  /// In en, this message translates to:
+  /// **'On time'**
+  String get reviewTagPunctual;
+
+  /// No description provided for @reviewTagService.
+  ///
+  /// In en, this message translates to:
+  /// **'Good service'**
+  String get reviewTagService;
+
+  /// No description provided for @reviewTagPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair price'**
+  String get reviewTagPrice;
+
+  /// No description provided for @reviewCommentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment'**
+  String get reviewCommentLabel;
+
+  /// No description provided for @reviewCommentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell others about your experience'**
+  String get reviewCommentHint;
+
+  /// No description provided for @reviewSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send rating'**
+  String get reviewSubmit;
+
+  /// No description provided for @reviewSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get reviewSave;
+
+  /// No description provided for @reviewThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks, your rating is saved.'**
+  String get reviewThanks;
+
+  /// No description provided for @reviewUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rating was updated.'**
+  String get reviewUpdated;
+
+  /// No description provided for @reviewVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified customer'**
+  String get reviewVerified;
+
+  /// No description provided for @reviewAnonymous.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get reviewAnonymous;
+
+  /// No description provided for @reviewCompanyReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Company\'s reply'**
+  String get reviewCompanyReply;
+
+  /// No description provided for @reviewReplyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get reviewReplyAction;
+
+  /// No description provided for @reviewEditReplyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit reply'**
+  String get reviewEditReplyAction;
+
+  /// No description provided for @reviewReplyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply to the customer'**
+  String get reviewReplyTitle;
+
+  /// No description provided for @reviewReplyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank the customer or explain what happened'**
+  String get reviewReplyHint;
+
+  /// No description provided for @reviewReplySend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send reply'**
+  String get reviewReplySend;
+
+  /// No description provided for @reviewReplySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply saved.'**
+  String get reviewReplySaved;
+
+  /// No description provided for @reviewReplyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a reply first.'**
+  String get reviewReplyRequired;
+
+  /// No description provided for @reviewHiddenByAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden by the platform admin'**
+  String get reviewHiddenByAdmin;
+
+  /// No description provided for @reviewNotRatedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer hasn\'t rated this yet.'**
+  String get reviewNotRatedYet;
+
+  /// No description provided for @companyReviewsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer ratings'**
+  String get companyReviewsTitle;
+
+  /// No description provided for @companyReviewsNeedReply.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 without a reply} other{{count} without a reply}}'**
+  String companyReviewsNeedReply(int count);
+
+  /// No description provided for @reviewSaveDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t rate this.'**
+  String get reviewSaveDenied;
+
+  /// No description provided for @reviewSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the rating. Try again.'**
+  String get reviewSaveFailed;
+
+  /// No description provided for @reviewReplyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the reply. Try again.'**
+  String get reviewReplyFailed;
+
+  /// No description provided for @reviewLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the ratings.'**
+  String get reviewLoadFailed;
+
+  /// No description provided for @notifNewReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New rating'**
+  String get notifNewReviewTitle;
+
+  /// No description provided for @notifNewReviewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A customer rated \"{product}\".'**
+  String notifNewReviewBody(String product);
+
+  /// No description provided for @notifReviewReplyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The company replied'**
+  String get notifReviewReplyTitle;
+
+  /// No description provided for @notifReviewReplyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The company replied to your rating of \"{product}\".'**
+  String notifReviewReplyBody(String product);
 }
 
 class _AppLocalizationsDelegate

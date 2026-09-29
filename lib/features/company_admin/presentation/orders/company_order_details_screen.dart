@@ -12,6 +12,8 @@ import '../../../location/presentation/location_strings.dart';
 import '../../../orders/presentation/order_chat_actions.dart';
 import '../../../orders/presentation/orders_providers.dart';
 import '../../../orders/presentation/widgets/order_location_widgets.dart';
+import '../../../reviews/presentation/review_widgets.dart';
+import '../../../reviews/presentation/reviews_providers.dart';
 import '../company_admin_format.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/order_status_actions.dart';
@@ -61,6 +63,12 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 OrderStatusActions(order: order),
                 const SizedBox(height: 12),
+                // The customer's rating, once given, with the company's reply.
+                SubjectReviewCard(
+                  subject: ReviewSubject.order(order),
+                  asCompany: true,
+                  padding: const EdgeInsets.only(bottom: 12),
+                ),
                 AdminSectionCard(
                   title: context.l10n.adminContact,
                   children: [_CompanyOrderChatButton(order: order)],

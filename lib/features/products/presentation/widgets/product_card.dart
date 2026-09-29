@@ -7,6 +7,8 @@ import '../../../../core/widgets/app_widgets.dart';
 import '../../domain/entities/product.dart';
 import '../product_details_screen.dart';
 import '../../../offers/presentation/offer_price.dart';
+import '../../../reviews/domain/review.dart';
+import '../../../reviews/presentation/review_widgets.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({
@@ -61,6 +63,10 @@ class ProductCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.s4),
           // A product without a price says so; it is never shown as 0.
           ProductOfferPrice(product: product, style: AppTextStyles.bodyStrong),
+          RatingLine(
+            ratingsKey: RatingStats.productKey(product.id),
+            showNew: false,
+          ),
         ],
       ),
     );

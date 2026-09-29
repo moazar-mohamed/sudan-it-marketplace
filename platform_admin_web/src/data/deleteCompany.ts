@@ -30,6 +30,7 @@ import {
  *   products         companyId == id       the catalogue
  *   company_services companyId == id       services offered
  *   reviews          companyId == id       reviews of the company
+ *   ratings          companyId == id       its running rating averages
  *   company_documents  document id == id    its registration document
  *   notifications    company_admin -> id   the admin's notifications
  *   notifications    technician -> tech    the employees' notifications
@@ -63,6 +64,8 @@ export interface CompanyOwnedData {
   products: DocumentReference[];
   services: DocumentReference[];
   reviews: DocumentReference[];
+  /** Running rating averages of the company, its products and services. */
+  ratings: DocumentReference[];
   /** The registration document (0 or 1). */
   registration: DocumentReference[];
   adminNotifications: DocumentReference[];
@@ -75,7 +78,7 @@ export interface CompanyDeletionSummary {
   technicians: number; // employee records + their profiles
   invites: number;
   products: number;
-  other: number; // services, reviews, registration document, notifications
+  other: number; // services, reviews, ratings, registration document, notifications
   /** Orders that still exist for this company after the delete; null if it could not be counted. */
   ordersKept: number | null;
 }
@@ -106,12 +109,13 @@ async function findWhileCompanyExists(db: Firestore, id: string) {
   const company = (await getDoc(companyRef)).exists() ? companyRef : null;
   const registrationRef = doc(db, 'company_documents', id);
   const registration = (await getDoc(registrationRef)).exists() ? [registrationRef] : [];
-  const [technicians, invites, products, services, reviews] = await Promise.all([
+  const [technicians, invites, products, services, reviews, ratings] = await Promise.all([
     byCompany(db, 'technicians', id),
     byCompany(db, 'technicianInvites', id),
     byCompany(db, 'products', id),
     byCompany(db, 'company_services', id),
     byCompany(db, 'reviews', id),
+    byCompany(db, 'ratings', id),
   ]);
   const adminNotifications = await refsOf(
     query(
@@ -120,7 +124,7 @@ async function findWhileCompanyExists(db: Firestore, id: string) {
       where('recipientId', '==', id),
     ),
   );
-  return { company, technicians, invites, products, services, reviews, registration, adminNotifications };
+  return { company, technicians, invites, products, services, reviews, ratings, registration, adminNotifications };
 }
 
 /** Stage 2 lookups: the admin / employee profiles of a company that is gone. */
@@ -192,6 +196,7 @@ export async function deleteCompanyCascade(db: Firestore, companyId: string): Pr
     ...one.products,
     ...one.services,
     ...one.reviews,
+    ...one.ratings,
     ...one.registration,
     ...one.adminNotifications,
   ]);
@@ -229,6 +234,7 @@ export async function deleteCompanyCascade(db: Firestore, companyId: string): Pr
     other:
       one.services.length +
       one.reviews.length +
+      one.ratings.length +
       one.registration.length +
       one.adminNotifications.length +
       technicianNotifications.length,

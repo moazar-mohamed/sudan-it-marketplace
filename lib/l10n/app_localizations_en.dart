@@ -2592,4 +2592,196 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offerAddCta => 'Add offer';
+
+  @override
+  String get reviewsTitle => 'Ratings';
+
+  @override
+  String get reviewsNew => 'New';
+
+  @override
+  String get reviewsEmpty => 'No ratings yet.';
+
+  @override
+  String reviewsSeeAll(int count) {
+    return 'See all ratings ($count)';
+  }
+
+  @override
+  String reviewsBasedOn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ratings',
+      one: '1 rating',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewPromptTitle => 'How was your experience?';
+
+  @override
+  String get reviewPromptBody =>
+      'Your rating helps other customers choose, and helps the company improve.';
+
+  @override
+  String get reviewRateAction => 'Rate';
+
+  @override
+  String get reviewRateOrderTitle => 'Rate your order';
+
+  @override
+  String get reviewRateServiceTitle => 'Rate the service';
+
+  @override
+  String get reviewYours => 'Your rating';
+
+  @override
+  String get reviewEditAction => 'Edit rating';
+
+  @override
+  String reviewEditUntil(String date) {
+    return 'You can change it until $date.';
+  }
+
+  @override
+  String get reviewStars1 => 'Poor';
+
+  @override
+  String get reviewStars2 => 'Fair';
+
+  @override
+  String get reviewStars3 => 'Good';
+
+  @override
+  String get reviewStars4 => 'Very good';
+
+  @override
+  String get reviewStars5 => 'Excellent';
+
+  @override
+  String get reviewTapStars => 'Tap the stars to rate';
+
+  @override
+  String get reviewStarsRequired => 'Choose the stars first.';
+
+  @override
+  String reviewStarsSemantics(int count) {
+    return '$count of 5 stars';
+  }
+
+  @override
+  String get reviewTagsLabel => 'What stood out? (optional)';
+
+  @override
+  String get reviewTagQuality => 'Quality';
+
+  @override
+  String get reviewTagDelivery => 'Fast delivery';
+
+  @override
+  String get reviewTagPunctual => 'On time';
+
+  @override
+  String get reviewTagService => 'Good service';
+
+  @override
+  String get reviewTagPrice => 'Fair price';
+
+  @override
+  String get reviewCommentLabel => 'Comment';
+
+  @override
+  String get reviewCommentHint => 'Tell others about your experience';
+
+  @override
+  String get reviewSubmit => 'Send rating';
+
+  @override
+  String get reviewSave => 'Save changes';
+
+  @override
+  String get reviewThanks => 'Thanks, your rating is saved.';
+
+  @override
+  String get reviewUpdated => 'Your rating was updated.';
+
+  @override
+  String get reviewVerified => 'Verified customer';
+
+  @override
+  String get reviewAnonymous => 'Customer';
+
+  @override
+  String get reviewCompanyReply => 'Company\'s reply';
+
+  @override
+  String get reviewReplyAction => 'Reply';
+
+  @override
+  String get reviewEditReplyAction => 'Edit reply';
+
+  @override
+  String get reviewReplyTitle => 'Reply to the customer';
+
+  @override
+  String get reviewReplyHint => 'Thank the customer or explain what happened';
+
+  @override
+  String get reviewReplySend => 'Send reply';
+
+  @override
+  String get reviewReplySaved => 'Reply saved.';
+
+  @override
+  String get reviewReplyRequired => 'Write a reply first.';
+
+  @override
+  String get reviewHiddenByAdmin => 'Hidden by the platform admin';
+
+  @override
+  String get reviewNotRatedYet => 'The customer hasn\'t rated this yet.';
+
+  @override
+  String get companyReviewsTitle => 'Customer ratings';
+
+  @override
+  String companyReviewsNeedReply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count without a reply',
+      one: '1 without a reply',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewSaveDenied => 'You can\'t rate this.';
+
+  @override
+  String get reviewSaveFailed => 'Couldn\'t save the rating. Try again.';
+
+  @override
+  String get reviewReplyFailed => 'Couldn\'t save the reply. Try again.';
+
+  @override
+  String get reviewLoadFailed => 'Couldn\'t load the ratings.';
+
+  @override
+  String get notifNewReviewTitle => 'New rating';
+
+  @override
+  String notifNewReviewBody(String product) {
+    return 'A customer rated \"$product\".';
+  }
+
+  @override
+  String get notifReviewReplyTitle => 'The company replied';
+
+  @override
+  String notifReviewReplyBody(String product) {
+    return 'The company replied to your rating of \"$product\".';
+  }
 }

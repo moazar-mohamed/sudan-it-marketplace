@@ -8,6 +8,8 @@ import '../../../../core/widgets/app_widgets.dart';
 import '../../../company_services/presentation/company_service_providers.dart';
 import '../../../service_requests/presentation/service_request_form_screen.dart';
 import '../../../offers/presentation/offer_price.dart';
+import '../../../reviews/domain/review.dart';
+import '../../../reviews/presentation/review_widgets.dart';
 import '../../domain/entities/catalog_service.dart';
 
 /// A company that offers the service, with the company's own price (shown
@@ -55,15 +57,13 @@ class ServiceOfferCard extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        Icon(
-                          Icons.star_rounded,
-                          color: context.colors.warning,
-                          size: AppSize.iconMd,
-                        ),
-                        const SizedBox(width: AppSpacing.s2),
-                        Text(
-                          company.rating.toStringAsFixed(1),
-                          style: AppTextStyles.captionStrong,
+                        // The stars customers gave this company for
+                        // this service.
+                        RatingLine(
+                          ratingsKey: RatingStats.serviceKey(offer.offer.id),
+                          fallbackAverage: company.rating,
+                          fallbackCount: company.reviewCount,
+                          showCount: false,
                         ),
                         if (city.isNotEmpty) ...[
                           const SizedBox(width: AppSpacing.s12),

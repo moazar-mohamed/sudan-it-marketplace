@@ -15,6 +15,8 @@ class NotificationFormat {
       'out_for_delivery' => l10n.notifOutForDeliveryTitle,
       'order_completed' => l10n.notifOrderCompletedTitle,
       'technician_assigned' => l10n.notifTechnicianAssignedTitle,
+      'new_review' => l10n.notifNewReviewTitle,
+      'review_reply' => l10n.notifReviewReplyTitle,
       _ => notification.title,
     };
   }
@@ -32,6 +34,9 @@ class NotificationFormat {
       'order_completed' => l10n.notifOrderCompletedBody,
       'technician_assigned' when product != null =>
         l10n.notifTechnicianAssignedBody(product),
+      'new_review' when product != null => l10n.notifNewReviewBody(product),
+      'review_reply' when product != null =>
+        l10n.notifReviewReplyBody(product),
       _ => notification.body,
     };
   }
@@ -65,6 +70,8 @@ class NotificationFormat {
           icon: Icons.engineering_outlined,
           tone: AppTone.brand,
         ),
+      'new_review' => (icon: Icons.star_outline_rounded, tone: AppTone.warning),
+      'review_reply' => (icon: Icons.reply_rounded, tone: AppTone.brand),
       _ => (icon: Icons.notifications_outlined, tone: AppTone.brand),
     };
   }

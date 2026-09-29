@@ -204,16 +204,24 @@ export function mapService(id: string, d: DocumentData): CatalogService {
   };
 }
 
-// No reviews collection exists in the current backend, so this reads the
-// fields a review would most plausibly carry and tolerates any that are absent.
+// A customer's rating of a completed order or service request (the app writes
+// it; see the reviews rules).
 export function mapReview(id: string, d: DocumentData): Review {
+  const sourceType = str(d.sourceType) || 'order';
   return {
     id,
-    customerName: str(d.customerName) || str(d.customerId),
+    sourceType,
+    customerName: str(d.authorName) || str(d.customerId),
+    companyId: str(d.companyId),
     companyName: str(d.companyName) || str(d.companyId),
-    rating: num(d.rating),
+    targetType: str(d.targetType) || (sourceType === 'order' ? 'product' : 'service'),
+    targetId: str(d.targetId),
+    targetName: str(d.targetName),
+    rating: num(d.stars),
     comment: str(d.comment),
-    orderId: str(d.orderId),
+    orderId: sourceType === 'order' ? id : '',
+    hidden: d.hidden === true,
+    reply: str(d.reply),
     createdAt: toDate(d.createdAt),
   };
 }
