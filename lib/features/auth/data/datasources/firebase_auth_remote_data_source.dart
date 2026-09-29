@@ -29,6 +29,24 @@ String googleSignInFailureCode(GoogleSignInException error) {
   }
 }
 
+/// Runs a Google sign-in [attempt], and once more when Android answers
+/// "[16] Account reauth failed.": it says that while it refreshes the
+/// device's Google account, and asking again moments later succeeds (seen on
+/// a Pixel emulator, 2026-09-29). Only a second failure reaches the user.
+Future<T> retryGoogleReauthOnce<T>(
+  Future<T> Function() attempt, {
+  Duration pause = const Duration(milliseconds: 800),
+}) async {
+  try {
+    return await attempt();
+  } on GoogleSignInException catch (error) {
+    if (googleSignInFailureCode(error) != 'google-reauth-required') rethrow;
+    debugLog('FirebaseAuthDS', 'Google asked to sign in again; retrying once');
+    await Future<void>.delayed(pause);
+    return attempt();
+  }
+}
+
 class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
   FirebaseAuthRemoteDataSource({FirebaseAuth? firebaseAuth})
     : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
@@ -117,7 +135,8 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
         );
       }
       final googleSignIn = await _googleSignIn();
-      final googleAccount = await googleSignIn.authenticate();
+      final googleAccount =
+          await retryGoogleReauthOnce(googleSignIn.authenticate);
       final idToken = googleAccount.authentication.idToken;
       if (idToken == null) {
         throw const AuthException(

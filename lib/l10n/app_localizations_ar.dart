@@ -331,7 +331,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authErrorGoogleReauth =>
-      'يحتاج Google إلى إعادة تسجيل دخولك إلى حسابك في هذا الجهاز. احذف حساب Google من إعدادات الجهاز ثم أضفه من جديد، وأعد المحاولة.';
+      'لم يتمكن Google من تأكيد حسابك على هذا الجهاز. اضغط «المتابعة باستخدام Google» مرة أخرى، وإذا تكرر ذلك افتح حساب Google من إعدادات الجهاز وسجّل الدخول إليه من جديد.';
 
   @override
   String get authErrorGoogleConfig =>

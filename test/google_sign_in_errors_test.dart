@@ -9,6 +9,45 @@ GoogleSignInException _error(GoogleSignInExceptionCode code, [String? descriptio
     GoogleSignInException(code: code, description: description);
 
 void main() {
+  group('a Google sign-in Android asks to redo', () {
+    final reauth = _error(GoogleSignInExceptionCode.canceled, '[16] Account reauth failed.');
+
+    test('is asked once more before anything is shown', () async {
+      var attempts = 0;
+      final result = await retryGoogleReauthOnce(() async {
+        attempts++;
+        if (attempts == 1) throw reauth;
+        return 'account';
+      }, pause: Duration.zero);
+      expect(result, 'account');
+      expect(attempts, 2);
+    });
+
+    test('a second refusal reaches the user', () async {
+      var attempts = 0;
+      await expectLater(
+        retryGoogleReauthOnce<String>(() async {
+          attempts++;
+          throw reauth;
+        }, pause: Duration.zero),
+        throwsA(isA<GoogleSignInException>()),
+      );
+      expect(attempts, 2);
+    });
+
+    test('closing the account picker is never retried', () async {
+      var attempts = 0;
+      await expectLater(
+        retryGoogleReauthOnce<String>(() async {
+          attempts++;
+          throw _error(GoogleSignInExceptionCode.canceled, 'activity is cancelled by the user.');
+        }, pause: Duration.zero),
+        throwsA(isA<GoogleSignInException>()),
+      );
+      expect(attempts, 1);
+    });
+  });
+
   group('why a Google sign-in failed', () {
     test('closing the account picker is a quiet cancel', () {
       expect(

@@ -689,7 +689,7 @@ abstract class AppLocalizations {
   /// No description provided for @authErrorGoogleReauth.
   ///
   /// In en, this message translates to:
-  /// **'Google needs you to sign in to your account again on this device. Remove your Google account in the device settings, add it again, then try again.'**
+  /// **'Google couldn\'t confirm your account on this device. Tap \"Continue with Google\" again. If it keeps happening, open your Google account in the device settings and sign in to it again.'**
   String get authErrorGoogleReauth;
 
   /// No description provided for @authErrorGoogleConfig.

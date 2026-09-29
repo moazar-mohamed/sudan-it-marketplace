@@ -119,7 +119,7 @@
   "authErrorCancelled": "Sign-in was cancelled.",
   "authErrorDifferentCredential": "An account already exists with a different sign-in method for this email.",
   "authErrorGoogleFailed": "Google sign-in failed. Please try again.",
-  "authErrorGoogleReauth": "Google needs you to sign in to your account again on this device. Remove your Google account in the device settings, add it again, then try again.",
+  "authErrorGoogleReauth": "Google couldn't confirm your account on this device. Tap \"Continue with Google\" again. If it keeps happening, open your Google account in the device settings and sign in to it again.",
   "authErrorGoogleConfig": "Google sign-in is not set up for this version of the app. Please contact support.",
   "authErrorPopupBlocked": "Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.",
   "authErrorUnauthorizedDomain": "Google sign-in is not enabled for this website address.",
