@@ -2256,6 +2256,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatContactCompany => 'تواصل';
 
   @override
+  String get pushOpen => 'فتح';
+
+  @override
   String chatInquirySubject(String subject) {
     return 'استفسار: $subject';
   }

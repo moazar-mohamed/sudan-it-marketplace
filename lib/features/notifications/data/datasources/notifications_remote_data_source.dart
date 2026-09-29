@@ -11,7 +11,8 @@ abstract interface class NotificationsRemoteDataSource {
 
   String newNotificationId();
 
-  Future<void> createNotification(AppNotification notification);
+  /// True once it is stored; false when it could not be (never throws).
+  Future<bool> createNotification(AppNotification notification);
 
   Future<void> markAsRead(String notificationId);
 }

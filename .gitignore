@@ -52,3 +52,6 @@ app.*.map.json
 
 # Local manual-testing screenshots (never committed)
 /.test_screens/
+
+# Firebase service account keys give admin access to the project: never commit.
+*-firebase-adminsdk-*.json

@@ -50,6 +50,8 @@ dependencies:
   intl: ^0.20.3
   shared_preferences: ^2.5.5
   image: ^4.10.1
+  firebase_messaging: ^16.7.0
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

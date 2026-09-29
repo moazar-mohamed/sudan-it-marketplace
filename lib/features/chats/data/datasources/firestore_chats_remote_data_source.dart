@@ -74,7 +74,7 @@ class FirestoreChatsRemoteDataSource implements ChatsRemoteDataSource {
   /// batch (the security rules require both together), and the sender's own
   /// read marker moves with it.
   @override
-  Future<void> sendMessage({
+  Future<String> sendMessage({
     required String chatId,
     required String senderId,
     required ChatParticipantRole senderRole,
@@ -102,6 +102,7 @@ class FirestoreChatsRemoteDataSource implements ChatsRemoteDataSource {
       });
     try {
       await batch.commit();
+      return messageRef.id;
     } on FirebaseException catch (error) {
       throw AppException(
         error.code == 'permission-denied'

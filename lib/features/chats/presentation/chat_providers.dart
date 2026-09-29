@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/push/push_relay.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/auth_state.dart';
 import '../data/datasources/chats_remote_data_source.dart';
@@ -15,7 +16,10 @@ final chatsRemoteDataSourceProvider = Provider<ChatsRemoteDataSource>((ref) {
 });
 
 final chatsRepositoryProvider = Provider<ChatsRepository>((ref) {
-  return ChatsRepositoryImpl(ref.watch(chatsRemoteDataSourceProvider));
+  return ChatsRepositoryImpl(
+    ref.watch(chatsRemoteDataSourceProvider),
+    ref.watch(pushRelayProvider),
+  );
 });
 
 /// The signed-in user's id (null when signed out).

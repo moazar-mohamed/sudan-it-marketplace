@@ -1,13 +1,20 @@
+import 'dart:async';
+
 import '../../../../core/errors/app_exception.dart';
+import '../../../../core/push/push_relay.dart';
 import '../../domain/entities/chat_conversation.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../domain/repositories/chats_repository.dart';
 import '../datasources/chats_remote_data_source.dart';
 
 class ChatsRepositoryImpl implements ChatsRepository {
-  const ChatsRepositoryImpl(this._remoteDataSource);
+  const ChatsRepositoryImpl(
+    this._remoteDataSource, [
+    this._pushRelay = const NoPushRelay(),
+  ]);
 
   final ChatsRemoteDataSource _remoteDataSource;
+  final PushRelay _pushRelay;
 
   @override
   Stream<List<ChatConversation>> watchCustomerConversations(
@@ -39,13 +46,16 @@ class ChatsRepositoryImpl implements ChatsRepository {
     if (trimmed.isEmpty || trimmed.length > ChatMessage.maxLength) {
       throw const AppException(AppErrorCode.chatMessageInvalid);
     }
-    await _remoteDataSource.sendMessage(
+    final messageId = await _remoteDataSource.sendMessage(
       chatId: chatId,
       senderId: senderId,
       senderRole: senderRole,
       senderName: senderName.trim(),
       text: trimmed,
     );
+    // The other side's phones hear about it (in the background: sending
+    // never waits for the push).
+    unawaited(_pushRelay.chatMessage(chatId: chatId, messageId: messageId));
   }
 
   @override

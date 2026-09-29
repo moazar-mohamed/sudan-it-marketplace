@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/push/push_relay.dart';
 import '../data/datasources/firestore_notifications_remote_data_source.dart';
 import '../data/datasources/notifications_remote_data_source.dart';
 import '../data/repositories/notifications_repository_impl.dart';
@@ -16,6 +17,7 @@ final notificationsRepositoryProvider = Provider<NotificationsRepository>((
 ) {
   return NotificationsRepositoryImpl(
     ref.watch(notificationsRemoteDataSourceProvider),
+    ref.watch(pushRelayProvider),
   );
 });
 

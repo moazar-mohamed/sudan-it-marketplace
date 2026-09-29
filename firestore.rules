@@ -235,6 +235,16 @@ service cloud.firestore {
         && request.resource.data.language in ['en', 'ar'];
     }
 
+    // Every signed-in user registers the phones that should receive their
+    // push notifications (FCM device tokens), and nothing else rides along.
+    // The app keeps the newest few; the push relay drops tokens FCM rejects.
+    function isOwnPushTokensUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['fcmTokens'])
+        && request.resource.data.fcmTokens is list
+        && request.resource.data.fcmTokens.size() <= 10;
+    }
+
     // A deactivated account (isActive == false) can no longer place orders or
     // attach receipts, even from a session that was already open. A user with
     // no profile document, or no isActive flag, is not treated as deactivated.
@@ -591,6 +601,7 @@ service cloud.firestore {
           && isSafeCustomerProfileUpdate())
         || (isOwner(uid) && isPasswordChangeCompletion())
         || (isOwner(uid) && isOwnLanguageUpdate())
+        || (isOwner(uid) && isOwnPushTokensUpdate())
         || isPlatformAdminCustomerUpdate();
 
       // Only the company_admin / technician profile of a company that is gone.
@@ -1085,13 +1096,18 @@ service cloud.firestore {
         'title',
         'body',
         'isRead',
-        'createdAt'
+        'createdAt',
+        'senderId'
       ]);
     }
 
+    // `senderId` names who created the notification (the push relay only
+    // sends a notification for its own sender). Optional, so older app
+    // versions that do not write it keep working.
     function isValidNotificationCreate(notificationId) {
       return hasRequiredNotificationKeys()
         && request.resource.data.id == notificationId
+        && request.resource.data.get('senderId', request.auth.uid) == request.auth.uid
         && request.resource.data.recipientType in ['customer', 'company_admin', 'technician']
         && request.resource.data.recipientId is string
         && request.resource.data.recipientId.size() > 0
@@ -1119,6 +1135,12 @@ service cloud.firestore {
           && isTechnician()
           && assignedTechnician(resource.data.recipientId).companyId == signedInUser().companyId
           && assignedTechnician(resource.data.recipientId).email == signedInUser().email);
+    }
+
+    // What the push relay has already sent (written only with its service
+    // account, which the rules do not govern). The app never touches it.
+    match /push_log/{entryId} {
+      allow read, write: if false;
     }
 
     match /notifications/{notificationId} {

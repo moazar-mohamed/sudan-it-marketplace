@@ -27,6 +27,12 @@ class ChatScreen extends ConsumerStatefulWidget {
   final String chatId;
   final ChatParticipantRole role;
 
+  static final _onScreen = <String>{};
+
+  /// Whether this conversation is open right now (a push about it then needs
+  /// no banner: the message is already appearing).
+  static bool isOnScreen(String chatId) => _onScreen.contains(chatId);
+
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
@@ -39,6 +45,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    ChatScreen._onScreen.add(widget.chatId);
     ref.listenManual(
       chatConversationProvider(widget.chatId),
       (_, next) => _markReadIfNeeded(next.asData?.value),
@@ -48,6 +55,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
+    ChatScreen._onScreen.remove(widget.chatId);
     _controller.dispose();
     super.dispose();
   }

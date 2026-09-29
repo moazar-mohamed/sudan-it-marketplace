@@ -1119,6 +1119,7 @@
   "chatStartDenied": "You cannot start a conversation about this order.",
   "chatStartFailed": "The conversation could not be started. Please try again.",
   "chatContactCompany": "Contact",
+  "pushOpen": "Open",
   "chatInquirySubject": "Question: {subject}",
   "@chatInquirySubject": {
     "placeholders": {

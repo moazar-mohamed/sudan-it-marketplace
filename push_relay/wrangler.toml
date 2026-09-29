@@ -1,0 +1,13 @@
+# The push relay on Cloudflare Workers (free plan).
+# One-time setup, from this folder:
+#   npx wrangler login
+#   npx wrangler secret put SERVICE_ACCOUNT_JSON   (paste the whole key file)
+#   npx wrangler deploy
+name = "sudan-it-push"
+main = "src/worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+PROJECT_ID = "sudan-it-marketplace"
+# The project's public web API key (the same one inside the app).
+FIREBASE_API_KEY = "AIzaSyAfI2D3QwE6ULN6Vq6aiMJIet9z4pHIaAY"

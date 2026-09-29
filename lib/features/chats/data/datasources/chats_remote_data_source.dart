@@ -10,7 +10,8 @@ abstract class ChatsRemoteDataSource {
 
   Stream<List<ChatMessage>> watchMessages(String chatId);
 
-  Future<void> sendMessage({
+  /// Returns the new message's id.
+  Future<String> sendMessage({
     required String chatId,
     required String senderId,
     required ChatParticipantRole senderRole,

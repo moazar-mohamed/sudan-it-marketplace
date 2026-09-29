@@ -686,6 +686,7 @@
   "chatStartDenied": "لا يمكنك بدء محادثة حول هذا الطلب.",
   "chatStartFailed": "تعذر بدء المحادثة. يرجى المحاولة مرة أخرى.",
   "chatContactCompany": "تواصل",
+  "pushOpen": "فتح",
   "chatInquirySubject": "استفسار: {subject}",
   "chatInquiryStatusLine": "استفسار قبل الطلب، لا يوجد طلب بعد",
   "chatInquiryDenied": "لا يمكنك مراسلة هذه الشركة الآن.",

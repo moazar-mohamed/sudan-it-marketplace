@@ -130,7 +130,7 @@ class _FakeChats extends Fake implements ChatsRepository {
   Stream<List<ChatConversation>> watchCustomerConversations(
     String customerId,
   ) =>
-      Stream.value([if (conversation != null) conversation!]);
+      Stream.value([?conversation]);
 
   @override
   Future<void> markRead({

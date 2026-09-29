@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../domain/entities/app_notification.dart';
 import '../models/app_notification_model.dart';
@@ -7,11 +8,16 @@ import '../../../../core/logging/debug_log.dart';
 
 class FirestoreNotificationsRemoteDataSource
     implements NotificationsRemoteDataSource {
-  FirestoreNotificationsRemoteDataSource({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirestoreNotificationsRemoteDataSource({
+    FirebaseFirestore? firestore,
+    String? Function()? currentUserId,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _currentUserId =
+            currentUserId ?? (() => FirebaseAuth.instance.currentUser?.uid);
 
   static const _collection = 'notifications';
   final FirebaseFirestore _firestore;
+  final String? Function() _currentUserId;
 
   CollectionReference<Map<String, dynamic>> get _notifications =>
       _firestore.collection(_collection);
@@ -56,11 +62,15 @@ class FirestoreNotificationsRemoteDataSource
   String newNotificationId() => _notifications.doc().id;
 
   @override
-  Future<void> createNotification(AppNotification notification) async {
+  Future<bool> createNotification(AppNotification notification) async {
     try {
-      await _notifications
-          .doc(notification.id)
-          .set(AppNotificationModel.toFirestoreCreateMap(notification));
+      await _notifications.doc(notification.id).set(
+            AppNotificationModel.toFirestoreCreateMap(
+              notification,
+              senderId: _currentUserId(),
+            ),
+          );
+      return true;
     } on FirebaseException catch (error) {
       // Notifications are a best-effort side effect of an already-successful
       // action (order created, payment confirmed, ...); a permission or
@@ -68,6 +78,7 @@ class FirestoreNotificationsRemoteDataSource
       // it is still logged so it isn't silently lost.
       debugLog('NotificationsDS', 'createNotification failed: '
           '${error.code} ${error.message}');
+      return false;
     }
   }
 

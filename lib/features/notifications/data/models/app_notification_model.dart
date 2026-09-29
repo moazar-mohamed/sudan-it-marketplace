@@ -25,9 +25,12 @@ class AppNotificationModel {
     );
   }
 
+  /// [senderId] is the signed-in user creating it (the push relay only
+  /// sends a notification for its own sender).
   static Map<String, dynamic> toFirestoreCreateMap(
-    AppNotification notification,
-  ) {
+    AppNotification notification, {
+    String? senderId,
+  }) {
     return {
       'id': notification.id,
       'recipientType': notification.recipientType.firestoreValue,
@@ -38,6 +41,7 @@ class AppNotificationModel {
       'body': notification.body,
       'isRead': false,
       'createdAt': FieldValue.serverTimestamp(),
+      'senderId': ?senderId,
     };
   }
 }

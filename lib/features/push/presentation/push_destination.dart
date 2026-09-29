@@ -1,0 +1,57 @@
+import '../../auth/domain/entities/user_profile.dart';
+import '../../auth/domain/entities/user_role.dart';
+import '../../chats/domain/entities/chat_conversation.dart';
+
+/// The screen a push notification opens when tapped.
+sealed class PushDestination {
+  const PushDestination();
+}
+
+class ChatDestination extends PushDestination {
+  const ChatDestination(this.chatId, this.role);
+
+  final String chatId;
+  final ChatParticipantRole role;
+}
+
+class CompanyOrderDestination extends PushDestination {
+  const CompanyOrderDestination(this.companyId, this.orderId);
+
+  final String companyId;
+  final String orderId;
+}
+
+class CustomerOrderDestination extends PushDestination {
+  const CustomerOrderDestination(this.orderId);
+
+  final String orderId;
+}
+
+/// Where a push with [data] (as the push relay sends it) leads for the
+/// signed-in [profile], or null when it has no screen for them (it was meant
+/// for another kind of account, or a technician's job, which opens the app).
+PushDestination? pushDestination(Map<String, dynamic> data, UserProfile profile) {
+  String text(String key) => (data[key] as String?)?.trim() ?? '';
+
+  if (text('type') == 'chat_message') {
+    final chatId = text('chatId');
+    if (chatId.isEmpty) return null;
+    return switch ((text('role'), profile.role)) {
+      ('company', UserRole.companyAdmin) =>
+        ChatDestination(chatId, ChatParticipantRole.company),
+      ('customer', UserRole.customer) =>
+        ChatDestination(chatId, ChatParticipantRole.customer),
+      _ => null,
+    };
+  }
+
+  final orderId = text('orderId');
+  if (orderId.isEmpty) return null;
+  final companyId = profile.companyId?.trim() ?? '';
+  return switch ((text('recipientType'), profile.role)) {
+    ('company_admin', UserRole.companyAdmin) when companyId.isNotEmpty =>
+      CompanyOrderDestination(companyId, orderId),
+    ('customer', UserRole.customer) => CustomerOrderDestination(orderId),
+    _ => null,
+  };
+}

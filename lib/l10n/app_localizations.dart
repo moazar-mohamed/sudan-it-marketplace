@@ -4130,6 +4130,12 @@ abstract class AppLocalizations {
   /// **'Contact'**
   String get chatContactCompany;
 
+  /// No description provided for @pushOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get pushOpen;
+
   /// No description provided for @chatInquirySubject.
   ///
   /// In en, this message translates to:

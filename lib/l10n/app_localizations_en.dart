@@ -2279,6 +2279,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatContactCompany => 'Contact';
 
   @override
+  String get pushOpen => 'Open';
+
+  @override
   String chatInquirySubject(String subject) {
     return 'Question: $subject';
   }
