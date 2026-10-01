@@ -107,6 +107,8 @@ class _RecentCard extends StatelessWidget {
                   ),
                   child: AppNetworkImage(
                     url: product.imageUrl ?? '',
+                    width: 84,
+                    height: 84,
                     fallback: Center(
                       child: Icon(look.icon, size: 38, color: look.accent),
                     ),

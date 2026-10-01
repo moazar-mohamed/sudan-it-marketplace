@@ -28,6 +28,9 @@ class ProductGridCard extends ConsumerWidget {
     this.iconColor,
   });
 
+  /// The height of the photo band at the top of every card.
+  static const double photoHeight = 128;
+
   final Product product;
   final String? categoryName;
 
@@ -75,17 +78,22 @@ class ProductGridCard extends ConsumerWidget {
             children: [
               Stack(
                 children: [
-                  // Full width: a Stack gives its children loose constraints,
-                  // which would shrink a square photo to a 128 px tile.
+                  // Every card has the same photo band, whatever shape its
+                  // photo is (it is cropped to fill it). Width and height are
+                  // fixed on the box and on the picture itself: a Stack gives
+                  // its children loose constraints, and a photo left to size
+                  // itself would be a tile (square) or a strip (wide).
                   Container(
                     width: double.infinity,
-                    height: 128,
+                    height: photoHeight,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       color: tint ?? AppTone.brand.background(colors),
                     ),
                     child: AppNetworkImage(
                       url: product.imageUrl ?? '',
+                      width: double.infinity,
+                      height: photoHeight,
                       fallback: Center(
                         child: Icon(
                           icon ?? Icons.inventory_2_outlined,

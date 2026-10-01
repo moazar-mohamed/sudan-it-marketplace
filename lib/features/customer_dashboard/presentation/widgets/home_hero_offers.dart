@@ -236,6 +236,8 @@ class _HeroCard extends StatelessWidget {
                         ),
                         child: AppNetworkImage(
                           url: item.imageUrl ?? '',
+                          width: 108,
+                          height: 108,
                           fallback: Icon(
                             look.icon,
                             size: 52,

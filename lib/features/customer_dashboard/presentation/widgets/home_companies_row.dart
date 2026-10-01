@@ -192,6 +192,8 @@ class CompanyAvatar extends StatelessWidget {
       ),
       child: AppNetworkImage(
         url: company.logoUrl ?? '',
+        width: size,
+        height: size,
         fallback: Center(
           child: Text(
             letter,

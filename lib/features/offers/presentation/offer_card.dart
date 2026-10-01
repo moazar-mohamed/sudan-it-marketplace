@@ -98,6 +98,8 @@ class OfferCard extends StatelessWidget {
                     ),
                     child: AppNetworkImage(
                       url: item.imageUrl ?? '',
+                      width: double.infinity,
+                      height: 120,
                       fallback: Center(
                         child: Icon(
                           icon ??
