@@ -4,6 +4,7 @@ import { CustomerEditModal, useToggleCustomerActive } from '../components/Custom
 import { ActiveBadge, OrderStatusBadge, PaymentBadge } from '../components/StatusBadges';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
 import { useCustomers, useOrders } from '../data/hooks';
+import { displayPhone } from '../data/phone';
 import { useI18n } from '../i18n/I18nProvider';
 import { shortId } from '../utils';
 
@@ -57,7 +58,7 @@ export function CustomerDetailsPage() {
                   <bdi dir="ltr">{customer.email || '—'}</bdi>
                 </KeyValue>
                 <KeyValue label={t('col.phone')}>
-                  <bdi dir="ltr">{customer.phone || '—'}</bdi>
+                  <bdi dir="ltr">{displayPhone(customer.phone) || '—'}</bdi>
                 </KeyValue>
                 <KeyValue label={t('col.status')}>
                   <ActiveBadge active={customer.isActive} />

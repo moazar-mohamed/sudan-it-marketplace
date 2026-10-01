@@ -245,8 +245,9 @@ service cloud.firestore {
         && request.resource.data.fcmTokens.size() <= 10;
     }
 
-    // A deactivated account (isActive == false) can no longer place orders or
-    // attach receipts, even from a session that was already open. A user with
+    // A deactivated account (isActive == false) can no longer place orders,
+    // attach receipts or create notifications, even from a session that was
+    // already open. A user with
     // no profile document, or no isActive flag, is not treated as deactivated.
     function callerIsNotDeactivated() {
       return !signedInUserExists()
@@ -1057,12 +1058,25 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/orders/$(orderId)).data;
     }
 
-    // The company_admin notification for a new order may only be created by
-    // the customer who owns that order, targeting the order's own company.
+    // A notification carries no text of its own. Its `type` says what
+    // happened, and the app and the push relay build the words from the type
+    // and the product name, so nobody can write a message that looks like it
+    // came from the system. Each kind of sender may only send its own types:
+    //   the order's customer      -> its company:    new_order, new_review
+    //   the order's company admin -> its customer:   payment_confirmed,
+    //                                out_for_delivery, order_completed,
+    //                                review_reply
+    //   the assigned technician   -> its customer:   out_for_delivery,
+    //                                order_completed
+    //   the order's company admin -> its technician: technician_assigned
+
+    // The company_admin notification may only be created by the customer who
+    // owns that order, targeting the order's own company.
     function isValidCompanyAdminNotificationCreate() {
       let order = notificationOrder(request.resource.data.orderId);
       return order.companyId == request.resource.data.recipientId
-        && order.customerId == request.auth.uid;
+        && order.customerId == request.auth.uid
+        && request.resource.data.type in ['new_order', 'new_review'];
     }
 
     // A customer notification may only be created by the company admin of
@@ -1070,12 +1084,15 @@ service cloud.firestore {
     function isValidCustomerNotificationCreate() {
       let order = notificationOrder(request.resource.data.orderId);
       return order.customerId == request.resource.data.recipientId
-        && (isCompanyAdminOf(order.companyId)
+        && ((isCompanyAdminOf(order.companyId)
+            && request.resource.data.type in
+              ['payment_confirmed', 'out_for_delivery', 'order_completed', 'review_reply'])
           || (isTechnician()
             && order.technicianId is string
             && order.technicianId.size() > 0
             && assignedTechnician(order.technicianId).companyId == signedInUser().companyId
-            && assignedTechnician(order.technicianId).email == signedInUser().email));
+            && assignedTechnician(order.technicianId).email == signedInUser().email
+            && request.resource.data.type in ['out_for_delivery', 'order_completed']));
     }
 
     // A technician notification may only be created by the company admin
@@ -1083,7 +1100,8 @@ service cloud.firestore {
     function isValidTechnicianNotificationCreate() {
       let order = notificationOrder(request.resource.data.orderId);
       return order.technicianId == request.resource.data.recipientId
-        && isCompanyAdminOf(order.companyId);
+        && isCompanyAdminOf(order.companyId)
+        && request.resource.data.type == 'technician_assigned';
     }
 
     function notificationServiceRequest(requestId) {
@@ -1112,20 +1130,44 @@ service cloud.firestore {
           && isCompanyAdminOf(serviceRequest.companyId));
     }
 
+    // No `title` or `body`: free text is not stored at all. A notification is
+    // about an order (`orderId`) or a service request (`serviceRequestId`),
+    // which is checked by isNotificationAboutOneThing, so neither is listed
+    // as required here.
     function hasRequiredNotificationKeys() {
       return request.resource.data.keys().hasOnly([
-        'id',
-        'recipientType',
-        'recipientId',
-        'orderId',
-        'type',
-        'title',
-        'body',
-        'isRead',
-        'createdAt',
-        'senderId',
-        'serviceRequestId'
-      ]);
+          'id',
+          'recipientType',
+          'recipientId',
+          'orderId',
+          'serviceRequestId',
+          'type',
+          'productName',
+          'isRead',
+          'createdAt',
+          'senderId'
+        ])
+        && request.resource.data.keys().hasAll([
+          'id',
+          'recipientType',
+          'recipientId',
+          'type',
+          'productName',
+          'isRead',
+          'createdAt'
+        ]);
+    }
+
+    // One notification per order (or service request) and type (per technician
+    // for an assignment): the id is fixed, so sending the same thing again is
+    // refused as an edit of the one that exists.
+    function notificationIdFor(data) {
+      let about = data.keys().hasAny(['serviceRequestId'])
+        ? data.serviceRequestId
+        : data.orderId;
+      return data.recipientType == 'technician'
+        ? about + '_' + data.type + '_' + data.recipientId
+        : about + '_' + data.type;
     }
 
     // A notification is about an order (`orderId`) or about a service request
@@ -1135,16 +1177,21 @@ service cloud.firestore {
       return (data.keys().hasAny(['orderId'])
           && !data.keys().hasAny(['serviceRequestId'])
           && data.orderId is string
-          && data.orderId.size() > 0)
+          && data.orderId.size() > 0
+          && data.orderId.size() <= 128)
         || (data.keys().hasAny(['serviceRequestId'])
           && !data.keys().hasAny(['orderId'])
           && data.serviceRequestId is string
-          && data.serviceRequestId.size() > 0);
+          && data.serviceRequestId.size() > 0
+          && data.serviceRequestId.size() <= 128);
     }
 
     // `senderId` names who created the notification (the push relay only
-    // sends a notification for its own sender). Optional, so older app
-    // versions that do not write it keep working.
+    // sends a notification for its own sender). `productName` is the only
+    // text, and it must be the order's own product name (the request's own
+    // service name for a service request); a product or service name is at
+    // most 200 characters. Ids are far shorter than
+    // 128 (Firestore ids are 20 characters, the app's order ids about 11).
     function isValidNotificationCreate(notificationId) {
       return hasRequiredNotificationKeys()
         && request.resource.data.id == notificationId
@@ -1152,13 +1199,16 @@ service cloud.firestore {
         && request.resource.data.recipientType in ['customer', 'company_admin', 'technician']
         && request.resource.data.recipientId is string
         && request.resource.data.recipientId.size() > 0
+        && request.resource.data.recipientId.size() <= 128
         && isNotificationAboutOneThing()
         && request.resource.data.type is string
-        && request.resource.data.type.size() > 0
-        && request.resource.data.title is string
-        && request.resource.data.title.size() > 0
-        && request.resource.data.body is string
-        && request.resource.data.body.size() > 0
+        && notificationId == notificationIdFor(request.resource.data)
+        && request.resource.data.productName is string
+        && request.resource.data.productName.size() <= 200
+        && request.resource.data.productName
+          == (request.resource.data.keys().hasAny(['serviceRequestId'])
+            ? notificationServiceRequest(request.resource.data.serviceRequestId).serviceName
+            : notificationOrder(request.resource.data.orderId).productName)
         && request.resource.data.isRead == false
         && request.resource.data.createdAt is timestamp
         && request.resource.data.createdAt == request.time;
@@ -1187,7 +1237,9 @@ service cloud.firestore {
       allow get, list: if isSignedIn()
         && (isPlatformAdmin() || isNotificationRecipient());
 
+      // A deactivated account can no longer send notifications.
       allow create: if isSignedIn()
+        && callerIsNotDeactivated()
         && isValidNotificationCreate(notificationId)
         && ((request.resource.data.keys().hasAny(['serviceRequestId'])
               && isValidServiceRequestNotificationCreate())
@@ -1204,17 +1256,20 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead'])
         && request.resource.data.isRead is bool;
 
-      // Only what was addressed to a deleted company's admin, or to one of its
-      // technicians once that technician is gone. A customer's notifications
-      // are never deletable.
-      allow delete: if isPlatformAdmin()
-        && ((resource.data.recipientType == 'company_admin'
-            && companyIsGoneAfter(resource.data.recipientId))
-          || (resource.data.recipientType == 'technician'
-            && resource.data.recipientId is string
-            && resource.data.recipientId.size() > 0
-            && !existsAfter(
-              /databases/$(database)/documents/technicians/$(resource.data.recipientId))));
+      // Whoever it was addressed to may delete it (never its sender, never
+      // anyone else). Platform Admin may delete only what was addressed to a
+      // deleted company's admin, or to one of its technicians once that
+      // technician is gone.
+      allow delete: if isSignedIn()
+        && (isNotificationRecipient()
+          || (isPlatformAdmin()
+            && ((resource.data.recipientType == 'company_admin'
+                && companyIsGoneAfter(resource.data.recipientId))
+              || (resource.data.recipientType == 'technician'
+                && resource.data.recipientId is string
+                && resource.data.recipientId.size() > 0
+                && !existsAfter(
+                  /databases/$(database)/documents/technicians/$(resource.data.recipientId))))));
     }
 
     // The accounts a company receives manual payments on (shown to customers

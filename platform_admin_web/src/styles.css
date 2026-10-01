@@ -1672,3 +1672,53 @@ table.data tbody tr:last-child td {
     max-width: none;
   }
 }
+
+/* Phone number with its country code: the flag and code sit before the
+   number, left to right in Arabic too. The native select covers the code so
+   the list, the keyboard and screen readers behave as usual. */
+.phone-input {
+  display: flex;
+  width: 100%;
+}
+
+.phone-input__code {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-12);
+  border: 1px solid var(--color-border-input);
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+  background: var(--color-bg-subtle);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.phone-input__code:focus-within {
+  outline: 2px solid var(--color-border-focus-ring);
+  outline-offset: 2px;
+}
+
+.phone-input__caret {
+  color: var(--color-icon-muted);
+  font-size: 12px;
+}
+
+.phone-input__code select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.phone-input__code select:disabled {
+  cursor: not-allowed;
+}
+
+.field .phone-input input {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0 8px 8px 0;
+}

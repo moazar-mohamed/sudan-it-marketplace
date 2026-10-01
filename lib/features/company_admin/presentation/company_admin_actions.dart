@@ -68,7 +68,6 @@ class CompanyAdminActions {
       final notifications = _ref.read(notificationsRepositoryProvider);
       await notifications.createNotification(
         NotificationEvents.paymentConfirmed(
-          id: notifications.newNotificationId(),
           orderId: order.id,
           customerId: order.customerId,
           productName: order.productName,
@@ -83,7 +82,6 @@ class CompanyAdminActions {
   ) async {
     final notifications = _ref.read(notificationsRepositoryProvider);
     final event = NotificationEvents.forOrderStatusChange(
-      id: notifications.newNotificationId(),
       status: status,
       orderId: order.id,
       customerId: order.customerId,
@@ -159,7 +157,6 @@ class CompanyAdminActions {
       final notifications = _ref.read(notificationsRepositoryProvider);
       await notifications.createNotification(
         NotificationEvents.technicianAssigned(
-          id: notifications.newNotificationId(),
           orderId: order.id,
           technicianId: technicianId,
           productName: order.productName,

@@ -31,7 +31,7 @@ const ORDER_TEXTS = {
     en: ['The company replied', (p) => `The company replied to your rating of "${p}".`],
     ar: ['ردّت الشركة على تقييمك', (p) => `ردّت الشركة على تقييمك لـ«${p}».`],
   },
-  // Service requests: the quoted name is the service, not a product.
+  // Service requests: `productName` holds the name of the service.
   new_service_request: {
     en: ['New service request', (p) => `A customer requested "${p}".`],
     ar: ['طلب خدمة جديد', (p) => `طلب عميل الخدمة «${p}».`],
@@ -68,17 +68,25 @@ export function languageOf(user) {
   return user?.language === 'ar' ? 'ar' : 'en';
 }
 
+/** A product (or service) name is at most this long (firestore.rules). */
+const MAX_PRODUCT_NAME = 200;
+
 /**
- * Title and body of an order or service request notification. The product name is the quoted
- * part of the stored English body (as the app reads it); an unknown type or
- * a body without a name keeps the stored text.
+ * Title and body of an order or service request notification, built only from its type and its
+ * `productName` (which the security rules check against the order). Nothing
+ * a sender wrote is ever used: any stored `title` or `body` is ignored, and
+ * an unknown type, or a type that needs a product name and has none, gives
+ * null so nothing is pushed.
  */
 export function orderNotificationText(notification, language) {
-  const texts = ORDER_TEXTS[notification.type]?.[language];
-  const product = /"(.*)"/.exec(notification.body ?? '')?.[1];
-  if (!texts || (product == null && notification.type !== 'order_completed')) {
-    return { title: notification.title, body: notification.body };
-  }
+  const type = typeof notification?.type === 'string' ? notification.type : '';
+  const texts = Object.hasOwn(ORDER_TEXTS, type) ? ORDER_TEXTS[type][language] : null;
+  if (!texts) return null;
+  const product =
+    typeof notification.productName === 'string'
+      ? notification.productName.trim().slice(0, MAX_PRODUCT_NAME)
+      : '';
+  if (!product && type !== 'order_completed') return null;
   return { title: texts[0], body: texts[1](product) };
 }
 

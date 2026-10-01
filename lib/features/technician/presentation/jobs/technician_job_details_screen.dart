@@ -5,6 +5,7 @@ import '../../../orders/domain/entities/order_entity.dart';
 import '../../../location/presentation/location_strings.dart';
 import '../../../orders/presentation/orders_providers.dart';
 import '../../../orders/presentation/widgets/order_location_widgets.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../technician_format.dart';
 import '../widgets/technician_widgets.dart';
@@ -84,7 +85,7 @@ class TechnicianJobDetailsScreen extends ConsumerWidget {
                     ),
                     TechnicianInfoRow(
                       label: context.l10n.orderContactPhone,
-                      value: job.contactPhone,
+                      value: displayPhone(job.contactPhone),
                       valueTextDirection: TextDirection.ltr,
                     ),
                     TechnicianInfoRow(

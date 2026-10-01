@@ -2174,6 +2174,30 @@ abstract class AppLocalizations {
   /// **'No notifications yet.'**
   String get notificationsEmpty;
 
+  /// No description provided for @notifGenericTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get notifGenericTitle;
+
+  /// No description provided for @notifGenericBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There is an update on one of your orders.'**
+  String get notifGenericBody;
+
+  /// No description provided for @notifDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this notification?'**
+  String get notifDeleteTitle;
+
+  /// No description provided for @notifDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It will be removed for good.'**
+  String get notifDeleteBody;
+
   /// No description provided for @notifNewOrderTitle.
   ///
   /// In en, this message translates to:
@@ -5023,6 +5047,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The company replied to your rating of \"{product}\".'**
   String notifReviewReplyBody(String product);
+
+  /// No description provided for @phoneCountryCodeOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Country code: {country} {code}'**
+  String phoneCountryCodeOf(String country, String code);
+
+  /// No description provided for @phoneChooseCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the country code'**
+  String get phoneChooseCountry;
+
+  /// No description provided for @phoneCountrySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by country or code'**
+  String get phoneCountrySearchHint;
+
+  /// No description provided for @phoneCountriesCommon.
+  ///
+  /// In en, this message translates to:
+  /// **'Most used'**
+  String get phoneCountriesCommon;
+
+  /// No description provided for @phoneCountriesAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All countries'**
+  String get phoneCountriesAll;
+
+  /// No description provided for @phoneCountryNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No country matches your search.'**
+  String get phoneCountryNoMatch;
+
+  /// No description provided for @phoneDigitsExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter {count} digits after {code}.'**
+  String phoneDigitsExact(int count, String code);
 
   /// No description provided for @notifNewServiceRequestTitle.
   ///

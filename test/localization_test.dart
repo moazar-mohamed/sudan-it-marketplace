@@ -622,49 +622,55 @@ void main() {
       expect(OrderStatus.outForDelivery.jobLabel(ar), 'قيد التنفيذ');
     });
 
-    AppNotification notification(String type, String title, String body) =>
+    AppNotification notification(String type, [String productName = '']) =>
         AppNotification(
           id: 'n1',
           recipientType: NotificationRecipientType.customer,
           recipientId: 'u1',
           orderId: 'o1',
           type: type,
-          title: title,
-          body: body,
+          productName: productName,
           createdAt: DateTime(2026),
         );
 
-    test('a stored English notification is shown in the reader\'s language', () {
+    test('a notification is worded from its type, in the reader\'s language', () {
       final ar = lookupAppLocalizations(AppLocale.arabic);
       final en = lookupAppLocalizations(AppLocale.english);
-      final n = notification(
-        'payment_confirmed',
-        'Payment confirmed',
-        'Your payment for "Dell Laptop" has been confirmed.',
-      );
+      final n = notification('payment_confirmed', 'Dell Laptop');
       expect(NotificationFormat.title(ar, n), 'تم تأكيد الدفع');
       expect(NotificationFormat.body(ar, n), contains('Dell Laptop'));
       expect(NotificationFormat.body(ar, n), isNot(contains('Your payment')));
-      expect(NotificationFormat.body(en, n), n.body);
+      expect(
+        NotificationFormat.body(en, n),
+        'Your payment for "Dell Laptop" has been confirmed.',
+      );
     });
 
     test('the product name is kept exactly as stored, quotes included', () {
       final ar = lookupAppLocalizations(AppLocale.arabic);
-      final n = notification(
-        'new_order',
-        'New order received',
-        'A new order for "15" Monitor" was placed and is awaiting payment verification.',
-      );
+      final n = notification('new_order', '15" Monitor');
       expect(NotificationFormat.body(ar, n), contains('15" Monitor'));
     });
 
-    test('the completed-order message and unknown types are handled', () {
+    test('the completed-order message needs no product name', () {
       final ar = lookupAppLocalizations(AppLocale.arabic);
-      final done = notification('order_completed', 'Order completed', 'تم إكمال طلبك');
-      expect(NotificationFormat.body(ar, done), 'تم إكمال طلبك');
-      final unknown = notification('something_new', 'Custom title', 'Custom body');
-      expect(NotificationFormat.title(ar, unknown), 'Custom title');
-      expect(NotificationFormat.body(ar, unknown), 'Custom body');
+      expect(
+        NotificationFormat.body(ar, notification('order_completed')),
+        'تم إكمال طلبك',
+      );
+    });
+
+    test('an unknown type gets the general message, in both languages', () {
+      final ar = lookupAppLocalizations(AppLocale.arabic);
+      final en = lookupAppLocalizations(AppLocale.english);
+      final unknown = notification('something_new', 'Router');
+      expect(NotificationFormat.title(ar, unknown), 'إشعار');
+      expect(NotificationFormat.body(ar, unknown), 'يوجد تحديث على أحد طلباتك.');
+      expect(NotificationFormat.title(en, unknown), 'Notification');
+      expect(
+        NotificationFormat.body(en, unknown),
+        'There is an update on one of your orders.',
+      );
     });
   });
 }

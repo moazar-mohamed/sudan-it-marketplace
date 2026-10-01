@@ -4,6 +4,7 @@ import '../../../../core/localization/l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/widgets/order_location_widgets.dart';
@@ -53,7 +54,7 @@ class TechnicianJobTile extends StatelessWidget {
             style: AppTextStyles.bodyStrong,
           ),
           Text(
-            '${TechnicianFormat.customer(order, l10n)} • ${order.contactPhone}',
+            '${TechnicianFormat.customer(order, l10n)} • ${keepLeftToRight(displayPhone(order.contactPhone))}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.caption

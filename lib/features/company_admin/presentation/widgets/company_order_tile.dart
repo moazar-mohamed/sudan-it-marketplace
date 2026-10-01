@@ -4,6 +4,7 @@ import '../../../../core/localization/l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/order_labels.dart';
@@ -65,7 +66,7 @@ class CompanyOrderTile extends StatelessWidget {
           ),
           Text(
             showInstallationStatus
-                ? '${CompanyAdminFormat.customer(order, l10n)} • ${order.contactPhone}'
+                ? '${CompanyAdminFormat.customer(order, l10n)} • ${keepLeftToRight(displayPhone(order.contactPhone))}'
                 : '${CompanyAdminFormat.customer(order, l10n)} • ${l10n.adminQtyShort(order.quantity)}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

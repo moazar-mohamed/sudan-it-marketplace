@@ -94,7 +94,6 @@ class OrdersController extends Notifier<OrderActionState> {
       final notifications = ref.read(notificationsRepositoryProvider);
       await notifications.createNotification(
         NotificationEvents.newOrder(
-          id: notifications.newNotificationId(),
           orderId: order.id,
           companyId: order.companyId,
           productName: order.productName,

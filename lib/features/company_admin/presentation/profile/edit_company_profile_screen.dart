@@ -29,7 +29,7 @@ class _EditCompanyProfileScreenState
   final _formKey = GlobalKey<FormState>();
   late final ImagePickerController _logoController;
   late final TextEditingController _nameController;
-  late final TextEditingController _phoneController;
+  late final PhoneController _phoneController;
   late final TextEditingController _emailController;
   late final TextEditingController _cityController;
   late final TextEditingController _addressController;
@@ -45,7 +45,7 @@ class _EditCompanyProfileScreenState
     _coordinates = c.coordinates;
     _logoController = ImagePickerController(url: c.logoUrl);
     _nameController = TextEditingController(text: c.name);
-    _phoneController = TextEditingController(text: c.phone ?? '');
+    _phoneController = PhoneController(text: c.phone ?? '');
     _emailController = TextEditingController(text: c.email ?? '');
     _cityController = TextEditingController(text: c.city ?? '');
     _addressController = TextEditingController(text: c.address ?? '');
@@ -99,7 +99,7 @@ class _EditCompanyProfileScreenState
     final updated = widget.company.copyWith(
       logoUrl: logoUrl,
       name: _nameController.text.trim(),
-      phone: _phoneController.text.trim(),
+      phone: _phoneController.value,
       email: _emailController.text.trim(),
       city: _cityController.text.trim(),
       address: _addressController.text.trim(),
@@ -174,22 +174,13 @@ class _EditCompanyProfileScreenState
                   ? context.l10n.adminCompanyNameRequired
                   : null,
             ),
-            _field(
-              _phoneController,
-              context.l10n.adminPhone,
-              Icons.phone_outlined,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
-              ],
-              validator: (value) {
-                final digits =
-                    (value ?? '').replaceAll(RegExp(r'[^0-9]'), '');
-                if (digits.isEmpty) {
-                  return null;
-                }
-                return digits.length < 9 ? context.l10n.commonPhoneInvalid : null;
-              },
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.s16),
+              child: PhoneField(
+                label: context.l10n.adminPhone,
+                controller: _phoneController,
+                enabled: !_isSaving,
+              ),
             ),
             _field(
               _emailController,

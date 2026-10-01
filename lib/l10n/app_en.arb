@@ -539,6 +539,10 @@
   "profilePasswordChanged": "Password changed successfully.",
   "notificationsLoadFailed": "Could not load notifications.",
   "notificationsEmpty": "No notifications yet.",
+  "notifGenericTitle": "Notification",
+  "notifGenericBody": "There is an update on one of your orders.",
+  "notifDeleteTitle": "Delete this notification?",
+  "notifDeleteBody": "It will be removed for good.",
   "notifNewOrderTitle": "New order received",
   "notifNewOrderBody": "A new order for \"{product}\" was placed and is awaiting payment verification.",
   "@notifNewOrderBody": {
@@ -1420,6 +1424,33 @@
   "@notifReviewReplyBody": {
     "placeholders": {
       "product": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneCountryCodeOf": "Country code: {country} {code}",
+  "@phoneCountryCodeOf": {
+    "placeholders": {
+      "country": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneChooseCountry": "Choose the country code",
+  "phoneCountrySearchHint": "Search by country or code",
+  "phoneCountriesCommon": "Most used",
+  "phoneCountriesAll": "All countries",
+  "phoneCountryNoMatch": "No country matches your search.",
+  "phoneDigitsExact": "Enter {count} digits after {code}.",
+  "@phoneDigitsExact": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "code": {
         "type": "String"
       }
     }

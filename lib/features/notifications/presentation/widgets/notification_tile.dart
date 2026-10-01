@@ -13,10 +13,28 @@ class NotificationTile extends StatelessWidget {
     super.key,
     required this.notification,
     required this.onTap,
+    this.onDelete,
   });
 
   final AppNotification notification;
   final VoidCallback onTap;
+
+  /// Removes the notification for good. A long press asks first; null keeps
+  /// the tile without a delete action.
+  final VoidCallback? onDelete;
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: context.l10n.notifDeleteTitle,
+      body: context.l10n.notifDeleteBody,
+      confirmLabel: context.l10n.commonDelete,
+      destructive: true,
+    );
+    if (confirmed) {
+      onDelete?.call();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +71,7 @@ class NotificationTile extends StatelessWidget {
       // that do not see colour.
       trailing: unread ? const AppUnreadDot() : null,
       onTap: onTap,
+      onLongPress: onDelete == null ? null : () => _confirmDelete(context),
     );
   }
 }

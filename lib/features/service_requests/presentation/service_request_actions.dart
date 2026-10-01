@@ -71,8 +71,7 @@ class ServiceRequestActions {
     try {
       await repository.createServiceRequest(request);
       await _notify(
-        (id) => NotificationEvents.newServiceRequest(
-          id: id,
+        NotificationEvents.newServiceRequest(
           serviceRequestId: request.id,
           companyId: request.companyId,
           serviceName: request.serviceName,
@@ -96,8 +95,7 @@ class ServiceRequestActions {
           .read(serviceRequestsRepositoryProvider)
           .updateStatus(requestId: request.id, status: status);
       await _notify(
-        (id) => NotificationEvents.forServiceRequestStatus(
-          id: id,
+        NotificationEvents.forServiceRequestStatus(
           status: status,
           serviceRequestId: request.id,
           customerId: request.customerId,
@@ -113,13 +111,12 @@ class ServiceRequestActions {
 
   /// Tells the other side (in the app and on their phone). A notification
   /// that cannot be sent never undoes the request or its new status.
-  Future<void> _notify(AppNotification? Function(String id) build) async {
+  Future<void> _notify(AppNotification? notification) async {
+    if (notification == null) return;
     try {
-      final notifications = _ref.read(notificationsRepositoryProvider);
-      final notification = build(notifications.newNotificationId());
-      if (notification != null) {
-        await notifications.createNotification(notification);
-      }
+      await _ref
+          .read(notificationsRepositoryProvider)
+          .createNotification(notification);
     } catch (_) {}
   }
 

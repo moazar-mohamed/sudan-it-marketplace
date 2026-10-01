@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../companies/domain/entities/payment_account.dart';
 import '../../../companies/presentation/companies_providers.dart';
@@ -201,7 +201,8 @@ class _AccountCard extends StatelessWidget {
         if (account.phoneNumber.isNotEmpty)
           AdminInfoRow(
             label: l10n.paymentPhoneIdentifier,
-            value: account.phoneNumber,
+            value: displayPhone(account.phoneNumber),
+            valueTextDirection: TextDirection.ltr,
           ),
       ],
     );
@@ -222,7 +223,7 @@ class _PaymentAccountDialogState extends State<_PaymentAccountDialog> {
   late final TextEditingController _bank;
   late final TextEditingController _holder;
   late final TextEditingController _number;
-  late final TextEditingController _phone;
+  late final PhoneController _phone;
 
   @override
   void initState() {
@@ -231,7 +232,7 @@ class _PaymentAccountDialogState extends State<_PaymentAccountDialog> {
     _bank = TextEditingController(text: initial?.bankName ?? '');
     _holder = TextEditingController(text: initial?.accountName ?? '');
     _number = TextEditingController(text: initial?.accountNumber ?? '');
-    _phone = TextEditingController(text: initial?.phoneNumber ?? '');
+    _phone = PhoneController(text: initial?.phoneNumber ?? '');
   }
 
   @override
@@ -252,7 +253,7 @@ class _PaymentAccountDialogState extends State<_PaymentAccountDialog> {
         bankName: _bank.text.trim(),
         accountName: _holder.text.trim(),
         accountNumber: _number.text.trim(),
-        phoneNumber: _phone.text.trim(),
+        phoneNumber: _phone.value,
       ),
     );
   }
@@ -298,14 +299,9 @@ class _PaymentAccountDialogState extends State<_PaymentAccountDialog> {
                     _required(v, l10n.paymentAccountNumberRequired),
               ),
               const SizedBox(height: AppSpacing.s12),
-              AppTextField(
+              PhoneField(
                 label: l10n.paymentAccountPhoneOptional,
                 controller: _phone,
-                maxLength: 30,
-                keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
-                ],
               ),
             ],
           ),

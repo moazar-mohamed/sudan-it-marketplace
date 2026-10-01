@@ -9,9 +9,11 @@ abstract interface class NotificationsRepository {
     String technicianId,
   );
 
-  String newNotificationId();
-
   Future<void> createNotification(AppNotification notification);
 
   Future<void> markAsRead(String notificationId);
+
+  /// Removes a notification addressed to the signed-in user (the security
+  /// rules let only its recipient delete it).
+  Future<void> deleteNotification(String notificationId);
 }

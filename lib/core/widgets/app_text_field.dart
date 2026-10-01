@@ -132,7 +132,7 @@ class _AppTextFieldState extends State<AppTextField> {
           ? AppTextStyles.body
           : AppTextStyles.body.copyWith(color: context.colors.textSecondary),
       cursorColor: context.colors.iconBrand,
-      errorBuilder: (context, message) => _FieldMessage(
+      errorBuilder: (context, message) => AppFieldMessage(
         message: message,
         isError: true,
       ),
@@ -147,12 +147,12 @@ class _AppTextFieldState extends State<AppTextField> {
         fillColor: widget.enabled ? context.colors.surface : context.colors.bgSubtle,
         helper: widget.helperText == null
             ? null
-            : _FieldMessage(message: widget.helperText!, isError: false),
+            : AppFieldMessage(message: widget.helperText!, isError: false),
         alignLabelWithHint: true,
       ),
     );
 
-    return _LabeledField(
+    return AppLabeledField(
       label: widget.label,
       optional: widget.optional,
       enabled: widget.enabled,
@@ -165,8 +165,9 @@ class _AppTextFieldState extends State<AppTextField> {
 /// label stays visible, is excluded from semantics (the control carries it) and
 /// softens to secondary text (still AA on the page) when the control is
 /// read-only or disabled.
-class _LabeledField extends StatelessWidget {
-  const _LabeledField({
+class AppLabeledField extends StatelessWidget {
+  const AppLabeledField({
+    super.key,
     required this.label,
     required this.enabled,
     required this.child,
@@ -213,8 +214,12 @@ class _LabeledField extends StatelessWidget {
 
 /// Helper or validation text under a field. Errors get an icon, so the state
 /// is readable without colour.
-class _FieldMessage extends StatelessWidget {
-  const _FieldMessage({required this.message, required this.isError});
+class AppFieldMessage extends StatelessWidget {
+  const AppFieldMessage({
+    super.key,
+    required this.message,
+    required this.isError,
+  });
 
   final String message;
   final bool isError;
@@ -357,17 +362,17 @@ class AppDropdownField<T> extends StatelessWidget {
       borderRadius: AppRadius.mdAll,
       icon: const Icon(Icons.keyboard_arrow_down_rounded),
       errorBuilder: (context, message) =>
-          _FieldMessage(message: message, isError: true),
+          AppFieldMessage(message: message, isError: true),
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
         fillColor: enabled ? context.colors.surface : context.colors.bgSubtle,
         helper: helperText == null
             ? null
-            : _FieldMessage(message: helperText!, isError: false),
+            : AppFieldMessage(message: helperText!, isError: false),
       ),
     );
-    return _LabeledField(label: label, enabled: enabled, child: field);
+    return AppLabeledField(label: label, enabled: enabled, child: field);
   }
 }
 
@@ -403,7 +408,7 @@ class AppSelectorField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _LabeledField(
+    return AppLabeledField(
       label: label,
       enabled: enabled,
       child: FormField<String?>(
@@ -431,10 +436,10 @@ class AppSelectorField extends StatelessWidget {
                   suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded),
                   error: error == null
                       ? null
-                      : _FieldMessage(message: error, isError: true),
+                      : AppFieldMessage(message: error, isError: true),
                   helper: helperText == null || error != null
                       ? null
-                      : _FieldMessage(message: helperText!, isError: false),
+                      : AppFieldMessage(message: helperText!, isError: false),
                 ),
                 child: shown == null
                     ? null

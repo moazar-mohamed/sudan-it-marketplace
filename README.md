@@ -30,7 +30,7 @@ Both apps (the Flutter app and the Platform Admin web app in `platform_admin_web
 - **Flutter**: texts live in `lib/l10n/app_en.arb` (template) and `lib/l10n/app_ar.arb`. Use `context.l10n.someKey` in widgets. Keys are camelCase because ARB keys cannot contain dots (`commonCancel` = `common.cancel`). After editing an ARB file run `flutter gen-l10n`; the generated `lib/l10n/app_localizations*.dart` files are committed.
 - **Platform Admin**: texts live in `platform_admin_web/src/i18n/dictionary.ts` (`en` and `ar`, checked by TypeScript). Use `useI18n().t('key')`.
 - **Choosing the language**: on the login/register screens, and in Settings (the gear icon) once signed in. The choice applies at once with no restart. It is remembered on the device (Flutter: SharedPreferences key `language`; web: localStorage) and saved to `users/{uid}.language` (`"en"` or `"ar"`). A language stored on the profile wins at sign-in; users without one keep their device choice (English if none).
-- **Not translated on purpose**: data stored in Firebase (company, product, customer and technician names, emails, phone numbers, order ids). Only UI text and system-generated messages are translated. Notifications are stored in English and shown in the reader's language from their type.
+- **Not translated on purpose**: data stored in Firebase (company, product, customer and technician names, emails, phone numbers, order ids). Only UI text and system-generated messages are translated. Notifications store no text: only their type and the order's (or request's) product name, and the words are built from those in the reader's language.
 - **Errors**: the data layer throws codes (`AuthException.code`, `AppException`, `StockUnavailableException.issue`); the UI turns them into text in the current language.
 
 ## Notifications
@@ -47,7 +47,7 @@ Two kinds, both written to Firestore (`notifications`) by the app when something
 | Service request accepted, declined, started, completed | the customer |
 | Chat message (including a Contact question) | the other side of the conversation |
 
-- **In the app**: every notification except chat messages shows in the Notifications list and opens the order or service request it is about. Chat messages have their own conversation list. Notifications are stored in English and shown in the reader's language from their `type` (see Localization).
+- **In the app**: every notification except chat messages shows in the Notifications list and opens the order or service request it is about. Chat messages have their own conversation list. A notification stores no text of its own, only its `type` and the product (or service) name, which the security rules check against the order or request; the words are built from those in the reader's language (see Localization). There is one per order or request and type, and its recipient can delete it with a long press.
 - **On the phone**: the same events are pushed to the recipients' phones (FCM), even with the app closed, in their language. Tapping one opens the order, request or conversation (a technician's job just opens the app).
 
 ### How phone pushes work

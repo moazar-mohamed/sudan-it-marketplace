@@ -72,7 +72,6 @@ UserProfile _profile(UserRole role, {String? companyId}) => UserProfile(
     );
 
 AppNotification _newOrder() => NotificationEvents.newOrder(
-      id: 'n1',
       orderId: 'o1',
       companyId: 'c1',
       productName: 'Router',
@@ -143,7 +142,7 @@ void main() {
         _FakeNotificationsRemote(stores: true),
         relay,
       ).createNotification(_newOrder());
-      expect(relay.notifications, ['n1']);
+      expect(relay.notifications, ['o1_new_order']);
     });
 
     test('not a notification that could not be stored', () async {

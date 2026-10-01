@@ -1181,6 +1181,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notificationsEmpty => 'لا توجد إشعارات بعد.';
 
   @override
+  String get notifGenericTitle => 'إشعار';
+
+  @override
+  String get notifGenericBody => 'يوجد تحديث على أحد طلباتك.';
+
+  @override
+  String get notifDeleteTitle => 'حذف هذا الإشعار؟';
+
+  @override
+  String get notifDeleteBody => 'سيُحذف نهائياً.';
+
+  @override
   String get notifNewOrderTitle => 'تم استلام طلب جديد';
 
   @override
@@ -2772,6 +2784,31 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String notifReviewReplyBody(String product) {
     return 'ردّت الشركة على تقييمك لـ«$product».';
+  }
+
+  @override
+  String phoneCountryCodeOf(String country, String code) {
+    return 'مفتاح الدولة: $country $code';
+  }
+
+  @override
+  String get phoneChooseCountry => 'اختر مفتاح الدولة';
+
+  @override
+  String get phoneCountrySearchHint => 'ابحث باسم الدولة أو المفتاح';
+
+  @override
+  String get phoneCountriesCommon => 'الأكثر استخدامًا';
+
+  @override
+  String get phoneCountriesAll => 'كل الدول';
+
+  @override
+  String get phoneCountryNoMatch => 'لا توجد دولة تطابق بحثك.';
+
+  @override
+  String phoneDigitsExact(int count, String code) {
+    return 'أدخل $count أرقام بعد $code.';
   }
 
   @override

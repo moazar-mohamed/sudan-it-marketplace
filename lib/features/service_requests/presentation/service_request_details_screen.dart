@@ -5,6 +5,7 @@ import '../../../core/localization/l10n_extension.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/phone_number.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../chats/domain/entities/chat_conversation.dart';
 import '../../chats/presentation/chat_screen.dart';
@@ -161,7 +162,7 @@ class _Details extends StatelessWidget {
                   children: [
                     KeyValueRow(
                       label: l10n.checkoutContactPhone,
-                      value: request.contactPhone,
+                      value: displayPhone(request.contactPhone),
                       valueTextDirection: TextDirection.ltr,
                     ),
                     if (request.addressText != null)

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/phone_number.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../auth/presentation/auth_gate.dart';
 import '../domain/entities/order_entity.dart';
@@ -174,7 +175,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                         ),
                         KeyValueRow(
                           label: l10n.orderContactPhone,
-                          value: order.contactPhone,
+                          value: displayPhone(order.contactPhone),
                           valueTextDirection: TextDirection.ltr,
                         ),
                         if (order.installationSelected)

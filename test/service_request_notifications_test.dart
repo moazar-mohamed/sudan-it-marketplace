@@ -28,10 +28,6 @@ class _Notifications extends Fake implements NotificationsRepository {
 
   final bool failing;
   final created = <AppNotification>[];
-  var _next = 0;
-
-  @override
-  String newNotificationId() => 'n${++_next}';
 
   @override
   Future<void> createNotification(AppNotification notification) async {
@@ -96,7 +92,6 @@ UserProfile _profile(UserRole role, {String? companyId}) => UserProfile(
 
 AppNotification? _forStatus(ServiceRequestStatus status) =>
     NotificationEvents.forServiceRequestStatus(
-      id: 'n1',
       status: status,
       serviceRequestId: 'sr1',
       customerId: 'cust1',
@@ -108,7 +103,6 @@ void main() {
   group('the notification for each step of a service request', () {
     test('a new request goes to the company', () {
       final n = NotificationEvents.newServiceRequest(
-        id: 'n1',
         serviceRequestId: 'sr1',
         companyId: 'c1',
         serviceName: 'Network setup',
@@ -118,7 +112,10 @@ void main() {
       expect(n.serviceRequestId, 'sr1');
       expect(n.orderId, isEmpty);
       expect(n.type, 'new_service_request');
-      expect(n.body, contains('"Network setup"'));
+      // It carries the service's name and no text of its own.
+      expect(n.productName, 'Network setup');
+      // One per request and type: the id is fixed.
+      expect(n.id, 'sr1_new_service_request');
     });
 
     test("the company's answers go to the customer", () {
@@ -134,6 +131,8 @@ void main() {
         expect(n.recipientType, NotificationRecipientType.customer);
         expect(n.recipientId, 'cust1');
         expect(n.serviceRequestId, 'sr1');
+        expect(n.id, 'sr1_${entry.value}');
+        expect(n.productName, 'Network setup');
       }
     });
 
@@ -152,7 +151,11 @@ void main() {
       );
       expect(map['serviceRequestId'], 'sr1');
       expect(map.containsKey('orderId'), isFalse);
+      expect(map['productName'], 'Network setup');
       expect(map['senderId'], 'ca1');
+      // Exactly what the rules accept: no free text.
+      expect(map.containsKey('title'), isFalse);
+      expect(map.containsKey('body'), isFalse);
     });
   });
 
@@ -172,15 +175,21 @@ void main() {
         for (final l10n in [en, ar]) {
           expect(NotificationFormat.body(l10n, n), contains('Network setup'));
         }
-        // Arabic reads Arabic, not the stored English text.
-        expect(NotificationFormat.title(ar, n), isNot(n.title));
-        expect(NotificationFormat.body(ar, n), isNot(n.body));
+        // The words come from the type, so Arabic reads Arabic.
+        expect(
+          NotificationFormat.title(ar, n),
+          isNot(NotificationFormat.title(en, n)),
+        );
+        expect(
+          NotificationFormat.body(ar, n),
+          isNot(NotificationFormat.body(en, n)),
+        );
+        expect(NotificationFormat.title(en, n), isNot(en.notifGenericTitle));
       }
       final accepted = _forStatus(ServiceRequestStatus.accepted)!;
       expect(NotificationFormat.title(ar, accepted), 'تم قبول طلبك');
       expect(NotificationFormat.title(en, accepted), 'Request accepted');
       final created = NotificationEvents.newServiceRequest(
-        id: 'n1',
         serviceRequestId: 'sr1',
         companyId: 'c1',
         serviceName: 'Network setup',
@@ -192,6 +201,22 @@ void main() {
       );
     });
 
+    test(
+      'without the service name it says the general thing, never nothing',
+      () {
+        final unnamed = AppNotification(
+          id: 'sr1_new_service_request',
+          recipientType: NotificationRecipientType.companyAdmin,
+          recipientId: 'c1',
+          serviceRequestId: 'sr1',
+          type: NotificationTypes.newServiceRequest,
+          createdAt: DateTime(2026),
+        );
+        expect(NotificationFormat.title(en, unnamed), 'New service request');
+        expect(NotificationFormat.body(en, unnamed), en.notifGenericBody);
+      },
+    );
+
     test('each kind has its own icon, not the fallback bell', () {
       final bell = NotificationFormat.style(
         AppNotification(
@@ -199,8 +224,6 @@ void main() {
           recipientType: NotificationRecipientType.customer,
           recipientId: 'u',
           type: 'unknown',
-          title: 't',
-          body: 'b',
           createdAt: DateTime(2026),
         ),
       ).icon;

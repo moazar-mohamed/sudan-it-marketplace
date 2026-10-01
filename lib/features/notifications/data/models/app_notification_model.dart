@@ -5,11 +5,15 @@ import '../../domain/entities/app_notification.dart';
 class AppNotificationModel {
   static AppNotification fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
-  ) {
-    final data = snapshot.data() ?? {};
+  ) =>
+      fromMap(snapshot.id, snapshot.data() ?? {});
+
+  /// Any `title` or `body` on an older document is ignored on purpose: the
+  /// words shown are always built from the type and the product name.
+  static AppNotification fromMap(String id, Map<String, dynamic> data) {
     final createdAt = data['createdAt'];
     return AppNotification(
-      id: snapshot.id,
+      id: id,
       recipientType: NotificationRecipientType.fromFirestoreValue(
         data['recipientType'] as String? ?? 'customer',
       ),
@@ -17,8 +21,7 @@ class AppNotificationModel {
       orderId: data['orderId'] as String? ?? '',
       serviceRequestId: data['serviceRequestId'] as String? ?? '',
       type: data['type'] as String? ?? '',
-      title: data['title'] as String? ?? '',
-      body: data['body'] as String? ?? '',
+      productName: data['productName'] as String? ?? '',
       isRead: data['isRead'] as bool? ?? false,
       createdAt: createdAt is Timestamp
           ? createdAt.toDate()
@@ -26,8 +29,9 @@ class AppNotificationModel {
     );
   }
 
-  /// [senderId] is the signed-in user creating it (the push relay only
-  /// sends a notification for its own sender).
+  /// Exactly the fields the security rules accept (no free text). [senderId]
+  /// is the signed-in user creating it (the push relay only sends a
+  /// notification for its own sender).
   static Map<String, dynamic> toFirestoreCreateMap(
     AppNotification notification, {
     String? senderId,
@@ -40,8 +44,7 @@ class AppNotificationModel {
       if (notification.serviceRequestId.isNotEmpty)
         'serviceRequestId': notification.serviceRequestId,
       'type': notification.type,
-      'title': notification.title,
-      'body': notification.body,
+      'productName': notification.productName,
       'isRead': false,
       'createdAt': FieldValue.serverTimestamp(),
       'senderId': ?senderId,

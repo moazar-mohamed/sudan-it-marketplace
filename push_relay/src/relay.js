@@ -3,7 +3,9 @@
 //
 // It never sends text it was handed. It only relays what is already in
 // Firestore (where the security rules decided who may write it), only for the
-// signed-in person who wrote it, only while it is fresh, and only once.
+// signed-in person who wrote it, only while it is fresh, and only once. An
+// order notification is worded here from its type and product name (texts.js),
+// never from text stored with it; a chat message is the message itself.
 
 import { createFirestore, createTokenSource } from './google.js';
 import { chatMessageText, languageOf, orderNotificationText } from './texts.js';
@@ -159,6 +161,11 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
     if (!notification) return reply(404, { error: 'not_found' });
     if (notification.senderId !== uid) return reply(403, { error: 'not_sender' });
     if (!isFresh(notification.createdAt)) return reply(409, { error: 'too_old' });
+    // Only the known kinds of notification are pushed, in the relay's own
+    // words. Anything else is refused: stored text is never sent.
+    if (!orderNotificationText(notification, 'en')) {
+      return reply(422, { error: 'unsupported_notification' });
+    }
     const logPath = `push_log/n_${notificationId}`;
     if (!(await db.createOnce(logPath, { kind: 'notification', by: uid, at: new Date(now()) }))) {
       return reply(200, { skipped: 'already_sent' });

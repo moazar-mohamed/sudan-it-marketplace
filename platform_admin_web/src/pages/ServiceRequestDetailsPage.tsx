@@ -3,6 +3,7 @@ import { ServiceRequestStatusBadge } from '../components/StatusBadges';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
 import { useCompanies, useServiceRequests } from '../data/hooks';
 import { formatCoordinate, osmViewUrl, toGeoPoint } from '../data/location';
+import { displayPhone } from '../data/phone';
 import { useI18n } from '../i18n/I18nProvider';
 import { customerLabel, shortId } from '../utils';
 
@@ -74,7 +75,7 @@ export function ServiceRequestDetailsPage() {
                     )}
                   </KeyValue>
                   <KeyValue label={t('col.phone')}>
-                    {request.contactPhone ? <bdi dir="ltr">{request.contactPhone}</bdi> : '—'}
+                    {request.contactPhone ? <bdi dir="ltr">{displayPhone(request.contactPhone)}</bdi> : '—'}
                   </KeyValue>
                   <KeyValue label={t('serviceRequest.address')}>{dash(request.address)}</KeyValue>
                   {point ? (

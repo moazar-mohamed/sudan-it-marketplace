@@ -7,6 +7,7 @@ import '../../../orders/presentation/orders_providers.dart';
 import '../../../orders/presentation/widgets/order_location_widgets.dart';
 import '../company_admin_format.dart';
 import '../orders/company_order_details_screen.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../widgets/admin_section_card.dart';
 import '../widgets/order_status_actions.dart';
@@ -75,7 +76,7 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
                     ),
                     AdminInfoRow(
                       label: context.l10n.orderContactPhone,
-                      value: order.contactPhone,
+                      value: displayPhone(order.contactPhone),
                       valueTextDirection: TextDirection.ltr,
                     ),
                     AdminInfoRow(

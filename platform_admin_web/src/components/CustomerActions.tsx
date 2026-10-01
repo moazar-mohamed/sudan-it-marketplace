@@ -5,6 +5,7 @@ import type { Customer } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
 import type { TranslationKey } from '../i18n/dictionary';
 import { useConfirm, useRunner, useToast } from './feedback';
+import { PhoneField, phoneValueProblem } from './PhoneField';
 import { Modal } from './ui';
 
 /** Deactivate (with confirmation) or reactivate a customer: only isActive changes. */
@@ -47,10 +48,11 @@ export function CustomerEditModal({
   const [phone, setPhone] = useState(customer.phone);
   const [showError, setShowError] = useState(false);
   const nameMissing = !fullName.trim();
+  const phoneInvalid = phoneValueProblem(phone) !== null;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (nameMissing) {
+    if (nameMissing || phoneInvalid) {
       setShowError(true);
       return;
     }
@@ -79,10 +81,7 @@ export function CustomerEditModal({
             <small className="field__error">{t('customer.nameRequired')}</small>
           )}
         </label>
-        <label className="field">
-          <span>{t('col.phone')}</span>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" maxLength={30} />
-        </label>
+        <PhoneField label={t('col.phone')} value={phone} onChange={setPhone} showError={showError} />
         <label className="field">
           <span>{t('col.email')}</span>
           <input value={customer.email} disabled dir="ltr" />
@@ -134,11 +133,12 @@ export function CustomerCreateModal({ onClose }: { onClose: () => void }) {
 
   const nameMissing = !fullName.trim();
   const emailInvalid = !EMAIL_SHAPE.test(email.trim());
+  const phoneInvalid = phoneValueProblem(phone) !== null;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (submitting) return;
-    if (nameMissing || emailInvalid) {
+    if (nameMissing || emailInvalid || phoneInvalid) {
       setShowError(true);
       return;
     }
@@ -198,10 +198,13 @@ export function CustomerCreateModal({ onClose }: { onClose: () => void }) {
             <small className="field__error">{t('customers.error.invalidEmail')}</small>
           )}
         </label>
-        <label className="field">
-          <span>{t('col.phone')}</span>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" maxLength={30} />
-        </label>
+        <PhoneField
+          label={t('col.phone')}
+          value={phone}
+          onChange={setPhone}
+          showError={showError}
+          disabled={submitting}
+        />
         <p className="note">{t('customers.addHint')}</p>
         <div className="modal__actions">
           <button type="button" className="btn" onClick={onClose}>

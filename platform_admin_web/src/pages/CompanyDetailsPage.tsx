@@ -14,6 +14,7 @@ import {
 import { loadCompanyDocument, saveCompanyRegistration } from '../data/actions';
 import { useCompanies, useOrders, useProducts } from '../data/hooks';
 import { formatCoordinate, osmViewUrl, toGeoPoint } from '../data/location';
+import { displayPhone } from '../data/phone';
 import { useI18n } from '../i18n/I18nProvider';
 
 export function CompanyDetailsPage() {
@@ -90,7 +91,7 @@ export function CompanyDetailsPage() {
                     {company.email ? <bdi dir="ltr">{company.email}</bdi> : '—'}
                   </KeyValue>
                   <KeyValue label={t('company.phone')}>
-                    {company.phone ? <bdi dir="ltr">{company.phone}</bdi> : '—'}
+                    {company.phone ? <bdi dir="ltr">{displayPhone(company.phone)}</bdi> : '—'}
                   </KeyValue>
                 </dl>
               </Card>
