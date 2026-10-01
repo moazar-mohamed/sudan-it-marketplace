@@ -75,7 +75,10 @@ class ProductGridCard extends ConsumerWidget {
             children: [
               Stack(
                 children: [
+                  // Full width: a Stack gives its children loose constraints,
+                  // which would shrink a square photo to a 128 px tile.
                   Container(
+                    width: double.infinity,
                     height: 128,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(

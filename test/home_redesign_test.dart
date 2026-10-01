@@ -798,7 +798,7 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.descendant(of: card, matching: find.text('+1')),
+          find.descendant(of: card, matching: find.text('\u200E+1')),
           findsOneWidget,
         );
         expect(

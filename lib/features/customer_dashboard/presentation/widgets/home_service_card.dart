@@ -228,7 +228,8 @@ class _CompanyLine extends StatelessWidget {
           ),
           Icon(Icons.star_rounded, size: AppSize.iconSm, color: colors.warning),
         ],
-        if (others > 0) Text('+$others', style: muted),
+        // The left-to-right mark keeps "+1" from reading "1+" in Arabic.
+        if (others > 0) Text('\u200E+$others', style: muted),
       ],
     );
   }
