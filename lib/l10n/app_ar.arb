@@ -834,5 +834,17 @@
   "notifNewReviewTitle": "تقييم جديد",
   "notifNewReviewBody": "قيّم عميل «{product}».",
   "notifReviewReplyTitle": "ردّت الشركة على تقييمك",
-  "notifReviewReplyBody": "ردّت الشركة على تقييمك لـ«{product}»."
+  "notifReviewReplyBody": "ردّت الشركة على تقييمك لـ«{product}».",
+  "notifNewServiceRequestTitle": "طلب خدمة جديد",
+  "notifNewServiceRequestBody": "طلب عميل الخدمة «{service}».",
+  "notifServiceRequestAcceptedTitle": "تم قبول طلبك",
+  "notifServiceRequestAcceptedBody": "تم قبول طلبك للخدمة «{service}».",
+  "notifServiceRequestRejectedTitle": "تم رفض طلبك",
+  "notifServiceRequestRejectedBody": "تم رفض طلبك للخدمة «{service}».",
+  "notifServiceRequestInProgressTitle": "بدأ تنفيذ طلبك",
+  "notifServiceRequestInProgressBody": "بدأ تنفيذ طلبك للخدمة «{service}».",
+  "notifServiceRequestCompletedTitle": "اكتمل طلبك",
+  "notifServiceRequestCompletedBody": "تم إكمال طلبك للخدمة «{service}».",
+  "notifServiceRequestCancelledTitle": "تم إلغاء الطلب",
+  "notifServiceRequestCancelledBody": "ألغى عميل طلبه للخدمة «{service}»."
 }

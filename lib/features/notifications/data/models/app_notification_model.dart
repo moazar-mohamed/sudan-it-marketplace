@@ -15,6 +15,7 @@ class AppNotificationModel {
       ),
       recipientId: data['recipientId'] as String? ?? '',
       orderId: data['orderId'] as String? ?? '',
+      serviceRequestId: data['serviceRequestId'] as String? ?? '',
       type: data['type'] as String? ?? '',
       title: data['title'] as String? ?? '',
       body: data['body'] as String? ?? '',
@@ -35,7 +36,9 @@ class AppNotificationModel {
       'id': notification.id,
       'recipientType': notification.recipientType.firestoreValue,
       'recipientId': notification.recipientId,
-      'orderId': notification.orderId,
+      if (notification.orderId.isNotEmpty) 'orderId': notification.orderId,
+      if (notification.serviceRequestId.isNotEmpty)
+        'serviceRequestId': notification.serviceRequestId,
       'type': notification.type,
       'title': notification.title,
       'body': notification.body,

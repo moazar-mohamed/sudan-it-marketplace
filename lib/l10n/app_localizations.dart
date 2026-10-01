@@ -5023,6 +5023,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The company replied to your rating of \"{product}\".'**
   String notifReviewReplyBody(String product);
+
+  /// No description provided for @notifNewServiceRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New service request'**
+  String get notifNewServiceRequestTitle;
+
+  /// No description provided for @notifNewServiceRequestBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A customer requested \"{service}\".'**
+  String notifNewServiceRequestBody(String service);
+
+  /// No description provided for @notifServiceRequestAcceptedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request accepted'**
+  String get notifServiceRequestAcceptedTitle;
+
+  /// No description provided for @notifServiceRequestAcceptedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request for \"{service}\" was accepted.'**
+  String notifServiceRequestAcceptedBody(String service);
+
+  /// No description provided for @notifServiceRequestRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request declined'**
+  String get notifServiceRequestRejectedTitle;
+
+  /// No description provided for @notifServiceRequestRejectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request for \"{service}\" was declined.'**
+  String notifServiceRequestRejectedBody(String service);
+
+  /// No description provided for @notifServiceRequestInProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Work has started'**
+  String get notifServiceRequestInProgressTitle;
+
+  /// No description provided for @notifServiceRequestInProgressBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Work has started on your request for \"{service}\".'**
+  String notifServiceRequestInProgressBody(String service);
+
+  /// No description provided for @notifServiceRequestCompletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request completed'**
+  String get notifServiceRequestCompletedTitle;
+
+  /// No description provided for @notifServiceRequestCompletedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request for \"{service}\" has been completed.'**
+  String notifServiceRequestCompletedBody(String service);
+
+  /// No description provided for @notifServiceRequestCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request cancelled'**
+  String get notifServiceRequestCancelledTitle;
+
+  /// No description provided for @notifServiceRequestCancelledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A customer cancelled the request for \"{service}\".'**
+  String notifServiceRequestCancelledBody(String service);
 }
 
 class _AppLocalizationsDelegate

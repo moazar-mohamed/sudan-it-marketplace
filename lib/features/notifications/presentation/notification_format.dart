@@ -17,6 +17,12 @@ class NotificationFormat {
       'technician_assigned' => l10n.notifTechnicianAssignedTitle,
       'new_review' => l10n.notifNewReviewTitle,
       'review_reply' => l10n.notifReviewReplyTitle,
+      'new_service_request' => l10n.notifNewServiceRequestTitle,
+      'service_request_accepted' => l10n.notifServiceRequestAcceptedTitle,
+      'service_request_rejected' => l10n.notifServiceRequestRejectedTitle,
+      'service_request_in_progress' => l10n.notifServiceRequestInProgressTitle,
+      'service_request_completed' => l10n.notifServiceRequestCompletedTitle,
+      'service_request_cancelled' => l10n.notifServiceRequestCancelledTitle,
       _ => notification.title,
     };
   }
@@ -37,6 +43,18 @@ class NotificationFormat {
       'new_review' when product != null => l10n.notifNewReviewBody(product),
       'review_reply' when product != null =>
         l10n.notifReviewReplyBody(product),
+      'new_service_request' when product != null =>
+        l10n.notifNewServiceRequestBody(product),
+      'service_request_accepted' when product != null =>
+        l10n.notifServiceRequestAcceptedBody(product),
+      'service_request_rejected' when product != null =>
+        l10n.notifServiceRequestRejectedBody(product),
+      'service_request_in_progress' when product != null =>
+        l10n.notifServiceRequestInProgressBody(product),
+      'service_request_completed' when product != null =>
+        l10n.notifServiceRequestCompletedBody(product),
+      'service_request_cancelled' when product != null =>
+        l10n.notifServiceRequestCancelledBody(product),
       _ => notification.body,
     };
   }
@@ -72,6 +90,30 @@ class NotificationFormat {
         ),
       'new_review' => (icon: Icons.star_outline_rounded, tone: AppTone.warning),
       'review_reply' => (icon: Icons.reply_rounded, tone: AppTone.brand),
+      'new_service_request' => (
+          icon: Icons.build_circle_outlined,
+          tone: AppTone.brand,
+        ),
+      'service_request_accepted' => (
+          icon: Icons.thumb_up_alt_outlined,
+          tone: AppTone.info,
+        ),
+      'service_request_rejected' => (
+          icon: Icons.block_outlined,
+          tone: AppTone.error,
+        ),
+      'service_request_in_progress' => (
+          icon: Icons.engineering_outlined,
+          tone: AppTone.progress,
+        ),
+      'service_request_completed' => (
+          icon: Icons.check_circle_outline,
+          tone: AppTone.success,
+        ),
+      'service_request_cancelled' => (
+          icon: Icons.cancel_outlined,
+          tone: AppTone.neutral,
+        ),
       _ => (icon: Icons.notifications_outlined, tone: AppTone.brand),
     };
   }

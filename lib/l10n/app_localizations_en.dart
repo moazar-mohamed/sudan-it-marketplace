@@ -2797,4 +2797,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifReviewReplyBody(String product) {
     return 'The company replied to your rating of \"$product\".';
   }
+
+  @override
+  String get notifNewServiceRequestTitle => 'New service request';
+
+  @override
+  String notifNewServiceRequestBody(String service) {
+    return 'A customer requested \"$service\".';
+  }
+
+  @override
+  String get notifServiceRequestAcceptedTitle => 'Request accepted';
+
+  @override
+  String notifServiceRequestAcceptedBody(String service) {
+    return 'Your request for \"$service\" was accepted.';
+  }
+
+  @override
+  String get notifServiceRequestRejectedTitle => 'Request declined';
+
+  @override
+  String notifServiceRequestRejectedBody(String service) {
+    return 'Your request for \"$service\" was declined.';
+  }
+
+  @override
+  String get notifServiceRequestInProgressTitle => 'Work has started';
+
+  @override
+  String notifServiceRequestInProgressBody(String service) {
+    return 'Work has started on your request for \"$service\".';
+  }
+
+  @override
+  String get notifServiceRequestCompletedTitle => 'Request completed';
+
+  @override
+  String notifServiceRequestCompletedBody(String service) {
+    return 'Your request for \"$service\" has been completed.';
+  }
+
+  @override
+  String get notifServiceRequestCancelledTitle => 'Request cancelled';
+
+  @override
+  String notifServiceRequestCancelledBody(String service) {
+    return 'A customer cancelled the request for \"$service\".';
+  }
 }

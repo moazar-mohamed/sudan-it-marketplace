@@ -7,6 +7,9 @@ import '../../companies/domain/entities/company.dart';
 import '../../company_services/domain/entities/company_service.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
 import '../../location/domain/geo_location.dart';
+import '../../notifications/domain/entities/app_notification.dart';
+import '../../notifications/presentation/notification_events.dart';
+import '../../notifications/presentation/notifications_providers.dart';
 import '../../services/domain/entities/catalog_service.dart';
 import '../domain/entities/service_request.dart';
 import 'service_request_providers.dart';
@@ -67,6 +70,14 @@ class ServiceRequestActions {
     );
     try {
       await repository.createServiceRequest(request);
+      await _notify(
+        (id) => NotificationEvents.newServiceRequest(
+          id: id,
+          serviceRequestId: request.id,
+          companyId: request.companyId,
+          serviceName: request.serviceName,
+        ),
+      );
       return (requestId: request.id, error: null);
     } catch (error) {
       return (requestId: null, error: _message(error));
@@ -84,10 +95,32 @@ class ServiceRequestActions {
       await _ref
           .read(serviceRequestsRepositoryProvider)
           .updateStatus(requestId: request.id, status: status);
+      await _notify(
+        (id) => NotificationEvents.forServiceRequestStatus(
+          id: id,
+          status: status,
+          serviceRequestId: request.id,
+          customerId: request.customerId,
+          companyId: request.companyId,
+          serviceName: request.serviceName,
+        ),
+      );
       return null;
     } catch (error) {
       return _message(error);
     }
+  }
+
+  /// Tells the other side (in the app and on their phone). A notification
+  /// that cannot be sent never undoes the request or its new status.
+  Future<void> _notify(AppNotification? Function(String id) build) async {
+    try {
+      final notifications = _ref.read(notificationsRepositoryProvider);
+      final notification = build(notifications.newNotificationId());
+      if (notification != null) {
+        await notifications.createNotification(notification);
+      }
+    } catch (_) {}
   }
 
   String _message(Object error) =>

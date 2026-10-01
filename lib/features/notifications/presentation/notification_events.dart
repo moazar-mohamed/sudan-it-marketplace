@@ -1,4 +1,5 @@
 import '../../orders/domain/entities/order_entity.dart';
+import '../../service_requests/domain/entities/service_request.dart';
 import '../domain/entities/app_notification.dart';
 
 /// Builds the [AppNotification] payload for each app event. Centralizing
@@ -161,5 +162,82 @@ class NotificationEvents {
       body: 'The company replied to your rating of "$productName".',
       createdAt: DateTime.now(),
     );
+  }
+
+  /// To the company: a customer sent a service request.
+  static AppNotification newServiceRequest({
+    required String id,
+    required String serviceRequestId,
+    required String companyId,
+    required String serviceName,
+  }) {
+    return AppNotification(
+      id: id,
+      recipientType: NotificationRecipientType.companyAdmin,
+      recipientId: companyId,
+      serviceRequestId: serviceRequestId,
+      type: 'new_service_request',
+      title: 'New service request',
+      body: 'A customer requested "$serviceName".',
+      createdAt: DateTime.now(),
+    );
+  }
+
+  /// The notification for a service request moving to [status]: to the
+  /// company when the customer cancelled, to the customer for the company's
+  /// answers. Null for a status nobody needs to hear about (Pending).
+  static AppNotification? forServiceRequestStatus({
+    required String id,
+    required ServiceRequestStatus status,
+    required String serviceRequestId,
+    required String customerId,
+    required String companyId,
+    required String serviceName,
+  }) {
+    AppNotification toCustomer(String type, String title, String body) =>
+        AppNotification(
+          id: id,
+          recipientType: NotificationRecipientType.customer,
+          recipientId: customerId,
+          serviceRequestId: serviceRequestId,
+          type: type,
+          title: title,
+          body: body,
+          createdAt: DateTime.now(),
+        );
+
+    return switch (status) {
+      ServiceRequestStatus.accepted => toCustomer(
+          'service_request_accepted',
+          'Request accepted',
+          'Your request for "$serviceName" was accepted.',
+        ),
+      ServiceRequestStatus.rejected => toCustomer(
+          'service_request_rejected',
+          'Request declined',
+          'Your request for "$serviceName" was declined.',
+        ),
+      ServiceRequestStatus.inProgress => toCustomer(
+          'service_request_in_progress',
+          'Work has started',
+          'Work has started on your request for "$serviceName".',
+        ),
+      ServiceRequestStatus.completed => toCustomer(
+          'service_request_completed',
+          'Request completed',
+          'Your request for "$serviceName" has been completed.',
+        ),
+      ServiceRequestStatus.cancelled => AppNotification(
+          id: id,
+          recipientType: NotificationRecipientType.companyAdmin,
+          recipientId: companyId,
+          serviceRequestId: serviceRequestId,
+          type: 'service_request_cancelled',
+          title: 'Request cancelled',
+          body: 'A customer cancelled the request for "$serviceName".',
+          createdAt: DateTime.now(),
+        ),
+      ServiceRequestStatus.pending => null,
+    };
   }
 }

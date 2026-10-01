@@ -69,6 +69,14 @@ beforeEach(async () => {
       createdAt: now,
     });
     await setDoc(doc(db, 'push_log', 'n_old'), { kind: 'notification', by: 'cust1' });
+    await setDoc(doc(db, 'service_requests', 'sr1'), {
+      id: 'sr1',
+      customerId: 'cust1',
+      companyId: 'c1',
+      serviceName: 'Network setup',
+      status: 'pending',
+      createdAt: now,
+    });
   });
 });
 
@@ -127,5 +135,131 @@ describe("the relay's send log", () => {
       await assertFails(getDoc(doc(as(uid), 'push_log', 'n_old')));
       await assertFails(setDoc(doc(as(uid), 'push_log', 'n_new'), { kind: 'notification', by: uid }));
     }
+  });
+});
+
+const serviceRequestNotification = (id: string, extra: Record<string, unknown> = {}) => ({
+  id,
+  recipientType: 'company_admin',
+  recipientId: 'c1',
+  serviceRequestId: 'sr1',
+  type: 'new_service_request',
+  title: 'New service request',
+  body: 'A customer requested "Network setup".',
+  isRead: false,
+  createdAt: serverTimestamp(),
+  senderId: 'cust1',
+  ...extra,
+});
+
+const withoutKey = (data: Record<string, unknown>, key: string) => {
+  const { [key]: _removed, ...rest } = data;
+  return rest;
+};
+
+describe('service request notifications', () => {
+  it('the customer tells the company about a new or a cancelled request', async () => {
+    await assertSucceeds(setDoc(doc(as('cust1'), 'notifications', 's1'), serviceRequestNotification('s1')));
+    await assertSucceeds(
+      setDoc(
+        doc(as('cust1'), 'notifications', 's2'),
+        serviceRequestNotification('s2', { type: 'service_request_cancelled' }),
+      ),
+    );
+  });
+
+  it("the company's admin answers the customer", async () => {
+    for (const type of [
+      'service_request_accepted',
+      'service_request_rejected',
+      'service_request_in_progress',
+      'service_request_completed',
+    ]) {
+      await assertSucceeds(
+        setDoc(
+          doc(as('ca1'), 'notifications', `a_${type}`),
+          serviceRequestNotification(`a_${type}`, {
+            recipientType: 'customer',
+            recipientId: 'cust1',
+            type,
+            senderId: 'ca1',
+          }),
+        ),
+      );
+    }
+  });
+
+  it('the recipient sees it; nobody else does', async () => {
+    await assertSucceeds(setDoc(doc(as('cust1'), 'notifications', 's1'), serviceRequestNotification('s1')));
+    await assertSucceeds(getDoc(doc(as('ca1'), 'notifications', 's1')));
+    await assertFails(getDoc(doc(as('cust2'), 'notifications', 's1')));
+  });
+
+  it("not about someone else's request, nor to another company or customer", async () => {
+    // cust2 does not own sr1.
+    await assertFails(
+      setDoc(doc(as('cust2'), 'notifications', 'x1'), serviceRequestNotification('x1', { senderId: 'cust2' })),
+    );
+    // Addressed to a company that was not asked.
+    await assertFails(
+      setDoc(doc(as('cust1'), 'notifications', 'x2'), serviceRequestNotification('x2', { recipientId: 'c2' })),
+    );
+    // Another customer as the recipient of the company's answer.
+    await assertFails(
+      setDoc(
+        doc(as('ca1'), 'notifications', 'x3'),
+        serviceRequestNotification('x3', {
+          recipientType: 'customer',
+          recipientId: 'cust2',
+          type: 'service_request_accepted',
+          senderId: 'ca1',
+        }),
+      ),
+    );
+  });
+
+  it('each side only sends its own kinds of notification', async () => {
+    // A customer cannot answer for the company ...
+    await assertFails(
+      setDoc(
+        doc(as('cust1'), 'notifications', 'y1'),
+        serviceRequestNotification('y1', {
+          recipientType: 'customer',
+          recipientId: 'cust1',
+          type: 'service_request_completed',
+        }),
+      ),
+    );
+    // ... a company cannot file a request for the customer ...
+    await assertFails(
+      setDoc(doc(as('ca1'), 'notifications', 'y2'), serviceRequestNotification('y2', { senderId: 'ca1' })),
+    );
+    // ... and nobody invents a kind.
+    await assertFails(
+      setDoc(doc(as('cust1'), 'notifications', 'y3'), serviceRequestNotification('y3', { type: 'free_money' })),
+    );
+  });
+
+  it('a technician has no service request notifications', async () => {
+    await assertFails(
+      setDoc(
+        doc(as('ca1'), 'notifications', 'z1'),
+        serviceRequestNotification('z1', {
+          recipientType: 'technician',
+          recipientId: 't1',
+          type: 'service_request_accepted',
+          senderId: 'ca1',
+        }),
+      ),
+    );
+  });
+
+  it('about an order or a request, never both and never neither', async () => {
+    const both = serviceRequestNotification('w1', { orderId: 'o1' });
+    await assertFails(setDoc(doc(as('cust1'), 'notifications', 'w1'), both));
+    const neither = withoutKey(serviceRequestNotification('w2'), 'serviceRequestId');
+    await assertFails(setDoc(doc(as('cust1'), 'notifications', 'w2'), neither));
+    // An order notification still works as before.
+    await assertSucceeds(setDoc(doc(as('cust1'), 'notifications', 'w3'), newOrderNotification('w3', { senderId: 'cust1' })));
   });
 });

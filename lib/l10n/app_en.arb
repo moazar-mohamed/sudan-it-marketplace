@@ -1423,5 +1423,59 @@
         "type": "String"
       }
     }
+  },
+  "notifNewServiceRequestTitle": "New service request",
+  "notifNewServiceRequestBody": "A customer requested \"{service}\".",
+  "@notifNewServiceRequestBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestAcceptedTitle": "Request accepted",
+  "notifServiceRequestAcceptedBody": "Your request for \"{service}\" was accepted.",
+  "@notifServiceRequestAcceptedBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestRejectedTitle": "Request declined",
+  "notifServiceRequestRejectedBody": "Your request for \"{service}\" was declined.",
+  "@notifServiceRequestRejectedBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestInProgressTitle": "Work has started",
+  "notifServiceRequestInProgressBody": "Work has started on your request for \"{service}\".",
+  "@notifServiceRequestInProgressBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestCompletedTitle": "Request completed",
+  "notifServiceRequestCompletedBody": "Your request for \"{service}\" has been completed.",
+  "@notifServiceRequestCompletedBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestCancelledTitle": "Request cancelled",
+  "notifServiceRequestCancelledBody": "A customer cancelled the request for \"{service}\".",
+  "@notifServiceRequestCancelledBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
   }
 }

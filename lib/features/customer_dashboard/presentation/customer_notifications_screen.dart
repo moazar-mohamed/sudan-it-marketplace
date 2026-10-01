@@ -9,6 +9,7 @@ import '../../notifications/presentation/widgets/notification_tile.dart';
 import '../../orders/domain/entities/order_entity.dart';
 import '../../orders/presentation/order_details_screen.dart';
 import '../../orders/presentation/orders_providers.dart';
+import '../../service_requests/presentation/service_request_details_screen.dart';
 import '../../../core/localization/l10n_extension.dart';
 import '../../../core/widgets/app_widgets.dart';
 
@@ -65,6 +66,17 @@ class CustomerNotificationsScreen extends ConsumerWidget {
                     ref
                         .read(notificationsRepositoryProvider)
                         .markAsRead(notification.id);
+                  }
+                  if (notification.serviceRequestId.isNotEmpty) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ServiceRequestDetailsScreen(
+                          requestId: notification.serviceRequestId,
+                          asCompany: false,
+                        ),
+                      ),
+                    );
+                    return;
                   }
                   final order =
                       _findOrder(ordersAsync.asData?.value, notification.orderId);

@@ -20,12 +20,16 @@ enum NotificationRecipientType {
 /// A persistent notification stored in Firestore. [recipientId] means a
 /// different id depending on [recipientType]: the customer's uid, a
 /// companyId (any admin of that company may read it), or a technicianId.
+///
+/// It is about an order ([orderId]) or about a service request
+/// ([serviceRequestId]); exactly one of the two is set.
 class AppNotification {
   const AppNotification({
     required this.id,
     required this.recipientType,
     required this.recipientId,
-    required this.orderId,
+    this.orderId = '',
+    this.serviceRequestId = '',
     required this.type,
     required this.title,
     required this.body,
@@ -37,6 +41,7 @@ class AppNotification {
   final NotificationRecipientType recipientType;
   final String recipientId;
   final String orderId;
+  final String serviceRequestId;
   final String type;
   final String title;
   final String body;
@@ -49,6 +54,7 @@ class AppNotification {
       recipientType: recipientType,
       recipientId: recipientId,
       orderId: orderId,
+      serviceRequestId: serviceRequestId,
       type: type,
       title: title,
       body: body,

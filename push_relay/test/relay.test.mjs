@@ -243,6 +243,65 @@ describe('order notifications', () => {
   });
 });
 
+describe('service request notifications', () => {
+  beforeEach(() => {
+    google.docs.set('notifications/sr1', {
+      recipientType: 'company_admin', recipientId: 'c1', serviceRequestId: 'sr1', type: 'new_service_request',
+      title: 'New service request', body: 'A customer requested "Network setup".',
+      senderId: 'cust1', createdAt: minutesAgo(0),
+    });
+    google.docs.set('notifications/sr2', {
+      recipientType: 'customer', recipientId: 'cust1', serviceRequestId: 'sr1', type: 'service_request_accepted',
+      title: 'Request accepted', body: 'Your request for "Network setup" was accepted.',
+      senderId: 'ca1', createdAt: minutesAgo(0),
+    });
+  });
+
+  it('a new request reaches the company\'s admins and opens the request', async () => {
+    const result = await call({ notificationId: 'sr1' });
+    assert.equal(result.body.sent, 3);
+    const arabic = google.sent.find((m) => m.token === 'phone-ca1');
+    assert.equal(arabic.notification.title, 'طلب خدمة جديد');
+    assert.match(arabic.notification.body, /Network setup/);
+    assert.deepEqual(arabic.data, {
+      type: 'new_service_request', notificationId: 'sr1', serviceRequestId: 'sr1', recipientType: 'company_admin',
+    });
+    assert.ok(!google.sent.some((m) => m.token === 'phone-ca2'));
+  });
+
+  it("the company's answer reaches the customer in their language", async () => {
+    const result = await call({ notificationId: 'sr2' }, 'token-ca1');
+    assert.equal(result.body.sent, 1);
+    assert.equal(google.sent[0].token, 'phone-cust1');
+    assert.equal(google.sent[0].notification.title, 'تم قبول طلبك');
+    assert.equal(google.sent[0].data.serviceRequestId, 'sr1');
+    assert.equal(google.sent[0].data.orderId, undefined);
+  });
+
+  it('only its own sender may ask for it, and only once', async () => {
+    assert.equal((await call({ notificationId: 'sr2' }, 'token-cust2')).status, 403);
+    assert.equal((await call({ notificationId: 'sr1' })).status, 200);
+    assert.deepEqual((await call({ notificationId: 'sr1' })).body, { skipped: 'already_sent' });
+  });
+
+  it('every kind has its words in both languages', () => {
+    for (const type of [
+      'new_service_request',
+      'service_request_accepted',
+      'service_request_rejected',
+      'service_request_in_progress',
+      'service_request_completed',
+      'service_request_cancelled',
+    ]) {
+      for (const language of ['en', 'ar']) {
+        const text = orderNotificationText({ type, title: 'stored', body: 'x "Network setup" y' }, language);
+        assert.notEqual(text.title, 'stored', `${type}/${language}`);
+        assert.match(text.body, /Network setup/, `${type}/${language}`);
+      }
+    }
+  });
+});
+
 describe('chat messages', () => {
   it("a customer's message reaches the company's admins, tagged per conversation", async () => {
     const result = await call({ chatId: 'chat1', messageId: 'm1' });

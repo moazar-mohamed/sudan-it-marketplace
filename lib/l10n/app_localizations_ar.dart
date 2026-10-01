@@ -2773,4 +2773,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String notifReviewReplyBody(String product) {
     return 'ردّت الشركة على تقييمك لـ«$product».';
   }
+
+  @override
+  String get notifNewServiceRequestTitle => 'طلب خدمة جديد';
+
+  @override
+  String notifNewServiceRequestBody(String service) {
+    return 'طلب عميل الخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestAcceptedTitle => 'تم قبول طلبك';
+
+  @override
+  String notifServiceRequestAcceptedBody(String service) {
+    return 'تم قبول طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestRejectedTitle => 'تم رفض طلبك';
+
+  @override
+  String notifServiceRequestRejectedBody(String service) {
+    return 'تم رفض طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestInProgressTitle => 'بدأ تنفيذ طلبك';
+
+  @override
+  String notifServiceRequestInProgressBody(String service) {
+    return 'بدأ تنفيذ طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestCompletedTitle => 'اكتمل طلبك';
+
+  @override
+  String notifServiceRequestCompletedBody(String service) {
+    return 'تم إكمال طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestCancelledTitle => 'تم إلغاء الطلب';
+
+  @override
+  String notifServiceRequestCancelledBody(String service) {
+    return 'ألغى عميل طلبه للخدمة «$service».';
+  }
 }

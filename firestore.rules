@@ -1086,6 +1086,32 @@ service cloud.firestore {
         && isCompanyAdminOf(order.companyId);
     }
 
+    function notificationServiceRequest(requestId) {
+      return get(/databases/$(database)/documents/service_requests/$(requestId)).data;
+    }
+
+    // A notification about a service request goes between its two sides only:
+    // from the customer who sent it to the company it was sent to (a new or a
+    // cancelled request), or from that company's admin to the customer (the
+    // company's answers). Technicians have no service request notifications.
+    function isValidServiceRequestNotificationCreate() {
+      let data = request.resource.data;
+      let serviceRequest = notificationServiceRequest(data.serviceRequestId);
+      return (data.recipientType == 'company_admin'
+          && data.type in ['new_service_request', 'service_request_cancelled']
+          && serviceRequest.customerId == request.auth.uid
+          && serviceRequest.companyId == data.recipientId)
+        || (data.recipientType == 'customer'
+          && data.type in [
+            'service_request_accepted',
+            'service_request_rejected',
+            'service_request_in_progress',
+            'service_request_completed'
+          ]
+          && serviceRequest.customerId == data.recipientId
+          && isCompanyAdminOf(serviceRequest.companyId));
+    }
+
     function hasRequiredNotificationKeys() {
       return request.resource.data.keys().hasOnly([
         'id',
@@ -1097,8 +1123,23 @@ service cloud.firestore {
         'body',
         'isRead',
         'createdAt',
-        'senderId'
+        'senderId',
+        'serviceRequestId'
       ]);
+    }
+
+    // A notification is about an order (`orderId`) or about a service request
+    // (`serviceRequestId`), never both and never neither.
+    function isNotificationAboutOneThing() {
+      let data = request.resource.data;
+      return (data.keys().hasAny(['orderId'])
+          && !data.keys().hasAny(['serviceRequestId'])
+          && data.orderId is string
+          && data.orderId.size() > 0)
+        || (data.keys().hasAny(['serviceRequestId'])
+          && !data.keys().hasAny(['orderId'])
+          && data.serviceRequestId is string
+          && data.serviceRequestId.size() > 0);
     }
 
     // `senderId` names who created the notification (the push relay only
@@ -1111,8 +1152,7 @@ service cloud.firestore {
         && request.resource.data.recipientType in ['customer', 'company_admin', 'technician']
         && request.resource.data.recipientId is string
         && request.resource.data.recipientId.size() > 0
-        && request.resource.data.orderId is string
-        && request.resource.data.orderId.size() > 0
+        && isNotificationAboutOneThing()
         && request.resource.data.type is string
         && request.resource.data.type.size() > 0
         && request.resource.data.title is string
@@ -1149,12 +1189,15 @@ service cloud.firestore {
 
       allow create: if isSignedIn()
         && isValidNotificationCreate(notificationId)
-        && ((request.resource.data.recipientType == 'company_admin'
-              && isValidCompanyAdminNotificationCreate())
-          || (request.resource.data.recipientType == 'customer'
-              && isValidCustomerNotificationCreate())
-          || (request.resource.data.recipientType == 'technician'
-              && isValidTechnicianNotificationCreate()));
+        && ((request.resource.data.keys().hasAny(['serviceRequestId'])
+              && isValidServiceRequestNotificationCreate())
+          || (!request.resource.data.keys().hasAny(['serviceRequestId'])
+            && ((request.resource.data.recipientType == 'company_admin'
+                  && isValidCompanyAdminNotificationCreate())
+              || (request.resource.data.recipientType == 'customer'
+                  && isValidCustomerNotificationCreate())
+              || (request.resource.data.recipientType == 'technician'
+                  && isValidTechnicianNotificationCreate()))));
 
       allow update: if isSignedIn()
         && (isPlatformAdmin() || isNotificationRecipient())

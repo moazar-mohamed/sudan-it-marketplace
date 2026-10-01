@@ -27,6 +27,14 @@ class CustomerOrderDestination extends PushDestination {
   final String orderId;
 }
 
+/// A service request, as its company ([asCompany]) or its customer sees it.
+class ServiceRequestDestination extends PushDestination {
+  const ServiceRequestDestination(this.requestId, {required this.asCompany});
+
+  final String requestId;
+  final bool asCompany;
+}
+
 /// Where a push with [data] (as the push relay sends it) leads for the
 /// signed-in [profile], or null when it has no screen for them (it was meant
 /// for another kind of account, or a technician's job, which opens the app).
@@ -41,6 +49,17 @@ PushDestination? pushDestination(Map<String, dynamic> data, UserProfile profile)
         ChatDestination(chatId, ChatParticipantRole.company),
       ('customer', UserRole.customer) =>
         ChatDestination(chatId, ChatParticipantRole.customer),
+      _ => null,
+    };
+  }
+
+  final serviceRequestId = text('serviceRequestId');
+  if (serviceRequestId.isNotEmpty) {
+    return switch ((text('recipientType'), profile.role)) {
+      ('company_admin', UserRole.companyAdmin) =>
+        ServiceRequestDestination(serviceRequestId, asCompany: true),
+      ('customer', UserRole.customer) =>
+        ServiceRequestDestination(serviceRequestId, asCompany: false),
       _ => null,
     };
   }
