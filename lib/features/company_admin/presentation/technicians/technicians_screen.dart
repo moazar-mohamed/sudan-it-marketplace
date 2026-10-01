@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../technicians/domain/entities/technician.dart';
 import '../../../technicians/presentation/technicians_providers.dart';
@@ -163,7 +164,7 @@ class _TechnicianTile extends StatelessWidget {
           ),
           if (technician.phone.isNotEmpty)
             Text(
-              technician.phone,
+              displayPhone(technician.phone),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textDirection: TextDirection.ltr,

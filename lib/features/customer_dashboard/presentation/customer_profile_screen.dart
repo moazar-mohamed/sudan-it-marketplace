@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/image_upload_service.dart';
@@ -28,7 +27,7 @@ class CustomerProfileScreen extends ConsumerStatefulWidget {
 class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   final _profileFormKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _phoneController = PhoneController();
   final _photoController = ImagePickerController();
 
   bool _isEditing = false;
@@ -88,7 +87,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
 
     final error = await ref.read(profileControllerProvider.notifier).updateProfile(
           fullName: _nameController.text,
-          phone: _phoneController.text,
+          phone: _phoneController.value,
           // Only written when the picture actually changed ('' removes it).
           photoUrl: photoUrl == (profile.photoUrl ?? '') ? null : photoUrl,
         );
@@ -313,7 +312,7 @@ class _ProfileContent extends StatelessWidget {
   final UserProfile profile;
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
-  final TextEditingController phoneController;
+  final PhoneController phoneController;
   final ImagePickerController photoController;
   final bool isEditing;
   final bool isSaving;
@@ -382,28 +381,11 @@ class _ProfileContent extends StatelessWidget {
                         prefixIcon: Icons.email_outlined,
                       ),
                       const SizedBox(height: AppSpacing.s16),
-                      AppTextField(
+                      PhoneField(
                         label: l10n.profilePhoneNumber,
                         optional: true,
                         controller: phoneController,
                         enabled: isEditing && !isSaving,
-                        keyboardType: TextInputType.phone,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
-                        ],
-                        prefixIcon: Icons.phone_outlined,
-                        validator: (value) {
-                          final phone = value?.trim() ?? '';
-                          if (phone.isEmpty) {
-                            return null;
-                          }
-                          final digitsOnly =
-                              phone.replaceAll(RegExp(r'[^0-9]'), '');
-                          if (digitsOnly.length < 9) {
-                            return l10n.commonPhoneInvalid;
-                          }
-                          return null;
-                        },
                       ),
                     ],
                   ),

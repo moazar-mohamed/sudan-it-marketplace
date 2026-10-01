@@ -9,6 +9,7 @@ import { useRunner } from './feedback';
 import { ImagePickerField } from './ImagePickerField';
 import { LocationField } from './LocationField';
 import { MapPicker } from './MapPicker';
+import { PhoneField, phoneValueProblem } from './PhoneField';
 import { RegistrationFields } from './RegistrationFields';
 import { Modal } from './ui';
 
@@ -44,6 +45,7 @@ export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
       ? { latitude: form.latitude, longitude: form.longitude }
       : null;
   const nameMissing = !form.name.trim();
+  const phoneInvalid = phoneValueProblem(form.phone) !== null;
   const emailInvalid = !isValidEmail(form.email);
   const passwordIssue = passwordProblem(form.initialPassword);
   const registration = {
@@ -54,7 +56,7 @@ export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (nameMissing || emailInvalid || passwordIssue || registrationIncomplete) {
+    if (nameMissing || phoneInvalid || emailInvalid || passwordIssue || registrationIncomplete) {
       setShowError(true);
       return;
     }
@@ -124,10 +126,13 @@ export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
           disabled={busy === 'create'}
         />
         <div className="field-row">
-          <label className="field">
-            <span>{t('company.phone')}</span>
-            <input value={form.phone} onChange={(e) => set('phone')(e.target.value)} dir="ltr" />
-          </label>
+          <PhoneField
+            label={t('company.phone')}
+            value={form.phone}
+            onChange={set('phone')}
+            showError={showError}
+            disabled={busy === 'create'}
+          />
           <label className="field">
             <span>{t('company.email')}</span>
             <input

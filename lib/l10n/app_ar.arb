@@ -838,5 +838,12 @@
   "notifNewReviewTitle": "تقييم جديد",
   "notifNewReviewBody": "قيّم عميل «{product}».",
   "notifReviewReplyTitle": "ردّت الشركة على تقييمك",
-  "notifReviewReplyBody": "ردّت الشركة على تقييمك لـ«{product}»."
+  "notifReviewReplyBody": "ردّت الشركة على تقييمك لـ«{product}».",
+  "phoneCountryCodeOf": "مفتاح الدولة: {country} {code}",
+  "phoneChooseCountry": "اختر مفتاح الدولة",
+  "phoneCountrySearchHint": "ابحث باسم الدولة أو المفتاح",
+  "phoneCountriesCommon": "الأكثر استخدامًا",
+  "phoneCountriesAll": "كل الدول",
+  "phoneCountryNoMatch": "لا توجد دولة تطابق بحثك.",
+  "phoneDigitsExact": "أدخل {count} أرقام بعد {code}."
 }

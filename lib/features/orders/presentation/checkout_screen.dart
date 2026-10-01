@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -39,7 +38,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _phoneController = PhoneController();
 
   /// Optional exact delivery point picked on the map. The typed address and
   /// the map point are independent: either one, or both, satisfies checkout.
@@ -161,7 +160,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       // Pickup uses the company's own location, so no delivery point is saved.
       deliveryLatitude: _useDelivery ? _deliveryLocation?.latitude : null,
       deliveryLongitude: _useDelivery ? _deliveryLocation?.longitude : null,
-      contactPhone: _phoneController.text.trim(),
+      contactPhone: _phoneController.value,
       deliveryMethod:
           _useDelivery ? DeliveryMethod.delivery : DeliveryMethod.pickup,
       customerName:
@@ -362,33 +361,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           ),
                           const SizedBox(height: AppSpacing.s16),
                         ],
-                        // One contact phone number.
-                        AppTextField(
+                        // One contact phone number, with its country code.
+                        PhoneField(
                           label: l10n.checkoutContactPhone,
                           controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'[0-9+\s]'),
-                            ),
-                          ],
-                          hint: '‎+249 9X XXX XXXX',
-                          prefixIcon: Icons.phone_outlined,
                           helperText: l10n.checkoutContactPhoneHelper,
-                          validator: (value) {
-                            final phone = value?.trim() ?? '';
-                            if (phone.isEmpty) {
-                              return l10n.checkoutPhoneRequired;
-                            }
-                            final digitsOnly = phone.replaceAll(
-                              RegExp(r'[^0-9]'),
-                              '',
-                            );
-                            if (digitsOnly.length < 9) {
-                              return l10n.commonPhoneInvalid;
-                            }
-                            return null;
-                          },
+                          requiredMessage: l10n.checkoutPhoneRequired,
                         ),
                       ],
                     ),

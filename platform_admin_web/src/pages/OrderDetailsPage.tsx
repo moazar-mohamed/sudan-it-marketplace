@@ -4,6 +4,7 @@ import { ReceiptViewer } from '../components/ReceiptViewer';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
 import { useCompanies, useOrders, useProducts } from '../data/hooks';
 import { formatCoordinate, osmViewUrl, toGeoPoint } from '../data/location';
+import { displayPhone } from '../data/phone';
 import { fetchOrderReceipt } from '../data/receipts';
 import { db } from '../firebase';
 import { useI18n } from '../i18n/I18nProvider';
@@ -96,7 +97,7 @@ export function OrderDetailsPage() {
                     )}
                   </KeyValue>
                   <KeyValue label={t('col.phone')}>
-                    {order.contactPhone ? <bdi dir="ltr">{order.contactPhone}</bdi> : '—'}
+                    {order.contactPhone ? <bdi dir="ltr">{displayPhone(order.contactPhone)}</bdi> : '—'}
                   </KeyValue>
                 </dl>
               </Card>

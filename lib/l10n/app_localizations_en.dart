@@ -2809,4 +2809,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifReviewReplyBody(String product) {
     return 'The company replied to your rating of \"$product\".';
   }
+
+  @override
+  String phoneCountryCodeOf(String country, String code) {
+    return 'Country code: $country $code';
+  }
+
+  @override
+  String get phoneChooseCountry => 'Choose the country code';
+
+  @override
+  String get phoneCountrySearchHint => 'Search by country or code';
+
+  @override
+  String get phoneCountriesCommon => 'Most used';
+
+  @override
+  String get phoneCountriesAll => 'All countries';
+
+  @override
+  String get phoneCountryNoMatch => 'No country matches your search.';
+
+  @override
+  String phoneDigitsExact(int count, String code) {
+    return 'Enter $count digits after $code.';
+  }
 }

@@ -2785,4 +2785,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String notifReviewReplyBody(String product) {
     return 'ردّت الشركة على تقييمك لـ«$product».';
   }
+
+  @override
+  String phoneCountryCodeOf(String country, String code) {
+    return 'مفتاح الدولة: $country $code';
+  }
+
+  @override
+  String get phoneChooseCountry => 'اختر مفتاح الدولة';
+
+  @override
+  String get phoneCountrySearchHint => 'ابحث باسم الدولة أو المفتاح';
+
+  @override
+  String get phoneCountriesCommon => 'الأكثر استخدامًا';
+
+  @override
+  String get phoneCountriesAll => 'كل الدول';
+
+  @override
+  String get phoneCountryNoMatch => 'لا توجد دولة تطابق بحثك.';
+
+  @override
+  String phoneDigitsExact(int count, String code) {
+    return 'أدخل $count أرقام بعد $code.';
+  }
 }

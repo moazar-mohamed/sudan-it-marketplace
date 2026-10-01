@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -32,7 +31,7 @@ class TechnicianFormScreen extends ConsumerStatefulWidget {
 class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _fullNameController;
-  late final TextEditingController _phoneController;
+  late final PhoneController _phoneController;
   late final TextEditingController _emailController;
   final _passwordController = TextEditingController();
   late bool _isActive;
@@ -43,7 +42,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
     super.initState();
     final technician = widget.technician;
     _fullNameController = TextEditingController(text: technician?.fullName ?? '');
-    _phoneController = TextEditingController(text: technician?.phone ?? '');
+    _phoneController = PhoneController(text: technician?.phone ?? '');
     _emailController = TextEditingController(text: technician?.email ?? '');
     _isActive = technician?.isActive ?? true;
   }
@@ -78,7 +77,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
       error = await actions.createTechnicianAccount(
         companyId: widget.companyId,
         fullName: _fullNameController.text.trim(),
-        phone: _phoneController.text.trim(),
+        phone: _phoneController.value,
         email: email,
         password: _passwordController.text,
       );
@@ -87,7 +86,7 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
         id: existing.id,
         companyId: widget.companyId,
         fullName: _fullNameController.text.trim(),
-        phone: _phoneController.text.trim(),
+        phone: _phoneController.value,
         email: email.isEmpty ? null : email,
         uid: existing.uid,
         isActive: _isActive,
@@ -145,25 +144,11 @@ class _TechnicianFormScreenState extends ConsumerState<TechnicianFormScreen> {
                     : null,
               ),
               const SizedBox(height: AppSpacing.s16),
-              AppTextField(
+              PhoneField(
                 label: context.l10n.adminPhone,
                 controller: _phoneController,
                 enabled: !_isSaving,
-                keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
-                ],
-                prefixIcon: Icons.phone_outlined,
-                validator: (value) {
-                  final digits =
-                      (value ?? '').replaceAll(RegExp(r'[^0-9]'), '');
-                  if (digits.isEmpty) {
-                    return context.l10n.adminPhoneRequired;
-                  }
-                  return digits.length < 9
-                      ? context.l10n.commonPhoneInvalid
-                      : null;
-                },
+                requiredMessage: context.l10n.adminPhoneRequired,
               ),
               const SizedBox(height: AppSpacing.s16),
               AppTextField(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
@@ -42,7 +41,7 @@ class _ServiceRequestFormScreenState
   final _formKey = GlobalKey<FormState>();
   final _detailsController = TextEditingController();
   final _addressController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _phoneController = PhoneController();
   GeoLocation? _location;
   bool _submitting = false;
   bool _phonePrefilled = false;
@@ -69,7 +68,7 @@ class _ServiceRequestFormScreenState
         ref.read(profileControllerProvider).asData?.value?.phone?.trim() ?? '';
     if (phone.isEmpty) return;
     _phonePrefilled = true;
-    if (_phoneController.text.isEmpty) _phoneController.text = phone;
+    if (_phoneController.number.isEmpty) _phoneController.text = phone;
   }
 
   Future<void> _submit() async {
@@ -82,7 +81,7 @@ class _ServiceRequestFormScreenState
           details: _detailsController.text,
           address: _addressController.text,
           location: _location,
-          contactPhone: _phoneController.text,
+          contactPhone: _phoneController.value,
         );
     if (!mounted) return;
     setState(() => _submitting = false);
@@ -175,26 +174,10 @@ class _ServiceRequestFormScreenState
                           setState(() => _location = value),
                     ),
                     const SizedBox(height: AppSpacing.s16),
-                    AppTextField(
+                    PhoneField(
                       label: context.l10n.checkoutContactPhone,
                       controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
-                      ],
-                      hint: '‎+249 9X XXX XXXX',
-                      prefixIcon: Icons.phone_outlined,
-                      validator: (value) {
-                        final phone = value?.trim() ?? '';
-                        if (phone.isEmpty) {
-                          return context.l10n.checkoutPhoneRequired;
-                        }
-                        final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
-                        if (digits.length < 9 || phone.length > 30) {
-                          return context.l10n.commonPhoneInvalid;
-                        }
-                        return null;
-                      },
+                      requiredMessage: context.l10n.checkoutPhoneRequired,
                     ),
                     const SizedBox(height: AppSpacing.s24),
                     AppButton.primary(

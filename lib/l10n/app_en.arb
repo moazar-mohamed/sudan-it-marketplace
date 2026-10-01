@@ -1427,5 +1427,32 @@
         "type": "String"
       }
     }
+  },
+  "phoneCountryCodeOf": "Country code: {country} {code}",
+  "@phoneCountryCodeOf": {
+    "placeholders": {
+      "country": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneChooseCountry": "Choose the country code",
+  "phoneCountrySearchHint": "Search by country or code",
+  "phoneCountriesCommon": "Most used",
+  "phoneCountriesAll": "All countries",
+  "phoneCountryNoMatch": "No country matches your search.",
+  "phoneDigitsExact": "Enter {count} digits after {code}.",
+  "@phoneDigitsExact": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
   }
 }

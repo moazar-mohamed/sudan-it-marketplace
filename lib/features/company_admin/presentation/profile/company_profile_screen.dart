@@ -9,6 +9,7 @@ import '../../../location/presentation/widgets/open_location_button.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../widgets/admin_section_card.dart';
 import 'edit_company_profile_screen.dart';
@@ -92,7 +93,11 @@ class CompanyProfileScreen extends ConsumerWidget {
             AdminSectionCard(
               title: context.l10n.adminContact,
               children: [
-                AdminInfoRow(label: context.l10n.adminPhone, value: _orDash(company.phone)),
+                AdminInfoRow(
+                  label: context.l10n.adminPhone,
+                  value: _orDash(displayPhone(company.phone)),
+                  valueTextDirection: TextDirection.ltr,
+                ),
                 AdminInfoRow(label: context.l10n.authEmail, value: _orDash(company.email)),
               ],
             ),

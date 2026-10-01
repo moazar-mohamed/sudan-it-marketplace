@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/utils/search_ranking.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../orders/domain/entities/order_entity.dart';
@@ -116,13 +117,15 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
             // The full id, so both the short number people read out and the
             // whole reference match (the short number is its prefix).
             SearchField(order.id, weight: 2),
-            SearchField(order.contactPhone),
+            for (final form in phoneSearchForms(order.contactPhone))
+              SearchField(form),
           ],
         _RequestEntry(:final request) => [
             SearchField(request.serviceName, weight: 3),
             SearchField(request.customerName, weight: 3),
             SearchField(request.id, weight: 2),
-            SearchField(request.contactPhone),
+            for (final form in phoneSearchForms(request.contactPhone))
+              SearchField(form),
           ],
       },
     );

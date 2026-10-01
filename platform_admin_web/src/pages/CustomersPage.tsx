@@ -8,6 +8,7 @@ import {
 import { ActiveBadge } from '../components/StatusBadges';
 import { Chips, DataGate, EmptyState, PageHeader, SearchInput, Text } from '../components/ui';
 import { useCustomers, useOrders } from '../data/hooks';
+import { displayPhone, phoneSearchForms } from '../data/phone';
 import type { Customer } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
 import { matchesQuery } from '../utils';
@@ -31,7 +32,7 @@ export function CustomersPage() {
   const visible = customers.data.filter(
     (c) =>
       (filter === 'all' || (filter === 'active') === c.isActive) &&
-      matchesQuery(query, c.fullName, c.email, c.phone),
+      matchesQuery(query, c.fullName, c.email, ...phoneSearchForms(c.phone)),
   );
 
   return (
@@ -102,7 +103,7 @@ export function CustomersPage() {
                         <bdi dir="ltr">{c.email || '—'}</bdi>
                       </td>
                       <td>
-                        <bdi dir="ltr">{c.phone || '—'}</bdi>
+                        <bdi dir="ltr">{displayPhone(c.phone) || '—'}</bdi>
                       </td>
                       <td>
                         <ActiveBadge active={c.isActive} />

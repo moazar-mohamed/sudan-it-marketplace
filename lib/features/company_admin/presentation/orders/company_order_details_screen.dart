@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../chats/domain/entities/chat_conversation.dart';
 import '../../../chats/presentation/chat_providers.dart';
@@ -83,7 +84,7 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                     ),
                     AdminInfoRow(
                       label: context.l10n.orderContactPhone,
-                      value: order.contactPhone,
+                      value: displayPhone(order.contactPhone),
                       valueTextDirection: TextDirection.ltr,
                     ),
                   ],

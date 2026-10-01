@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/phone_number.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../companies/domain/entities/payment_account.dart';
 import '../../companies/presentation/companies_providers.dart';
@@ -496,6 +497,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
               context,
               label: l10n.paymentPhoneIdentifier,
               value: phoneNumber,
+              display: displayPhone(phoneNumber),
               copiedLabel: l10n.paymentPhoneNumberLabel,
             ),
         ],
@@ -509,6 +511,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     required String label,
     required String value,
     required String copiedLabel,
+    String? display,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -516,7 +519,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
         Expanded(
           child: KeyValueRow(
             label: label,
-            value: value,
+            value: display ?? value,
             // Numbers stay left-to-right inside an RTL screen.
             valueTextDirection: TextDirection.ltr,
           ),

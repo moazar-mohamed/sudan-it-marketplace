@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/arabic_text.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../technicians/domain/entities/technician.dart';
 
@@ -68,7 +69,8 @@ class _TechnicianSheetState extends State<_TechnicianSheet> {
     return [
       for (final technician in widget.technicians)
         if (normalizeSearchText(technician.fullName).contains(query) ||
-            technician.phone.contains(query))
+            phoneSearchForms(technician.phone)
+                .any((form) => form.contains(query)))
           technician,
     ];
   }
@@ -145,7 +147,7 @@ class _TechnicianTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final phone = technician.phone.trim();
+    final phone = displayPhone(technician.phone);
     return Material(
       color: assigned ? context.colors.brandPrimarySubtle : context.colors.bgSurface,
       shape: RoundedRectangleBorder(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/utils/phone_number.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../auth/domain/entities/user_profile.dart';
 import '../../../auth/presentation/auth_controller.dart';
@@ -203,8 +204,9 @@ class _TechnicianProfileContent extends StatelessWidget {
               const SizedBox(height: AppSpacing.s16),
               AppTextField(
                 label: l10n.adminPhone,
-                initialValue: phone,
+                initialValue: displayPhone(phone),
                 enabled: false,
+                textDirection: TextDirection.ltr,
                 prefixIcon: Icons.phone_outlined,
               ),
             ],

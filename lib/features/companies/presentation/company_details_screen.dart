@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/phone_number.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../location/presentation/location_strings.dart';
 import '../../location/presentation/widgets/open_location_button.dart';
@@ -44,7 +45,7 @@ class CompanyDetailsScreen extends ConsumerWidget {
         _getCompanyProducts(ref.watch(marketplaceProductsProvider));
     final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
     final about = company.description?.trim() ?? '';
-    final phone = company.phone?.trim() ?? '';
+    final phone = displayPhone(company.phone);
 
     return Scaffold(
       appBar: AppBar(
