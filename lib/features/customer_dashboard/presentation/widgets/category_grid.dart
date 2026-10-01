@@ -21,11 +21,20 @@ class CategoryGrid extends StatelessWidget {
     required this.selectedId,
     required this.onSelected,
     this.style = CategoryGridStyle.standard,
+    this.title,
+    this.horizontalPadding = 0,
   });
 
   final List<Category> categories;
   final String? selectedId;
   final CategoryGridStyle style;
+
+  /// The section's name; "Categories" when null.
+  final String? title;
+
+  /// Side space of the header and of the sideways row ([CategoryLayout.row]),
+  /// so the row can scroll right up to the screen edge.
+  final double horizontalPadding;
 
   /// Called with the tapped category's id, or null to clear the selection.
   final ValueChanged<String?> onSelected;
@@ -51,14 +60,14 @@ class CategoryGrid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                context.l10n.homeCategoriesTitle,
+                title ?? context.l10n.homeCategoriesTitle,
                 style: AppTextStyles.h2,
               ),
               const SizedBox(height: AppSpacing.s12),
               _Tiles(
                 categories: categories,
                 selectedId: selectedId,
-                style: style,
+                style: CategoryGridStyle.standard,
                 onTap: (id) => Navigator.of(sheetContext).pop(id),
               ),
             ],
@@ -74,6 +83,7 @@ class CategoryGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (categories.isEmpty) return const SizedBox.shrink();
+    if (style.layout == CategoryLayout.row) return _buildRow(context);
     final hasMore = categories.length > style.previewCount;
     final preview = categories.take(style.previewCount).toList();
     // A selected category hidden behind "More" still shows as selected.
@@ -93,7 +103,7 @@ class CategoryGrid extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                context.l10n.homeCategoriesTitle,
+                title ?? context.l10n.homeCategoriesTitle,
                 style: AppTextStyles.h3,
               ),
             ),
@@ -119,6 +129,145 @@ class CategoryGrid extends StatelessWidget {
           onTap: (id) => onSelected(id == selectedId ? null : id),
         ),
       ],
+    );
+  }
+
+  /// One sideways row of soft tiles, with "View all" opening every category.
+  Widget _buildRow(BuildContext context) {
+    final colors = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title ?? context.l10n.homeCategoriesTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.h2,
+                ),
+              ),
+              if (selectedId != null)
+                TextButton(
+                  onPressed: () => onSelected(null),
+                  child: Text(context.l10n.homeFilterAllCategories),
+                ),
+              if (categories.length > 4)
+                TextButton.icon(
+                  key: const ValueKey('categories-view-all'),
+                  onPressed: () => _showAll(context),
+                  icon: const Icon(
+                    Icons.chevron_right_rounded,
+                    size: AppSize.iconMd,
+                  ),
+                  iconAlignment: IconAlignment.end,
+                  label: Text(context.l10n.adminViewAll),
+                  style: TextButton.styleFrom(
+                    foregroundColor: colors.textBrand,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s8,
+                    ),
+                    minimumSize: const Size(0, 36),
+                    textStyle: AppTextStyles.buttonSmall,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s8),
+        SizedBox(
+          height: style.rowTileSize + 58,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+            itemCount: categories.length,
+            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.s8),
+            itemBuilder: (context, i) => _RowTile(
+              category: categories[i],
+              selected: categories[i].id == selectedId,
+              style: style,
+              onTap: () => onSelected(
+                categories[i].id == selectedId ? null : categories[i].id,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A soft square tile with the category's icon, and its name underneath.
+class _RowTile extends StatelessWidget {
+  const _RowTile({
+    required this.category,
+    required this.selected,
+    required this.style,
+    required this.onTap,
+  });
+
+  final Category category;
+  final bool selected;
+  final CategoryGridStyle style;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final name = category.localizedName(context);
+    final icon = categoryIconFor(category);
+    final accent = style.colorFor(icon, category.id);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: name,
+      excludeSemantics: true,
+      child: SizedBox(
+        width: style.rowItemWidth,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: AppRadius.mdAll,
+          child: Column(
+            children: [
+              Container(
+                width: style.rowTileSize,
+                height: style.rowTileSize,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: style.backgroundFor(
+                    accent,
+                    colors.surface,
+                    Theme.of(context).brightness,
+                  ),
+                  borderRadius: BorderRadius.circular(AppRadius.xl - 4),
+                  border: selected
+                      ? Border.all(
+                          color: colors.borderFocus,
+                          width: AppBorder.thick,
+                        )
+                      : null,
+                ),
+                child: Icon(icon, size: 28, color: accent),
+              ),
+              const SizedBox(height: AppSpacing.s6),
+              Text(
+                name,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: selected ? colors.textBrand : colors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  height: 1.25,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -190,8 +339,9 @@ class _Tile extends StatelessWidget {
       child: AppCard(
         onTap: onTap,
         color: style.backgroundFor(accent, colors.surface, brightness),
-        borderColor:
-            selected ? colors.borderFocus : accent.withValues(alpha: 0.18),
+        borderColor: selected
+            ? colors.borderFocus
+            : accent.withValues(alpha: 0.18),
         borderWidth: selected ? AppBorder.thick : AppBorder.thin,
         padding: EdgeInsets.all(style.padding),
         child: Stack(
@@ -212,7 +362,11 @@ class _Tile extends StatelessWidget {
                       color: accent,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, size: style.iconSize, color: Colors.white),
+                    child: Icon(
+                      icon,
+                      size: style.iconSize,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.s6),
                   Flexible(
@@ -361,7 +515,10 @@ final _iconsByName = <String, IconData>{
 /// (already normalized: no diacritics, ة -> ه, lowercase).
 final _iconKeywords = <(IconData, List<String>)>[
   (Icons.laptop_mac, ['laptop', 'notebook', 'لابتوب', 'لاب توب']),
-  (Icons.desktop_windows_outlined, ['computer', 'desktop', 'كمبيوتر', 'حاسوب', 'حاسب']),
+  (
+    Icons.desktop_windows_outlined,
+    ['computer', 'desktop', 'كمبيوتر', 'حاسوب', 'حاسب'],
+  ),
   (Icons.smartphone, ['phone', 'mobile', 'موبايل', 'هاتف', 'جوال', 'تلفون']),
   (Icons.tablet_mac, ['tablet', 'تابلت']),
   (Icons.router_outlined, ['router', 'telecom', 'راوتر', 'روتر', 'اتصالات']),
@@ -378,9 +535,23 @@ final _iconKeywords = <(IconData, List<String>)>[
   (Icons.power_outlined, ['ups', 'power', 'طاقه', 'يو بي اس']),
   (Icons.battery_charging_full, ['battery', 'charger', 'بطاريه', 'شاحن']),
   (Icons.cable, ['cable', 'كيبل', 'كابل', 'كوابل']),
-  (Icons.shield_outlined, ['security', 'cyber', 'firewall', 'antivirus', 'امن', 'حمايه', 'فايروول']),
+  (
+    Icons.shield_outlined,
+    ['security', 'cyber', 'firewall', 'antivirus', 'امن', 'حمايه', 'فايروول'],
+  ),
   (Icons.apps, ['software', 'برنامج', 'برمجيات']),
   (Icons.cloud_outlined, ['cloud', 'سحاب']),
   (Icons.sports_esports_outlined, ['game', 'gaming', 'العاب']),
-  (Icons.design_services_outlined, ['service', 'خدمه', 'خدمات', 'installation', 'تركيب', 'صيانه', 'maintenance']),
+  (
+    Icons.design_services_outlined,
+    [
+      'service',
+      'خدمه',
+      'خدمات',
+      'installation',
+      'تركيب',
+      'صيانه',
+      'maintenance',
+    ],
+  ),
 ];

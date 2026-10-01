@@ -6,6 +6,7 @@ import 'package:sudan_it_marketplace/features/notifications/data/models/app_noti
 import 'package:sudan_it_marketplace/features/notifications/data/repositories/notifications_repository_impl.dart';
 import 'package:sudan_it_marketplace/features/notifications/domain/entities/app_notification.dart';
 import 'package:sudan_it_marketplace/features/notifications/presentation/notification_events.dart';
+import 'package:sudan_it_marketplace/features/service_requests/domain/entities/service_request.dart';
 import 'package:sudan_it_marketplace/features/notifications/presentation/notification_format.dart';
 import 'package:sudan_it_marketplace/features/notifications/presentation/widgets/notification_tile.dart';
 import 'package:sudan_it_marketplace/features/orders/domain/entities/order_entity.dart';
@@ -30,21 +31,42 @@ const _storedKeys = {
 
 /// Every notification the app sends, one of each type.
 List<AppNotification> _everyEvent() => [
-      NotificationEvents.newOrder(
-          orderId: 'o1', companyId: 'c1', productName: 'Router'),
-      NotificationEvents.newReview(
-          orderId: 'o1', companyId: 'c1', productName: 'Router'),
-      NotificationEvents.paymentConfirmed(
-          orderId: 'o1', customerId: 'cust1', productName: 'Router'),
-      NotificationEvents.orderOutForDelivery(
-          orderId: 'o1', customerId: 'cust1', productName: 'Router'),
-      NotificationEvents.orderCompleted(
-          orderId: 'o1', customerId: 'cust1', productName: 'Router'),
-      NotificationEvents.reviewReply(
-          orderId: 'o1', customerId: 'cust1', productName: 'Router'),
-      NotificationEvents.technicianAssigned(
-          orderId: 'o1', technicianId: 't1', productName: 'Router'),
-    ];
+  NotificationEvents.newOrder(
+    orderId: 'o1',
+    companyId: 'c1',
+    productName: 'Router',
+  ),
+  NotificationEvents.newReview(
+    orderId: 'o1',
+    companyId: 'c1',
+    productName: 'Router',
+  ),
+  NotificationEvents.paymentConfirmed(
+    orderId: 'o1',
+    customerId: 'cust1',
+    productName: 'Router',
+  ),
+  NotificationEvents.orderOutForDelivery(
+    orderId: 'o1',
+    customerId: 'cust1',
+    productName: 'Router',
+  ),
+  NotificationEvents.orderCompleted(
+    orderId: 'o1',
+    customerId: 'cust1',
+    productName: 'Router',
+  ),
+  NotificationEvents.reviewReply(
+    orderId: 'o1',
+    customerId: 'cust1',
+    productName: 'Router',
+  ),
+  NotificationEvents.technicianAssigned(
+    orderId: 'o1',
+    technicianId: 't1',
+    productName: 'Router',
+  ),
+];
 
 class _RecordingRemote extends Fake implements NotificationsRemoteDataSource {
   final deleted = <String>[];
@@ -55,30 +77,48 @@ class _RecordingRemote extends Fake implements NotificationsRemoteDataSource {
 }
 
 Widget _app(Widget child) => MaterialApp(
-      theme: AppTheme.light,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: Scaffold(body: child),
-    );
+  theme: AppTheme.light,
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  locale: const Locale('en'),
+  home: Scaffold(body: child),
+);
 
 void main() {
   final en = AppLocalizationsEn();
   final ar = AppLocalizationsAr();
 
   group('what a notification stores', () {
-    test('the app sends exactly the seven known types, one event each', () {
-      expect(
-        _everyEvent().map((n) => n.type).toSet(),
-        NotificationTypes.all,
-      );
-      expect(NotificationTypes.all, hasLength(7));
+    test('the app sends exactly the known types, one event each', () {
+      // Seven about orders (below) and six about service requests (their own
+      // tests are in service_request_notifications_test.dart).
+      final orderTypes = _everyEvent().map((n) => n.type).toSet();
+      final requestTypes = {
+        NotificationEvents.newServiceRequest(
+          serviceRequestId: 'sr1',
+          companyId: 'c1',
+          serviceName: 'Setup',
+        ).type,
+        for (final status in ServiceRequestStatus.values)
+          ?NotificationEvents.forServiceRequestStatus(
+            status: status,
+            serviceRequestId: 'sr1',
+            customerId: 'cust1',
+            companyId: 'c1',
+            serviceName: 'Setup',
+          )?.type,
+      };
+      expect(orderTypes, hasLength(7));
+      expect(requestTypes, hasLength(6));
+      expect(orderTypes.union(requestTypes), NotificationTypes.all);
     });
 
     test('no title or body: only the listed fields, whatever the event', () {
       for (final event in _everyEvent()) {
-        final stored =
-            AppNotificationModel.toFirestoreCreateMap(event, senderId: 'u1');
+        final stored = AppNotificationModel.toFirestoreCreateMap(
+          event,
+          senderId: 'u1',
+        );
         expect(stored.keys.toSet(), _storedKeys, reason: event.type);
         expect(stored['productName'], 'Router');
         expect(stored['type'], event.type);
@@ -89,7 +129,10 @@ void main() {
     test('each goes to its own recipient', () {
       final byType = {for (final n in _everyEvent()) n.type: n};
       for (final type in ['new_order', 'new_review']) {
-        expect(byType[type]!.recipientType, NotificationRecipientType.companyAdmin);
+        expect(
+          byType[type]!.recipientType,
+          NotificationRecipientType.companyAdmin,
+        );
         expect(byType[type]!.recipientId, 'c1');
       }
       for (final type in [
@@ -126,29 +169,41 @@ void main() {
   group('one notification per order and type', () {
     test('the id is fixed by the order and the type', () {
       final first = NotificationEvents.newOrder(
-          orderId: 'o1', companyId: 'c1', productName: 'Router');
+        orderId: 'o1',
+        companyId: 'c1',
+        productName: 'Router',
+      );
       final again = NotificationEvents.newOrder(
-          orderId: 'o1', companyId: 'c1', productName: 'Router');
+        orderId: 'o1',
+        companyId: 'c1',
+        productName: 'Router',
+      );
       expect(first.id, 'o1_new_order');
       expect(again.id, first.id);
       expect(
         NotificationEvents.newOrder(
-            orderId: 'o2', companyId: 'c1', productName: 'Router').id,
+          orderId: 'o2',
+          companyId: 'c1',
+          productName: 'Router',
+        ).id,
         'o2_new_order',
       );
       expect(
         NotificationEvents.paymentConfirmed(
-            orderId: 'o1', customerId: 'cust1', productName: 'Router').id,
+          orderId: 'o1',
+          customerId: 'cust1',
+          productName: 'Router',
+        ).id,
         'o1_payment_confirmed',
       );
     });
 
     test('an assignment is one per technician', () {
       String idFor(String technician) => NotificationEvents.technicianAssigned(
-            orderId: 'o1',
-            technicianId: technician,
-            productName: 'Router',
-          ).id;
+        orderId: 'o1',
+        technicianId: technician,
+        productName: 'Router',
+      ).id;
       expect(idFor('t1'), 'o1_technician_assigned_t1');
       expect(idFor('t2'), 'o1_technician_assigned_t2');
     });
@@ -163,12 +218,16 @@ void main() {
     test('every known type has its own words, in both languages', () {
       for (final event in _everyEvent()) {
         for (final l10n in [en, ar]) {
-          expect(NotificationFormat.title(l10n, event),
-              isNot(l10n.notifGenericTitle),
-              reason: event.type);
-          expect(NotificationFormat.body(l10n, event),
-              isNot(l10n.notifGenericBody),
-              reason: event.type);
+          expect(
+            NotificationFormat.title(l10n, event),
+            isNot(l10n.notifGenericTitle),
+            reason: event.type,
+          );
+          expect(
+            NotificationFormat.body(l10n, event),
+            isNot(l10n.notifGenericBody),
+            reason: event.type,
+          );
         }
         if (event.type != NotificationTypes.orderCompleted) {
           expect(NotificationFormat.body(en, event), contains('Router'));
@@ -209,22 +268,33 @@ void main() {
         'There is an update on one of your orders.',
       );
       expect(NotificationFormat.title(ar, unknown), 'إشعار');
-      expect(NotificationFormat.body(ar, unknown), 'يوجد تحديث على أحد طلباتك.');
+      expect(
+        NotificationFormat.body(ar, unknown),
+        'يوجد تحديث على أحد طلباتك.',
+      );
     });
   });
 
   group('deleting a notification', () {
     final notification = NotificationEvents.newOrder(
-        orderId: 'o1', companyId: 'c1', productName: 'Router');
+      orderId: 'o1',
+      companyId: 'c1',
+      productName: 'Router',
+    );
 
-    testWidgets('a long press asks first, and Delete removes it',
-        (tester) async {
+    testWidgets('a long press asks first, and Delete removes it', (
+      tester,
+    ) async {
       var deleted = 0;
-      await tester.pumpWidget(_app(NotificationTile(
-        notification: notification,
-        onTap: () {},
-        onDelete: () => deleted++,
-      )));
+      await tester.pumpWidget(
+        _app(
+          NotificationTile(
+            notification: notification,
+            onTap: () {},
+            onDelete: () => deleted++,
+          ),
+        ),
+      );
       await tester.longPress(find.byType(NotificationTile));
       await tester.pumpAndSettle();
       expect(find.text('Delete this notification?'), findsOneWidget);
@@ -238,11 +308,15 @@ void main() {
 
     testWidgets('Cancel keeps it', (tester) async {
       var deleted = 0;
-      await tester.pumpWidget(_app(NotificationTile(
-        notification: notification,
-        onTap: () {},
-        onDelete: () => deleted++,
-      )));
+      await tester.pumpWidget(
+        _app(
+          NotificationTile(
+            notification: notification,
+            onTap: () {},
+            onDelete: () => deleted++,
+          ),
+        ),
+      );
       await tester.longPress(find.byType(NotificationTile));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel'));
@@ -250,12 +324,12 @@ void main() {
       expect(deleted, 0);
     });
 
-    testWidgets('a tile without a delete action does nothing on a long press',
-        (tester) async {
-      await tester.pumpWidget(_app(NotificationTile(
-        notification: notification,
-        onTap: () {},
-      )));
+    testWidgets('a tile without a delete action does nothing on a long press', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _app(NotificationTile(notification: notification, onTap: () {})),
+      );
       await tester.longPress(find.byType(NotificationTile));
       await tester.pumpAndSettle();
       expect(find.text('Delete this notification?'), findsNothing);

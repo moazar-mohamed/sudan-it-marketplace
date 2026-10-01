@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../categories/domain/category_tree.dart';
 import '../../../categories/domain/entities/category.dart';
 import 'category_grid.dart';
+import 'category_grid_style.dart';
 
 /// The customer's way into a category tree: tiles for the categories at the
 /// current level, a breadcrumb back up, and the whole subtree of the chosen
@@ -20,6 +21,9 @@ class CategoryBrowser extends StatelessWidget {
     required this.tree,
     required this.currentId,
     required this.onChanged,
+    this.title,
+    this.style = CategoryGridStyle.standard,
+    this.horizontalPadding = 0,
   });
 
   final CategoryTree tree;
@@ -27,6 +31,13 @@ class CategoryBrowser extends StatelessWidget {
   /// The category being browsed (its whole subtree is the filter); null = all.
   final String? currentId;
   final ValueChanged<String?> onChanged;
+
+  /// The tiles' section title, and how they are drawn ([CategoryGridStyle.homeRow]
+  /// on the home screen). [horizontalPadding] is the side space of everything
+  /// here, so the sideways row can scroll up to the screen edge.
+  final String? title;
+  final CategoryGridStyle style;
+  final double horizontalPadding;
 
   /// The category to filter by: [currentId] if it is still shown, else none.
   static String? validCurrent(CategoryTree tree, String? id) =>
@@ -44,25 +55,39 @@ class CategoryBrowser extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (current != null)
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton.icon(
-              key: const ValueKey('browse-back'),
-              // One level up: the parent, or all categories from the top level.
-              onPressed: () =>
-                  onChanged(path.length > 1 ? path[path.length - 2].id : null),
-              icon: const Icon(Icons.arrow_back_rounded, size: AppSize.iconSm),
-              label: Text(context.l10n.categoryBack),
-              style: TextButton.styleFrom(
-                foregroundColor: context.colors.textBrand,
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
-                minimumSize: const Size(0, 36),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                key: const ValueKey('browse-back'),
+                // One level up: the parent, or all categories from the top level.
+                onPressed: () => onChanged(
+                  path.length > 1 ? path[path.length - 2].id : null,
+                ),
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  size: AppSize.iconSm,
+                ),
+                label: Text(context.l10n.categoryBack),
+                style: TextButton.styleFrom(
+                  foregroundColor: context.colors.textBrand,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s8,
+                  ),
+                  minimumSize: const Size(0, 36),
+                ),
               ),
             ),
           ),
         if (current != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              0,
+              horizontalPadding,
+              AppSpacing.s8,
+            ),
             child: Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
@@ -94,6 +119,9 @@ class CategoryBrowser extends StatelessWidget {
             selectedId: null,
             // Tapping a tile goes into it: its subtree becomes the filter.
             onSelected: onChanged,
+            style: style,
+            title: title,
+            horizontalPadding: horizontalPadding,
           ),
       ],
     );
@@ -117,7 +145,9 @@ class _Crumb extends StatelessWidget {
       child: Text(
         label,
         style: AppTextStyles.labelMedium.copyWith(
-          color: onTap == null ? context.colors.textPrimary : context.colors.textBrand,
+          color: onTap == null
+              ? context.colors.textPrimary
+              : context.colors.textBrand,
           fontWeight: onTap == null ? FontWeight.w700 : FontWeight.w600,
         ),
       ),

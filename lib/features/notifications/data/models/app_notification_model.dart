@@ -19,6 +19,7 @@ class AppNotificationModel {
       ),
       recipientId: data['recipientId'] as String? ?? '',
       orderId: data['orderId'] as String? ?? '',
+      serviceRequestId: data['serviceRequestId'] as String? ?? '',
       type: data['type'] as String? ?? '',
       productName: data['productName'] as String? ?? '',
       isRead: data['isRead'] as bool? ?? false,
@@ -39,7 +40,9 @@ class AppNotificationModel {
       'id': notification.id,
       'recipientType': notification.recipientType.firestoreValue,
       'recipientId': notification.recipientId,
-      'orderId': notification.orderId,
+      if (notification.orderId.isNotEmpty) 'orderId': notification.orderId,
+      if (notification.serviceRequestId.isNotEmpty)
+        'serviceRequestId': notification.serviceRequestId,
       'type': notification.type,
       'productName': notification.productName,
       'isRead': false,

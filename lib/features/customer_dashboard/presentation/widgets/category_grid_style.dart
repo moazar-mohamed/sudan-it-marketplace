@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// How the categories are laid out: coloured cards in rows, or one sideways
+/// row of soft square tiles with the name underneath.
+enum CategoryLayout { grid, row }
+
 /// Every setting of the home screen's category cards, in one place. Change a
 /// value here and every category grid (home and the "More" sheet) follows.
 class CategoryGridStyle {
@@ -18,12 +22,23 @@ class CategoryGridStyle {
     this.palette = defaultPalette,
     this.lightTint = 0.10,
     this.darkTint = 0.20,
+    this.layout = CategoryLayout.grid,
+    this.rowTileSize = 68,
+    this.rowItemWidth = 80,
   }) : assert(previewCount > 0),
        assert(columns > 0),
        assert(nameMinFontSize <= nameMaxFontSize);
 
   /// The style the app uses.
   static const standard = CategoryGridStyle();
+
+  /// The home screen's sideways row of tiles (the cards of [standard] still
+  /// fill the "View all" sheet).
+  static const homeRow = CategoryGridStyle(
+    layout: CategoryLayout.row,
+    lightTint: 0.12,
+    darkTint: 0.22,
+  );
 
   /// How many categories show on the home screen before "More". Any number
   /// works; a multiple of [columns] keeps the last row full.
@@ -63,6 +78,12 @@ class CategoryGridStyle {
   /// and in dark mode (0 = plain card, 1 = the full colour).
   final double lightTint;
   final double darkTint;
+
+  /// [CategoryLayout.row] only: the size of the square tile, and the width
+  /// each tile and its name take in the row.
+  final CategoryLayout layout;
+  final double rowTileSize;
+  final double rowItemWidth;
 
   static const defaultPalette = <Color>[
     Color(0xFF1E6FD9), // 0 blue

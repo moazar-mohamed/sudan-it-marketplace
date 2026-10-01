@@ -31,6 +31,31 @@ const ORDER_TEXTS = {
     en: ['The company replied', (p) => `The company replied to your rating of "${p}".`],
     ar: ['ردّت الشركة على تقييمك', (p) => `ردّت الشركة على تقييمك لـ«${p}».`],
   },
+  // Service requests: `productName` holds the name of the service.
+  new_service_request: {
+    en: ['New service request', (p) => `A customer requested "${p}".`],
+    ar: ['طلب خدمة جديد', (p) => `طلب عميل الخدمة «${p}».`],
+  },
+  service_request_accepted: {
+    en: ['Request accepted', (p) => `Your request for "${p}" was accepted.`],
+    ar: ['تم قبول طلبك', (p) => `تم قبول طلبك للخدمة «${p}».`],
+  },
+  service_request_rejected: {
+    en: ['Request declined', (p) => `Your request for "${p}" was declined.`],
+    ar: ['تم رفض طلبك', (p) => `تم رفض طلبك للخدمة «${p}».`],
+  },
+  service_request_in_progress: {
+    en: ['Work has started', (p) => `Work has started on your request for "${p}".`],
+    ar: ['بدأ تنفيذ طلبك', (p) => `بدأ تنفيذ طلبك للخدمة «${p}».`],
+  },
+  service_request_completed: {
+    en: ['Request completed', (p) => `Your request for "${p}" has been completed.`],
+    ar: ['اكتمل طلبك', (p) => `تم إكمال طلبك للخدمة «${p}».`],
+  },
+  service_request_cancelled: {
+    en: ['Request cancelled', (p) => `A customer cancelled the request for "${p}".`],
+    ar: ['تم إلغاء الطلب', (p) => `ألغى عميل طلبه للخدمة «${p}».`],
+  },
 };
 
 const CHAT_TEXTS = {
@@ -43,11 +68,11 @@ export function languageOf(user) {
   return user?.language === 'ar' ? 'ar' : 'en';
 }
 
-/** A product name is at most this long (firestore.rules). */
+/** A product (or service) name is at most this long (firestore.rules). */
 const MAX_PRODUCT_NAME = 200;
 
 /**
- * Title and body of an order notification, built only from its type and its
+ * Title and body of an order or service request notification, built only from its type and its
  * `productName` (which the security rules check against the order). Nothing
  * a sender wrote is ever used: any stored `title` or `body` is ignored, and
  * an unknown type, or a type that needs a product name and has none, gives

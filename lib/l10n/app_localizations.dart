@@ -5089,6 +5089,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter {count} digits after {code}.'**
   String phoneDigitsExact(int count, String code);
+
+  /// No description provided for @notifNewServiceRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New service request'**
+  String get notifNewServiceRequestTitle;
+
+  /// No description provided for @notifNewServiceRequestBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A customer requested \"{service}\".'**
+  String notifNewServiceRequestBody(String service);
+
+  /// No description provided for @notifServiceRequestAcceptedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request accepted'**
+  String get notifServiceRequestAcceptedTitle;
+
+  /// No description provided for @notifServiceRequestAcceptedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request for \"{service}\" was accepted.'**
+  String notifServiceRequestAcceptedBody(String service);
+
+  /// No description provided for @notifServiceRequestRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request declined'**
+  String get notifServiceRequestRejectedTitle;
+
+  /// No description provided for @notifServiceRequestRejectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request for \"{service}\" was declined.'**
+  String notifServiceRequestRejectedBody(String service);
+
+  /// No description provided for @notifServiceRequestInProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Work has started'**
+  String get notifServiceRequestInProgressTitle;
+
+  /// No description provided for @notifServiceRequestInProgressBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Work has started on your request for \"{service}\".'**
+  String notifServiceRequestInProgressBody(String service);
+
+  /// No description provided for @notifServiceRequestCompletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request completed'**
+  String get notifServiceRequestCompletedTitle;
+
+  /// No description provided for @notifServiceRequestCompletedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request for \"{service}\" has been completed.'**
+  String notifServiceRequestCompletedBody(String service);
+
+  /// No description provided for @notifServiceRequestCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request cancelled'**
+  String get notifServiceRequestCancelledTitle;
+
+  /// No description provided for @notifServiceRequestCancelledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A customer cancelled the request for \"{service}\".'**
+  String notifServiceRequestCancelledBody(String service);
+
+  /// No description provided for @homeShopByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop by category'**
+  String get homeShopByCategory;
+
+  /// No description provided for @homeServicesByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Services by category'**
+  String get homeServicesByCategory;
+
+  /// No description provided for @homeShopNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop now'**
+  String get homeShopNow;
+
+  /// No description provided for @homeTrustDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery to your location'**
+  String get homeTrustDelivery;
+
+  /// No description provided for @homeTrustInstallation.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation by a technician'**
+  String get homeTrustInstallation;
+
+  /// No description provided for @homeVerifiedCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified companies'**
+  String get homeVerifiedCompanies;
+
+  /// No description provided for @homeAllCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'All companies'**
+  String get homeAllCompanies;
+
+  /// No description provided for @homeOffersEndsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends in'**
+  String get homeOffersEndsIn;
+
+  /// No description provided for @homeOffersEndsInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends in {days, plural, =1{1 day} other{{days} days}}'**
+  String homeOffersEndsInDays(int days);
+
+  /// No description provided for @homeRecentlyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get homeRecentlyAdded;
+
+  /// No description provided for @homeNewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get homeNewBadge;
+
+  /// No description provided for @homeAllProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'All products'**
+  String get homeAllProducts;
+
+  /// No description provided for @homeSortNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get homeSortNewest;
+
+  /// No description provided for @homeSortPriceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Price: low to high'**
+  String get homeSortPriceLow;
+
+  /// No description provided for @homeSortPriceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Price: high to low'**
+  String get homeSortPriceHigh;
+
+  /// No description provided for @homeSortTopRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest rated'**
+  String get homeSortTopRated;
+
+  /// No description provided for @homeSortName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get homeSortName;
+
+  /// No description provided for @homeSortMostReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Most reviewed'**
+  String get homeSortMostReviewed;
+
+  /// No description provided for @homeFilterOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Offers'**
+  String get homeFilterOffers;
+
+  /// No description provided for @homeFilterDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get homeFilterDelivery;
+
+  /// No description provided for @homeFilterInstallation.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation'**
+  String get homeFilterInstallation;
+
+  /// No description provided for @homeFilterTopRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Top rated'**
+  String get homeFilterTopRated;
+
+  /// No description provided for @homeNoRatingsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No ratings yet'**
+  String get homeNoRatingsYet;
+
+  /// No description provided for @homeNoMatchingProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No products match these filters'**
+  String get homeNoMatchingProducts;
+
+  /// No description provided for @homeServiceBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Need a technician?'**
+  String get homeServiceBannerTitle;
+
+  /// No description provided for @homeServiceBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what you need and get price offers from verified companies.'**
+  String get homeServiceBannerBody;
+
+  /// No description provided for @homeStepDescribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe your request'**
+  String get homeStepDescribe;
+
+  /// No description provided for @homeStepCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare offers'**
+  String get homeStepCompare;
+
+  /// No description provided for @homeStepArrives.
+  ///
+  /// In en, this message translates to:
+  /// **'Your technician arrives'**
+  String get homeStepArrives;
+
+  /// No description provided for @homeMostRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Most requested'**
+  String get homeMostRequested;
+
+  /// No description provided for @homeStartsFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts from'**
+  String get homeStartsFrom;
+
+  /// No description provided for @homeCompaniesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 verified company} other{{count} verified companies}}'**
+  String homeCompaniesCount(int count);
+
+  /// No description provided for @homeCompanyVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get homeCompanyVerified;
+
+  /// No description provided for @homeVisitCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit company'**
+  String get homeVisitCompany;
 }
 
 class _AppLocalizationsDelegate

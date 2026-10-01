@@ -22,41 +22,51 @@ enum NotificationRecipientType {
 /// companyId (any admin of that company may read it), or a technicianId.
 ///
 /// It carries no text of its own: [type] says what happened and the words
-/// are built from it and [productName] (the order's product, which the
-/// security rules check against the order) in the reader's language. So a
-/// sender can never write a message of their own.
+/// are built from it and [productName] (the order's product, or the service of
+/// a service request, which the security rules check against the order or the
+/// request) in the reader's language. So a sender can never write a message
+/// of their own.
+///
+/// It is about an order ([orderId]) or about a service request
+/// ([serviceRequestId]); exactly one of the two is set.
 class AppNotification {
   const AppNotification({
     required this.id,
     required this.recipientType,
     required this.recipientId,
-    required this.orderId,
+    this.orderId = '',
+    this.serviceRequestId = '',
     required this.type,
     this.productName = '',
     this.isRead = false,
     required this.createdAt,
   });
 
-  /// The id of the one notification of [type] an order can have (one per
-  /// technician for an assignment). The security rules require exactly this
-  /// id, so the same thing cannot be sent twice.
+  /// The id of the one notification of [type] an order (or a service request)
+  /// can have (one per technician for an assignment). The security rules
+  /// require exactly this id, so the same thing cannot be sent twice.
   static String idFor({
-    required String orderId,
+    String orderId = '',
+    String serviceRequestId = '',
     required String type,
     required NotificationRecipientType recipientType,
     required String recipientId,
-  }) =>
-      recipientType == NotificationRecipientType.technician
-          ? '${orderId}_${type}_$recipientId'
-          : '${orderId}_$type';
+  }) {
+    final about = serviceRequestId.isNotEmpty ? serviceRequestId : orderId;
+    return recipientType == NotificationRecipientType.technician
+        ? '${about}_${type}_$recipientId'
+        : '${about}_$type';
+  }
 
   final String id;
   final NotificationRecipientType recipientType;
   final String recipientId;
   final String orderId;
+  final String serviceRequestId;
   final String type;
 
-  /// Empty for a notification stored before product names were kept apart.
+  /// The product of the order, or the service of the request. Empty for a
+  /// notification stored before product names were kept apart.
   final String productName;
   final bool isRead;
   final DateTime createdAt;
@@ -67,6 +77,7 @@ class AppNotification {
       recipientType: recipientType,
       recipientId: recipientId,
       orderId: orderId,
+      serviceRequestId: serviceRequestId,
       type: type,
       productName: productName,
       isRead: isRead ?? this.isRead,

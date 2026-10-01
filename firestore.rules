@@ -1104,13 +1104,43 @@ service cloud.firestore {
         && request.resource.data.type == 'technician_assigned';
     }
 
-    // No `title` or `body`: free text is not stored at all.
+    function notificationServiceRequest(requestId) {
+      return get(/databases/$(database)/documents/service_requests/$(requestId)).data;
+    }
+
+    // A notification about a service request goes between its two sides only:
+    // from the customer who sent it to the company it was sent to (a new or a
+    // cancelled request), or from that company's admin to the customer (the
+    // company's answers). Technicians have no service request notifications.
+    function isValidServiceRequestNotificationCreate() {
+      let data = request.resource.data;
+      let serviceRequest = notificationServiceRequest(data.serviceRequestId);
+      return (data.recipientType == 'company_admin'
+          && data.type in ['new_service_request', 'service_request_cancelled']
+          && serviceRequest.customerId == request.auth.uid
+          && serviceRequest.companyId == data.recipientId)
+        || (data.recipientType == 'customer'
+          && data.type in [
+            'service_request_accepted',
+            'service_request_rejected',
+            'service_request_in_progress',
+            'service_request_completed'
+          ]
+          && serviceRequest.customerId == data.recipientId
+          && isCompanyAdminOf(serviceRequest.companyId));
+    }
+
+    // No `title` or `body`: free text is not stored at all. A notification is
+    // about an order (`orderId`) or a service request (`serviceRequestId`),
+    // which is checked by isNotificationAboutOneThing, so neither is listed
+    // as required here.
     function hasRequiredNotificationKeys() {
       return request.resource.data.keys().hasOnly([
           'id',
           'recipientType',
           'recipientId',
           'orderId',
+          'serviceRequestId',
           'type',
           'productName',
           'isRead',
@@ -1121,7 +1151,6 @@ service cloud.firestore {
           'id',
           'recipientType',
           'recipientId',
-          'orderId',
           'type',
           'productName',
           'isRead',
@@ -1129,19 +1158,39 @@ service cloud.firestore {
         ]);
     }
 
-    // One notification per order and type (per technician for an assignment):
-    // the id is fixed, so sending the same thing again is refused as an edit
-    // of the one that exists.
+    // One notification per order (or service request) and type (per technician
+    // for an assignment): the id is fixed, so sending the same thing again is
+    // refused as an edit of the one that exists.
     function notificationIdFor(data) {
+      let about = data.keys().hasAny(['serviceRequestId'])
+        ? data.serviceRequestId
+        : data.orderId;
       return data.recipientType == 'technician'
-        ? data.orderId + '_' + data.type + '_' + data.recipientId
-        : data.orderId + '_' + data.type;
+        ? about + '_' + data.type + '_' + data.recipientId
+        : about + '_' + data.type;
+    }
+
+    // A notification is about an order (`orderId`) or about a service request
+    // (`serviceRequestId`), never both and never neither.
+    function isNotificationAboutOneThing() {
+      let data = request.resource.data;
+      return (data.keys().hasAny(['orderId'])
+          && !data.keys().hasAny(['serviceRequestId'])
+          && data.orderId is string
+          && data.orderId.size() > 0
+          && data.orderId.size() <= 128)
+        || (data.keys().hasAny(['serviceRequestId'])
+          && !data.keys().hasAny(['orderId'])
+          && data.serviceRequestId is string
+          && data.serviceRequestId.size() > 0
+          && data.serviceRequestId.size() <= 128);
     }
 
     // `senderId` names who created the notification (the push relay only
     // sends a notification for its own sender). `productName` is the only
-    // text, and it must be the order's own product name; a product name is
-    // at most 200 characters (isValidProductData). Ids are far shorter than
+    // text, and it must be the order's own product name (the request's own
+    // service name for a service request); a product or service name is at
+    // most 200 characters. Ids are far shorter than
     // 128 (Firestore ids are 20 characters, the app's order ids about 11).
     function isValidNotificationCreate(notificationId) {
       return hasRequiredNotificationKeys()
@@ -1151,15 +1200,15 @@ service cloud.firestore {
         && request.resource.data.recipientId is string
         && request.resource.data.recipientId.size() > 0
         && request.resource.data.recipientId.size() <= 128
-        && request.resource.data.orderId is string
-        && request.resource.data.orderId.size() > 0
-        && request.resource.data.orderId.size() <= 128
+        && isNotificationAboutOneThing()
         && request.resource.data.type is string
         && notificationId == notificationIdFor(request.resource.data)
         && request.resource.data.productName is string
         && request.resource.data.productName.size() <= 200
         && request.resource.data.productName
-          == notificationOrder(request.resource.data.orderId).productName
+          == (request.resource.data.keys().hasAny(['serviceRequestId'])
+            ? notificationServiceRequest(request.resource.data.serviceRequestId).serviceName
+            : notificationOrder(request.resource.data.orderId).productName)
         && request.resource.data.isRead == false
         && request.resource.data.createdAt is timestamp
         && request.resource.data.createdAt == request.time;
@@ -1192,12 +1241,15 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && callerIsNotDeactivated()
         && isValidNotificationCreate(notificationId)
-        && ((request.resource.data.recipientType == 'company_admin'
-              && isValidCompanyAdminNotificationCreate())
-          || (request.resource.data.recipientType == 'customer'
-              && isValidCustomerNotificationCreate())
-          || (request.resource.data.recipientType == 'technician'
-              && isValidTechnicianNotificationCreate()));
+        && ((request.resource.data.keys().hasAny(['serviceRequestId'])
+              && isValidServiceRequestNotificationCreate())
+          || (!request.resource.data.keys().hasAny(['serviceRequestId'])
+            && ((request.resource.data.recipientType == 'company_admin'
+                  && isValidCompanyAdminNotificationCreate())
+              || (request.resource.data.recipientType == 'customer'
+                  && isValidCustomerNotificationCreate())
+              || (request.resource.data.recipientType == 'technician'
+                  && isValidTechnicianNotificationCreate()))));
 
       allow update: if isSignedIn()
         && (isPlatformAdmin() || isNotificationRecipient())

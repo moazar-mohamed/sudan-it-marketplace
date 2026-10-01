@@ -132,7 +132,9 @@ class KeyValueRow extends StatelessWidget {
             flex: 2,
             child: Text(
               label,
-              style: AppTextStyles.body.copyWith(color: context.colors.textSecondary),
+              style: AppTextStyles.body.copyWith(
+                color: context.colors.textSecondary,
+              ),
             ),
           ),
           const SizedBox(width: AppSpacing.s12),
@@ -148,8 +150,11 @@ class KeyValueRow extends StatelessWidget {
                 textAlign: TextAlign.end,
                 textDirection: valueTextDirection,
                 style: AppTextStyles.bodyStrong.copyWith(
-                  color: valueColor ??
-                      (emphasize ? context.colors.textBrand : context.colors.textPrimary),
+                  color:
+                      valueColor ??
+                      (emphasize
+                          ? context.colors.textBrand
+                          : context.colors.textPrimary),
                 ),
               ),
             ),
@@ -220,7 +225,11 @@ class AppIconTile extends StatelessWidget {
         color: tone.background(context.colors),
         borderRadius: BorderRadius.circular(radius),
       ),
-      child: Icon(icon, size: iconSize ?? size * 0.5, color: tone.accent(context.colors)),
+      child: Icon(
+        icon,
+        size: iconSize ?? size * 0.5,
+        color: tone.accent(context.colors),
+      ),
     );
   }
 }
@@ -297,10 +306,16 @@ class AppImageTile extends StatelessWidget {
     final text = fallbackText?.trim() ?? '';
     final Widget fallback = Center(
       child: text.isEmpty
-          ? Icon(fallbackIcon, size: size * 0.46, color: tone.accent(context.colors))
+          ? Icon(
+              fallbackIcon,
+              size: size * 0.46,
+              color: tone.accent(context.colors),
+            )
           : Text(
               text.characters.first.toUpperCase(),
-              style: AppTextStyles.h3.copyWith(color: tone.foreground(context.colors)),
+              style: AppTextStyles.h3.copyWith(
+                color: tone.foreground(context.colors),
+              ),
             ),
     );
     final url = imageUrl ?? '';
@@ -354,10 +369,7 @@ class AppListCard extends StatelessWidget {
             trailing!,
           ] else if (showChevron) ...[
             const SizedBox(width: AppSpacing.s4),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: context.colors.iconMuted,
-            ),
+            Icon(Icons.chevron_right_rounded, color: context.colors.iconMuted),
           ],
         ],
       ),
@@ -413,11 +425,21 @@ class AppNetworkImage extends StatelessWidget {
     required this.url,
     required this.fallback,
     this.fit = BoxFit.cover,
+    this.width,
+    this.height,
   });
 
   final String url;
   final Widget fallback;
   final BoxFit fit;
+
+  /// A size the picture always takes, whatever its own shape or size (it is
+  /// cropped to it, not stretched). Without one it takes what its parent
+  /// allows, and a parent that does not fix the size lets a square photo
+  /// grow tall and a wide one stay short. Pass `double.infinity` to fill the
+  /// parent's width.
+  final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -425,6 +447,8 @@ class AppNetworkImage extends StatelessWidget {
     return Image.network(
       url,
       fit: fit,
+      width: width,
+      height: height,
       errorBuilder: (_, _, _) => fallback,
     );
   }

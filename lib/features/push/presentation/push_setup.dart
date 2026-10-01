@@ -19,6 +19,7 @@ import '../../company_admin/presentation/orders/company_order_details_screen.dar
 import '../../customer_dashboard/presentation/profile_controller.dart';
 import '../../orders/presentation/order_details_screen.dart';
 import '../../orders/presentation/orders_providers.dart';
+import '../../service_requests/presentation/service_request_details_screen.dart';
 import '../data/push_tokens.dart';
 import 'push_destination.dart';
 
@@ -123,6 +124,8 @@ Widget pushDestinationScreen(PushDestination destination) {
       CompanyOrderDetailsScreen(companyId: companyId, orderId: orderId),
     CustomerOrderDestination(:final orderId) =>
       _CustomerOrderLoader(orderId: orderId),
+    ServiceRequestDestination(:final requestId, :final asCompany) =>
+      ServiceRequestDetailsScreen(requestId: requestId, asCompany: asCompany),
   };
 }
 

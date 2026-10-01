@@ -2810,4 +2810,178 @@ class AppLocalizationsAr extends AppLocalizations {
   String phoneDigitsExact(int count, String code) {
     return 'أدخل $count أرقام بعد $code.';
   }
+
+  @override
+  String get notifNewServiceRequestTitle => 'طلب خدمة جديد';
+
+  @override
+  String notifNewServiceRequestBody(String service) {
+    return 'طلب عميل الخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestAcceptedTitle => 'تم قبول طلبك';
+
+  @override
+  String notifServiceRequestAcceptedBody(String service) {
+    return 'تم قبول طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestRejectedTitle => 'تم رفض طلبك';
+
+  @override
+  String notifServiceRequestRejectedBody(String service) {
+    return 'تم رفض طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestInProgressTitle => 'بدأ تنفيذ طلبك';
+
+  @override
+  String notifServiceRequestInProgressBody(String service) {
+    return 'بدأ تنفيذ طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestCompletedTitle => 'اكتمل طلبك';
+
+  @override
+  String notifServiceRequestCompletedBody(String service) {
+    return 'تم إكمال طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestCancelledTitle => 'تم إلغاء الطلب';
+
+  @override
+  String notifServiceRequestCancelledBody(String service) {
+    return 'ألغى عميل طلبه للخدمة «$service».';
+  }
+
+  @override
+  String get homeShopByCategory => 'تسوّق حسب القسم';
+
+  @override
+  String get homeServicesByCategory => 'الخدمات حسب القسم';
+
+  @override
+  String get homeShopNow => 'تسوّق الآن';
+
+  @override
+  String get homeTrustDelivery => 'توصيل لموقعك';
+
+  @override
+  String get homeTrustInstallation => 'تركيب بواسطة فنّي';
+
+  @override
+  String get homeVerifiedCompanies => 'شركات موثّقة';
+
+  @override
+  String get homeAllCompanies => 'كل الشركات';
+
+  @override
+  String get homeOffersEndsIn => 'تنتهي خلال';
+
+  @override
+  String homeOffersEndsInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم واحد',
+    );
+    return 'تنتهي خلال $_temp0';
+  }
+
+  @override
+  String get homeRecentlyAdded => 'وصل حديثًا';
+
+  @override
+  String get homeNewBadge => 'جديد';
+
+  @override
+  String get homeAllProducts => 'كل المنتجات';
+
+  @override
+  String get homeSortNewest => 'الأحدث';
+
+  @override
+  String get homeSortPriceLow => 'السعر: من الأقل';
+
+  @override
+  String get homeSortPriceHigh => 'السعر: من الأعلى';
+
+  @override
+  String get homeSortTopRated => 'الأعلى تقييمًا';
+
+  @override
+  String get homeSortName => 'الاسم';
+
+  @override
+  String get homeSortMostReviewed => 'الأكثر مراجعة';
+
+  @override
+  String get homeFilterOffers => 'عروض';
+
+  @override
+  String get homeFilterDelivery => 'توصيل';
+
+  @override
+  String get homeFilterInstallation => 'تركيب';
+
+  @override
+  String get homeFilterTopRated => 'الأعلى';
+
+  @override
+  String get homeNoRatingsYet => 'لا توجد تقييمات بعد';
+
+  @override
+  String get homeNoMatchingProducts => 'لا توجد منتجات تطابق هذه الفلاتر';
+
+  @override
+  String get homeServiceBannerTitle => 'تحتاج فنّي؟';
+
+  @override
+  String get homeServiceBannerBody =>
+      'صِف طلبك وتصلك عروض أسعار من شركات موثّقة';
+
+  @override
+  String get homeStepDescribe => 'صِف طلبك';
+
+  @override
+  String get homeStepCompare => 'قارن العروض';
+
+  @override
+  String get homeStepArrives => 'فنّي يصلك';
+
+  @override
+  String get homeMostRequested => 'الأكثر طلبًا';
+
+  @override
+  String get homeStartsFrom => 'يبدأ من';
+
+  @override
+  String homeCompaniesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شركة موثّقة',
+      many: '$count شركة موثّقة',
+      few: '$count شركات موثّقة',
+      two: 'شركتان موثّقتان',
+      one: 'شركة موثّقة واحدة',
+      zero: 'لا توجد شركات موثّقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeCompanyVerified => 'موثّقة';
+
+  @override
+  String get homeVisitCompany => 'زيارة الشركة';
 }
