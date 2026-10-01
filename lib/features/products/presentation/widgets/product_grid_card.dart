@@ -75,22 +75,25 @@ class ProductGridCard extends ConsumerWidget {
             children: [
               Stack(
                 children: [
-                  // Full width: a Stack gives its children loose constraints,
-                  // which would shrink a square photo to a 128 px tile.
-                  Container(
-                    width: double.infinity,
-                    height: 128,
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      color: tint ?? AppTone.brand.background(colors),
-                    ),
-                    child: AppNetworkImage(
-                      url: product.imageUrl ?? '',
-                      fallback: Center(
-                        child: Icon(
-                          icon ?? Icons.inventory_2_outlined,
-                          size: 52,
-                          color: iconColor ?? AppTone.brand.accent(colors),
+                  // A square band the card's full width, with the whole photo
+                  // shown (contain): product photos are mostly square, and a
+                  // cropped one can cut off the product itself.
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: Container(
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        color: tint ?? AppTone.brand.background(colors),
+                      ),
+                      child: AppNetworkImage(
+                        url: product.imageUrl ?? '',
+                        fit: BoxFit.contain,
+                        fallback: Center(
+                          child: Icon(
+                            icon ?? Icons.inventory_2_outlined,
+                            size: 52,
+                            color: iconColor ?? AppTone.brand.accent(colors),
+                          ),
                         ),
                       ),
                     ),
