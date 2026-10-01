@@ -136,12 +136,10 @@ class ReviewActions {
           );
       if (subject.source == ReviewSource.order) {
         await _notify(
-          (id) => NotificationEvents.newReview(
-            id: id,
+          NotificationEvents.newReview(
             orderId: subject.id,
             companyId: subject.companyId,
             productName: subject.targetName,
-            stars: draft.stars,
           ),
         );
       }
@@ -169,8 +167,7 @@ class ReviewActions {
           .replyToReview(review.id, reply.trim());
       if (firstReply && review.source == ReviewSource.order) {
         await _notify(
-          (id) => NotificationEvents.reviewReply(
-            id: id,
+          NotificationEvents.reviewReply(
             orderId: review.id,
             customerId: review.customerId,
             productName: review.targetName,
@@ -190,11 +187,11 @@ class ReviewActions {
   }
 
   /// A notification that fails to send never undoes the rating itself.
-  Future<void> _notify(AppNotification Function(String id) build) async {
+  Future<void> _notify(AppNotification notification) async {
     try {
-      final notifications = _ref.read(notificationsRepositoryProvider);
-      await notifications
-          .createNotification(build(notifications.newNotificationId()));
+      await _ref
+          .read(notificationsRepositoryProvider)
+          .createNotification(notification);
     } catch (_) {}
   }
 }

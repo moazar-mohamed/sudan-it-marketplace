@@ -72,18 +72,21 @@ beforeEach(async () => {
   });
 });
 
-const newOrderNotification = (id: string, extra: Record<string, unknown> = {}) => ({
-  id,
+/** The one new_order notification of order o1 (its id is fixed by the rules). */
+const NEW_ORDER_ID = 'o1_new_order';
+const newOrderNotification = (extra: Record<string, unknown> = {}) => ({
+  id: NEW_ORDER_ID,
   recipientType: 'company_admin',
   recipientId: 'c1',
   orderId: 'o1',
   type: 'new_order',
-  title: 'New order received',
-  body: 'A new order for "Router" was placed and is awaiting payment verification.',
+  productName: 'Router',
   isRead: false,
   createdAt: serverTimestamp(),
   ...extra,
 });
+const send = (uid: string, extra: Record<string, unknown> = {}) =>
+  setDoc(doc(as(uid), 'notifications', NEW_ORDER_ID), newOrderNotification(extra));
 
 describe('registering the phones that receive pushes', () => {
   it('every kind of user saves their own device tokens', async () => {
@@ -109,15 +112,15 @@ describe('registering the phones that receive pushes', () => {
 
 describe('a notification names who created it', () => {
   it('the creator may sign it with their own id', async () => {
-    await assertSucceeds(setDoc(doc(as('cust1'), 'notifications', 'n1'), newOrderNotification('n1', { senderId: 'cust1' })));
+    await assertSucceeds(send('cust1', { senderId: 'cust1' }));
   });
 
   it("but not with someone else's", async () => {
-    await assertFails(setDoc(doc(as('cust1'), 'notifications', 'n2'), newOrderNotification('n2', { senderId: 'ca1' })));
+    await assertFails(send('cust1', { senderId: 'ca1' }));
   });
 
-  it('older app versions that do not sign it keep working', async () => {
-    await assertSucceeds(setDoc(doc(as('cust1'), 'notifications', 'n3'), newOrderNotification('n3')));
+  it('one left unsigned is still stored (the relay never pushes it)', async () => {
+    await assertSucceeds(send('cust1'));
   });
 });
 

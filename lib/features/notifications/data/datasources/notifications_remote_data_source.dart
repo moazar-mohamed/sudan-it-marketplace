@@ -9,10 +9,10 @@ abstract interface class NotificationsRemoteDataSource {
     String technicianId,
   );
 
-  String newNotificationId();
-
   /// True once it is stored; false when it could not be (never throws).
   Future<bool> createNotification(AppNotification notification);
 
   Future<void> markAsRead(String notificationId);
+
+  Future<void> deleteNotification(String notificationId);
 }

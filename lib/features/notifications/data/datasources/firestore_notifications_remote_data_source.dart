@@ -59,9 +59,6 @@ class FirestoreNotificationsRemoteDataSource
       _watchFor(recipientType: 'technician', recipientId: technicianId);
 
   @override
-  String newNotificationId() => _notifications.doc().id;
-
-  @override
   Future<bool> createNotification(AppNotification notification) async {
     try {
       await _notifications.doc(notification.id).set(
@@ -88,6 +85,16 @@ class FirestoreNotificationsRemoteDataSource
       await _notifications.doc(notificationId).update({'isRead': true});
     } on FirebaseException catch (error) {
       debugLog('NotificationsDS', 'markAsRead failed: '
+          '${error.code} ${error.message}');
+    }
+  }
+
+  @override
+  Future<void> deleteNotification(String notificationId) async {
+    try {
+      await _notifications.doc(notificationId).delete();
+    } on FirebaseException catch (error) {
+      debugLog('NotificationsDS', 'deleteNotification failed: '
           '${error.code} ${error.message}');
     }
   }

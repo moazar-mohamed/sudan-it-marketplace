@@ -30,9 +30,6 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
   ) =>
       _remoteDataSource.watchTechnicianNotifications(technicianId);
 
-  @override
-  String newNotificationId() => _remoteDataSource.newNotificationId();
-
   /// Once it is stored, it also goes to the recipients' phones (in the
   /// background: the caller never waits for the push).
   @override
@@ -45,4 +42,8 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
   @override
   Future<void> markAsRead(String notificationId) =>
       _remoteDataSource.markAsRead(notificationId);
+
+  @override
+  Future<void> deleteNotification(String notificationId) =>
+      _remoteDataSource.deleteNotification(notificationId);
 }

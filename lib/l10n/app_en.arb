@@ -539,6 +539,10 @@
   "profilePasswordChanged": "Password changed successfully.",
   "notificationsLoadFailed": "Could not load notifications.",
   "notificationsEmpty": "No notifications yet.",
+  "notifGenericTitle": "Notification",
+  "notifGenericBody": "There is an update on one of your orders.",
+  "notifDeleteTitle": "Delete this notification?",
+  "notifDeleteBody": "It will be removed for good.",
   "notifNewOrderTitle": "New order received",
   "notifNewOrderBody": "A new order for \"{product}\" was placed and is awaiting payment verification.",
   "@notifNewOrderBody": {

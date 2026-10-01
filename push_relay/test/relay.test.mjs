@@ -159,8 +159,7 @@ beforeEach(async () => {
   put('technicians/t1', { companyId: 'c1', uid: 'tech1u', email: 'tech@x.test' });
   put('notifications/n1', {
     recipientType: 'company_admin', recipientId: 'c1', orderId: 'o1', type: 'new_order',
-    title: 'New order received', body: 'A new order for "Router" was placed and is awaiting payment verification.',
-    senderId: 'cust1', createdAt: minutesAgo(1),
+    productName: 'Router', senderId: 'cust1', createdAt: minutesAgo(1),
   });
   put('chats/chat1', {
     customerId: 'cust1', companyId: 'c1', customerName: 'Amna', companyName: 'Nile Tech',
@@ -227,12 +226,11 @@ describe('order notifications', () => {
   it('reach a customer, and a technician through their account', async () => {
     google.docs.set('notifications/n2', {
       recipientType: 'customer', recipientId: 'cust1', orderId: 'o1', type: 'order_completed',
-      title: 'Order completed', body: 'تم إكمال طلبك', senderId: 'ca1', createdAt: minutesAgo(0),
+      productName: 'Router', senderId: 'ca1', createdAt: minutesAgo(0),
     });
     google.docs.set('notifications/n3', {
       recipientType: 'technician', recipientId: 't1', orderId: 'o1', type: 'technician_assigned',
-      title: 'New installation job assigned', body: 'You have been assigned to install "Router".',
-      senderId: 'ca1', createdAt: minutesAgo(0),
+      productName: 'Router', senderId: 'ca1', createdAt: minutesAgo(0),
     });
     assert.equal((await call({ notificationId: 'n2' }, 'token-ca1')).body.sent, 1);
     assert.equal((await call({ notificationId: 'n3' }, 'token-ca1')).body.sent, 1);
@@ -240,6 +238,53 @@ describe('order notifications', () => {
       ['phone-cust1', 'اكتمل الطلب'],
       ['phone-tech1', 'New installation job assigned'],
     ]);
+  });
+});
+
+describe('stored text is never pushed', () => {
+  const stored = (extra) => google.docs.set('notifications/nx', {
+    recipientType: 'company_admin', recipientId: 'c1', orderId: 'o1', senderId: 'cust1',
+    title: 'Written by the sender', body: 'Call this number "now"', createdAt: minutesAgo(0),
+    ...extra,
+  });
+
+  it('an unknown type is refused: nothing is sent and nothing is logged', async () => {
+    stored({ type: 'system_alert', productName: 'Router' });
+    const result = await call({ notificationId: 'nx' });
+    assert.deepEqual(result, { status: 422, body: { error: 'unsupported_notification' } });
+    assert.equal(google.sent.length, 0);
+    assert.equal(google.docs.has('push_log/n_nx'), false);
+  });
+
+  it('a name that only looks like a type (a built-in object key) is refused too', async () => {
+    for (const type of ['constructor', '__proto__', 'toString', '']) {
+      stored({ type, productName: 'Router' });
+      assert.equal((await call({ notificationId: 'nx' })).status, 422, type);
+    }
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('a known type without a product name is refused (the stored body is not read)', async () => {
+    stored({ type: 'new_order' });
+    assert.equal((await call({ notificationId: 'nx' })).status, 422);
+    stored({ type: 'new_order', productName: 42 });
+    assert.equal((await call({ notificationId: 'nx' })).status, 422);
+    assert.equal(google.sent.length, 0);
+  });
+
+  it("a known type is pushed in the relay's own words, whatever text is stored with it", async () => {
+    stored({ type: 'new_order', productName: 'Router' });
+    assert.equal((await call({ notificationId: 'nx' })).body.sent, 3);
+    for (const message of google.sent) {
+      assert.ok(
+        ['تم استلام طلب جديد', 'New order received'].includes(message.notification.title),
+        message.notification.title,
+      );
+      assert.match(message.notification.body, /Router/);
+      const pushed = JSON.stringify(message);
+      assert.ok(!pushed.includes('Written by the sender'));
+      assert.ok(!pushed.includes('Call this number'));
+    }
   });
 });
 
@@ -265,15 +310,32 @@ describe('chat messages', () => {
 });
 
 describe('texts', () => {
-  it('an unknown type or a body without a name keeps the stored text', () => {
-    assert.deepEqual(
-      orderNotificationText({ type: 'something_new', title: 'T', body: 'B' }, 'ar'),
-      { title: 'T', body: 'B' },
-    );
-    assert.deepEqual(
-      orderNotificationText({ type: 'new_order', title: 'T', body: 'no quotes' }, 'en'),
-      { title: 'T', body: 'no quotes' },
-    );
+  it('an unknown type, or a type that needs a product name and has none, has no text', () => {
+    assert.equal(orderNotificationText({ type: 'something_new', title: 'T', body: 'B' }, 'ar'), null);
+    assert.equal(orderNotificationText({ type: 'new_order', title: 'T', body: 'x "Router" y' }, 'en'), null);
+    assert.equal(orderNotificationText({ type: 'new_order', productName: '   ' }, 'en'), null);
+    assert.equal(orderNotificationText({}, 'en'), null);
+  });
+
+  it('each known type is worded from its type and product name only', () => {
+    for (const type of [
+      'new_order', 'payment_confirmed', 'out_for_delivery', 'technician_assigned', 'new_review', 'review_reply',
+    ]) {
+      for (const language of ['en', 'ar']) {
+        const text = orderNotificationText({ type, productName: 'Router', title: 'T', body: 'B' }, language);
+        assert.ok(text.title.length > 0 && text.title !== 'T', `${type} ${language}`);
+        assert.match(text.body, /Router/);
+        assert.notEqual(text.body, 'B');
+      }
+    }
+    assert.deepEqual(orderNotificationText({ type: 'order_completed' }, 'en'), {
+      title: 'Order completed', body: 'Your order has been completed.',
+    });
+  });
+
+  it('an over-long product name is cut to 200 characters', () => {
+    const text = orderNotificationText({ type: 'new_order', productName: 'x'.repeat(5000) }, 'en');
+    assert.ok(text.body.length < 300);
   });
 
   it('long messages are shortened; an order chat has no "Question:"', () => {

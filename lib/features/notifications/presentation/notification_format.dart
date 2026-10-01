@@ -3,46 +3,49 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/entities/app_notification.dart';
+import 'notification_events.dart';
 
+/// The words and look of a notification, built only from its type and its
+/// product name, in the reader's language. Nothing a sender wrote is shown:
+/// an unknown type gets a plain, general message.
 class NotificationFormat {
   NotificationFormat._();
 
-  /// The title in the reader's language. Unknown types keep the stored text.
   static String title(AppLocalizations l10n, AppNotification notification) {
     return switch (notification.type) {
-      'new_order' => l10n.notifNewOrderTitle,
-      'payment_confirmed' => l10n.notifPaymentConfirmedTitle,
-      'out_for_delivery' => l10n.notifOutForDeliveryTitle,
-      'order_completed' => l10n.notifOrderCompletedTitle,
-      'technician_assigned' => l10n.notifTechnicianAssignedTitle,
-      'new_review' => l10n.notifNewReviewTitle,
-      'review_reply' => l10n.notifReviewReplyTitle,
-      _ => notification.title,
+      NotificationTypes.newOrder => l10n.notifNewOrderTitle,
+      NotificationTypes.paymentConfirmed => l10n.notifPaymentConfirmedTitle,
+      NotificationTypes.outForDelivery => l10n.notifOutForDeliveryTitle,
+      NotificationTypes.orderCompleted => l10n.notifOrderCompletedTitle,
+      NotificationTypes.technicianAssigned =>
+        l10n.notifTechnicianAssignedTitle,
+      NotificationTypes.newReview => l10n.notifNewReviewTitle,
+      NotificationTypes.reviewReply => l10n.notifReviewReplyTitle,
+      _ => l10n.notifGenericTitle,
     };
   }
 
-  /// The body in the reader's language. The product name is the quoted part
-  /// of the stored body; when it cannot be found the stored text is shown.
+  /// A notification stored without a product name (before names were kept
+  /// apart) gets the general message under its own title.
   static String body(AppLocalizations l10n, AppNotification notification) {
-    final product = _quotedName(notification.body);
+    final product = notification.productName.trim();
+    final named = product.isNotEmpty;
     return switch (notification.type) {
-      'new_order' when product != null => l10n.notifNewOrderBody(product),
-      'payment_confirmed' when product != null =>
+      NotificationTypes.newOrder when named => l10n.notifNewOrderBody(product),
+      NotificationTypes.paymentConfirmed when named =>
         l10n.notifPaymentConfirmedBody(product),
-      'out_for_delivery' when product != null =>
+      NotificationTypes.outForDelivery when named =>
         l10n.notifOutForDeliveryBody(product),
-      'order_completed' => l10n.notifOrderCompletedBody,
-      'technician_assigned' when product != null =>
+      NotificationTypes.orderCompleted => l10n.notifOrderCompletedBody,
+      NotificationTypes.technicianAssigned when named =>
         l10n.notifTechnicianAssignedBody(product),
-      'new_review' when product != null => l10n.notifNewReviewBody(product),
-      'review_reply' when product != null =>
+      NotificationTypes.newReview when named =>
+        l10n.notifNewReviewBody(product),
+      NotificationTypes.reviewReply when named =>
         l10n.notifReviewReplyBody(product),
-      _ => notification.body,
+      _ => l10n.notifGenericBody,
     };
   }
-
-  static String? _quotedName(String body) =>
-      RegExp(r'"(.*)"').firstMatch(body)?.group(1);
 
   static String date(DateTime value) {
     final local = value.toLocal();
@@ -53,25 +56,34 @@ class NotificationFormat {
 
   static ({IconData icon, AppTone tone}) style(AppNotification notification) {
     return switch (notification.type) {
-      'new_order' => (icon: Icons.receipt_long_outlined, tone: AppTone.brand),
-      'payment_confirmed' => (
+      NotificationTypes.newOrder => (
+          icon: Icons.receipt_long_outlined,
+          tone: AppTone.brand,
+        ),
+      NotificationTypes.paymentConfirmed => (
           icon: Icons.verified_outlined,
           tone: AppTone.success,
         ),
-      'out_for_delivery' => (
+      NotificationTypes.outForDelivery => (
           icon: Icons.local_shipping_outlined,
           tone: AppTone.progress,
         ),
-      'order_completed' => (
+      NotificationTypes.orderCompleted => (
           icon: Icons.check_circle_outline,
           tone: AppTone.success,
         ),
-      'technician_assigned' => (
+      NotificationTypes.technicianAssigned => (
           icon: Icons.engineering_outlined,
           tone: AppTone.brand,
         ),
-      'new_review' => (icon: Icons.star_outline_rounded, tone: AppTone.warning),
-      'review_reply' => (icon: Icons.reply_rounded, tone: AppTone.brand),
+      NotificationTypes.newReview => (
+          icon: Icons.star_outline_rounded,
+          tone: AppTone.warning,
+        ),
+      NotificationTypes.reviewReply => (
+          icon: Icons.reply_rounded,
+          tone: AppTone.brand,
+        ),
       _ => (icon: Icons.notifications_outlined, tone: AppTone.brand),
     };
   }

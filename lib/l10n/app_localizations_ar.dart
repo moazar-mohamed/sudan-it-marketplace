@@ -1181,6 +1181,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notificationsEmpty => 'لا توجد إشعارات بعد.';
 
   @override
+  String get notifGenericTitle => 'إشعار';
+
+  @override
+  String get notifGenericBody => 'يوجد تحديث على أحد طلباتك.';
+
+  @override
+  String get notifDeleteTitle => 'حذف هذا الإشعار؟';
+
+  @override
+  String get notifDeleteBody => 'سيُحذف نهائياً.';
+
+  @override
   String get notifNewOrderTitle => 'تم استلام طلب جديد';
 
   @override

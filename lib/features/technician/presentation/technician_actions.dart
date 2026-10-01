@@ -26,7 +26,6 @@ class TechnicianActions {
           );
       final notifications = _ref.read(notificationsRepositoryProvider);
       final event = NotificationEvents.forOrderStatusChange(
-        id: notifications.newNotificationId(),
         status: status,
         orderId: order.id,
         customerId: order.customerId,

@@ -1193,6 +1193,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsEmpty => 'No notifications yet.';
 
   @override
+  String get notifGenericTitle => 'Notification';
+
+  @override
+  String get notifGenericBody => 'There is an update on one of your orders.';
+
+  @override
+  String get notifDeleteTitle => 'Delete this notification?';
+
+  @override
+  String get notifDeleteBody => 'It will be removed for good.';
+
+  @override
   String get notifNewOrderTitle => 'New order received';
 
   @override

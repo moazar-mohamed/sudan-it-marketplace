@@ -2174,6 +2174,30 @@ abstract class AppLocalizations {
   /// **'No notifications yet.'**
   String get notificationsEmpty;
 
+  /// No description provided for @notifGenericTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get notifGenericTitle;
+
+  /// No description provided for @notifGenericBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There is an update on one of your orders.'**
+  String get notifGenericBody;
+
+  /// No description provided for @notifDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this notification?'**
+  String get notifDeleteTitle;
+
+  /// No description provided for @notifDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It will be removed for good.'**
+  String get notifDeleteBody;
+
   /// No description provided for @notifNewOrderTitle.
   ///
   /// In en, this message translates to:

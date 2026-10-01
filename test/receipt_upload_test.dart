@@ -69,9 +69,6 @@ const _company = Company(
 
 class _FakeNotifications extends Fake implements NotificationsRepository {
   @override
-  String newNotificationId() => 'n1';
-
-  @override
   Future<void> createNotification(AppNotification notification) async {}
 }
 

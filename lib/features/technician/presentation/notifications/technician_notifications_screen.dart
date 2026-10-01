@@ -46,6 +46,9 @@ class TechnicianNotificationsScreen extends ConsumerWidget {
               final notification = items[index];
               return NotificationTile(
                 notification: notification,
+                onDelete: () => ref
+                    .read(notificationsRepositoryProvider)
+                    .deleteNotification(notification.id),
                 onTap: () {
                   if (!notification.isRead) {
                     ref
