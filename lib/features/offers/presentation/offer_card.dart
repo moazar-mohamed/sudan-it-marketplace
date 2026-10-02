@@ -16,10 +16,12 @@ void openOfferItem(BuildContext context, OfferItem item) {
   Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => switch (item) {
-        ProductOfferItem(:final product) =>
-          ProductDetailsScreen(product: product),
-        ServiceOfferItem(:final service) =>
-          ServiceDetailsScreen(service: service),
+        ProductOfferItem(:final product) => ProductDetailsScreen(
+          product: product,
+        ),
+        ServiceOfferItem(:final service) => ServiceDetailsScreen(
+          service: service,
+        ),
       },
     ),
   );
@@ -34,16 +36,34 @@ class OfferCard extends StatelessWidget {
     required this.item,
     this.onTap,
     this.width = defaultWidth,
+    this.tint,
+    this.icon,
+    this.iconColor,
   });
 
   static const double defaultWidth = 156;
 
-  /// Room a row of cards needs; each card is only as tall as its content.
+  /// Room a row of cards needs at normal text size; each card is only as tall
+  /// as its content.
   static const double rowHeight = 244;
+
+  /// [rowHeight] for the text size the person chose: the picture keeps its
+  /// size, the lines under it grow with the text.
+  static double rowHeightFor(BuildContext context) {
+    const picture = 120.0;
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    return picture + (rowHeight - picture) * (scale < 1 ? 1 : scale);
+  }
 
   final OfferItem item;
   final VoidCallback? onTap;
   final double width;
+
+  /// The soft colour behind a picture-less card, and the icon on it (the
+  /// look of the item's category). Plain tones when not given.
+  final Color? tint;
+  final IconData? icon;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -69,19 +89,33 @@ class OfferCard extends StatelessWidget {
             children: [
               Stack(
                 children: [
-                  AppImageTile(
-                    imageUrl: item.imageUrl,
-                    fallbackIcon: isService
-                        ? Icons.design_services_outlined
-                        : Icons.inventory_2_outlined,
-                    size: 120,
-                    radius: 0,
-                    expand: true,
+                  Container(
+                    height: 120,
+                    width: double.infinity,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: tint ?? AppTone.brand.background(colors),
+                    ),
+                    child: AppNetworkImage(
+                      url: item.imageUrl ?? '',
+                      fallback: Center(
+                        child: Icon(
+                          icon ??
+                              (isService
+                                  ? Icons.design_services_outlined
+                                  : Icons.inventory_2_outlined),
+                          size: 48,
+                          color: iconColor ?? AppTone.brand.accent(colors),
+                        ),
+                      ),
+                    ),
                   ),
                   PositionedDirectional(
                     top: AppSpacing.s8,
                     start: AppSpacing.s8,
-                    child: OfferBadgeChip(pricing: pricing, showEnded: true),
+                    child: pricing.hasActiveOffer
+                        ? OfferPill(label: offerBadgeLabel(context, pricing))
+                        : OfferBadgeChip(pricing: pricing, showEnded: true),
                   ),
                   if (isService)
                     PositionedDirectional(
@@ -111,8 +145,9 @@ class OfferCard extends StatelessWidget {
                         item.companyName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.caption
-                            .copyWith(color: colors.textSecondary),
+                        style: AppTextStyles.caption.copyWith(
+                          color: colors.textSecondary,
+                        ),
                       ),
                     const SizedBox(height: AppSpacing.s4),
                     if (pricing.hasOffer) ...[
@@ -120,8 +155,9 @@ class OfferCard extends StatelessWidget {
                         '${formatProductPrice(pricing.offerPrice!)} ${item.currency}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.bodyStrong
-                            .copyWith(color: colors.textBrand),
+                        style: AppTextStyles.bodyStrong.copyWith(
+                          color: OfferColors.text(context),
+                        ),
                       ),
                       Text(
                         formatProductPrice(normal!),
@@ -136,8 +172,9 @@ class OfferCard extends StatelessWidget {
                       Text(
                         '${formatProductPrice(sale)} ${item.currency}',
                         maxLines: 1,
-                        style: AppTextStyles.bodyStrong
-                            .copyWith(color: colors.textBrand),
+                        style: AppTextStyles.bodyStrong.copyWith(
+                          color: colors.textBrand,
+                        ),
                       ),
                   ],
                 ),

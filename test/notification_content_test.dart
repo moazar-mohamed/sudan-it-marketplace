@@ -67,12 +67,21 @@ void main() {
   final ar = AppLocalizationsAr();
 
   group('what a notification stores', () {
-    test('the app sends exactly the seven known types, one event each', () {
-      expect(
-        _everyEvent().map((n) => n.type).toSet(),
-        NotificationTypes.all,
-      );
-      expect(NotificationTypes.all, hasLength(7));
+    test('the app sends exactly the known types, one event each', () {
+      // Seven about orders (built here) and six about service requests (see
+      // service_request_notifications_test.dart).
+      final orderTypes = _everyEvent().map((n) => n.type).toSet();
+      expect(orderTypes, hasLength(7));
+      const serviceRequestTypes = {
+        NotificationTypes.newServiceRequest,
+        NotificationTypes.serviceRequestAccepted,
+        NotificationTypes.serviceRequestRejected,
+        NotificationTypes.serviceRequestInProgress,
+        NotificationTypes.serviceRequestCompleted,
+        NotificationTypes.serviceRequestCancelled,
+      };
+      expect(NotificationTypes.all, {...orderTypes, ...serviceRequestTypes});
+      expect(NotificationTypes.all, hasLength(13));
     });
 
     test('no title or body: only the listed fields, whatever the event', () {

@@ -69,6 +69,19 @@ beforeEach(async () => {
       createdAt: now,
     });
     await setDoc(doc(db, 'push_log', 'n_old'), { kind: 'notification', by: 'cust1' });
+    for (const [id, customerId] of [
+      ['sr1', 'cust1'],
+      ['sr2', 'cust2'],
+    ]) {
+      await setDoc(doc(db, 'service_requests', id), {
+        id,
+        customerId,
+        companyId: 'c1',
+        serviceName: 'Network setup',
+        status: 'pending',
+        createdAt: now,
+      });
+    }
   });
 });
 
@@ -130,5 +143,215 @@ describe("the relay's send log", () => {
       await assertFails(getDoc(doc(as(uid), 'push_log', 'n_old')));
       await assertFails(setDoc(doc(as(uid), 'push_log', 'n_new'), { kind: 'notification', by: uid }));
     }
+  });
+});
+
+// A service request notification has no text of its own either: its `type`
+// says what happened and `productName` is the service's name, which must be
+// the request's own. Its id is fixed: `{serviceRequestId}_{type}`.
+const srId = (type: string, requestId = 'sr1') => `${requestId}_${type}`;
+const serviceRequestNotification = (extra: Record<string, unknown> = {}) => {
+  const data: Record<string, unknown> = {
+    recipientType: 'company_admin',
+    recipientId: 'c1',
+    serviceRequestId: 'sr1',
+    type: 'new_service_request',
+    productName: 'Network setup',
+    isRead: false,
+    createdAt: serverTimestamp(),
+    senderId: 'cust1',
+    ...extra,
+  };
+  return { id: srId(String(data.type), String(data.serviceRequestId)), ...data };
+};
+const sendRequest = (uid: string, data: Record<string, unknown>) =>
+  setDoc(doc(as(uid), 'notifications', String(data.id)), data);
+
+/** [bad] is refused and [good], the same thing with only the fault removed, is stored. */
+async function refusedOnlyFor(uid: string, bad: Record<string, unknown>, good: Record<string, unknown>) {
+  await assertFails(sendRequest(uid, bad));
+  await assertSucceeds(sendRequest(uid, good));
+}
+
+const withoutKey = (data: Record<string, unknown>, key: string) => {
+  const rest = { ...data };
+  delete rest[key];
+  return rest;
+};
+
+const answer = (type: string, extra: Record<string, unknown> = {}) =>
+  serviceRequestNotification({ recipientType: 'customer', recipientId: 'cust1', type, senderId: 'ca1', ...extra });
+
+describe('service request notifications', () => {
+  it('the customer tells the company about a new or a cancelled request', async () => {
+    await assertSucceeds(sendRequest('cust1', serviceRequestNotification()));
+    await assertSucceeds(sendRequest('cust1', serviceRequestNotification({ type: 'service_request_cancelled' })));
+  });
+
+  it("the company's admin answers the customer", async () => {
+    for (const type of [
+      'service_request_accepted',
+      'service_request_rejected',
+      'service_request_in_progress',
+      'service_request_completed',
+    ]) {
+      await assertSucceeds(sendRequest('ca1', answer(type)));
+    }
+  });
+
+  it('the recipient sees it; nobody else does', async () => {
+    const data = serviceRequestNotification();
+    await assertSucceeds(sendRequest('cust1', data));
+    await assertSucceeds(getDoc(doc(as('ca1'), 'notifications', String(data.id))));
+    await assertFails(getDoc(doc(as('cust2'), 'notifications', String(data.id))));
+  });
+
+  it("not about someone else's request, nor to another company or customer", async () => {
+    // cust2 does not own sr1.
+    await refusedOnlyFor(
+      'cust2',
+      serviceRequestNotification({ senderId: 'cust2' }),
+      serviceRequestNotification({ senderId: 'cust2', serviceRequestId: 'sr2' }),
+    );
+    // Addressed to a company that was not asked.
+    await refusedOnlyFor(
+      'cust1',
+      serviceRequestNotification({ recipientId: 'c2' }),
+      serviceRequestNotification(),
+    );
+    // Another customer as the recipient of the company's answer.
+    await refusedOnlyFor(
+      'ca1',
+      answer('service_request_accepted', { recipientId: 'cust2' }),
+      answer('service_request_accepted'),
+    );
+  });
+
+  it('each side only sends its own kinds of notification', async () => {
+    // A customer cannot answer for the company ...
+    await refusedOnlyFor(
+      'cust1',
+      serviceRequestNotification({ recipientType: 'customer', recipientId: 'cust1', type: 'service_request_completed' }),
+      serviceRequestNotification(),
+    );
+    // ... a company cannot file a request for the customer ...
+    await refusedOnlyFor(
+      'ca1',
+      serviceRequestNotification({ senderId: 'ca1' }),
+      answer('service_request_accepted'),
+    );
+    // ... a customer cannot send the company a kind that is the company's own to
+    // send, nor a company the customer's kind ...
+    for (const type of [
+      'service_request_accepted',
+      'service_request_rejected',
+      'service_request_in_progress',
+      'service_request_completed',
+    ]) {
+      await assertFails(sendRequest('cust1', serviceRequestNotification({ type })));
+    }
+    await refusedOnlyFor(
+      'ca1',
+      answer('new_service_request'),
+      answer('service_request_rejected'),
+    );
+    // ... and nobody invents a kind.
+    await refusedOnlyFor(
+      'cust1',
+      serviceRequestNotification({ type: 'free_money' }),
+      serviceRequestNotification({ type: 'service_request_cancelled' }),
+    );
+  });
+
+  it('a technician has no service request notifications', async () => {
+    await refusedOnlyFor(
+      'ca1',
+      serviceRequestNotification({
+        recipientType: 'technician',
+        recipientId: 'tech1',
+        type: 'service_request_accepted',
+        senderId: 'ca1',
+      }),
+      answer('service_request_accepted'),
+    );
+  });
+
+  it('about an order or a request, never both and never neither', async () => {
+    await refusedOnlyFor(
+      'cust1',
+      serviceRequestNotification({ orderId: 'o1' }),
+      serviceRequestNotification(),
+    );
+    const neither = { ...withoutKey(serviceRequestNotification(), 'serviceRequestId'), id: 'none' };
+    await assertFails(sendRequest('cust1', neither));
+    // An order notification still works as before.
+    await assertSucceeds(send('cust1', { senderId: 'cust1' }));
+  });
+
+  it("the name in it is the request's own service name", async () => {
+    await refusedOnlyFor(
+      'cust1',
+      serviceRequestNotification({ productName: 'Free money, call this number' }),
+      serviceRequestNotification(),
+    );
+    await refusedOnlyFor(
+      'ca1',
+      answer('service_request_accepted', { productName: '' }),
+      answer('service_request_accepted'),
+    );
+  });
+
+  it('carries no text of its own', async () => {
+    await refusedOnlyFor(
+      'cust1',
+      serviceRequestNotification({ title: 'New service request', body: 'Call this number' }),
+      serviceRequestNotification(),
+    );
+    await refusedOnlyFor(
+      'ca1',
+      answer('service_request_accepted', { body: 'Pay me' }),
+      answer('service_request_accepted'),
+    );
+  });
+
+  it('one per request and type: a fixed id, and no second one', async () => {
+    await refusedOnlyFor(
+      'cust1',
+      serviceRequestNotification({ id: 'my-own-id' }),
+      serviceRequestNotification(),
+    );
+    // The same thing again is an edit of the stored one, which is refused.
+    await assertFails(sendRequest('cust1', serviceRequestNotification()));
+    // Another kind for the same request is another notification.
+    await assertSucceeds(sendRequest('cust1', serviceRequestNotification({ type: 'service_request_cancelled' })));
+  });
+
+  it('the request id is at most 128 characters', async () => {
+    const ok = 'a'.repeat(128);
+    const tooLong = 'a'.repeat(129);
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      for (const id of [ok, tooLong]) {
+        await setDoc(doc(ctx.firestore(), 'service_requests', id), {
+          id,
+          customerId: 'cust1',
+          companyId: 'c1',
+          serviceName: 'Network setup',
+          status: 'pending',
+          createdAt: now,
+        });
+      }
+    });
+    await refusedOnlyFor(
+      'cust1',
+      serviceRequestNotification({ serviceRequestId: tooLong }),
+      serviceRequestNotification({ serviceRequestId: ok }),
+    );
+  });
+
+  it('a deactivated account cannot send one', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'users', 'cust1'), { isActive: false });
+    });
+    await assertFails(sendRequest('cust1', serviceRequestNotification()));
   });
 });

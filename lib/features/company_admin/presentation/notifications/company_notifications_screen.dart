@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../notifications/presentation/notifications_providers.dart';
 import '../../../notifications/presentation/widgets/notification_tile.dart';
+import '../../../service_requests/presentation/service_request_details_screen.dart';
 import '../orders/company_order_details_screen.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -53,6 +54,17 @@ class CompanyNotificationsScreen extends ConsumerWidget {
                     ref
                         .read(notificationsRepositoryProvider)
                         .markAsRead(notification.id);
+                  }
+                  if (notification.serviceRequestId.isNotEmpty) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ServiceRequestDetailsScreen(
+                          requestId: notification.serviceRequestId,
+                          asCompany: true,
+                        ),
+                      ),
+                    );
+                    return;
                   }
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(

@@ -1626,5 +1626,107 @@
         "type": "String"
       }
     }
-  }
+  },
+  "notifNewServiceRequestTitle": "New service request",
+  "notifNewServiceRequestBody": "A customer requested \"{service}\".",
+  "@notifNewServiceRequestBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestAcceptedTitle": "Request accepted",
+  "notifServiceRequestAcceptedBody": "Your request for \"{service}\" was accepted.",
+  "@notifServiceRequestAcceptedBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestRejectedTitle": "Request declined",
+  "notifServiceRequestRejectedBody": "Your request for \"{service}\" was declined.",
+  "@notifServiceRequestRejectedBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestInProgressTitle": "Work has started",
+  "notifServiceRequestInProgressBody": "Work has started on your request for \"{service}\".",
+  "@notifServiceRequestInProgressBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestCompletedTitle": "Request completed",
+  "notifServiceRequestCompletedBody": "Your request for \"{service}\" has been completed.",
+  "@notifServiceRequestCompletedBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestCancelledTitle": "Request cancelled",
+  "notifServiceRequestCancelledBody": "A customer cancelled the request for \"{service}\".",
+  "@notifServiceRequestCancelledBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "homeShopByCategory": "Shop by category",
+  "homeServicesByCategory": "Services by category",
+  "homeShopNow": "Shop now",
+  "homeTrustDelivery": "Delivery to your location",
+  "homeTrustInstallation": "Installation by a technician",
+  "homeVerifiedCompanies": "Verified companies",
+  "homeAllCompanies": "All companies",
+  "homeOffersEndsIn": "Ends in",
+  "homeOffersEndsInDays": "Ends in {days, plural, =1{1 day} other{{days} days}}",
+  "@homeOffersEndsInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "homeRecentlyAdded": "Recently added",
+  "homeNewBadge": "New",
+  "homeAllProducts": "All products",
+  "homeSortNewest": "Newest",
+  "homeSortPriceLow": "Price: low to high",
+  "homeSortPriceHigh": "Price: high to low",
+  "homeSortTopRated": "Highest rated",
+  "homeSortName": "Name",
+  "homeSortMostReviewed": "Most reviewed",
+  "homeFilterOffers": "Offers",
+  "homeFilterDelivery": "Delivery",
+  "homeFilterInstallation": "Installation",
+  "homeFilterTopRated": "Top rated",
+  "homeNoRatingsYet": "No ratings yet",
+  "homeNoMatchingProducts": "No products match these filters",
+  "homeServiceBannerTitle": "Need a technician?",
+  "homeServiceBannerBody": "Describe what you need and get price offers from verified companies.",
+  "homeStepDescribe": "Describe your request",
+  "homeStepCompare": "Compare offers",
+  "homeStepArrives": "Your technician arrives",
+  "homeMostRequested": "Most requested",
+  "homeStartsFrom": "Starts from",
+  "homeCompaniesCount": "{count, plural, =1{1 verified company} other{{count} verified companies}}",
+  "@homeCompaniesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeCompanyVerified": "Verified",
+  "homeVisitCompany": "Visit company"
 }

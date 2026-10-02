@@ -3081,4 +3081,171 @@ class AppLocalizationsEn extends AppLocalizations {
   String phoneDigitsExact(int count, String code) {
     return 'Enter $count digits after $code.';
   }
+
+  @override
+  String get notifNewServiceRequestTitle => 'New service request';
+
+  @override
+  String notifNewServiceRequestBody(String service) {
+    return 'A customer requested \"$service\".';
+  }
+
+  @override
+  String get notifServiceRequestAcceptedTitle => 'Request accepted';
+
+  @override
+  String notifServiceRequestAcceptedBody(String service) {
+    return 'Your request for \"$service\" was accepted.';
+  }
+
+  @override
+  String get notifServiceRequestRejectedTitle => 'Request declined';
+
+  @override
+  String notifServiceRequestRejectedBody(String service) {
+    return 'Your request for \"$service\" was declined.';
+  }
+
+  @override
+  String get notifServiceRequestInProgressTitle => 'Work has started';
+
+  @override
+  String notifServiceRequestInProgressBody(String service) {
+    return 'Work has started on your request for \"$service\".';
+  }
+
+  @override
+  String get notifServiceRequestCompletedTitle => 'Request completed';
+
+  @override
+  String notifServiceRequestCompletedBody(String service) {
+    return 'Your request for \"$service\" has been completed.';
+  }
+
+  @override
+  String get notifServiceRequestCancelledTitle => 'Request cancelled';
+
+  @override
+  String notifServiceRequestCancelledBody(String service) {
+    return 'A customer cancelled the request for \"$service\".';
+  }
+
+  @override
+  String get homeShopByCategory => 'Shop by category';
+
+  @override
+  String get homeServicesByCategory => 'Services by category';
+
+  @override
+  String get homeShopNow => 'Shop now';
+
+  @override
+  String get homeTrustDelivery => 'Delivery to your location';
+
+  @override
+  String get homeTrustInstallation => 'Installation by a technician';
+
+  @override
+  String get homeVerifiedCompanies => 'Verified companies';
+
+  @override
+  String get homeAllCompanies => 'All companies';
+
+  @override
+  String get homeOffersEndsIn => 'Ends in';
+
+  @override
+  String homeOffersEndsInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'Ends in $_temp0';
+  }
+
+  @override
+  String get homeRecentlyAdded => 'Recently added';
+
+  @override
+  String get homeNewBadge => 'New';
+
+  @override
+  String get homeAllProducts => 'All products';
+
+  @override
+  String get homeSortNewest => 'Newest';
+
+  @override
+  String get homeSortPriceLow => 'Price: low to high';
+
+  @override
+  String get homeSortPriceHigh => 'Price: high to low';
+
+  @override
+  String get homeSortTopRated => 'Highest rated';
+
+  @override
+  String get homeSortName => 'Name';
+
+  @override
+  String get homeSortMostReviewed => 'Most reviewed';
+
+  @override
+  String get homeFilterOffers => 'Offers';
+
+  @override
+  String get homeFilterDelivery => 'Delivery';
+
+  @override
+  String get homeFilterInstallation => 'Installation';
+
+  @override
+  String get homeFilterTopRated => 'Top rated';
+
+  @override
+  String get homeNoRatingsYet => 'No ratings yet';
+
+  @override
+  String get homeNoMatchingProducts => 'No products match these filters';
+
+  @override
+  String get homeServiceBannerTitle => 'Need a technician?';
+
+  @override
+  String get homeServiceBannerBody =>
+      'Describe what you need and get price offers from verified companies.';
+
+  @override
+  String get homeStepDescribe => 'Describe your request';
+
+  @override
+  String get homeStepCompare => 'Compare offers';
+
+  @override
+  String get homeStepArrives => 'Your technician arrives';
+
+  @override
+  String get homeMostRequested => 'Most requested';
+
+  @override
+  String get homeStartsFrom => 'Starts from';
+
+  @override
+  String homeCompaniesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count verified companies',
+      one: '1 verified company',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeCompanyVerified => 'Verified';
+
+  @override
+  String get homeVisitCompany => 'Visit company';
 }

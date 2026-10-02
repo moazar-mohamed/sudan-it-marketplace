@@ -21,6 +21,18 @@ class NotificationFormat {
         l10n.notifTechnicianAssignedTitle,
       NotificationTypes.newReview => l10n.notifNewReviewTitle,
       NotificationTypes.reviewReply => l10n.notifReviewReplyTitle,
+      NotificationTypes.newServiceRequest =>
+        l10n.notifNewServiceRequestTitle,
+      NotificationTypes.serviceRequestAccepted =>
+        l10n.notifServiceRequestAcceptedTitle,
+      NotificationTypes.serviceRequestRejected =>
+        l10n.notifServiceRequestRejectedTitle,
+      NotificationTypes.serviceRequestInProgress =>
+        l10n.notifServiceRequestInProgressTitle,
+      NotificationTypes.serviceRequestCompleted =>
+        l10n.notifServiceRequestCompletedTitle,
+      NotificationTypes.serviceRequestCancelled =>
+        l10n.notifServiceRequestCancelledTitle,
       _ => l10n.notifGenericTitle,
     };
   }
@@ -43,6 +55,18 @@ class NotificationFormat {
         l10n.notifNewReviewBody(product),
       NotificationTypes.reviewReply when named =>
         l10n.notifReviewReplyBody(product),
+      NotificationTypes.newServiceRequest when named =>
+        l10n.notifNewServiceRequestBody(product),
+      NotificationTypes.serviceRequestAccepted when named =>
+        l10n.notifServiceRequestAcceptedBody(product),
+      NotificationTypes.serviceRequestRejected when named =>
+        l10n.notifServiceRequestRejectedBody(product),
+      NotificationTypes.serviceRequestInProgress when named =>
+        l10n.notifServiceRequestInProgressBody(product),
+      NotificationTypes.serviceRequestCompleted when named =>
+        l10n.notifServiceRequestCompletedBody(product),
+      NotificationTypes.serviceRequestCancelled when named =>
+        l10n.notifServiceRequestCancelledBody(product),
       _ => l10n.notifGenericBody,
     };
   }
@@ -83,6 +107,30 @@ class NotificationFormat {
       NotificationTypes.reviewReply => (
           icon: Icons.reply_rounded,
           tone: AppTone.brand,
+        ),
+      NotificationTypes.newServiceRequest => (
+          icon: Icons.build_circle_outlined,
+          tone: AppTone.brand,
+        ),
+      NotificationTypes.serviceRequestAccepted => (
+          icon: Icons.thumb_up_alt_outlined,
+          tone: AppTone.info,
+        ),
+      NotificationTypes.serviceRequestRejected => (
+          icon: Icons.block_outlined,
+          tone: AppTone.error,
+        ),
+      NotificationTypes.serviceRequestInProgress => (
+          icon: Icons.engineering_outlined,
+          tone: AppTone.progress,
+        ),
+      NotificationTypes.serviceRequestCompleted => (
+          icon: Icons.check_circle_outline,
+          tone: AppTone.success,
+        ),
+      NotificationTypes.serviceRequestCancelled => (
+          icon: Icons.cancel_outlined,
+          tone: AppTone.neutral,
         ),
       _ => (icon: Icons.notifications_outlined, tone: AppTone.brand),
     };

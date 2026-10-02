@@ -1,4 +1,5 @@
 import '../../orders/domain/entities/order_entity.dart';
+import '../../service_requests/domain/entities/service_request.dart';
 import '../domain/entities/app_notification.dart';
 
 /// The type of each notification the app sends. Keep in step with the
@@ -12,6 +13,12 @@ abstract final class NotificationTypes {
   static const technicianAssigned = 'technician_assigned';
   static const newReview = 'new_review';
   static const reviewReply = 'review_reply';
+  static const newServiceRequest = 'new_service_request';
+  static const serviceRequestAccepted = 'service_request_accepted';
+  static const serviceRequestRejected = 'service_request_rejected';
+  static const serviceRequestInProgress = 'service_request_in_progress';
+  static const serviceRequestCompleted = 'service_request_completed';
+  static const serviceRequestCancelled = 'service_request_cancelled';
 
   static const all = {
     newOrder,
@@ -21,6 +28,12 @@ abstract final class NotificationTypes {
     technicianAssigned,
     newReview,
     reviewReply,
+    newServiceRequest,
+    serviceRequestAccepted,
+    serviceRequestRejected,
+    serviceRequestInProgress,
+    serviceRequestCompleted,
+    serviceRequestCancelled,
   };
 }
 
@@ -49,6 +62,29 @@ class NotificationEvents {
       orderId: orderId,
       type: type,
       productName: productName,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  /// A notification about a service request: [serviceName] travels as the
+  /// notification's name, like an order's product name.
+  static AppNotification _buildForServiceRequest({
+    required NotificationRecipientType recipientType,
+    required String recipientId,
+    required String serviceRequestId,
+    required String type,
+    required String serviceName,
+  }) {
+    return AppNotification(
+      id: AppNotification.idForServiceRequest(
+        serviceRequestId: serviceRequestId,
+        type: type,
+      ),
+      recipientType: recipientType,
+      recipientId: recipientId,
+      serviceRequestId: serviceRequestId,
+      type: type,
+      productName: serviceName,
       createdAt: DateTime.now(),
     );
   }
@@ -171,4 +207,57 @@ class NotificationEvents {
         type: NotificationTypes.reviewReply,
         productName: productName,
       );
+
+  /// To the company: a customer sent a service request. [serviceName] is the
+  /// service's own name, which the security rules check against the request.
+  static AppNotification newServiceRequest({
+    required String serviceRequestId,
+    required String companyId,
+    required String serviceName,
+  }) =>
+      _buildForServiceRequest(
+        recipientType: NotificationRecipientType.companyAdmin,
+        recipientId: companyId,
+        serviceRequestId: serviceRequestId,
+        type: NotificationTypes.newServiceRequest,
+        serviceName: serviceName,
+      );
+
+  /// The notification for a service request moving to [status]: to the
+  /// company when the customer cancelled, to the customer for the company's
+  /// answers. Null for a status nobody needs to hear about (Pending).
+  static AppNotification? forServiceRequestStatus({
+    required ServiceRequestStatus status,
+    required String serviceRequestId,
+    required String customerId,
+    required String companyId,
+    required String serviceName,
+  }) {
+    AppNotification toCustomer(String type) => _buildForServiceRequest(
+          recipientType: NotificationRecipientType.customer,
+          recipientId: customerId,
+          serviceRequestId: serviceRequestId,
+          type: type,
+          serviceName: serviceName,
+        );
+
+    return switch (status) {
+      ServiceRequestStatus.accepted =>
+        toCustomer(NotificationTypes.serviceRequestAccepted),
+      ServiceRequestStatus.rejected =>
+        toCustomer(NotificationTypes.serviceRequestRejected),
+      ServiceRequestStatus.inProgress =>
+        toCustomer(NotificationTypes.serviceRequestInProgress),
+      ServiceRequestStatus.completed =>
+        toCustomer(NotificationTypes.serviceRequestCompleted),
+      ServiceRequestStatus.cancelled => _buildForServiceRequest(
+          recipientType: NotificationRecipientType.companyAdmin,
+          recipientId: companyId,
+          serviceRequestId: serviceRequestId,
+          type: NotificationTypes.serviceRequestCancelled,
+          serviceName: serviceName,
+        ),
+      ServiceRequestStatus.pending => null,
+    };
+  }
 }
