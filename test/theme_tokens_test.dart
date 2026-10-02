@@ -204,4 +204,57 @@ void main() {
       expect(theme.navigationBarTheme.height, AppSize.bottomNav);
     });
   });
+
+  group('chips', () {
+    // The rating sheet's "What did you like?" tags drew white text on white
+    // chips: a chip label with no colour of its own is painted white.
+    Color labelColour(WidgetTester tester, String label) => tester
+        .widget<RichText>(
+          find.descendant(of: find.text(label), matching: find.byType(RichText)),
+        )
+        .text
+        .style!
+        .color!;
+
+    for (final (name, theme, tokens) in [
+      ('light', AppTheme.light, AppColorTokens.light),
+      ('dark', AppTheme.dark, AppColorTokens.dark),
+    ]) {
+      testWidgets('a chip label is readable without its own style ($name)',
+          (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: theme,
+            home: Scaffold(
+              body: Wrap(
+                children: [
+                  FilterChip(label: const Text('Quality'), onSelected: (_) {}),
+                  FilterChip(
+                    label: const Text('Price'),
+                    selected: true,
+                    onSelected: (_) {},
+                  ),
+                  const FilterChip(label: Text('Off'), onSelected: null),
+                  ActionChip(label: const Text('Laptops'), onPressed: () {}),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        expect(labelColour(tester, 'Quality'), tokens.textPrimary);
+        expect(labelColour(tester, 'Price'), tokens.textBrand);
+        expect(labelColour(tester, 'Off'), tokens.disabledFg);
+        expect(labelColour(tester, 'Laptops'), tokens.textPrimary);
+        expect(
+          contrast(tokens.textPrimary, tokens.surface),
+          greaterThanOrEqualTo(4.5),
+        );
+        expect(
+          contrast(tokens.textBrand, tokens.brandPrimarySubtle),
+          greaterThanOrEqualTo(4.5),
+        );
+      });
+    }
+  });
 }

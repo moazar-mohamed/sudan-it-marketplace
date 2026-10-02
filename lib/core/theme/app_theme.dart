@@ -282,7 +282,17 @@ class AppTheme {
         selectedColor: tokens.brandPrimarySubtle,
         disabledColor: tokens.bgSubtle,
         checkmarkColor: tokens.iconBrand,
-        labelStyle: AppTextStyles.labelLarge,
+        // A chip's label does not inherit the ambient text colour: with no
+        // colour here Flutter paints it white, invisible on a white chip.
+        labelStyle: AppTextStyles.labelLarge.copyWith(
+          color: WidgetStateColor.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? tokens.disabledFg
+                : states.contains(WidgetState.selected)
+                    ? tokens.textBrand
+                    : tokens.textPrimary,
+          ),
+        ),
         secondaryLabelStyle:
             AppTextStyles.labelLarge.copyWith(color: tokens.textBrand),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s4),
