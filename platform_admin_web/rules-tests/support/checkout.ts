@@ -30,7 +30,7 @@ import {
 type Data = Record<string, unknown>;
 
 /** How many orders a customer may place in any 24 hours (order_quota in firestore.rules). */
-export const ORDERS_PER_DAY = 5;
+export const ORDERS_PER_DAY = 10;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** The app refuses before writing: the product no longer covers the order. */

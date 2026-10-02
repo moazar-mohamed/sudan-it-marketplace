@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/order_quota.dart';
 
 /// Firestore mapping of a customer's order quota (`order_quota/{uid}`): the
-/// slots `t0`..`t4` (server times), `next` and `lastOrderId`, the only keys
+/// slots `t0`..`t9` (server times), `next` and `lastOrderId`, the only keys
 /// `isOrderQuotaWrite` in the rules allows. It is written only in the same
 /// transaction as a new order of its customer, never on its own.
 class OrderQuotaModel {
@@ -12,7 +12,7 @@ class OrderQuotaModel {
   static const collection = 'order_quota';
 
   /// The stored quota, or [OrderQuota.none] when the customer has none yet.
-  /// A slot that is not a time reads as empty; a `next` outside 0..4 reads as
+  /// A slot that is not a time reads as empty; a `next` outside 0..9 reads as
   /// 0 (the rules refuse to move such a quota on, so the order is refused).
   static OrderQuota fromMap(Map<String, dynamic>? data) {
     if (data == null) return OrderQuota.none();

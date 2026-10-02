@@ -541,25 +541,25 @@ void main() {
   });
 
   // ---------------------------------------------------------------- quota
-  group('five orders in 24 hours', () {
+  group('ten orders in 24 hours', () {
     final reached = OrderQuotaReachedException(nextOrderAt: DateTime(2026, 10, 2, 14, 30));
 
     test('the customer is told when they may order again', () {
       expect(
         customerOrderErrorMessage(_en, reached),
-        'You have placed 5 orders in the last 24 hours, the most allowed. '
+        'You have placed 10 orders in the last 24 hours, the most allowed. '
         'You can order again after 2026-10-02 14:30.',
       );
       final arabic = customerOrderErrorMessage(_ar, reached);
-      expect(arabic, contains('5 طلبات'));
+      expect(arabic, contains('10 طلبات'));
       expect(arabic, contains('2026-10-02 14:30'));
-      expect(OrderQuota.ordersPerDay, 5);
+      expect(OrderQuota.ordersPerDay, 10);
     });
 
     test('without a time, to try again later', () {
       expect(
         customerOrderErrorMessage(_en, const OrderQuotaReachedException()),
-        'You have placed 5 orders in the last 24 hours, the most allowed. Please try again later.',
+        'You have placed 10 orders in the last 24 hours, the most allowed. Please try again later.',
       );
       expect(customerOrderErrorMessage(_ar, const OrderQuotaReachedException()), contains('لاحقاً'));
     });

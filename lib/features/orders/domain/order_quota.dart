@@ -4,9 +4,9 @@
 ///
 /// It mirrors `orderCountsAgainstQuota` in `firestore.rules`, which is what
 /// actually enforces it with the server's clock. The customer's quota keeps
-/// the times of their last five orders in five slots written in turn;
+/// the times of their last ten orders in ten slots written in turn;
 /// [next] is the slot the next order writes, and it always holds the oldest
-/// of the five. Orders cancelled later still count.
+/// of the ten. Orders cancelled later still count.
 class OrderQuota {
   OrderQuota({required List<DateTime?> times, required this.next})
       : assert(times.length == ordersPerDay),
@@ -17,19 +17,19 @@ class OrderQuota {
   factory OrderQuota.none() =>
       OrderQuota(times: List.filled(ordersPerDay, null), next: 0);
 
-  static const ordersPerDay = 5;
+  static const ordersPerDay = 10;
   static const window = Duration(hours: 24);
 
   final List<DateTime?> _times;
 
-  /// The slot (0 to 4) the next order writes.
+  /// The slot (0 to 9) the next order writes.
   final int next;
 
   /// The slot after [next], which the order after that writes.
   int get following => (next + 1) % ordersPerDay;
 
-  /// When the oldest of the last five orders was placed; null while there
-  /// have been fewer than five.
+  /// When the oldest of the last ten orders was placed; null while there
+  /// have been fewer than ten.
   DateTime? get oldest => _times[next];
 
   /// When the next order becomes allowed, or null when it is allowed at

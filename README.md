@@ -26,7 +26,7 @@ The app has four roles. Customers, company admins and technicians use the mobile
 - Browse products and services through one shared tree of categories, and see the companies on the marketplace.
 - Search products, services and companies from a full search screen.
 - See featured offers on products and services, with the discount, the old price and when the offer ends.
-- Order a product with delivery (typed address or a point on the map) or pickup, with optional installation by a technician. Ordering needs a verified e-mail address, and allows at most 5 orders in any 24 hours.
+- Order a product with delivery (typed address or a point on the map) or pickup, with optional installation by a technician. Ordering needs a verified e-mail address, and allows at most 10 orders in any 24 hours.
 - Pay by bank transfer to one of the company's accounts and attach the transfer receipt, which every order needs. The receipt does not confirm the payment, and the product is not reserved until the company confirms the payment (see [Orders, payment and stock](#orders-payment-and-stock)).
 - Send a service request to a company that offers the service.
 - Follow orders and service requests step by step, and chat with the company about any of them. A Contact button also opens a chat before ordering.
@@ -86,7 +86,7 @@ Then: Processing -> Out for Delivery -> Completed
 - **Out of stock.** If the product can no longer cover an order whose payment is not confirmed (not enough stock, or the product was removed), the company cancels the order with the reason `out_of_stock`. The company returns any money the customer transferred outside the app (manual refund).
 - **Cancelling after the payment is confirmed** is allowed to the company while the order is still Processing, before it is shipped. Its stock goes back to the product in the same write (when the product still exists), exactly once (a cancelled order is final). The company returns the money outside the app.
 - **Expired.** If the company has not confirmed the payment within 24 hours, its app cancels the order with the reason `expired` the next time its Orders page is opened. The 24 hours are measured by the server's clock.
-- **Quota.** A customer can place at most 5 orders in any 24 hours. Cancelled orders still count.
+- **Quota.** A customer can place at most 10 orders in any 24 hours. Cancelled orders still count.
 - **Verified e-mail.** Placing an order needs a verified e-mail address (`email_verified` in the sign-in token).
 - **Older orders.** Orders placed before this change took their stock when they were placed: they have `stockReserved` true, or no `stockReserved` field at all (the rules of that time did not allow it). Only an explicit `stockReserved: false` means "not taken yet"; a missing field is never read that way, and the order date plays no part. Older orders are confirmed without taking more, and a cancellation or an expiry gives that stock back once (when the product still exists).
 

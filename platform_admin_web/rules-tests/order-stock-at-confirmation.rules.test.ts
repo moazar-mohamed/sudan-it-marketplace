@@ -1088,48 +1088,53 @@ describe('nothing moves on before the payment is confirmed', () => {
   });
 });
 
-describe('at most 5 orders per customer in any 24 hours', () => {
+describe('at most 10 orders per customer in any 24 hours', () => {
   it(`${ORDERS_PER_DAY} orders in a row are accepted, each one a step of the quota`, async () => {
     for (let i = 1; i <= ORDERS_PER_DAY; i++) {
       await assertSucceeds(place('cust1', `q${i}`, 'pBig', 1));
     }
     const quota = (await stored('order_quota/cust1'))!;
-    expect(Object.keys(quota).sort()).toEqual(['lastOrderId', 'next', 't0', 't1', 't2', 't3', 't4']);
-    expect(quota).toMatchObject({ next: 0, lastOrderId: 'q5' });
+    expect(Object.keys(quota).sort()).toEqual([
+      'lastOrderId', 'next', 't0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9',
+    ]);
+    expect(quota).toMatchObject({ next: 0, lastOrderId: `q${ORDERS_PER_DAY}` });
   });
 
-  it('a sixth within 24 hours is refused: by the app, forced past it, or without the quota step', async () => {
+  it('one more within 24 hours is refused: by the app, forced past it, or without the quota step', async () => {
+    const over = `q${ORDERS_PER_DAY + 1}`;
     for (let i = 1; i <= ORDERS_PER_DAY; i++) await place('cust1', `q${i}`, 'pBig', 1);
-    await expect(place('cust1', 'q6', 'pBig', 1)).rejects.toBeInstanceOf(QuotaReached);
-    await assertFails(place('cust1', 'q6', 'pBig', 1, { skipAppChecks: true, maxAttempts: 1 }));
-    await assertFails(place('cust1', 'q6', 'pBig', 1, { quota: false, maxAttempts: 1 }));
-    expect(await stored('orders/q6')).toBeUndefined();
+    await expect(place('cust1', over, 'pBig', 1)).rejects.toBeInstanceOf(QuotaReached);
+    await assertFails(place('cust1', over, 'pBig', 1, { skipAppChecks: true, maxAttempts: 1 }));
+    await assertFails(place('cust1', over, 'pBig', 1, { quota: false, maxAttempts: 1 }));
+    expect(await stored(`orders/${over}`)).toBeUndefined();
     // Another customer is not affected.
-    await assertSucceeds(place('cust2', 'q7', 'pBig', 1));
+    await assertSucceeds(place('cust2', 'other1', 'pBig', 1));
   });
 
-  it('the window rolls: the oldest of the five at 23 hours still blocks, at 25 hours it frees one place', async () => {
+  it('the window rolls: the oldest of the ten at 23 hours still blocks, at 25 hours it frees one place', async () => {
+    const over = `q${ORDERS_PER_DAY + 1}`;
+    const overAgain = `q${ORDERS_PER_DAY + 2}`;
     for (let i = 1; i <= ORDERS_PER_DAY; i++) await place('cust1', `q${i}`, 'pBig', 1);
     const slot = `t${(await stored('order_quota/cust1'))!.next as number}`;
     await raw((db) => updateDoc(doc(db, 'order_quota', 'cust1'), { [slot]: Timestamp.fromDate(hoursAgo(23)) }));
-    await assertFails(place('cust1', 'q6', 'pBig', 1, { skipAppChecks: true, maxAttempts: 1 }));
+    await assertFails(place('cust1', over, 'pBig', 1, { skipAppChecks: true, maxAttempts: 1 }));
     await raw((db) => updateDoc(doc(db, 'order_quota', 'cust1'), { [slot]: Timestamp.fromDate(hoursAgo(25)) }));
-    await assertSucceeds(place('cust1', 'q6', 'pBig', 1));
+    await assertSucceeds(place('cust1', over, 'pBig', 1));
     // Only that one place: the next oldest is recent.
-    await assertFails(place('cust1', 'q7', 'pBig', 1, { skipAppChecks: true, maxAttempts: 1 }));
+    await assertFails(place('cust1', overAgain, 'pBig', 1, { skipAppChecks: true, maxAttempts: 1 }));
   });
 
   it('orders cancelled afterwards still count', async () => {
     for (let i = 1; i <= ORDERS_PER_DAY; i++) await place('cust1', `q${i}`, 'pBig', 1);
     await cancel('ca1', 'q1');
     await cancel('ca1', 'q2');
-    await assertFails(place('cust1', 'q6', 'pBig', 1, { skipAppChecks: true, maxAttempts: 1 }));
+    await assertFails(place('cust1', `q${ORDERS_PER_DAY + 1}`, 'pBig', 1, { skipAppChecks: true, maxAttempts: 1 }));
   });
 
   it('racing orders never get past the limit', async () => {
-    // Six at once with no retry by the app: some are refused, never more than 5 go through.
+    // One more than the limit at once with no retry by the app: some are refused, never more than the limit go through.
     const plain = await Promise.allSettled(
-      [1, 2, 3, 4, 5, 6].map((i) => place('cust1', `r${i}`, 'pBig', 1, { maxAttempts: 30 })),
+      Array.from({ length: ORDERS_PER_DAY + 1 }, (_, i) => i + 1).map((i) => place('cust1', `r${i}`, 'pBig', 1, { maxAttempts: 30 })),
     );
     const accepted = plain.filter((r) => r.status === 'fulfilled').length;
     expect(accepted).toBeGreaterThan(0);
@@ -1141,7 +1146,7 @@ describe('at most 5 orders per customer in any 24 hours', () => {
     expect(orders).toBe(accepted);
     expect((await stored('order_quota/cust1'))!.next).toBe(accepted % ORDERS_PER_DAY);
 
-    // Ten at once, each retried like the app does after a refusal: exactly 5.
+    // Twice the limit at once, each retried like the app does after a refusal: exactly the limit.
     const placeRetrying = async (id: string) => {
       for (let attempt = 1; ; attempt++) {
         try {
@@ -1151,14 +1156,16 @@ describe('at most 5 orders per customer in any 24 hours', () => {
         }
       }
     };
-    const ten = await Promise.allSettled(Array.from({ length: 10 }, (_, i) => placeRetrying(`s${i}`)));
-    expect(ten.filter((r) => r.status === 'fulfilled')).toHaveLength(ORDERS_PER_DAY);
+    const twice = await Promise.allSettled(
+      Array.from({ length: ORDERS_PER_DAY * 2 }, (_, i) => placeRetrying(`s${i}`)),
+    );
+    expect(twice.filter((r) => r.status === 'fulfilled')).toHaveLength(ORDERS_PER_DAY);
 
     // Two at once for the last free place: one.
     for (let i = 1; i < ORDERS_PER_DAY; i++) await place('cust3', `u${i}`, 'pBig', 1);
     const last = await Promise.allSettled([
-      place('cust3', 'u5', 'pBig', 1, { skipAppChecks: true, maxAttempts: 30 }),
-      place('cust3', 'u6', 'pBig', 1, { skipAppChecks: true, maxAttempts: 30 }),
+      place('cust3', `u${ORDERS_PER_DAY}`, 'pBig', 1, { skipAppChecks: true, maxAttempts: 30 }),
+      place('cust3', `u${ORDERS_PER_DAY + 1}`, 'pBig', 1, { skipAppChecks: true, maxAttempts: 30 }),
     ]);
     expect(last.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
   }, 120_000);

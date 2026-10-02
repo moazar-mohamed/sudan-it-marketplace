@@ -330,7 +330,11 @@ void main() {
   });
 
   // ------------------------------------------------------------- quota
-  group('at most five orders in any 24 hours', () {
+  group('at most ten orders in any 24 hours', () {
+    const limit = OrderQuota.ordersPerDay;
+    // The age of each order of a full quota, oldest first: [limit] hours down to 1.
+    List<Duration?> fullAges() =>
+        [for (var h = limit; h >= 1; h--) Duration(hours: h)];
     setUp(() => store.serverClock = DateTime.now);
 
     test("a customer's first order starts the quota", () async {
@@ -349,7 +353,7 @@ void main() {
         () async {
       store.put(
         'order_quota/cust1',
-        _quota([const Duration(hours: 3), const Duration(hours: 2), null, null, null], next: 2),
+        _quota([const Duration(hours: 3), const Duration(hours: 2)], next: 2),
       );
       await place('o1');
       final sent = writesOf(store.commits.single)['order_quota/cust1']!;
@@ -358,17 +362,16 @@ void main() {
       expect(store.read('order_quota/cust1')!['next'], 3);
     });
 
-    test('the sixth order within 24 hours is refused, nothing written',
-        () async {
-      final oldest = DateTime.now().subtract(const Duration(hours: 5));
+    test('one order more than the limit within 24 hours is refused, nothing '
+        'written', () async {
+      final oldest = DateTime.now().subtract(const Duration(hours: limit));
       store.put('order_quota/cust1', {
-        ..._quota([null, const Duration(hours: 4), const Duration(hours: 3),
-            const Duration(hours: 2), const Duration(hours: 1)], next: 0),
+        ..._quota([null, ...fullAges().skip(1)], next: 0),
         't0': Timestamp.fromDate(oldest),
       });
 
       await expectLater(
-        place('o6'),
+        place('over'),
         throwsA(isA<OrderQuotaReachedException>().having(
           (e) => e.nextOrderAt,
           'nextOrderAt',
@@ -376,76 +379,77 @@ void main() {
         )),
       );
       expect(store.commits, isEmpty);
-      expect(store.read('orders/o6'), isNull);
-      expect(store.read('order_receipts/o6'), isNull);
+      expect(store.read('orders/over'), isNull);
+      expect(store.read('order_receipts/over'), isNull);
     });
 
     test('it is a rolling window: once the oldest is 24 hours old, its slot '
         'is free again', () async {
       store.put(
         'order_quota/cust1',
-        _quota([const Duration(hours: 25), const Duration(hours: 4),
-            const Duration(hours: 3), const Duration(hours: 2),
-            const Duration(hours: 1)], next: 0),
+        _quota([const Duration(hours: 25), ...fullAges().skip(1)], next: 0),
       );
-      await place('o6');
+      await place('again');
       final quota = store.read('order_quota/cust1')!;
       expect(quota['next'], 1);
-      expect(quota['lastOrderId'], 'o6');
+      expect(quota['lastOrderId'], 'again');
       final t0 = (quota['t0'] as Timestamp).toDate();
       expect(DateTime.now().difference(t0), lessThan(const Duration(minutes: 1)));
     });
 
-    test('five orders in a row go through, the sixth does not', () async {
-      for (var i = 1; i <= 5; i++) {
+    test('ten orders in a row go through, the eleventh does not', () async {
+      for (var i = 1; i <= limit; i++) {
         await place('o$i', quantity: 1);
       }
-      await expectLater(place('o6', quantity: 1), throwsA(isA<OrderQuotaReachedException>()));
+      await expectLater(place('over', quantity: 1), throwsA(isA<OrderQuotaReachedException>()));
       expect(store.read('order_quota/cust1')!['next'], 0);
-      expect(store.commits, hasLength(5));
+      expect(store.commits, hasLength(limit));
     });
 
     test('cancelled orders still count', () async {
-      for (var i = 1; i <= 5; i++) {
+      for (var i = 1; i <= limit; i++) {
         await place('o$i', quantity: 1);
       }
       store.put('orders/o1', {...store.read('orders/o1')!, 'orderStatus': 'cancelled'});
-      await expectLater(place('o6', quantity: 1), throwsA(isA<OrderQuotaReachedException>()));
+      await expectLater(place('over', quantity: 1), throwsA(isA<OrderQuotaReachedException>()));
     });
 
-    test('ten orders sent at once: exactly five go through, each once',
-        () async {
+    test('twice the limit sent at once: exactly the limit goes through, each '
+        'once', () async {
+      const sent = limit * 2;
       final results = await Future.wait([
-        for (var i = 0; i < 10; i++) placeAndTell('o$i'),
+        for (var i = 0; i < sent; i++) placeAndTell('o$i'),
       ]);
-      expect(results.where((r) => r == 'placed'), hasLength(5));
-      expect(results.where((r) => r == 'quota'), hasLength(5));
+      expect(results.where((r) => r == 'placed'), hasLength(limit));
+      expect(results.where((r) => r == 'quota'), hasLength(limit));
       final placed = [
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < sent; i++)
           if (results[i] == 'placed') 'o$i',
       ];
-      for (var i = 0; i < 10; i++) {
+      for (var i = 0; i < sent; i++) {
         expect(store.read('orders/o$i') != null, placed.contains('o$i'), reason: 'o$i');
         expect(store.read('order_receipts/o$i') != null, placed.contains('o$i'));
       }
       final quota = OrderQuotaModel.fromMap(store.read('order_quota/cust1'));
       expect(quota.next, 0);
-      expect(quota.oldest, isNotNull); // all five slots written
-      expect(store.commits, hasLength(5));
+      expect(quota.oldest, isNotNull); // all ten slots written
+      expect(store.commits, hasLength(limit));
       expect(stock(), 10);
     });
 
-    test('ten at once where the rules refuse a stale commit (as the emulator '
-        'does): never more than five, never an order twice', () async {
+    test('twice the limit at once where the rules refuse a stale commit (as '
+        'the emulator does): never more than the limit, never an order twice',
+        () async {
+      const sent = limit * 2;
       store.staleCommitCode = 'permission-denied';
       final results = await Future.wait([
-        for (var i = 0; i < 10; i++) placeAndTell('o$i'),
+        for (var i = 0; i < sent; i++) placeAndTell('o$i'),
       ]);
       final placed = [
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < sent; i++)
           if (results[i] == 'placed') 'o$i',
       ];
-      expect(placed.length, inInclusiveRange(1, 5));
+      expect(placed.length, inInclusiveRange(1, limit));
       expect(
         results.where((r) => r != 'placed'),
         everyElement(anyOf('quota', AppErrorCode.orderCreateDenied.name)),
@@ -454,9 +458,9 @@ void main() {
       expect(store.commits, hasLength(placed.length));
       final quota = store.read('order_quota/cust1')!;
       expect(quota['next'], placed.length % OrderQuota.ordersPerDay);
-      final slots = [for (var s = 0; s < 5; s++) quota['t$s']].whereType<Timestamp>();
+      final slots = [for (var s = 0; s < limit; s++) quota['t$s']].whereType<Timestamp>();
       expect(slots, hasLength(placed.length));
-      for (var i = 0; i < 10; i++) {
+      for (var i = 0; i < sent; i++) {
         expect(store.read('orders/o$i') != null, placed.contains('o$i'));
       }
     });
@@ -487,19 +491,20 @@ void main() {
     test("losing every attempt to the same customer's other orders, which "
         'fill the quota: told the quota is reached, not "not allowed"',
         () async {
+      // The app tries four times; each time another order of the same
+      // customer lands first, so the fourth leaves the quota full.
+      const start = limit - 4;
       store.put('order_quota/cust1', {
-        't0': Timestamp.now(),
-        'next': 1,
+        for (var s = 0; s < start; s++) 't$s': Timestamp.now(),
+        'next': start % limit,
         'lastOrderId': 'other0',
       });
       store.staleCommitCode = 'permission-denied';
-      // Before each of this order's commits, another order of the same
-      // customer lands first; the fourth fills the quota.
       store.beforeCommit = (_) {
-        final filled = store.transactionAttempts + 1;
+        final filled = start + store.transactionAttempts;
         store.put('order_quota/cust1', {
           for (var s = 0; s < filled; s++) 't$s': Timestamp.now(),
-          'next': filled % OrderQuota.ordersPerDay,
+          'next': filled % limit,
           'lastOrderId': 'other$filled',
         });
       };
@@ -508,31 +513,30 @@ void main() {
       expect(store.read('orders/o9'), isNull);
     });
 
-    test('the fifth order racing a sixth: one goes through, the other is told '
-        'the quota is reached', () async {
+    test('the last free order racing one more: one goes through, the other is '
+        'told the quota is reached', () async {
       store.put(
         'order_quota/cust1',
-        _quota([const Duration(hours: 4), const Duration(hours: 3),
-            const Duration(hours: 2), const Duration(hours: 1), null], next: 4),
+        _quota(fullAges().take(limit - 1).toList(), next: limit - 1),
       );
-      final results = await Future.wait([placeAndTell('o5'), placeAndTell('o6')]);
+      final results = await Future.wait([placeAndTell('last'), placeAndTell('extra')]);
       expect(results, unorderedEquals(['placed', 'quota']));
       expect(store.read('order_quota/cust1')!['next'], 0);
     });
 
     test('the quota in the app mirrors the rules', () {
-      expect(OrderQuota.ordersPerDay, 5);
+      expect(OrderQuota.ordersPerDay, 10);
       expect(OrderQuota.window, const Duration(hours: 24));
       final now = DateTime(2026, 10, 1, 12);
       final full = OrderQuota(
-        times: [for (var h = 5; h >= 1; h--) now.subtract(Duration(hours: h))],
+        times: [for (var h = 10; h >= 1; h--) now.subtract(Duration(hours: h))],
         next: 0,
       );
-      expect(full.nextOrderAllowedAt(now), now.add(const Duration(hours: 19)));
-      expect(full.nextOrderAllowedAt(now.add(const Duration(hours: 19))), isNull);
+      expect(full.nextOrderAllowedAt(now), now.add(const Duration(hours: 14)));
+      expect(full.nextOrderAllowedAt(now.add(const Duration(hours: 14))), isNull);
       expect(full.following, 1);
       expect(OrderQuota.none().nextOrderAllowedAt(now), isNull);
-      expect(OrderQuotaModel.fromMap({'next': 9}).next, 0);
+      expect(OrderQuotaModel.fromMap({'next': 10}).next, 0);
       expect(OrderQuotaModel.fromMap({'t0': 'not a time', 'next': 0}).oldest, isNull);
     });
   });

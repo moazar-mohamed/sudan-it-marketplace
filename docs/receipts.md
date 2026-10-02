@@ -76,7 +76,7 @@ Then: Processing -> Out for Delivery -> Completed
 * **Cancelling a confirmed order** is allowed to the company while it is still
   Processing. Its stock goes back once (when the product still exists), and the
   company returns the money outside the app.
-* At most **5 orders per customer in any 24 hours**.
+* At most **10 orders per customer in any 24 hours**.
 
 The whole order flow is described in the
 [README](../README.md#orders-payment-and-stock).

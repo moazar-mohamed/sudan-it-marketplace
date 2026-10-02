@@ -2182,15 +2182,16 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // At most 5 orders per customer in ANY 24 hours, against spam (it does
+    // At most 10 orders per customer in ANY 24 hours, against spam (it does
     // not protect stock: an order takes none). The customer's quota document
-    // keeps the times of their last five orders in five slots, t0..t4,
+    // keeps the times of their last ten orders in ten slots, t0..t9,
     // written in turn; `next` is the slot the next order writes, and it always
-    // holds the oldest of the five. A new order is allowed only when that slot
+    // holds the oldest of the ten. A new order is allowed only when that slot
     // is still empty or at least 24 hours old, and it must write the server's
     // time there and move `next` on, in the same write as the order. Orders
     // cancelled later still count. (serverTimestamp cannot be used inside an
-    // array, hence five fields rather than a list.)
+    // array, hence ten fields rather than a list.) Keep the limit in step with
+    // OrderQuota.ordersPerDay in the app.
     function orderCountsAgainstQuota(orderId) {
       let quotaPath = /databases/$(database)/documents/order_quota/$(request.auth.uid);
       let after = getAfter(quotaPath).data;
@@ -2207,10 +2208,10 @@ service cloud.firestore {
       let oldest = before.get(slot, null);
       return before.next is int
         && before.next >= 0
-        && before.next <= 4
+        && before.next <= 9
         && (oldest == null || request.time >= oldest + duration.value(24, 'h'))
         && after[slot] == request.time
-        && after.next == (before.next + 1) % 5
+        && after.next == (before.next + 1) % 10
         && after.diff(before).affectedKeys().hasOnly([slot, 'next', 'lastOrderId']);
     }
 
@@ -2221,7 +2222,7 @@ service cloud.firestore {
     function isOrderQuotaWrite(uid) {
       let data = request.resource.data;
       let orderPath = /databases/$(database)/documents/orders/$(data.lastOrderId);
-      return data.keys().hasOnly(['t0', 't1', 't2', 't3', 't4', 'next', 'lastOrderId'])
+      return data.keys().hasOnly(['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9', 'next', 'lastOrderId'])
         && data.lastOrderId is string
         && data.lastOrderId.size() > 0
         && data.lastOrderId.size() <= 36
