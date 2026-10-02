@@ -52,6 +52,19 @@ export function OrderDetailsPage() {
                   <KeyValue label={t('col.orderStatus')}>
                     <OrderStatusBadge status={order.orderStatus} />
                   </KeyValue>
+                  {order.orderStatus === 'cancelled' && (
+                    <>
+                      {order.cancelReason && (
+                        <KeyValue label={t('order.cancelReason')}>
+                          {t(`order.cancel.${order.cancelReason}`)}
+                        </KeyValue>
+                      )}
+                      <KeyValue label={t('order.cancelledAt')}>{dateTime(order.cancelledAt)}</KeyValue>
+                      <KeyValue label={t('order.stockReturn')}>
+                        {order.stockReleased ? t('order.stockReturned') : t('order.stockNotReturned')}
+                      </KeyValue>
+                    </>
+                  )}
                   <KeyValue label={t('order.created')}>{dateTime(order.createdAt)}</KeyValue>
                   <KeyValue label={t('order.updated')}>{dateTime(order.updatedAt)}</KeyValue>
                 </dl>
@@ -60,7 +73,7 @@ export function OrderDetailsPage() {
               <Card title={t('order.section.payment')}>
                 <dl className="kv-list">
                   <KeyValue label={t('col.payment')}>
-                    <PaymentBadge status={order.paymentStatus} />
+                    <PaymentBadge status={order.paymentStatus} orderStatus={order.orderStatus} />
                   </KeyValue>
                   <KeyValue label={t('order.unitPrice')}>{money(order.unitPrice)}</KeyValue>
                   <KeyValue label={t('col.quantity')}>{number(order.quantity)}</KeyValue>

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +12,7 @@ import '../../service_requests/presentation/service_request_providers.dart';
 import '../../settings/presentation/settings_screen.dart';
 import 'account/company_account_tab.dart';
 import 'catalog/company_catalog_tab.dart';
+import 'company_admin_actions.dart';
 import 'dashboard/company_dashboard_tab.dart';
 import 'notifications/company_notifications_screen.dart';
 import 'orders/company_orders_tab.dart';
@@ -38,11 +41,25 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
       _ordersSection = section;
       _tab = _Tab.orders;
     });
+    _expireOverdueOrders();
+  }
+
+  /// There is no server to expire orders, so the company's app does it each
+  /// time the Orders page is opened: orders whose payment was not verified
+  /// within 24 hours are cancelled and their stock returned. The security
+  /// rules check the 24 hours with the server's clock.
+  void _expireOverdueOrders() {
+    unawaited(
+      ref.read(companyAdminActionsProvider).expireOverdueOrders(widget.companyId),
+    );
   }
 
   void _onBarSelected(int slot) {
     if (slot < _Tab.values.length) {
       setState(() => _tab = _Tab.values[slot]);
+      if (_Tab.values[slot] == _Tab.orders) {
+        _expireOverdueOrders();
+      }
     } else {
       showCompanyAddSheet(context, ref, widget.companyId);
     }

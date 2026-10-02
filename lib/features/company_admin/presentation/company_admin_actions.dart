@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/error_messages.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/logging/debug_log.dart';
 import '../../companies/domain/entities/company.dart';
 import '../../companies/domain/entities/payment_account.dart';
 import '../../companies/presentation/companies_providers.dart';
@@ -12,6 +13,7 @@ import '../../offers/domain/offer_pricing.dart';
 import '../../offers/presentation/offer_price.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../../orders/domain/entities/order_entity.dart';
+import '../../orders/presentation/order_error_message.dart';
 import '../../orders/presentation/orders_providers.dart';
 import '../../products/domain/entities/product.dart';
 import '../../products/presentation/products_providers.dart';
@@ -53,7 +55,7 @@ class CompanyAdminActions {
   }
 
   Future<String?> advanceOrderStatus(OrderEntity order, OrderStatus status) {
-    return _guard(() async {
+    return _guardOrder(() async {
       await _ref.read(ordersRepositoryProvider).updateOrderStatus(
             orderId: order.id,
             orderStatus: status,
@@ -62,8 +64,9 @@ class CompanyAdminActions {
     });
   }
 
+  /// Confirms the order's payment, which takes its stock in the same write.
   Future<String?> confirmPayment(OrderEntity order) {
-    return _guard(() async {
+    return _guardOrder(() async {
       await _ref.read(ordersRepositoryProvider).confirmPayment(order.id);
       final notifications = _ref.read(notificationsRepositoryProvider);
       await notifications.createNotification(
@@ -74,6 +77,38 @@ class CompanyAdminActions {
         ),
       );
     });
+  }
+
+  /// Cancels an order that is still Processing, its payment waiting or
+  /// confirmed; any stock it took goes back to its product. [reason] is
+  /// [OrderCancelReason.company] (by hand) or, for an order whose payment is
+  /// still waiting and whose product can no longer cover it,
+  /// [OrderCancelReason.outOfStock]. Any refund happens outside the app.
+  Future<String?> cancelOrder(
+    OrderEntity order, {
+    OrderCancelReason reason = OrderCancelReason.company,
+  }) {
+    return _guardOrder(
+      () => _ref.read(ordersRepositoryProvider).cancelOrder(
+            orderId: order.id,
+            reason: reason,
+          ),
+    );
+  }
+
+  /// Cancels as expired the company's orders whose payment was not verified
+  /// within [OrderEntity.paymentVerificationWindow]. With no server, this
+  /// runs when the company opens its Orders page. A best-effort background
+  /// step: it never throws, and whatever it misses is tried again next time.
+  Future<int> expireOverdueOrders(String companyId) async {
+    try {
+      return await _ref
+          .read(ordersRepositoryProvider)
+          .expireOverdueOrders(companyId);
+    } catch (error) {
+      debugLog('CompanyAdminActions', 'expireOverdueOrders failed: $error');
+      return 0;
+    }
   }
 
   Future<void> _notifyCustomerOfStatus(
@@ -360,6 +395,20 @@ class CompanyAdminActions {
       return null;
     } catch (error) {
       return localizedErrorMessage(_ref.read(appLocalizationsProvider), error);
+    }
+  }
+
+  /// Like [_guard], for a step on an order: its own refusals (a payment
+  /// already confirmed, not enough stock, ...) get their own message.
+  Future<String?> _guardOrder(Future<void> Function() action) async {
+    try {
+      await action();
+      return null;
+    } catch (error) {
+      return companyOrderErrorMessage(
+        _ref.read(appLocalizationsProvider),
+        error,
+      );
     }
   }
 }

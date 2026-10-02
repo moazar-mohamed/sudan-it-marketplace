@@ -39,6 +39,8 @@ String _appException(AppLocalizations l10n, AppException error) {
     AppErrorCode.orderNotConfirmed => l10n.orderNotConfirmed,
     AppErrorCode.orderProductNoPrice =>
       l10n.orderProductNoPrice(error.productName ?? ''),
+    AppErrorCode.orderPriceChanged =>
+      l10n.orderPriceChanged(error.productName ?? ''),
     AppErrorCode.orderAttachReceiptFailed => l10n.orderAttachReceiptFailed,
     AppErrorCode.orderReceiptLoadFailed => l10n.receiptLoadFailed,
     AppErrorCode.orderFetchFailed => l10n.orderFetchFailed,
@@ -46,6 +48,9 @@ String _appException(AppLocalizations l10n, AppException error) {
     AppErrorCode.orderUpdateStatusFailed => l10n.orderUpdateStatusFailed,
     AppErrorCode.orderConfirmPaymentDenied => l10n.orderConfirmPaymentDenied,
     AppErrorCode.orderConfirmPaymentFailed => l10n.orderConfirmPaymentFailed,
+    AppErrorCode.orderCancelDenied => l10n.orderCancelDenied,
+    AppErrorCode.orderCancelFailed => l10n.orderCancelFailed,
+    AppErrorCode.orderCancelNotAllowed => l10n.orderCancelNotAllowed,
     AppErrorCode.orderAssignTechnicianDenied =>
       l10n.orderAssignTechnicianDenied,
     AppErrorCode.orderAssignTechnicianFailed =>

@@ -124,7 +124,9 @@ class NotificationEvents {
           customerId: customerId,
           productName: productName,
         ),
-      OrderStatus.processing => null,
+      // No status-change notification for these (a cancellation is not a
+      // status step; see CompanyAdminActions.cancelOrder).
+      OrderStatus.processing || OrderStatus.cancelled => null,
     };
   }
 

@@ -175,12 +175,20 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                     ),
                     AdminInfoRow(
                       label: context.l10n.orderPaymentStatus,
-                      value: order.paymentStatus.label(context.l10n),
-                      valueColor: CompanyAdminFormat.paymentStatusColor(
-                        context,
-                        order.paymentStatus,
-                      ),
+                      value: order.paymentLabel(context.l10n),
+                      valueColor: order.paymentTone.foreground(context.colors),
                     ),
+                    // The stock is taken when the payment is confirmed.
+                    if (order.stockReserved && !order.isCancelled)
+                      AdminInfoRow(
+                        label: context.l10n.adminStockLabel,
+                        value: context.l10n.adminStockTaken(order.quantity),
+                      )
+                    else if (order.isAwaitingPaymentVerification)
+                      AdminInfoRow(
+                        label: context.l10n.adminStockLabel,
+                        value: context.l10n.adminStockNotTaken,
+                      ),
                     AdminInfoRow(
                       label: context.l10n.adminReceiptReference,
                       value: (order.receiptFileName ?? '').trim().isEmpty

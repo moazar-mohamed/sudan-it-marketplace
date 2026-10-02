@@ -608,6 +608,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String orderPriceChanged(String productName) {
+    return 'The price of $productName changed before your order was sent, so it was not placed. Go back to see the new price. If you already transferred money, please contact the company.';
+  }
+
+  @override
   String get orderAttachReceiptFailed =>
       'Could not attach the receipt. Please try again.';
 
@@ -629,6 +634,144 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get orderConfirmPaymentFailed =>
       'Could not confirm the payment. Please try again.';
+
+  @override
+  String get orderCancelDenied =>
+      'You do not have permission to cancel this order.';
+
+  @override
+  String get orderCancelFailed =>
+      'Could not cancel the order. Please try again.';
+
+  @override
+  String get orderCancelNotAllowed =>
+      'This order cannot be cancelled now: it was already cancelled or has moved on, or this reason does not apply to a confirmed payment.';
+
+  @override
+  String get orderStatusCancelled => 'Cancelled';
+
+  @override
+  String get orderCancelledTitle => 'This order was cancelled';
+
+  @override
+  String get orderCancelledByCompany => 'Cancelled by the company.';
+
+  @override
+  String get orderCancelledExpired =>
+      'Cancelled automatically: the payment was not verified within 24 hours.';
+
+  @override
+  String get orderCancelledOutOfStock =>
+      'Cancelled because the product ran out of stock before the payment was confirmed. The company returns the transferred money outside the app.';
+
+  @override
+  String get orderCancelledRefundConfirmed =>
+      'Your payment had been confirmed: the company returns the money to you outside the app.';
+
+  @override
+  String get orderCancelledRefundIfPaid =>
+      'If you transferred money for this order, the company returns it outside the app. You can reach them in the order\'s chat.';
+
+  @override
+  String get adminCancelledRefundConfirmed =>
+      'Its payment had been confirmed: return the money to the customer outside the app.';
+
+  @override
+  String get adminCancelledRefundIfPaid =>
+      'If the customer transferred money, return it outside the app.';
+
+  @override
+  String orderCancelledOn(String date) {
+    return 'Cancelled on $date';
+  }
+
+  @override
+  String get paymentStatusNotVerified => 'Not verified';
+
+  @override
+  String get adminCancelOrderButton => 'Cancel order';
+
+  @override
+  String get adminCancelOrderTitle => 'Cancel this order?';
+
+  @override
+  String adminCancelOrderBody(String orderId, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'its $count units go',
+      one: 'its 1 unit goes',
+    );
+    return 'Order #$orderId will be cancelled and $_temp0 back to stock. This cannot be undone. If the customer already paid, arrange the refund with them.';
+  }
+
+  @override
+  String adminCancelOrderBodyNoStock(String orderId) {
+    return 'Order #$orderId will be cancelled. Its payment is not confirmed, so it took no stock and none goes back. This cannot be undone. If the customer already transferred money, return it outside the app.';
+  }
+
+  @override
+  String adminCancelConfirmedOrderBody(
+    String orderId,
+    int count,
+    String amount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'its $count units go',
+      one: 'its 1 unit goes',
+    );
+    return 'Order #$orderId will be cancelled and $_temp0 back to stock. Its payment was confirmed: return $amount to the customer outside the app. This cannot be undone.';
+  }
+
+  @override
+  String adminCancelConfirmedOrderBodyNoStock(String orderId, String amount) {
+    return 'Order #$orderId will be cancelled. It was placed before orders recorded their stock, so no stock goes back automatically. Its payment was confirmed: return $amount to the customer outside the app. This cannot be undone.';
+  }
+
+  @override
+  String get adminCancelOutOfStockButton => 'Cancel: out of stock';
+
+  @override
+  String get adminCancelOutOfStockTitle => 'Cancel as out of stock?';
+
+  @override
+  String adminCancelOutOfStockBody(String orderId, String amount) {
+    return 'Order #$orderId will be cancelled because its product cannot cover it. No stock is taken or returned. The customer is told the product ran out; return $amount to them outside the app if they transferred it. This cannot be undone.';
+  }
+
+  @override
+  String get adminOrderCancelledOutOfStock =>
+      'Order cancelled as out of stock.';
+
+  @override
+  String get adminCancelOrderConfirm => 'Cancel order';
+
+  @override
+  String get adminCancelOrderKeep => 'Keep order';
+
+  @override
+  String get adminOrderCancelled => 'Order cancelled.';
+
+  @override
+  String adminCancelStockReturned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count units went back to stock.',
+      one: '1 unit went back to stock.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adminCancelStockNotReturned =>
+      'No stock went back: the order had taken none (its payment was not confirmed), or its product was removed.';
+
+  @override
+  String get adminOrdersExpiryNote =>
+      'Orders whose payment is not confirmed within 24 hours are cancelled automatically; a confirmed order never expires. This happens when you open this page, so a cancellation can wait until then.';
 
   @override
   String get orderAssignTechnicianDenied =>
@@ -970,7 +1113,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentPendingNote =>
-      'Submitting this receipt saves the transfer reference as \"Pending Verification\". Payment will be marked Confirmed after the company verifies it.';
+      'Your order is sent together with this receipt. A receipt is not a confirmed payment: the company checks the transfer and confirms it, and only then is the product reserved for you.';
 
   @override
   String get paymentSubmitting => 'Submitting...';
@@ -1080,11 +1223,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pendingBanner => 'PENDING VERIFICATION';
 
   @override
-  String get pendingTitle => 'Receipt Submitted for Verification';
+  String get pendingTitle => 'Order sent: waiting for the company';
 
   @override
   String get pendingBody =>
-      'Your transfer receipt reference has been saved. It is awaiting confirmation from the company. Payment will be marked Confirmed only after manual verification.';
+      'Your order and your transfer receipt were sent to the company. A receipt is not a confirmed payment: the company checks that the money arrived, then confirms it.';
+
+  @override
+  String get orderNotReservedYet =>
+      'The product is not reserved for you yet: stock is taken only when the company confirms your payment. If it sells out first, the company may cancel the order and return your transfer outside the app.';
+
+  @override
+  String get orderPaymentConfirmedNote =>
+      'The company confirmed your payment, and the product is reserved for your order.';
+
+  @override
+  String get orderAwaitingConfirmation =>
+      'Waiting for the company to confirm your payment';
+
+  @override
+  String get checkoutReservationNote =>
+      'Next you transfer the amount and upload the receipt. The company then confirms the payment, and only then is the product reserved for you.';
+
+  @override
+  String orderQuotaReached(int count, String time) {
+    return 'You have placed $count orders in the last 24 hours, the most allowed. You can order again after $time.';
+  }
+
+  @override
+  String orderQuotaReachedNoTime(int count) {
+    return 'You have placed $count orders in the last 24 hours, the most allowed. Please try again later.';
+  }
 
   @override
   String get pendingOrderReference => 'Order Reference';
@@ -1376,18 +1545,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminVerifyReceipt =>
-      'Verify the transfer receipt before processing this order.';
+      'A receipt is only the customer\'s claim. Check that the money arrived in your account, then confirm the payment. Confirming takes this order\'s units from stock; until then nothing is reserved.';
+
+  @override
+  String get adminShipAfterPayment =>
+      'The order can move on only after its payment is confirmed.';
+
+  @override
+  String adminStockCannotCover(int available, int count) {
+    return 'Not enough stock for this order: $available left, $count needed. Restock the product and confirm the payment, or cancel the order as out of stock.';
+  }
+
+  @override
+  String get adminProductGoneCannotConfirm =>
+      'This order\'s product is no longer in your catalogue, so its payment cannot be confirmed. Cancel the order as out of stock.';
+
+  @override
+  String adminOutOfStockStillCovers(int available, int count) {
+    return 'The product still has $available left, enough for this order ($count), so it cannot be cancelled as out of stock. Confirm the payment, or cancel the order by hand.';
+  }
+
+  @override
+  String get adminStockLabel => 'Stock';
+
+  @override
+  String adminStockTaken(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count units taken from stock',
+      one: '1 unit taken from stock',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adminStockNotTaken =>
+      'Not taken yet: taken when you confirm the payment';
+
+  @override
+  String get orderPaymentAlreadyConfirmed =>
+      'This payment was already confirmed, perhaps from another device. Nothing more was taken from stock.';
+
+  @override
+  String get orderPaymentNotAwaiting =>
+      'This order\'s payment can no longer be confirmed: the order was cancelled or has moved on.';
+
+  @override
+  String get orderPaymentNoReceipt =>
+      'This order has no stored receipt, so its payment cannot be confirmed. Ask the customer for the receipt in the order\'s chat, or cancel the order.';
 
   @override
   String get adminConfirmPaymentTitle => 'Confirm payment';
 
   @override
-  String adminConfirmPaymentBody(String id) {
-    return 'Mark the payment for order #$id as confirmed?';
+  String adminConfirmPaymentBody(String id, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count units are',
+      one: '1 unit is',
+    );
+    return 'Confirm that the payment for order #$id has arrived? $_temp0 taken from stock now.';
   }
 
   @override
-  String get adminPaymentConfirmed => 'Payment confirmed.';
+  String get adminPaymentConfirmed => 'Payment confirmed and stock taken.';
 
   @override
   String get adminConfirmPaymentButton => 'Confirm Payment';
@@ -1911,6 +2134,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get techJobCompleted => 'This job is completed.';
+
+  @override
+  String get techAwaitingPayment =>
+      'Waiting for the company to confirm the payment.';
+
+  @override
+  String get techAwaitingPaymentHint =>
+      'You can move this job on once the payment is confirmed.';
 
   @override
   String get techUpdateJobStatus => 'Update job status';

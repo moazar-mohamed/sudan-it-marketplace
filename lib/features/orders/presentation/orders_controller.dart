@@ -1,13 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/localization/error_messages.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../notifications/presentation/notification_events.dart';
 import '../../notifications/presentation/notifications_providers.dart';
-import '../../products/domain/stock_reservation.dart';
-import '../../products/presentation/stock_error_message.dart';
 import '../domain/entities/order_entity.dart';
 import '../domain/repositories/orders_repository.dart';
+import 'order_error_message.dart';
 import 'orders_providers.dart';
 import '../domain/entities/order_receipt.dart';
 
@@ -106,13 +104,8 @@ class OrdersController extends Notifier<OrderActionState> {
     }
   }
 
-  String _errorMessage(Object error) {
-    final l10n = ref.read(appLocalizationsProvider);
-    if (error is StockUnavailableException) {
-      return stockErrorMessage(l10n, error);
-    }
-    return localizedErrorMessage(l10n, error);
-  }
+  String _errorMessage(Object error) =>
+      customerOrderErrorMessage(ref.read(appLocalizationsProvider), error);
 
   Future<bool> attachReceipt({
     required String orderId,

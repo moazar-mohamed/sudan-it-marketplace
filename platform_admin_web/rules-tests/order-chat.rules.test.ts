@@ -19,7 +19,6 @@ import {
   getDoc,
   getDocs,
   query,
-  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -28,6 +27,7 @@ import {
   type Firestore,
 } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { placeOrder, receiptFor } from './support/checkout';
 
 let env: RulesTestEnvironment;
 const now = new Date();
@@ -47,7 +47,8 @@ afterAll(async () => {
   await env?.cleanup();
 });
 
-const as = (uid: string) => env.authenticatedContext(uid).firestore();
+/** Every account here has confirmed its e-mail (placing an order needs it). */
+const as = (uid: string) => env.authenticatedContext(uid, { email_verified: true }).firestore();
 const anon = () => env.unauthenticatedContext().firestore();
 
 const user = (id: string, role: string, extra: Record<string, unknown> = {}) => ({
@@ -86,7 +87,8 @@ async function seed() {
     await setDoc(doc(db, 'products', 'p1'), {
       id: 'p1',
       companyId: 'c1',
-      companyName: 'c1',
+      // The names an order (orderData below) must carry: its product's own.
+      companyName: 'Nile Tech',
       name: 'Router',
       imageUrl: '',
       price: 100,
@@ -127,15 +129,17 @@ const orderData = (id: string, customerId: string, extra: Record<string, unknown
   productSubtotal: 100,
   installationSelected: false,
   installationFee: 0,
-  deliveryFee: 0,
-  totalAmount: 100,
+  // Delivery costs the standard fee (standardDeliveryFee in firestore.rules).
+  deliveryFee: 15000,
+  totalAmount: 100 + 15000,
   deliveryAddress: 'Street',
   contactPhone: '0911111111',
   deliveryMethod: 'delivery',
   customerName: 'Amna',
   paymentStatus: 'pending_verification',
   orderStatus: 'processing',
-  receiptFileName: null,
+  stockReserved: false,
+  receiptFileName: 'receipt.jpg',
   createdAt: serverTimestamp(),
   updatedAt: serverTimestamp(),
   ...extra,
@@ -155,36 +159,38 @@ const chatFor = (order: ReturnType<typeof orderData>, extra: Record<string, unkn
   ...extra,
 });
 
-/** Order + its conversation, in one transaction (as the app places an order). */
+/**
+ * Order + its receipt + a quota step + its conversation, in one transaction
+ * (as the app places an order), sent by [sender].
+ */
 function placeOrderWithChat(
   db: Firestore,
+  sender: string,
   order: ReturnType<typeof orderData>,
   chatExtra: Record<string, unknown> = {},
 ) {
-  return runTransaction(db, async (tx) => {
-    const productRef = doc(db, 'products', 'p1');
-    const snap = await tx.get(productRef);
-    const available = (snap.data()?.stockCount as number | undefined) ?? 50;
-    tx.update(productRef, { stockCount: available - 1, lastOrderId: order.id, updatedAt: serverTimestamp() });
-    tx.set(doc(db, 'orders', order.id), order);
-    tx.set(doc(db, 'chats', order.id), chatFor(order, chatExtra));
+  return placeOrder(db, sender, order, {
+    also: (tx) => tx.set(doc(db, 'chats', order.id), chatFor(order, chatExtra)),
   });
 }
 
-/** The same two writes (order + chat) as one plain batch. */
+/**
+ * The same writes as one plain batch, sent by [sender] (a first order, so the
+ * quota starts at its first slot). [chat] false leaves the conversation out.
+ */
 function batchOrderWithChat(
   db: Firestore,
+  sender: string,
   order: ReturnType<typeof orderData>,
-  chatExtra: Record<string, unknown> = {},
+  chatExtra: Record<string, unknown> | false = {},
 ) {
   const batch = writeBatch(db);
-  batch.update(doc(db, 'products', 'p1'), {
-    stockCount: 49,
-    lastOrderId: order.id,
-    updatedAt: serverTimestamp(),
-  });
   batch.set(doc(db, 'orders', order.id), order);
-  batch.set(doc(db, 'chats', order.id), chatFor(order, chatExtra));
+  batch.set(doc(db, 'order_receipts', order.id), receiptFor(order));
+  batch.set(doc(db, 'order_quota', sender), { t0: serverTimestamp(), next: 1, lastOrderId: order.id });
+  if (chatExtra !== false) {
+    batch.set(doc(db, 'chats', order.id), chatFor(order, chatExtra));
+  }
   return batch.commit();
 }
 
@@ -235,33 +241,33 @@ async function stored(path: string, id: string): Promise<Record<string, unknown>
 beforeEach(seed);
 
 describe('a conversation is created together with a brand-new order', () => {
-  it('as one transaction (stock reservation + order + chat)', async () => {
+  it('as one transaction (order + receipt + quota step + chat)', async () => {
     const order = orderData('n1', 'cust1');
-    await assertSucceeds(placeOrderWithChat(as('cust1'), order));
+    await assertSucceeds(placeOrderWithChat(as('cust1'), 'cust1', order));
     expect(await stored('chats', 'n1')).toMatchObject({ orderId: 'n1', companyId: 'c1', productName: 'Router' });
   });
 
   it('or as one plain batch', async () => {
-    await assertSucceeds(batchOrderWithChat(as('cust1'), orderData('n2', 'cust1')));
+    await assertSucceeds(batchOrderWithChat(as('cust1'), 'cust1', orderData('n2', 'cust1')));
     expect(await stored('chats', 'n2')).toBeTruthy();
   });
 
   it('a chat needs its order: refused alongside one the rules refuse (wrong customer)', async () => {
-    await assertFails(batchOrderWithChat(as('cust1'), orderData('n3', 'cust2')));
+    await assertFails(batchOrderWithChat(as('cust1'), 'cust1', orderData('n3', 'cust2')));
     expect(await stored('chats', 'n3')).toBeUndefined();
   });
 
   it('the conversation must name the order\'s own participants', async () => {
-    await assertFails(batchOrderWithChat(as('cust1'), orderData('n4', 'cust1'), { companyId: 'c2' }));
-    await assertFails(batchOrderWithChat(as('cust1'), orderData('n5', 'cust1'), { productName: 'Something else' }));
+    await assertFails(batchOrderWithChat(as('cust1'), 'cust1', orderData('n4', 'cust1'), { companyId: 'c2' }));
+    await assertFails(
+      batchOrderWithChat(as('cust1'), 'cust1', orderData('n5', 'cust1'), { productName: 'Something else' }),
+    );
+    // The same order with its own names goes through.
+    await assertSucceeds(batchOrderWithChat(as('cust1'), 'cust1', orderData('n5', 'cust1')));
   });
 
   it('the rules do not force a chat on every order (the app always writes one; an old order without one still works)', async () => {
-    const db = as('cust1');
-    const batch = writeBatch(db);
-    batch.update(doc(db, 'products', 'p1'), { stockCount: 49, lastOrderId: 'n6', updatedAt: serverTimestamp() });
-    batch.set(doc(db, 'orders', 'n6'), orderData('n6', 'cust1'));
-    await assertSucceeds(batch.commit());
+    await assertSucceeds(batchOrderWithChat(as('cust1'), 'cust1', orderData('n6', 'cust1'), false));
     expect(await stored('chats', 'n6')).toBeUndefined();
   });
 });

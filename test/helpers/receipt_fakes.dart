@@ -114,12 +114,24 @@ class FakeOrdersRemote extends Fake implements OrdersRemoteDataSource {
   Completer<void>? receiptGate;
   Object? createError;
 
+  /// The names the "product" has, which is what a real order is stored
+  /// under; null stores the ones the order was given (nothing was renamed).
+  String? storedProductName;
+  String? storedCompanyName;
+
   @override
-  Future<String> createOrder(OrderModel order, {ReceiptImage? receipt}) async {
+  Future<CreatedOrder> createOrder(
+    OrderModel order, {
+    ReceiptImage? receipt,
+  }) async {
     if (createError != null) throw createError!;
     createdOrders.add(order);
     createdReceipts.add(receipt);
-    return order.id;
+    return (
+      id: order.id,
+      productName: storedProductName ?? order.productName,
+      companyName: storedCompanyName ?? order.companyName,
+    );
   }
 
   @override

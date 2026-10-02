@@ -109,7 +109,7 @@ void main() {
     });
 
     test('a status change that is not a step sends nothing', () {
-      for (final status in [OrderStatus.processing]) {
+      for (final status in [OrderStatus.processing, OrderStatus.cancelled]) {
         expect(
           NotificationEvents.forOrderStatusChange(
             status: status,

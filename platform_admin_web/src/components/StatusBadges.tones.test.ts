@@ -8,11 +8,12 @@ import {
 
 // The same status reads with the same colour family as in the mobile app.
 describe('status tones', () => {
-  it('orders: processing is info, out for delivery is progress, completed is success', () => {
+  it('orders: processing is info, out for delivery is progress, completed is success, cancelled is danger', () => {
     expect(ORDER_TONE).toEqual({
       processing: 'info',
       out_for_delivery: 'progress',
       completed: 'success',
+      cancelled: 'danger',
     });
   });
 

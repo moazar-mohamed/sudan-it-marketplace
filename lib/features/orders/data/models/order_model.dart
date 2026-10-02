@@ -29,6 +29,10 @@ class OrderModel {
     this.deliveryLongitude,
     this.technicianId,
     this.technicianName,
+    this.stockReserved = false,
+    this.stockReleased = false,
+    this.cancelReason,
+    this.cancelledAt,
     required this.createdAt,
     this.updatedAt,
   });
@@ -76,6 +80,15 @@ class OrderModel {
       deliveryLongitude: delivery?.longitude,
       technicianId: map['technicianId'] as String?,
       technicianName: map['technicianName'] as String?,
+      // Only an explicit false (an order placed since stock moved to the
+      // payment confirmation, not yet confirmed) has not taken its stock. An
+      // order with no stockReserved field was placed before that and took
+      // its stock when it was placed: the same reading as the rules'
+      // orderTookStock.
+      stockReserved: map['stockReserved'] != false,
+      stockReleased: map['stockReleased'] == true,
+      cancelReason: OrderCancelReason.fromValue(map['cancelReason']),
+      cancelledAt: map['cancelledAt'] != null ? parseTimestamp(map['cancelledAt']) : null,
       createdAt: parseTimestamp(map['createdAt']),
       updatedAt: map['updatedAt'] != null ? parseTimestamp(map['updatedAt']) : null,
     );
@@ -105,6 +118,10 @@ class OrderModel {
   final double? deliveryLongitude;
   final String? technicianId;
   final String? technicianName;
+  final bool stockReserved;
+  final bool stockReleased;
+  final OrderCancelReason? cancelReason;
+  final DateTime? cancelledAt;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -137,6 +154,10 @@ class OrderModel {
         'deliveryLatitude': delivery.latitude,
         'deliveryLongitude': delivery.longitude,
       },
+      // A new order takes no stock. The company takes it when it confirms the
+      // payment, and this turns true in that same write, so a cancellation
+      // gives back exactly what was taken.
+      'stockReserved': false,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -168,6 +189,10 @@ class OrderModel {
       deliveryLongitude: deliveryLongitude,
       technicianId: technicianId,
       technicianName: technicianName,
+      stockReserved: stockReserved,
+      stockReleased: stockReleased,
+      cancelReason: cancelReason,
+      cancelledAt: cancelledAt,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

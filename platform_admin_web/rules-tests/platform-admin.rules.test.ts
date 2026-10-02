@@ -26,6 +26,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { placeOrder } from './support/checkout';
 
 let env: RulesTestEnvironment;
 
@@ -143,6 +144,7 @@ async function seed() {
       contactPhone: '1',
       paymentStatus: 'pending_verification',
       orderStatus: 'processing',
+      stockReserved: true,
       createdAt: now,
       updatedAt: now,
     });
@@ -183,8 +185,35 @@ afterAll(async () => {
 });
 beforeEach(seed);
 
-const as = (uid: string) => env.authenticatedContext(uid).firestore();
+/** Every account here has confirmed its e-mail (placing an order needs it). */
+const as = (uid: string) => env.authenticatedContext(uid, { email_verified: true }).firestore();
 const admin = () => as('admin');
+
+/**
+ * Places a correctly priced order (10 + the standard 15000 delivery fee) for
+ * a real product of company c_active the way the app's checkout transaction
+ * does: with its receipt and a step of the customer's quota.
+ */
+async function placeRealOrder(uid: string, orderId: string) {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const ref = doc(ctx.firestore(), 'products', 'p_real');
+    if (!(await getDoc(ref)).exists()) {
+      await setDoc(ref, {
+        id: 'p_real', companyId: 'c_active', companyName: 'C', name: 'Router', imageUrl: '', price: 10,
+        currency: 'SDG', stockCount: 50, inStock: true, description: '', specifications: {},
+        isDeliveryAvailable: true, isInstallationAvailable: false, installationPrice: null,
+        createdAt: new Date(), updatedAt: new Date(),
+      });
+    }
+  });
+  return placeOrder(as(uid), uid, {
+    id: orderId, customerId: uid, companyId: 'c_active', companyName: 'C', productId: 'p_real',
+    productName: 'Router', quantity: 1, unitPrice: 10, productSubtotal: 10, installationSelected: false,
+    installationFee: 0, deliveryFee: 15000, totalAmount: 15010, deliveryAddress: 'x', contactPhone: '1',
+    deliveryMethod: 'delivery', customerName: 'N', paymentStatus: 'pending_verification',
+    orderStatus: 'processing', stockReserved: false, receiptFileName: 'receipt.jpg', createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+  });
+}
 
 describe('Platform Admin privilege requires role AND isActive', () => {
   it('active admin can read companies, orders and reviews', async () => {
@@ -390,14 +419,27 @@ describe('Company lifecycle: hide, restore, delete', () => {
 });
 
 describe('Orders with a deactivated company', () => {
+  // Every order is for a real product of the ordered company, priced from it
+  // (10 + the standard 15000 delivery fee), placed with its receipt.
+  const productOf = (companyId: string) => `px_${companyId}`;
   const order = (companyId: string) => ({
-    id: 'o_new', customerId: 'cust1', companyId, companyName: 'C', productId: 'px', productName: 'Thing',
-    quantity: 1, unitPrice: 10, productSubtotal: 10, installationSelected: false, installationFee: 0,
-    deliveryFee: 0, totalAmount: 10, deliveryAddress: 'x', contactPhone: '1', deliveryMethod: 'delivery',
-    customerName: 'N', paymentStatus: 'pending_verification', orderStatus: 'processing',
-    receiptFileName: null, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    id: 'o_new', customerId: 'cust1', companyId, companyName: 'C', productId: productOf(companyId),
+    productName: 'Thing', quantity: 1, unitPrice: 10, productSubtotal: 10, installationSelected: false,
+    installationFee: 0, deliveryFee: 15000, totalAmount: 15010, deliveryAddress: 'x', contactPhone: '1',
+    deliveryMethod: 'delivery', customerName: 'N', paymentStatus: 'pending_verification',
+    orderStatus: 'processing', stockReserved: false, receiptFileName: 'receipt.jpg', createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
   });
-  const place = (companyId: string) => setDoc(doc(as('cust1'), 'orders', 'o_new'), order(companyId));
+  const place = async (companyId: string) => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'products', productOf(companyId)), {
+        id: productOf(companyId), companyId, companyName: 'C', name: 'Thing', imageUrl: '', price: 10,
+        currency: 'SDG', stockCount: 5, inStock: true, description: '', specifications: {},
+        isDeliveryAvailable: true, isInstallationAvailable: false, installationPrice: null,
+        createdAt: new Date(), updatedAt: new Date(),
+      });
+    });
+    return placeOrder(as('cust1'), 'cust1', order(companyId));
+  };
 
   it('cannot place an order with a deactivated, pending or rejected company', async () => {
     await assertFails(place('c_inactive'));
@@ -410,13 +452,14 @@ describe('Orders with a deactivated company', () => {
     );
     await assertSucceeds(place('c_inactive'));
   });
-  it('active and legacy (no status) companies, and companies not in Firestore, still work', async () => {
+  it('active and legacy (no status) companies still work', async () => {
     await assertSucceeds(place('c_active'));
     await env.clearFirestore();
     await seed();
     await assertSucceeds(place('c_legacy'));
-    await seed();
-    await assertSucceeds(place('demo_company_not_in_firestore'));
+  });
+  it('a company that is not in Firestore takes no orders', async () => {
+    await assertFails(place('demo_company_not_in_firestore'));
   });
 });
 
@@ -591,13 +634,6 @@ describe('Customers', () => {
 });
 
 describe('A deactivated customer cannot use the customer app', () => {
-  const order = (uid: string) => ({
-    id: 'o_dead', customerId: uid, companyId: 'c_active', companyName: 'C', productId: 'p_demo', productName: 'Router',
-    quantity: 1, unitPrice: 10, productSubtotal: 10, installationSelected: false, installationFee: 0,
-    deliveryFee: 0, totalAmount: 10, deliveryAddress: 'x', contactPhone: '1', deliveryMethod: 'delivery',
-    customerName: 'N', paymentStatus: 'pending_verification', orderStatus: 'processing',
-    receiptFileName: null, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
-  });
   const deactivate = () =>
     env.withSecurityRulesDisabled(async (ctx) => {
       await updateDoc(doc(ctx.firestore(), 'users', 'cust1'), { isActive: false });
@@ -605,15 +641,17 @@ describe('A deactivated customer cannot use the customer app', () => {
 
   it('cannot place an order or attach a receipt once deactivated, but can again after reactivation', async () => {
     await deactivate();
-    await assertFails(setDoc(doc(as('cust1'), 'orders', 'o_dead'), order('cust1')));
+    await assertFails(placeRealOrder('cust1', 'o_dead'));
     await assertFails(updateDoc(doc(as('cust1'), 'orders', 'o1'), { receiptFileName: 'r.jpg', updatedAt: serverTimestamp() }));
     await assertSucceeds(updateDoc(doc(admin(), 'users', 'cust1'), { isActive: true }));
-    await assertSucceeds(setDoc(doc(as('cust1'), 'orders', 'o_dead'), order('cust1')));
+    await assertSucceeds(placeRealOrder('cust1', 'o_dead'));
     await assertSucceeds(updateDoc(doc(as('cust1'), 'orders', 'o1'), { receiptFileName: 'r.jpg', updatedAt: serverTimestamp() }));
   });
-  it('active customers, and users without a profile document, are unaffected', async () => {
-    await assertSucceeds(setDoc(doc(as('cust2'), 'orders', 'o_dead'), order('cust2')));
-    await assertSucceeds(setDoc(doc(as('no_profile_user'), 'orders', 'o_dead2'), { ...order('no_profile_user'), id: 'o_dead2' }));
+  it('other active customers are unaffected', async () => {
+    await assertSucceeds(placeRealOrder('cust2', 'o_dead'));
+  });
+  it('an account with no profile document cannot place an order: only an active customer can', async () => {
+    await assertFails(placeRealOrder('no_profile_user', 'o_dead2'));
   });
   it('a deactivated customer keeps their history readable by the admin', async () => {
     await deactivate();
@@ -674,12 +712,16 @@ describe('Orders (read-only)', () => {
     await assertFails(setDoc(doc(admin(), 'orders', 'o2'), newOrder('admin')));
   });
   it('customer can still place their own order (customer role unchanged)', async () => {
-    await assertSucceeds(setDoc(doc(as('cust1'), 'orders', 'o2'), newOrder('cust1')));
+    await assertSucceeds(placeRealOrder('cust1', 'o2'));
   });
-  it('company admin can still advance an order (company admin role unchanged)', async () => {
-    await assertSucceeds(
-      updateDoc(doc(as('ca1'), 'orders', 'o1'), { orderStatus: 'out_for_delivery', updatedAt: serverTimestamp() }),
-    );
+  it('company admin can still advance an order once its payment is confirmed (company admin role unchanged)', async () => {
+    const advance = () =>
+      updateDoc(doc(as('ca1'), 'orders', 'o1'), { orderStatus: 'out_for_delivery', updatedAt: serverTimestamp() });
+    await assertFails(advance());
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'orders', 'o1'), { paymentStatus: 'confirmed' });
+    });
+    await assertSucceeds(advance());
   });
 });
 

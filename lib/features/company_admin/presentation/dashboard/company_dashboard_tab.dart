@@ -10,10 +10,13 @@ import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/orders_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
+import '../../../reviews/domain/review.dart';
+import '../../../reviews/presentation/reviews_providers.dart';
 import '../company_admin_format.dart';
 import '../orders/company_order_details_screen.dart';
 import '../orders/company_orders_tab.dart';
 import '../products/company_product_details_screen.dart';
+import '../reviews/company_reviews_screen.dart';
 import '../widgets/company_order_tile.dart';
 
 /// A product with this many units or fewer counts as low on stock.
@@ -36,19 +39,25 @@ class CompanyDashboardTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productsAsync = ref.watch(companyProductsStreamProvider(companyId));
+    final ratingsLoaded = ref.watch(ratingsProvider).hasValue;
+    final rating =
+        ref.watch(ratingStatsProvider(RatingStats.companyKey(companyId)));
     final ordersAsync = ref.watch(companyOrdersStreamProvider(companyId));
 
     final orders = ordersAsync.asData?.value ?? const <OrderEntity>[];
     final products = productsAsync.asData?.value ?? const <Product>[];
+    // Completed and cancelled orders need nothing more.
     final open = orders
-        .where((order) => order.orderStatus != OrderStatus.completed)
+        .where((order) =>
+            order.orderStatus != OrderStatus.completed && !order.isCancelled)
         .toList();
     final newOrders =
         orders.where((o) => o.orderStatus == OrderStatus.processing).length;
     final installJobs = open.where((o) => o.installationSelected).length;
     final weekAgo = DateTime.now().subtract(const Duration(days: 7));
+    // A cancelled order is no sale.
     final weekSales = orders
-        .where((o) => o.createdAt.isAfter(weekAgo))
+        .where((o) => o.createdAt.isAfter(weekAgo) && !o.isCancelled)
         .fold<double>(0, (sum, o) => sum + o.totalAmount);
     final lowStock =
         products.where((p) => p.stockCount <= lowStockThreshold).toList();
@@ -153,12 +162,39 @@ class CompanyDashboardTab extends ConsumerWidget {
                           onTap: onOpenCatalog,
                         ),
                       ];
+                      final rated = rating != null && rating.hasRatings;
+                      // The rating fills the row under the other figures.
+                      final ratingTile = _StatTile(
+                        key: const ValueKey('dashboard-rating'),
+                        label: rated
+                            ? '${context.l10n.companyReviewsTitle} '
+                                '${context.l10n.reviewsCount(rating.count)}'
+                            : context.l10n.companyReviewsTitle,
+                        value: !ratingsLoaded
+                            ? '…'
+                            : rated
+                                ? rating.average.toStringAsFixed(1)
+                                : '—',
+                        icon: Icons.star_rounded,
+                        tone: AppTone.warning,
+                        wide: true,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                CompanyReviewsScreen(companyId: companyId),
+                          ),
+                        ),
+                      );
                       return Wrap(
                         spacing: AppSpacing.s12,
                         runSpacing: AppSpacing.s12,
                         children: [
                           for (final tile in tiles)
                             SizedBox(width: tileWidth, child: tile),
+                          SizedBox(
+                            width: constraints.maxWidth,
+                            child: ratingTile,
+                          ),
                         ],
                       );
                     },
@@ -239,10 +275,12 @@ class CompanyDashboardTab extends ConsumerWidget {
 
 class _StatTile extends StatelessWidget {
   const _StatTile({
+    super.key,
     required this.label,
     required this.value,
     required this.icon,
     this.tone = AppTone.brand,
+    this.wide = false,
     this.onTap,
   });
 
@@ -250,32 +288,54 @@ class _StatTile extends StatelessWidget {
   final String value;
   final IconData icon;
   final AppTone tone;
+
+  /// A full-width tile: the icon beside the figure instead of above it.
+  final bool wide;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final figure = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerStart,
+      child: Text(value, maxLines: 1, style: AppTextStyles.stat),
+    );
+    final caption = Text(
+      label,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: AppTextStyles.caption
+          .copyWith(color: context.colors.textSecondary),
+    );
     return AppCard(
       onTap: onTap,
       padding: const EdgeInsets.all(AppSpacing.s16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppIconTile(icon: icon, tone: tone, size: 36),
-          const SizedBox(height: AppSpacing.s8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: AlignmentDirectional.centerStart,
-            child: Text(value, maxLines: 1, style: AppTextStyles.stat),
-          ),
-          Text(
-            label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.caption
-                .copyWith(color: context.colors.textSecondary),
-          ),
-        ],
-      ),
+      child: wide
+          ? Row(
+              children: [
+                AppIconTile(icon: icon, tone: tone, size: 36),
+                const SizedBox(width: AppSpacing.s12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [figure, caption],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: context.colors.iconMuted,
+                ),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppIconTile(icon: icon, tone: tone, size: 36),
+                const SizedBox(height: AppSpacing.s8),
+                figure,
+                caption,
+              ],
+            ),
     );
   }
 }

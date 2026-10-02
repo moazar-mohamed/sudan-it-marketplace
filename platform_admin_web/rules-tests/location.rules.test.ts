@@ -24,6 +24,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
+import { placeOrder } from './support/checkout';
 
 let env: RulesTestEnvironment;
 
@@ -122,13 +123,16 @@ async function seed() {
         deliveryMethod: 'delivery',
         paymentStatus: 'pending_verification',
         orderStatus: 'processing',
+        stockReserved: true,
         receiptFileName: 'r.jpg',
         createdAt: now,
         updatedAt: now,
         ...extra,
       });
-    // An assigned installation order that carries the customer's delivery point.
+    // An assigned installation order that carries the customer's delivery
+    // point, its payment confirmed (so it may move on to delivery).
     await order('o_pin', {
+      paymentStatus: 'confirmed',
       technicianId: 'tech1',
       technicianName: 'Name tech1',
       deliveryLatitude: 15.6,
@@ -157,7 +161,8 @@ afterAll(async () => {
 });
 beforeEach(seed);
 
-const as = (uid: string) => env.authenticatedContext(uid).firestore();
+/** Every account here has confirmed its e-mail (placing an order needs it). */
+const as = (uid: string) => env.authenticatedContext(uid, { email_verified: true }).firestore();
 
 describe('Company location: who can change it', () => {
   const patch = (extra: object) => ({ ...extra, updatedAt: serverTimestamp() });
@@ -334,21 +339,34 @@ describe('Order delivery location captured at checkout', () => {
     productSubtotal: 100,
     installationSelected: false,
     installationFee: 0,
-    deliveryFee: 15,
-    totalAmount: 115,
+    // Delivery costs the standard fee (standardDeliveryFee in firestore.rules).
+    deliveryFee: 15000,
+    totalAmount: 15100,
     deliveryAddress: 'Customer street',
     contactPhone: '0911111111',
     deliveryMethod: 'delivery',
     customerName: 'Name cust1',
     paymentStatus: 'pending_verification',
     orderStatus: 'processing',
+    stockReserved: false,
     receiptFileName: 'r.jpg',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     ...extra,
   });
+  // Every order is for a real product of company c1, placed with its receipt.
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'products', 'p1'), {
+        id: 'p1', companyId: 'c1', companyName: 'Company 1', name: 'Router', imageUrl: '', price: 100,
+        currency: 'SDG', stockCount: 50, inStock: true, description: '', specifications: {},
+        isDeliveryAvailable: true, isInstallationAvailable: false, installationPrice: null,
+        createdAt: new Date(), updatedAt: new Date(),
+      });
+    });
+  });
   const create = (id: string, extra: object = {}, uid = 'cust1') =>
-    setDoc(doc(as(uid), 'orders', id), newOrder(id, extra));
+    placeOrder(as(uid), uid, newOrder(id, extra));
 
   it('accepts a typed address only (legacy shape)', async () => {
     await assertSucceeds(create('n1'));

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/text_clip.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../domain/geo_location.dart';
 import '../location_strings.dart';
@@ -25,6 +27,7 @@ class LocationField extends StatelessWidget {
     this.textHint,
     this.errorText,
     this.maxLines = 2,
+    this.maxTextLength,
   });
 
   final TextEditingController textController;
@@ -37,6 +40,11 @@ class LocationField extends StatelessWidget {
   /// Shown under the field, e.g. "enter an address or select on the map".
   final String? errorText;
   final int maxLines;
+
+  /// The longest text the field takes, measured the way the security rules
+  /// measure it (see [clipToLength]); typing or pasting simply stops there.
+  /// Null (the default) leaves the text unlimited.
+  final int? maxTextLength;
 
   Future<void> _pick(BuildContext context) async {
     final picked = await MapPickerScreen.open(
@@ -65,6 +73,9 @@ class LocationField extends StatelessWidget {
           minLines: 1,
           maxLines: maxLines,
           prefixIcon: Icons.location_on_outlined,
+          inputFormatters: maxTextLength == null
+              ? null
+              : [_MaxLengthFormatter(maxTextLength!)],
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.s12),
@@ -141,6 +152,32 @@ class LocationField extends StatelessWidget {
           AppBanner(tone: AppTone.error, message: errorText!),
         ],
       ],
+    );
+  }
+}
+
+/// Stops the text at [max] in length. A field already at its limit ignores
+/// further input; a longer paste is cut to fit.
+class _MaxLengthFormatter extends TextInputFormatter {
+  const _MaxLengthFormatter(this.max);
+
+  final int max;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.length <= max) {
+      return newValue;
+    }
+    if (oldValue.text.length >= max) {
+      return oldValue;
+    }
+    final text = clipToLength(newValue.text, max);
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
     );
   }
 }

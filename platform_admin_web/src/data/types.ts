@@ -7,12 +7,21 @@ export type CompanyStatus = 'pending' | 'active' | 'rejected' | 'inactive';
 export const COMPANY_FILTER_STATUSES = ['active', 'inactive'] as const;
 export type CompanyFilterStatus = (typeof COMPANY_FILTER_STATUSES)[number];
 
-export type OrderStatus = 'processing' | 'out_for_delivery' | 'completed';
+/** `cancelled` is final: the company cancelled it while it was Processing, before or after confirming its payment. */
+export type OrderStatus = 'processing' | 'out_for_delivery' | 'completed' | 'cancelled';
 export const ORDER_STATUSES: OrderStatus[] = [
   'processing',
   'out_for_delivery',
   'completed',
+  'cancelled',
 ];
+
+/**
+ * Why an order was cancelled: by the company; its payment was not verified
+ * within 24 hours; or its product ran out before its payment was confirmed
+ * (`out_of_stock`: the company returns the money outside the app).
+ */
+export type OrderCancelReason = 'company' | 'expired' | 'out_of_stock';
 
 export type PaymentStatus = 'pending_verification' | 'confirmed';
 export type DeliveryMethod = 'delivery' | 'pickup';
@@ -93,6 +102,11 @@ export interface Order {
   receiptFileName: string;
   technicianId: string;
   technicianName: string;
+  /** Set only on a cancelled order. */
+  cancelReason: OrderCancelReason | null;
+  cancelledAt: Date | null;
+  /** A cancellation gave back to its product the stock the order had taken. */
+  stockReleased: boolean;
   createdAt: Date | null;
   updatedAt: Date | null;
 }

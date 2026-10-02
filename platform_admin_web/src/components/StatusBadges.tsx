@@ -17,6 +17,7 @@ export const ORDER_TONE: Record<OrderStatus, Tone> = {
   processing: 'info',
   out_for_delivery: 'progress',
   completed: 'success',
+  cancelled: 'danger',
 };
 export const SERVICE_REQUEST_TONE: Record<ServiceRequestStatus, Tone> = {
   pending: 'warning',
@@ -48,8 +49,23 @@ export function ServiceRequestStatusBadge({ status }: { status: ServiceRequestSt
   );
 }
 
-export function PaymentBadge({ status }: { status: PaymentStatus }) {
+/**
+ * A cancelled order whose payment was not verified never will be, so with
+ * its [orderStatus] it is not shown as still waiting for verification. One
+ * cancelled after its payment was confirmed still shows Confirmed: the
+ * company returns that money outside the app.
+ */
+export function PaymentBadge({
+  status,
+  orderStatus,
+}: {
+  status: PaymentStatus;
+  orderStatus?: OrderStatus;
+}) {
   const { t } = useI18n();
+  if (orderStatus === 'cancelled' && status === 'pending_verification') {
+    return <Badge tone="neutral">{t('payment.not_verified')}</Badge>;
+  }
   return <Badge tone={PAYMENT_TONE[status]}>{t(`payment.${status}`)}</Badge>;
 }
 

@@ -155,7 +155,7 @@ describe('product offers', () => {
     );
   });
 
-  it('a customer ordering an offer product still only touches stock', async () => {
+  it('a customer never writes an offer product (ordering takes no stock), let alone its offer', async () => {
     const db = as('cust1');
     await assertFails(
       updateDoc(doc(db, 'products', 'onOffer'), {

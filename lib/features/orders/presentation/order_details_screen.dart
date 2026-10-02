@@ -15,6 +15,7 @@ import '../../reviews/presentation/review_widgets.dart';
 import '../../reviews/presentation/reviews_providers.dart';
 import '../domain/entities/order_entity.dart';
 import 'order_chat_actions.dart';
+import 'widgets/order_cancelled_note.dart';
 import 'widgets/order_location_widgets.dart';
 import 'widgets/price_summary_row.dart';
 import 'order_labels.dart';
@@ -215,8 +216,8 @@ class OrderDetailsScreen extends ConsumerWidget {
                               .copyWith(color: context.colors.textSecondary),
                         ),
                         StatusChip(
-                          label: order.paymentStatus.label(l10n),
-                          tone: order.paymentStatus.tone,
+                          label: order.paymentLabel(l10n),
+                          tone: order.paymentTone,
                         ),
                       ],
                     ),
@@ -228,6 +229,21 @@ class OrderDetailsScreen extends ConsumerWidget {
                       ),
                     if (order.receiptFileName != null)
                       ReceiptViewButton(orderId: order.id),
+                    // A receipt is not a confirmed payment: only the
+                    // company's confirmation reserves the product.
+                    if (order.isAwaitingPaymentVerification)
+                      AppBanner(
+                        key: const ValueKey('order-not-reserved-yet'),
+                        icon: Icons.inventory_2_outlined,
+                        message: l10n.orderNotReservedYet,
+                      )
+                    else if (order.paymentStatus == PaymentStatus.confirmed &&
+                        !order.isCancelled)
+                      AppBanner(
+                        key: const ValueKey('order-payment-confirmed-note'),
+                        tone: AppTone.success,
+                        message: l10n.orderPaymentConfirmedNote,
+                      ),
                   ],
                 ),
                 gap,
@@ -290,11 +306,15 @@ class OrderDetailsScreen extends ConsumerWidget {
       ),
       gap: AppSpacing.s16,
       children: [
-        AppStepTracker(
-          labels: [for (final step in steps) step.label(l10n)],
-          currentIndex: currentIndex,
-          allDone: order.orderStatus == OrderStatus.completed,
-        ),
+        // A cancelled order has no progress to show, only what happened.
+        if (order.isCancelled)
+          OrderCancelledNote(order: order)
+        else
+          AppStepTracker(
+            labels: [for (final step in steps) step.label(l10n)],
+            currentIndex: currentIndex,
+            allDone: order.orderStatus == OrderStatus.completed,
+          ),
       ],
     );
   }

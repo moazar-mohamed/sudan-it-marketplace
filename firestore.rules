@@ -245,10 +245,11 @@ service cloud.firestore {
         && request.resource.data.fcmTokens.size() <= 10;
     }
 
-    // A deactivated account (isActive == false) can no longer place orders,
-    // attach receipts or create notifications, even from a session that was
-    // already open. A user with
-    // no profile document, or no isActive flag, is not treated as deactivated.
+    // A deactivated account (isActive == false) can no longer attach receipts,
+    // send messages or create notifications, even from a session that was
+    // already open. A user with no profile document, or no isActive flag, is
+    // not treated as deactivated here. (Placing an order asks for more: see
+    // isActiveCustomer.)
     function callerIsNotDeactivated() {
       return !signedInUserExists()
         || signedInUser().get('isActive', true) != false;
@@ -694,22 +695,33 @@ service cloud.firestore {
         'receiptFileName',
         'deliveryLatitude',
         'deliveryLongitude',
+        'stockReserved',
         'createdAt',
         'updatedAt'
       ]);
     }
 
+    // Every text an order carries has a length limit, so one order stays a
+    // few kilobytes (the company app and the Platform Admin load whole order
+    // lists). The numbers are the ones used elsewhere for the same things:
+    // service requests (address 500, phone 30, customer name 120, company
+    // name 200), products (name 200), receipts (file name 100). The id is
+    // 10 characters from the app (20 for a Firestore auto id); 36 leaves room
+    // for a longer format and is well inside what notifications accept (128).
     function isValidOrderCreate(orderId) {
       return hasRequiredOrderKeys()
+        && orderId.size() <= 36
         && request.resource.data.id == orderId
         && request.resource.data.customerId == request.auth.uid
         && request.resource.data.companyId is string
         && request.resource.data.companyId.size() > 0
-        && (!request.resource.data.keys().hasAny(['companyName']) || request.resource.data.companyName is string)
+        && request.resource.data.get('companyName', '') is string
+        && request.resource.data.get('companyName', '').size() <= 200
         && request.resource.data.productId is string
         && request.resource.data.productId.size() > 0
         && request.resource.data.productName is string
         && request.resource.data.productName.size() > 0
+        && request.resource.data.productName.size() <= 200
         && request.resource.data.quantity is int
         && request.resource.data.quantity > 0
         && request.resource.data.unitPrice is number
@@ -724,6 +736,7 @@ service cloud.firestore {
         && request.resource.data.totalAmount is number
         && request.resource.data.totalAmount > 0
         && request.resource.data.deliveryAddress is string
+        && request.resource.data.deliveryAddress.size() <= 500
         // A typed address, a map point, or both; never neither.
         && (request.resource.data.deliveryAddress.size() > 0
           || orderHasDeliveryPoint(request.resource.data))
@@ -734,28 +747,80 @@ service cloud.firestore {
           || !orderHasDeliveryPoint(request.resource.data))
         && request.resource.data.contactPhone is string
         && request.resource.data.contactPhone.size() > 0
+        && request.resource.data.contactPhone.size() <= 30
         && (!request.resource.data.keys().hasAny(['deliveryMethod'])
           || request.resource.data.deliveryMethod in ['delivery', 'pickup'])
         && (request.resource.data.get('deliveryMethod', 'delivery') != 'pickup'
           || request.resource.data.deliveryFee == 0)
         && (!request.resource.data.keys().hasAny(['customerName'])
-          || request.resource.data.customerName is string)
+          || (request.resource.data.customerName is string
+            && request.resource.data.customerName.size() <= 120))
         && request.resource.data.paymentStatus == 'pending_verification'
         && request.resource.data.orderStatus == 'processing'
-        && (request.resource.data.receiptFileName == null || request.resource.data.receiptFileName is string)
-        && request.resource.data.createdAt is timestamp
-        && request.resource.data.updatedAt is timestamp;
+        // Every order is placed with its payment receipt, stored in the same
+        // write under this name (orderComesWithItsReceipt). A stored receipt
+        // is only the customer's claim: the payment is confirmed by the
+        // company alone (isCompanyPaymentConfirmation).
+        && request.resource.data.receiptFileName is string
+        && request.resource.data.receiptFileName.size() > 0
+        && request.resource.data.receiptFileName.size() <= 100
+        // A new order takes no stock. stockReserved becomes true only in the
+        // write that confirms its payment and takes its stock
+        // (isCompanyPaymentConfirmation), so a cancellation gives back
+        // exactly what was taken.
+        && request.resource.data.stockReserved == false
+        // The server's time, never the customer's: the 24-hour payment
+        // verification window is counted from createdAt.
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
     }
 
+    // Orders go only to a company that exists and is active (a company with
+    // no stored status counts as active, as everywhere else). A deactivated,
+    // pending, rejected or deleted company, or a made-up id, takes no orders.
     function companyAcceptsOrders(companyId) {
       let path = /databases/$(database)/documents/companies/$(companyId);
-      return !exists(path)
-        || get(path).data.get('status', 'active') == 'active';
+      return exists(path)
+        && get(path).data.get('status', 'active') == 'active';
     }
 
+    // The ordered product must exist and belong to the company the order is
+    // sent to, so an order can never take (or be filed against) another
+    // company's stock.
+    function orderProductBelongsToCompany(order) {
+      let productPath = /databases/$(database)/documents/products/$(order.productId);
+      return exists(productPath)
+        && get(productPath).data.get('companyId', '') == order.companyId;
+    }
+
+    // The two names an order carries are the product's own: its name and the
+    // company name stored on it. The customer chooses neither, so the words
+    // the company later reads in its order list, the order's conversation and
+    // the "new order" notification are never the customer's own text. (The
+    // same product document is already read for the price and the stock, so
+    // this costs no extra read.)
+    function orderNamesMatchProduct(order) {
+      let product = get(/databases/$(database)/documents/products/$(order.productId)).data;
+      return order.productName == product.name
+        && order.get('companyName', '') == product.get('companyName', '');
+    }
+
+    // The receipt document of a new order is written in the same write as the
+    // order, and the name on the order is that receipt's own name
+    // (isValidReceiptCreate checks the receipt itself).
+    function orderComesWithItsReceipt(orderId, order) {
+      let receiptPath = /databases/$(database)/documents/order_receipts/$(orderId);
+      return existsAfter(receiptPath)
+        && getAfter(receiptPath).data.fileName == order.receiptFileName;
+    }
+
+    // The customer records the name of a receipt on their own order. Nothing
+    // else may change, and updatedAt is the server's time (never a value, or
+    // a type, of the customer's choosing).
     function isCustomerReceiptAttachment(orderId) {
       return resource.data.customerId == request.auth.uid
         && callerIsNotDeactivated()
+        && resource.data.orderStatus != 'cancelled'
         && request.resource.data.id == resource.data.id
         && request.resource.data.customerId == resource.data.customerId
         && request.resource.data.companyId == resource.data.companyId
@@ -775,22 +840,31 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['receiptFileName', 'updatedAt'])
         && request.resource.data.receiptFileName is string
-        && request.resource.data.receiptFileName.size() > 0;
+        && request.resource.data.receiptFileName.size() > 0
+        && request.resource.data.receiptFileName.size() <= 100
+        && request.resource.data.updatedAt == request.time;
     }
 
+    // Cancelled is final: nothing moves a cancelled order again (only
+    // isCompanyOrderCancellation can make an order cancelled).
     function isAllowedOrderStatusTransition(fromStatus, toStatus) {
-      return fromStatus == toStatus
-        || (fromStatus == 'processing'
-          && toStatus in ['out_for_delivery', 'completed'])
-        || (fromStatus == 'out_for_delivery' && toStatus == 'completed');
+      return fromStatus != 'cancelled'
+        && (fromStatus == toStatus
+          || (fromStatus == 'processing'
+            && toStatus in ['out_for_delivery', 'completed'])
+          || (fromStatus == 'out_for_delivery' && toStatus == 'completed'));
     }
 
     function isValidTechnicianAssignment() {
       return resource.data.installationSelected == true
         && request.resource.data.technicianId is string
         && request.resource.data.technicianId.size() > 0
+        // What notifications accept as a recipient id (real ids are 20-28).
+        && request.resource.data.technicianId.size() <= 128
         && request.resource.data.technicianName is string
         && request.resource.data.technicianName.size() > 0
+        // The limit on a technician's name when their account is created.
+        && request.resource.data.technicianName.size() <= 120
         // The assigned technician must belong to the same company as the
         // order and must currently be active, even if a tampered client
         // sends a different technicianId.
@@ -799,15 +873,21 @@ service cloud.firestore {
     }
 
     // Company admins may only move an order forward through
-    // Processing -> Out for Delivery -> Completed, confirm payment, and
-    // assign a technician to the order's installation add-on.
+    // Processing -> Out for Delivery -> Completed, once its payment is
+    // confirmed (which is when its stock is taken), and assign a technician
+    // to the order's installation add-on. The payment is confirmed only
+    // through isCompanyPaymentConfirmation. Every write must really change
+    // something: a write that only touches updatedAt is refused, so nothing
+    // can pass for a confirmation it is not.
     function isCompanyOrderManagementUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['orderStatus', 'paymentStatus', 'technicianId', 'technicianName', 'updatedAt'])
+          .hasOnly(['orderStatus', 'technicianId', 'technicianName', 'updatedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['orderStatus', 'technicianId', 'technicianName'])
         && request.resource.data.updatedAt == request.time
         && request.resource.data.paymentStatus in ['pending_verification', 'confirmed']
-        && (resource.data.paymentStatus != 'confirmed'
-          || request.resource.data.paymentStatus == 'confirmed')
+        && (request.resource.data.orderStatus == resource.data.orderStatus
+          || resource.data.paymentStatus == 'confirmed')
         && isAllowedOrderStatusTransition(
           resource.data.orderStatus,
           request.resource.data.orderStatus
@@ -818,10 +898,11 @@ service cloud.firestore {
     }
 
     // A technician may only move an assigned order forward through
-    // Processing -> Out for Delivery -> Completed; they cannot touch
-    // payment status or reassignment.
+    // Processing -> Out for Delivery -> Completed, once its payment is
+    // confirmed; they cannot touch payment status or reassignment.
     function isTechnicianOrderStatusUpdate() {
       return isMyAssignedOrder()
+        && resource.data.paymentStatus == 'confirmed'
         && request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['orderStatus', 'updatedAt'])
         && request.resource.data.updatedAt == request.time
@@ -831,50 +912,243 @@ service cloud.firestore {
         );
     }
 
-    // Stock is consumed when an order is placed. An order for a product that
-    // has a document must be created in the same transaction that lowers that
-    // product's stockCount by exactly the ordered quantity (and records the
-    // order id in lastOrderId), and only while enough stock remains. Products
-    // with no document (the built-in demo catalogue) have no stock to reserve.
-    function orderReservesStock(orderId, productId, quantity) {
-      let productPath = /databases/$(database)/documents/products/$(productId);
-      return !exists(productPath)
-        || (get(productPath).data.get('inStock', true) == true
-          // A product without a price cannot be ordered through checkout.
-          && get(productPath).data.get('price', null) != null
-          && get(productPath).data.stockCount is int
-          && get(productPath).data.stockCount >= quantity
-          && getAfter(productPath).data.lastOrderId == orderId
-          && getAfter(productPath).data.stockCount
-            == get(productPath).data.stockCount - quantity);
+    // How long a company has to verify a new order's payment. After that the
+    // order may be cancelled as expired; with no server, the company's app
+    // does it when its Orders page is opened. Judged by the server's clock
+    // (request.time) against createdAt, which is pinned to the server's time
+    // when the order is placed, so nobody can move the deadline.
+    function paymentVerificationExpired(order) {
+      return order.createdAt is timestamp
+        && request.time >= order.createdAt + duration.value(24, 'h');
     }
 
-    // The other half of orderReservesStock: a customer (not only the owning
-    // company) may lower a product's stockCount, but only alongside a brand-new
-    // order of their own for that product, by exactly that order's quantity,
-    // and never below zero. Nothing else on the product can change.
-    function isStockReservation(productId) {
+    // True when the order's product can no longer cover it: the product is
+    // gone, now belongs to another company (its id was reused), or has fewer
+    // units left than the order's quantity.
+    function productCannotCover(order) {
+      let productPath = /databases/$(database)/documents/products/$(order.productId);
+      return !exists(productPath)
+        || get(productPath).data.get('companyId', '') != order.companyId
+        || !(get(productPath).data.stockCount is int)
+        || get(productPath).data.stockCount < order.quantity;
+    }
+
+    // Whether the order has already taken its stock from the product. Only an
+    // order placed under these rules has not: it is stored with stockReserved
+    // false (isValidOrderCreate) until its payment confirmation takes the
+    // stock and sets it true. An order placed before stock moved to the
+    // confirmation took its stock when it was placed: it says true, or has no
+    // stockReserved field at all (the rules of that time did not allow the
+    // field). A missing field therefore means "taken", never "not taken".
+    // Nothing but the payment confirmation (false to true) can add, remove or
+    // change the field, and createdAt plays no part, so no client can move an
+    // order from one kind to the other.
+    function orderTookStock(order) {
+      return order.get('stockReserved', true) != false;
+    }
+
+    // Only the order's company cancels it, and only while it is Processing
+    // (never once it is Out for Delivery or Completed), with its payment
+    // either still waiting for verification or already confirmed. The reason
+    // is one of three fixed values:
+    //   'company'      by hand, at any time while cancellable;
+    //   'expired'      the payment was not verified within 24 hours;
+    //   'out_of_stock' the payment is not verified yet and the product can
+    //                  no longer cover the order (productCannotCover), so it
+    //                  can never be confirmed. The company returns the money
+    //                  outside the app.
+    // Nothing else on the order may change.
+    //
+    // Stock goes back only for an order that took it (orderTookStock: its
+    // payment was confirmed, or it was placed before stock moved to the
+    // confirmation) whose product still exists AND still belongs to the
+    // order's company, exactly the order's own quantity, in the same write
+    // (isStockReturn on the product), and stockReleased records it. Any other
+    // order, or one whose product is gone (even if another company has since
+    // created a product under the same id), is cancelled with stockReleased
+    // false and no stock change. Because cancelled is final, stock can never
+    // be given back twice for one order.
+    function isCompanyOrderCancellation(orderId) {
       let before = resource.data;
       let after = request.resource.data;
-      return isSignedIn()
+      let productPath = /databases/$(database)/documents/products/$(before.productId);
+      let returnsStock = orderTookStock(before)
+        && exists(productPath)
+        && get(productPath).data.get('companyId', '') == before.companyId;
+      return isCompanyAdminOf(before.companyId)
+        && before.orderStatus == 'processing'
+        && before.paymentStatus in ['pending_verification', 'confirmed']
         && after.diff(before).affectedKeys()
-          .hasOnly(['stockCount', 'lastOrderId', 'updatedAt'])
+          .hasOnly(['orderStatus', 'cancelReason', 'cancelledAt', 'stockReleased', 'updatedAt'])
+        && after.orderStatus == 'cancelled'
+        && after.cancelledAt == request.time
         && after.updatedAt == request.time
-        && after.lastOrderId is string
-        && after.lastOrderId.size() > 0
-        && !exists(/databases/$(database)/documents/orders/$(after.lastOrderId))
-        && existsAfter(/databases/$(database)/documents/orders/$(after.lastOrderId))
-        && getAfter(/databases/$(database)/documents/orders/$(after.lastOrderId))
-          .data.customerId == request.auth.uid
-        && getAfter(/databases/$(database)/documents/orders/$(after.lastOrderId))
-          .data.productId == productId
-        && before.get('inStock', true) == true
+        && (after.cancelReason == 'company'
+          || (after.cancelReason == 'expired'
+            && before.paymentStatus == 'pending_verification'
+            && paymentVerificationExpired(before))
+          || (after.cancelReason == 'out_of_stock'
+            && before.paymentStatus == 'pending_verification'
+            && productCannotCover(before)))
+        && after.stockReleased == returnsStock
+        && (!returnsStock
+          || (getAfter(productPath).data.get('lastReleasedOrderId', '') == orderId
+            && getAfter(productPath).data.stockCount
+              == get(productPath).data.stockCount + before.quantity));
+    }
+
+    // The company confirms a payment and takes the order's stock in ONE
+    // write. Only the order's own company, only while the order is Processing
+    // with its payment still waiting, and only once its receipt is stored (a
+    // receipt proves nothing by itself: this confirmation is the company's
+    // decision). On the order, nothing but paymentStatus (to 'confirmed'),
+    // stockReserved (to true) and updatedAt (the server's time) changes, so
+    // the price and every other field stay exactly as they were ordered, even
+    // if the product's price has changed since.
+    //
+    // In the same write the product - which must still exist, still belong to
+    // the order's company and still have at least the order's quantity - is
+    // lowered by exactly that quantity, with the order id in lastOrderId. Two
+    // confirmations racing for the last units are judged against the stock
+    // as stored, so only as many as the stock covers go through. When the
+    // stock does not cover the order, nothing is written: the order stays
+    // waiting, to be restocked and confirmed, or cancelled.
+    //
+    // An order placed before stock moved to the confirmation already took its
+    // stock when it was placed (orderTookStock): it is confirmed without
+    // taking any more, and only paymentStatus and updatedAt change.
+    function isCompanyPaymentConfirmation(orderId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let productPath = /databases/$(database)/documents/products/$(before.productId);
+      let takesStockNow = !orderTookStock(before);
+      return isCompanyAdminOf(before.companyId)
+        && before.orderStatus == 'processing'
+        && before.paymentStatus == 'pending_verification'
+        && after.paymentStatus == 'confirmed'
+        && after.updatedAt == request.time
+        && exists(/databases/$(database)/documents/order_receipts/$(orderId))
+        && (takesStockNow
+          ? (after.diff(before).affectedKeys()
+              .hasOnly(['paymentStatus', 'stockReserved', 'updatedAt'])
+            && after.stockReserved == true
+            && exists(productPath)
+            && get(productPath).data.get('companyId', '') == before.companyId
+            && get(productPath).data.stockCount is int
+            && get(productPath).data.stockCount >= before.quantity
+            && getAfter(productPath).data.stockCount
+              == get(productPath).data.stockCount - before.quantity
+            && getAfter(productPath).data.get('lastOrderId', '') == orderId)
+          : after.diff(before).affectedKeys().hasOnly(['paymentStatus', 'updatedAt']));
+    }
+
+    // A new order is for a real product document that could be bought right
+    // now: marked available, with a price, and with at least the ordered
+    // quantity in stock. Nothing is taken here: the stock is taken when the
+    // company confirms the payment (isCompanyPaymentConfirmation), and the
+    // customer never writes the product. A product id with no document (such
+    // as the built-in demo catalogue) cannot be ordered.
+    function orderedProductIsAvailable(productId, quantity) {
+      let productPath = /databases/$(database)/documents/products/$(productId);
+      return exists(productPath)
+        && get(productPath).data.get('inStock', true) == true
+        // A product without a price cannot be ordered through checkout.
+        && get(productPath).data.get('price', null) != null
+        && get(productPath).data.stockCount is int
+        && get(productPath).data.stockCount >= quantity;
+    }
+
+    // The flat charge the app adds when the customer chooses Delivery (Pickup
+    // is free). Keep in step with CheckoutScreen._standardDeliveryFee.
+    function standardDeliveryFee() {
+      return 15000;
+    }
+
+    // What a product sells for right now, judged by the server's clock
+    // (request.time), never the customer's: the offer price while its offer
+    // runs, otherwise the normal price. Null for a product without a price
+    // ("price on request"). Mirrors OfferPricing.salePrice in the app.
+    function productSalePrice(product) {
+      let price = product.get('price', null);
+      let offer = product.get('offerPrice', null);
+      let ends = product.get('offerEndsAt', null);
+      return price != null
+          && offer != null
+          && offer < price
+          && (ends == null || ends > request.time)
+        ? offer
+        : price;
+    }
+
+    // Every money field of a new order is recomputed from the product
+    // document and must match exactly, so a tampered client cannot choose its
+    // own price, fees or total:
+    //   unitPrice       = the product's sale price now
+    //   productSubtotal = unitPrice x quantity
+    //   installationFee = the product's installation price when installation
+    //                     is chosen (the product must offer it), otherwise 0
+    //   deliveryFee     = the standard fee for Delivery, 0 for Pickup
+    //   totalAmount     = productSubtotal + installationFee + deliveryFee
+    // A product without a price can never be ordered this way.
+    function isOrderPricedFromProduct(order, product) {
+      let unitPrice = productSalePrice(product);
+      let pickup = order.get('deliveryMethod', 'delivery') == 'pickup';
+      return unitPrice != null
+        && order.unitPrice == unitPrice
+        && order.productSubtotal == unitPrice * order.quantity
+        && (order.installationSelected == true
+          ? (product.get('isInstallationAvailable', false) == true
+            && product.get('installationPrice', null) != null
+            && order.installationFee == product.installationPrice)
+          : order.installationFee == 0)
+        && order.deliveryFee == (pickup ? 0 : standardDeliveryFee())
+        && order.totalAmount
+          == order.productSubtotal + order.installationFee + order.deliveryFee;
+    }
+
+    // The product document always exists here (orderProductBelongsToCompany
+    // and orderedProductIsAvailable require it), so every order is priced
+    // from it.
+    function orderPriceIsTrusted(order) {
+      let productPath = /databases/$(database)/documents/products/$(order.productId);
+      return exists(productPath)
+        && isOrderPricedFromProduct(order, get(productPath).data);
+    }
+
+    // The other half of isCompanyOrderCancellation: the product gets back
+    // exactly the quantity its stock-reserving order took, in the same write
+    // that cancels that order (recording the order id in lastReleasedOrderId).
+    // Nothing else on the product can change. It happens once per order,
+    // because the order must go from Processing to cancelled in this write.
+    function isStockReturn(productId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      return after.diff(before).affectedKeys()
+          .hasOnly(['stockCount', 'lastReleasedOrderId', 'updatedAt'])
+        && after.updatedAt == request.time
+        && after.lastReleasedOrderId is string
+        && after.lastReleasedOrderId.size() > 0
+        && isStockReturnFor(
+          productId,
+          /databases/$(database)/documents/orders/$(after.lastReleasedOrderId),
+          before,
+          after);
+    }
+
+    function isStockReturnFor(productId, orderPath, before, after) {
+      let order = get(orderPath).data;
+      return exists(orderPath)
+        && order.productId == productId
+        // Only the order's own company's product: never one another company
+        // created later under the same id.
+        && before.get('companyId', '') == order.companyId
+        && orderTookStock(order)
+        && order.orderStatus == 'processing'
+        && getAfter(orderPath).data.orderStatus == 'cancelled'
+        && getAfter(orderPath).data.stockReleased == true
+        && isCompanyAdminOf(order.companyId)
         && before.stockCount is int
-        && after.stockCount is int
-        && after.stockCount >= 0
-        && after.stockCount == before.stockCount
-          - getAfter(/databases/$(database)/documents/orders/$(after.lastOrderId))
-            .data.quantity;
+        && after.stockCount == before.stockCount + order.quantity;
     }
 
     function hasValidProductKeys() {
@@ -890,6 +1164,7 @@ service cloud.firestore {
         'stockCount',
         'inStock',
         'lastOrderId',
+        'lastReleasedOrderId',
         'description',
         'specifications',
         'isDeliveryAvailable',
@@ -960,13 +1235,17 @@ service cloud.firestore {
         && isValidProductData()
         && isValidProductCategoryAssignment(null);
 
+      // Only the owning company edits a product, its stock included (a payment
+      // confirmation lowers the stock through this branch, bound to the order
+      // by isCompanyPaymentConfirmation). A customer never writes a product:
+      // placing an order takes no stock.
       allow update: if (isCompanyAdminOf(resource.data.companyId)
           && request.resource.data.id == resource.data.id
           && request.resource.data.companyId == resource.data.companyId
           && request.resource.data.createdAt == resource.data.createdAt
           && isValidProductData()
           && isValidProductCategoryAssignment(resource.data.get('categoryId', null)))
-        || isStockReservation(productId);
+        || isStockReturn(productId);
 
       // A company admin deletes their own products. Platform Admin can remove
       // a product only in the same batch that deletes (or after it has
@@ -1399,8 +1678,9 @@ service cloud.firestore {
     // requests are a separate lifecycle from product orders and never touch
     // the orders collection, stock or payment.
 
-    // An active customer account (a deactivated one cannot request services
-    // or send chat messages, even from a session that is already open).
+    // An active customer account (a deactivated one cannot place orders,
+    // request services or open conversations, even from a session that is
+    // already open). An account with no profile, or no role, is not one.
     function isActiveCustomer() {
       return signedInUserExists()
         && signedInUser().get('role', '') == 'customer'
@@ -1809,28 +2089,98 @@ service cloud.firestore {
           || isCompanyAdminOf(resource.data.companyId)
           || isMyAssignedOrder());
 
-      // Platform Admin is read-only on orders: it cannot place or change one.
-      // Nobody can place a new order with a company that has been deactivated
-      // (a company that is not in Firestore, e.g. demo data, is not blocked).
+      // Only an active customer places an order: an account with a profile
+      // whose role is customer and which is not deactivated, signed in with a
+      // verified e-mail address. A company admin, a technician, Platform
+      // Admin (read-only on orders) and a signed-in account with no profile,
+      // or no role, cannot. A new order goes only to an existing, active
+      // company, for a real product of that same company that could be bought
+      // right now, named and priced from the product. It is written together
+      // with its payment receipt and one step of the customer's order quota,
+      // and it takes no stock: the stock is taken when the company confirms
+      // the payment.
       allow create: if isSignedIn()
-        && !isPlatformAdmin()
+        && isActiveCustomer()
+        && request.auth.token.email_verified == true
         && request.resource.data.id == orderId
         && isValidOrderCreate(orderId)
-        && callerIsNotDeactivated()
         && companyAcceptsOrders(request.resource.data.companyId)
-        && orderReservesStock(
-          orderId,
+        && orderProductBelongsToCompany(request.resource.data)
+        && orderNamesMatchProduct(request.resource.data)
+        && orderPriceIsTrusted(request.resource.data)
+        && orderedProductIsAvailable(
           request.resource.data.productId,
-          request.resource.data.quantity);
+          request.resource.data.quantity)
+        && orderComesWithItsReceipt(orderId, request.resource.data)
+        && orderCountsAgainstQuota(orderId);
 
       allow update: if isSignedIn()
         && ((isCompanyAdminOf(resource.data.companyId)
             && isCompanyOrderManagementUpdate())
+          || isCompanyOrderCancellation(orderId)
+          || isCompanyPaymentConfirmation(orderId)
           || isCustomerReceiptAttachment(orderId)
           || isTechnicianOrderStatusUpdate());
 
       // Order history is permanent: nobody, including Platform Admin and a
       // company cascade delete, can ever delete an order.
+      allow delete: if false;
+    }
+
+    // At most 5 orders per customer in ANY 24 hours, against spam (it does
+    // not protect stock: an order takes none). The customer's quota document
+    // keeps the times of their last five orders in five slots, t0..t4,
+    // written in turn; `next` is the slot the next order writes, and it always
+    // holds the oldest of the five. A new order is allowed only when that slot
+    // is still empty or at least 24 hours old, and it must write the server's
+    // time there and move `next` on, in the same write as the order. Orders
+    // cancelled later still count. (serverTimestamp cannot be used inside an
+    // array, hence five fields rather than a list.)
+    function orderCountsAgainstQuota(orderId) {
+      let quotaPath = /databases/$(database)/documents/order_quota/$(request.auth.uid);
+      let after = getAfter(quotaPath).data;
+      return after.lastOrderId == orderId
+        && (exists(quotaPath)
+          ? quotaAdvances(get(quotaPath).data, after)
+          : (after.keys().hasOnly(['t0', 'next', 'lastOrderId'])
+            && after.t0 == request.time
+            && after.next == 1));
+    }
+
+    function quotaAdvances(before, after) {
+      let slot = 't' + string(before.next);
+      let oldest = before.get(slot, null);
+      return before.next is int
+        && before.next >= 0
+        && before.next <= 4
+        && (oldest == null || request.time >= oldest + duration.value(24, 'h'))
+        && after[slot] == request.time
+        && after.next == (before.next + 1) % 5
+        && after.diff(before).affectedKeys().hasOnly([slot, 'next', 'lastOrderId']);
+    }
+
+    // The quota document is only ever written together with a brand-new order
+    // of its owner, whose own create rule checks the step
+    // (orderCountsAgainstQuota). It can never be deleted, and never be edited
+    // on its own.
+    function isOrderQuotaWrite(uid) {
+      let data = request.resource.data;
+      let orderPath = /databases/$(database)/documents/orders/$(data.lastOrderId);
+      return data.keys().hasOnly(['t0', 't1', 't2', 't3', 't4', 'next', 'lastOrderId'])
+        && data.lastOrderId is string
+        && data.lastOrderId.size() > 0
+        && data.lastOrderId.size() <= 36
+        && !exists(orderPath)
+        && existsAfter(orderPath)
+        && getAfter(orderPath).data.customerId == uid;
+    }
+
+    match /order_quota/{uid} {
+      allow get: if isOwner(uid) || isPlatformAdmin();
+      allow list: if false;
+      allow create, update: if isOwner(uid)
+        && isActiveCustomer()
+        && isOrderQuotaWrite(uid);
       allow delete: if false;
     }
 
@@ -1870,7 +2220,8 @@ service cloud.firestore {
         && existsAfter(orderPath)
         && getAfter(orderPath).data.customerId == request.auth.uid
         && getAfter(orderPath).data.companyId == data.companyId
-        && getAfter(orderPath).data.paymentStatus == 'pending_verification';
+        && getAfter(orderPath).data.paymentStatus == 'pending_verification'
+        && getAfter(orderPath).data.orderStatus != 'cancelled';
     }
 
     // Who may read the receipt of this order when it does not exist (an order

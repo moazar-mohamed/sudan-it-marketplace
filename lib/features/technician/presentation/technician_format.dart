@@ -43,7 +43,8 @@ class TechnicianFormat {
           ? OrderStatus.completed
           : OrderStatus.outForDelivery,
       OrderStatus.outForDelivery => OrderStatus.completed,
-      OrderStatus.completed => null,
+      // Completed and cancelled are final.
+      OrderStatus.completed || OrderStatus.cancelled => null,
     };
   }
 }

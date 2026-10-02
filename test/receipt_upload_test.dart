@@ -15,11 +15,13 @@ import 'package:sudan_it_marketplace/features/companies/presentation/companies_p
 import 'package:sudan_it_marketplace/features/notifications/domain/entities/app_notification.dart';
 import 'package:sudan_it_marketplace/features/notifications/domain/repositories/notifications_repository.dart';
 import 'package:sudan_it_marketplace/features/notifications/presentation/notifications_providers.dart';
+import 'package:sudan_it_marketplace/features/orders/data/datasources/firestore_orders_remote_data_source.dart';
 import 'package:sudan_it_marketplace/features/orders/data/models/order_receipt_model.dart';
 import 'package:sudan_it_marketplace/features/orders/data/repositories/orders_repository_impl.dart';
 import 'package:sudan_it_marketplace/features/orders/domain/entities/checkout_order_draft.dart';
 import 'package:sudan_it_marketplace/features/orders/domain/entities/order_entity.dart';
 import 'package:sudan_it_marketplace/features/orders/domain/entities/order_receipt.dart';
+import 'package:sudan_it_marketplace/features/orders/domain/order_quota.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/manual_payment_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/order_details_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/order_pending_verification_screen.dart';
@@ -30,6 +32,7 @@ import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations_ar.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations_en.dart';
 
+import 'helpers/fake_firestore.dart';
 import 'helpers/receipt_fakes.dart';
 
 final _en = AppLocalizationsEn();
@@ -426,9 +429,10 @@ void main() {
       expect(order.receiptFileName, 'bankak.jpg');
     });
 
-    test('an order can still be placed without an image (unchanged behaviour)', () async {
-      final remote = FakeOrdersRemote();
-      await OrdersRepositoryImpl(remote).createOrder(
+    test('an order is never placed without an image: nothing is sent (ORD-4)', () async {
+      final store = FakeFirestore();
+      final remote = FirestoreOrdersRemoteDataSource(firestore: store);
+      final placing = OrdersRepositoryImpl(remote).createOrder(
         orderId: 'o2',
         customerId: 'cust1',
         companyId: 'c1',
@@ -445,8 +449,13 @@ void main() {
         contactPhone: '0912345678',
         receiptFileName: 'legacy.jpg',
       );
-      expect(remote.createdReceipts.single, isNull);
-      expect(remote.createdOrders.single.receiptFileName, 'legacy.jpg');
+      await expectLater(
+        placing,
+        throwsA(isA<AppException>()
+            .having((e) => e.code, 'code', AppErrorCode.orderCreateFailed)),
+      );
+      expect(store.transactionAttempts, 0);
+      expect(store.commits, isEmpty);
     });
 
     test('reading a receipt is delegated to the data source', () async {
@@ -679,6 +688,43 @@ void main() {
       expect(remote.createdOrders, hasLength(1));
       expect(remote.createdReceipts.single, isNotNull);
       expect(find.byType(OrderPendingVerificationScreen), findsOneWidget);
+    });
+
+    testWidgets('a sixth order within 24 hours: told when the next one is possible (ORD-4)',
+        (tester) async {
+      final remote = FakeOrdersRemote()
+        ..createError = OrderQuotaReachedException(nextOrderAt: DateTime(2026, 10, 2, 14, 30));
+      await tester.pumpWidget(
+        _app(
+          const ManualPaymentScreen(draft: _draft),
+          remote,
+          picker: FakePicker(file: _file()),
+          compressor: FakeCompressor(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await openPicker(tester);
+      await choose(tester, _en.imageChooseFromDevice);
+      final submit = find.widgetWithText(FilledButton, _en.paymentSubmit);
+      await tester.ensureVisible(submit);
+      await tester.tap(submit);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OrderPendingVerificationScreen), findsNothing);
+      expect(
+        find.text(_en.orderQuotaReached(OrderQuota.ordersPerDay, '2026-10-02 14:30')),
+        findsOneWidget,
+      );
+      // The receipt stays for a later try.
+      expect(find.byKey(const ValueKey('receipt-preview')), findsOneWidget);
+    });
+
+    testWidgets('the payment screen says a receipt is not a confirmed payment', (tester) async {
+      await tester.pumpWidget(_app(const ManualPaymentScreen(draft: _draft), FakeOrdersRemote()));
+      await tester.pumpAndSettle();
+      expect(find.text(_en.paymentPendingNote), findsOneWidget);
+      expect(find.textContaining('A receipt is not a confirmed payment'), findsOneWidget);
+      expect(find.textContaining('only then is the product reserved'), findsOneWidget);
     });
 
     testWidgets('removing the receipt brings back the upload box', (tester) async {

@@ -96,8 +96,8 @@ class CompanyOrderTile extends StatelessWidget {
               if (!showInstallationStatus)
                 Flexible(
                   child: StatusChip(
-                    label: order.paymentStatus.label(l10n),
-                    tone: order.paymentStatus.tone,
+                    label: order.paymentLabel(l10n),
+                    tone: order.paymentTone,
                   ),
                 ),
             ],

@@ -167,6 +167,17 @@ class _CompanyOrdersTabState extends ConsumerState<CompanyOrdersTab> {
           onChanged: (index) => widget.onSectionChanged(sections[index]),
         ),
         const SizedBox(height: AppSpacing.s12),
+        // While payments wait for verification, say how they expire: after
+        // 24 hours, applied only when this page is opened (no server). A
+        // confirmed order never expires.
+        if (section != CompanyOrdersSection.services &&
+            orders.any((order) => order.isAwaitingPaymentVerification)) ...[
+          AppBanner(
+            key: const ValueKey('company-orders-expiry-note'),
+            message: l10n.adminOrdersExpiryNote,
+          ),
+          const SizedBox(height: AppSpacing.s12),
+        ],
         if (visible.isEmpty)
           AppEmptyState(
             icon: section == CompanyOrdersSection.services

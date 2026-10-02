@@ -11,10 +11,13 @@ import '../technician_format.dart';
 import '../widgets/technician_widgets.dart';
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../orders/presentation/order_labels.dart';
+import '../../../orders/presentation/widgets/order_cancelled_note.dart';
 
 /// Lets the technician move an assigned job forward through
-/// Processing -> Out for Delivery -> Completed. No payment or reassignment
-/// controls — those stay with the company admin.
+/// Processing -> Out for Delivery -> Completed, once the company has
+/// confirmed the order's payment (before that the rules refuse it, so the
+/// job only says it is waiting). No payment or reassignment controls —
+/// those stay with the company admin.
 class TechnicianJobStatusActions extends ConsumerStatefulWidget {
   const TechnicianJobStatusActions({super.key, required this.order});
 
@@ -57,6 +60,8 @@ class _TechnicianJobStatusActionsState
       OrderStatus.outForDelivery => context.l10n.adminMarkOutForDelivery,
       OrderStatus.completed => context.l10n.techMarkInstallationCompleted,
       OrderStatus.processing => context.l10n.adminMarkProcessing,
+      // Never a next step: only the company cancels an order.
+      OrderStatus.cancelled => context.l10n.orderStatusCancelled,
     };
   }
 
@@ -69,7 +74,10 @@ class _TechnicianJobStatusActionsState
     return TechnicianSectionCard(
       title: context.l10n.adminJobStatus,
       children: [
-        if (next == null)
+        // The company cancelled the order: there is no job to do.
+        if (order.isCancelled)
+          OrderCancelledNote(order: order, showRefund: false)
+        else if (next == null)
           Row(
             children: [
               Icon(Icons.check_circle_rounded, color: context.colors.success),
@@ -78,6 +86,36 @@ class _TechnicianJobStatusActionsState
                 child: Text(
                   context.l10n.techJobCompleted,
                   style: AppTextStyles.bodyStrong,
+                ),
+              ),
+            ],
+          )
+        // Nothing moves on before the company confirms the payment.
+        else if (order.paymentStatus != PaymentStatus.confirmed)
+          Row(
+            key: const ValueKey('technician-awaiting-payment'),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.hourglass_top_rounded,
+                color: AppTone.warning.accent(context.colors),
+              ),
+              const SizedBox(width: AppSpacing.s8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.techAwaitingPayment,
+                      style: AppTextStyles.bodyStrong,
+                    ),
+                    const SizedBox(height: AppSpacing.s4),
+                    Text(
+                      context.l10n.techAwaitingPaymentHint,
+                      style: AppTextStyles.caption
+                          .copyWith(color: context.colors.textSecondary),
+                    ),
+                  ],
                 ),
               ),
             ],

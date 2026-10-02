@@ -8,6 +8,7 @@ import type {
   Customer,
   DeliveryMethod,
   Order,
+  OrderCancelReason,
   OrderStatus,
   PaymentStatus,
   Product,
@@ -38,7 +39,12 @@ export function parseCompanyStatus(v: unknown): CompanyStatus {
 
 export function parseOrderStatus(v: unknown): OrderStatus {
   if (v === 'out_for_delivery' || v === 'outForDelivery') return 'out_for_delivery';
+  if (v === 'cancelled') return 'cancelled';
   return v === 'completed' ? 'completed' : 'processing';
+}
+
+export function parseOrderCancelReason(v: unknown): OrderCancelReason | null {
+  return v === 'company' || v === 'expired' || v === 'out_of_stock' ? v : null;
 }
 
 export function parsePaymentStatus(v: unknown): PaymentStatus {
@@ -137,6 +143,9 @@ export function mapOrder(id: string, d: DocumentData): Order {
     receiptFileName: str(d.receiptFileName),
     technicianId: str(d.technicianId),
     technicianName: str(d.technicianName),
+    cancelReason: parseOrderCancelReason(d.cancelReason),
+    cancelledAt: toDate(d.cancelledAt),
+    stockReleased: d.stockReleased === true,
     createdAt: toDate(d.createdAt),
     updatedAt: toDate(d.updatedAt),
   };

@@ -117,6 +117,14 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.s12),
+                  // The order took no stock: the company takes it when it
+                  // confirms the payment.
+                  AppBanner(
+                    key: const ValueKey('order-not-reserved-yet'),
+                    icon: Icons.inventory_2_outlined,
+                    message: l10n.orderNotReservedYet,
+                  ),
                   const SizedBox(height: AppSpacing.s20),
 
                   AppCard(
@@ -203,8 +211,8 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                         ),
                         KeyValueRow(
                           label: l10n.orderPaymentStatus,
-                          value: order.paymentStatus.label(l10n),
-                          valueColor: AppTone.warning.foreground(context.colors),
+                          value: order.paymentLabel(l10n),
+                          valueColor: order.paymentTone.foreground(context.colors),
                         ),
                         const SizedBox(height: AppSpacing.s8),
                         const Divider(height: 1),

@@ -1,8 +1,14 @@
 # Payment receipts
 
 Customers pay a company by bank transfer outside the app and attach a photo or
-screenshot of the transfer as proof. The company (and Platform Admin) look at it
-before confirming the payment.
+screenshot of the transfer. Every new order needs one. The order's company
+checks it, and Platform Admin can view it (read-only).
+
+**A receipt is not a confirmed payment.** It is only the customer's claim that
+they paid. Its presence never changes the payment status: the order stays
+`pending_verification` until its own company checks that the money arrived and
+confirms the payment. Only the company can confirm (see
+[A receipt and the payment confirmation](#a-receipt-and-the-payment-confirmation)).
 
 The project is on the **Firebase Spark (free) plan**, where Cloud Storage is not
 available. Receipts are therefore stored **in Firestore**, as compressed JPEG
@@ -14,8 +20,9 @@ bytes. No Firebase Storage, no third-party image host, no public URLs.
 |---|---|
 | Pick | The customer chooses "Choose from device" or "Take a photo". |
 | Compress | The app (background isolate) decodes the image, applies the photo's orientation, flattens transparency onto white, and encodes a JPEG: longest side up to 1280 px, quality 70, stepping down until it is at most **350 KB** (target). A hard limit of **700,000 bytes** applies; an image that cannot get under it is refused with a clear message. |
-| Place the order | The order, the stock reservation and the receipt are written in **one Firestore transaction** (`orders/{id}`, `products/{id}`, `order_receipts/{id}`). Either all exist or none. |
+| Place the order | The order, its receipt, one step of the customer's order quota and the order's chat are written in **one Firestore transaction** (`orders/{id}`, `order_receipts/{id}`, `order_quota/{uid}`, `chats/{id}`). Either all exist or none, so an order cannot be placed without its receipt. The customer's e-mail address must be verified. No stock is taken: the product is not written, and the order is stored with `stockReserved: false`. |
 | View | The customer, the owning company's admin and Platform Admin tap **View receipt**. The image is read on demand (`order_receipts/{orderId}`), never with order lists. |
+| Confirm | The company's admin checks that the money arrived, then confirms the payment. This is the step that takes the stock (see below). |
 
 ## Data
 
@@ -35,14 +42,54 @@ The order document is unchanged: it keeps `receiptFileName` as the "has a
 receipt" marker. Orders placed before this feature have no receipt document; the
 viewer says "No receipt image is available for this order."
 
+## A receipt and the payment confirmation
+
+```
+Customer: Create Order
+  -> receipt required
+  -> email_verified required
+  -> stockReserved = false
+  -> no stock deduction
+
+Company: Confirm Payment
+  -> one atomic write (transaction) of the order and its product
+  -> stock deduction (exactly the order's quantity)
+  -> paymentStatus = confirmed
+  -> stockReserved = true
+
+Then: Processing -> Out for Delivery -> Completed
+```
+
+* **The company confirms the payment**, never the receipt or the customer. The
+  rules accept the confirmation only from the order's own company, only while
+  the order is Processing with its payment still waiting, and only when its
+  receipt is stored. An order with no stored receipt cannot be confirmed.
+* **The stock is taken at the confirmation**, in the same write. The product
+  must still exist, belong to the company and have at least the order's
+  quantity. Otherwise nothing is written and the order stays waiting, to be
+  restocked and confirmed, or cancelled.
+* **Nothing ships before the confirmation.** The order cannot move to Out for
+  Delivery or Completed while its payment is waiting.
+* **Out of stock**: if the product can no longer cover an order whose payment
+  is not confirmed, the company cancels it with the reason `out_of_stock`. The
+  company returns any money the customer transferred outside the app.
+* **Cancelling a confirmed order** is allowed to the company while it is still
+  Processing. Its stock goes back once (when the product still exists), and the
+  company returns the money outside the app.
+* At most **5 orders per customer in any 24 hours**.
+
+The whole order flow is described in the
+[README](../README.md#orders-payment-and-stock).
+
 ## Security (enforced in `firestore.rules`, tested in `rules-tests/order-receipts.rules.test.ts`)
 
 * **Read** (single document only): the order's customer, the owning company's
   admin, Platform Admin. Technicians (even the one assigned to the order),
   other customers and other companies are refused. No listing for anyone.
-* **Create**: only the order's own customer, alongside or after their order, for
-  an order still `pending_verification`, with the exact field set and limits
-  above.
+* **Create**: only the order's own customer, together with a new order (every
+  new order needs one) or later for an older order of theirs that has none,
+  while the order is still `pending_verification` and not cancelled, with the
+  exact field set and limits above.
 * **Immutable**: no update and no delete for anyone, including Platform Admin.
   Deleting a company never touches orders or their receipts.
 * The rules cannot inspect the bytes, so `contentType` is a claim; the app
@@ -98,7 +145,14 @@ show any number. Instead:
 * `rules-tests/order-receipts.rules.test.ts`: ownership, roles, size, type,
   immutability, order association, transaction and batch behaviour, legacy
   orders, company deletion. Run with `npm run test:rules` in `platform_admin_web`.
+* `rules-tests/order-stock-at-confirmation.rules.test.ts`: an order is placed
+  only with its receipt and takes no stock; the confirmation needs the receipt
+  and takes the stock in the same write; cancelling, out of stock, older
+  orders, nothing ships before the confirmation, and the quota.
 * `test/receipt_upload_test.dart`: compression, the app/rules field and limit
   agreement, the payment screen, the viewer, and technician isolation.
+* `test/order_stock_at_confirmation_test.dart` and
+  `test/order_payment_ui_test.dart`: the same model in the app's data layer
+  and screens.
 * `platform_admin_web/src/components/ReceiptViewer.test.tsx`,
   `src/data/receipts.test.ts`: the Platform Admin viewer.

@@ -11,6 +11,7 @@ import 'package:sudan_it_marketplace/features/company_admin/presentation/profile
 import 'package:sudan_it_marketplace/features/company_admin/presentation/technicians/technicians_screen.dart';
 import 'package:sudan_it_marketplace/features/company_services/presentation/company_service_providers.dart';
 import 'package:sudan_it_marketplace/features/orders/domain/entities/order_entity.dart';
+import 'package:sudan_it_marketplace/features/orders/domain/repositories/orders_repository.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/orders_providers.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/products_providers.dart';
 import 'package:sudan_it_marketplace/features/service_requests/domain/entities/service_request.dart';
@@ -79,13 +80,27 @@ final _request = ServiceRequest(
   createdAt: DateTime(2026, 9, 5),
 );
 
+/// Records when the shell asks for overdue orders to be expired.
+class _ExpiryRecorder extends Fake implements OrdersRepository {
+  final companies = <String>[];
+
+  @override
+  Future<int> expireOverdueOrders(String companyId) async {
+    companies.add(companyId);
+    return 0;
+  }
+}
+
 Widget _shell({
   Locale locale = const Locale('en'),
   List<OrderEntity> orders = const [],
   List<ServiceRequest> requests = const [],
+  OrdersRepository? ordersRepository,
 }) {
   return ProviderScope(
     overrides: [
+      if (ordersRepository != null)
+        ordersRepositoryProvider.overrideWithValue(ordersRepository),
       companyStreamProvider(_companyId).overrideWith(
         (_) => Stream.value(const Company(
           id: _companyId,
@@ -316,6 +331,56 @@ void main() {
       final selected = chips.firstWhere((chip) => chip.selected);
       expect((selected.label as Text).data, 'Installation (2)');
       expect(sectionOfOrder(_orders[3]), CompanyOrdersSection.installation);
+    });
+  });
+
+  group('the 24-hour payment verification expiry (no server)', () {
+    testWidgets('each opening of the Orders page runs it for this company',
+        (tester) async {
+      usePhone(tester);
+      final recorder = _ExpiryRecorder();
+      await tester.pumpWidget(_shell(orders: _orders, ordersRepository: recorder));
+      await tester.pumpAndSettle();
+      // Not on start: the app opens on Home.
+      expect(recorder.companies, isEmpty);
+
+      await tester.tap(_barItem('Orders'));
+      await tester.pumpAndSettle();
+      expect(recorder.companies, [_companyId]);
+
+      await tester.tap(_barItem('Home'));
+      await tester.pumpAndSettle();
+      expect(recorder.companies, hasLength(1));
+
+      // Opening Orders from a dashboard tile runs it too.
+      await tester.tap(find.text('Installation Jobs'));
+      await tester.pumpAndSettle();
+      expect(recorder.companies, [_companyId, _companyId]);
+    });
+
+    testWidgets('the page says so while payments wait for verification',
+        (tester) async {
+      usePhone(tester);
+      await tester.pumpWidget(_shell(orders: _orders, ordersRepository: _ExpiryRecorder()));
+      await tester.pumpAndSettle();
+      await tester.tap(_barItem('Orders'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('company-orders-expiry-note')), findsOneWidget);
+      expect(find.textContaining('within 24 hours'), findsOneWidget);
+      expect(find.textContaining('when you open this page'), findsOneWidget);
+    });
+
+    testWidgets('no note once every payment was verified', (tester) async {
+      usePhone(tester);
+      final verified = [
+        for (final order in _orders)
+          order.copyWith(paymentStatus: PaymentStatus.confirmed),
+      ];
+      await tester.pumpWidget(_shell(orders: verified, ordersRepository: _ExpiryRecorder()));
+      await tester.pumpAndSettle();
+      await tester.tap(_barItem('Orders'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('company-orders-expiry-note')), findsNothing);
     });
   });
 

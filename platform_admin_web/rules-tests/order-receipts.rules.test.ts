@@ -4,8 +4,9 @@
  * Local emulator only (npm run test:rules); every user is a fake identity.
  *
  * `placeOrderWithReceipt()` performs the same steps as the Flutter order data
- * source: ONE transaction that lowers the product's stock, creates the order
- * and creates the receipt.
+ * source: ONE transaction that creates the order, its receipt and a step of
+ * the customer's order quota. Every order is placed with its receipt, and no
+ * stock is taken until the company confirms the payment.
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -22,7 +23,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -31,6 +31,7 @@ import {
 } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { deleteCompanyCascade } from '../src/data/deleteCompany';
+import { confirmPayment, placeOrder } from './support/checkout';
 
 let env: RulesTestEnvironment;
 const now = new Date();
@@ -50,7 +51,8 @@ afterAll(async () => {
   await env?.cleanup();
 });
 
-const as = (uid: string) => env.authenticatedContext(uid).firestore();
+/** Every account here has confirmed its e-mail (placing an order needs it). */
+const as = (uid: string) => env.authenticatedContext(uid, { email_verified: true }).firestore();
 const anon = () => env.unauthenticatedContext().firestore();
 
 const user = (id: string, role: string, extra: Record<string, unknown> = {}) => ({
@@ -130,14 +132,16 @@ const orderData = (id: string, customerId: string, extra: Record<string, unknown
   productSubtotal: 100,
   installationSelected: false,
   installationFee: 0,
-  deliveryFee: 0,
-  totalAmount: 100,
+  // Delivery costs the standard fee (standardDeliveryFee in firestore.rules).
+  deliveryFee: 15000,
+  totalAmount: 100 + 15000,
   deliveryAddress: 'Street',
   contactPhone: '0911111111',
   deliveryMethod: 'delivery',
   customerName: 'Customer',
   paymentStatus: 'pending_verification',
   orderStatus: 'processing',
+  stockReserved: false,
   receiptFileName: 'receipt.jpg',
   createdAt: serverTimestamp(),
   updatedAt: serverTimestamp(),
@@ -163,37 +167,34 @@ const receiptData = (
   ...extra,
 });
 
-/** Stock reservation + order + receipt in ONE transaction (as the app does). */
+/**
+ * Order + receipt + quota step in ONE transaction (as the app does). The
+ * order carries the receipt's own name, as the app writes it.
+ */
 function placeOrderWithReceipt(
   db: Firestore,
   uid: string,
   orderId: string,
   receipt: Record<string, unknown> = receiptData(orderId, uid),
 ) {
-  const productRef = doc(db, 'products', 'p1');
-  return runTransaction(db, async (tx) => {
-    const snap = await tx.get(productRef);
-    const available = snap.data()!.stockCount as number;
-    tx.update(productRef, {
-      stockCount: available - 1,
-      lastOrderId: orderId,
-      updatedAt: serverTimestamp(),
-    });
-    tx.set(doc(db, 'orders', orderId), orderData(orderId, uid));
-    tx.set(doc(db, 'order_receipts', orderId), receipt);
-  });
+  const name = typeof receipt.fileName === 'string' ? receipt.fileName : 'receipt.jpg';
+  return placeOrder(db, uid, orderData(orderId, uid, { receiptFileName: name }), { receipt });
 }
 
-/** The same steps as one plain batch. */
-function batchOrderWithReceipt(db: Firestore, uid: string, orderId: string, receipt: Record<string, unknown>) {
+/**
+ * The same steps as one plain batch, sent by [sender] (a first order, so the
+ * quota starts at its first slot).
+ */
+function batchOrderWithReceipt(
+  db: Firestore,
+  sender: string,
+  order: Record<string, unknown>,
+  receipt: Record<string, unknown>,
+) {
   const batch = writeBatch(db);
-  batch.update(doc(db, 'products', 'p1'), {
-    stockCount: 49,
-    lastOrderId: orderId,
-    updatedAt: serverTimestamp(),
-  });
-  batch.set(doc(db, 'orders', orderId), orderData(orderId, uid));
-  batch.set(doc(db, 'order_receipts', orderId), receipt);
+  batch.set(doc(db, 'orders', order.id as string), order);
+  batch.set(doc(db, 'order_receipts', order.id as string), receipt);
+  batch.set(doc(db, 'order_quota', sender), { t0: serverTimestamp(), next: 1, lastOrderId: order.id });
   return batch.commit();
 }
 
@@ -209,9 +210,9 @@ async function stored(path: string, id: string): Promise<Record<string, unknown>
 beforeEach(() => seed());
 
 describe('creation: the receipt is committed together with the order', () => {
-  it('stock update + order + receipt commit atomically in one transaction', async () => {
+  it('order + receipt + quota step commit atomically in one transaction, taking no stock', async () => {
     await assertSucceeds(placeOrderWithReceipt(as('cust1'), 'cust1', 'o1'));
-    expect((await stored('products', 'p1'))!.stockCount).toBe(49);
+    expect((await stored('products', 'p1'))!.stockCount).toBe(50);
     expect((await stored('orders', 'o1'))!.customerId).toBe('cust1');
     const receipt = (await stored('order_receipts', 'o1'))!;
     expect((receipt.image as Bytes).toUint8Array().length).toBe(300_000);
@@ -219,33 +220,27 @@ describe('creation: the receipt is committed together with the order', () => {
   });
 
   it('the same three writes commit as a plain batch', async () => {
-    await assertSucceeds(batchOrderWithReceipt(as('cust1'), 'cust1', 'o2', receiptData('o2', 'cust1')));
+    await assertSucceeds(batchOrderWithReceipt(as('cust1'), 'cust1', orderData('o2', 'cust1'), receiptData('o2', 'cust1')));
     expect(await stored('order_receipts', 'o2')).toBeTruthy();
   });
 
-  it('a demo-catalogue order (no product document) commits with its receipt', async () => {
-    const db = as('cust1');
-    const batch = writeBatch(db);
-    batch.set(doc(db, 'orders', 'demo1'), orderData('demo1', 'cust1', { productId: 'demo-p' }));
-    batch.set(doc(db, 'order_receipts', 'demo1'), receiptData('demo1', 'cust1'));
-    await assertSucceeds(batch.commit());
+  it('an order for a product with no document (e.g. the demo catalogue) is refused with its receipt', async () => {
+    await assertFails(
+      batchOrderWithReceipt(
+        as('cust1'),
+        'cust1',
+        orderData('demo1', 'cust1', { productId: 'demo-p' }),
+        receiptData('demo1', 'cust1'),
+      ),
+    );
+    expect(await stored('order_receipts', 'demo1')).toBeUndefined();
   });
 
   it('nothing is written when the order cannot be placed (out of stock): no order, no receipt', async () => {
     await env.withSecurityRulesDisabled(async (ctx) => {
       await updateDoc(doc(ctx.firestore(), 'products', 'p1'), { stockCount: 0 });
     });
-    await expect(
-      runTransaction(as('cust1'), async (tx) => {
-        tx.update(doc(as('cust1'), 'products', 'p1'), {
-          stockCount: -1,
-          lastOrderId: 'oX',
-          updatedAt: serverTimestamp(),
-        });
-        tx.set(doc(as('cust1'), 'orders', 'oX'), orderData('oX', 'cust1'));
-        tx.set(doc(as('cust1'), 'order_receipts', 'oX'), receiptData('oX', 'cust1'));
-      }),
-    ).rejects.toBeTruthy();
+    await assertFails(placeOrderWithReceipt(as('cust1'), 'cust1', 'oX'));
     expect(await stored('orders', 'oX')).toBeUndefined();
     expect(await stored('order_receipts', 'oX')).toBeUndefined();
   });
@@ -254,9 +249,14 @@ describe('creation: the receipt is committed together with the order', () => {
     await assertFails(setDoc(doc(as('cust1'), 'order_receipts', 'ghost'), receiptData('ghost', 'cust1')));
     // an order the rules refuse (wrong customer) takes its receipt down with it
     await assertFails(
-      batchOrderWithReceipt(as('cust1'), 'cust2', 'oBad', receiptData('oBad', 'cust1')),
+      batchOrderWithReceipt(as('cust1'), 'cust1', orderData('oBad', 'cust2'), receiptData('oBad', 'cust1')),
     );
     expect(await stored('order_receipts', 'oBad')).toBeUndefined();
+  });
+
+  it('an order is refused without its receipt document', async () => {
+    await assertFails(placeOrder(as('cust1'), 'cust1', orderData('oNo', 'cust1'), { receipt: null }));
+    expect(await stored('orders', 'oNo')).toBeUndefined();
   });
 
   it('the receipt can also be added after the order exists (attach path)', async () => {
@@ -379,6 +379,18 @@ describe('size and type', () => {
     await assertSucceeds(place('f3', receiptData('f3', 'cust1', 1000, { fileName: 'x'.repeat(100) })));
   });
 
+  it('the file name limit holds for the receipt on its own too (added to an existing order)', async () => {
+    // With the order, the order's own name is refused as well; here only the receipt rule decides.
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'orders', 'fa'), { ...orderData('fa', 'cust1'), createdAt: now, updatedAt: now });
+    });
+    const attach = (fileName: string) =>
+      setDoc(doc(as('cust1'), 'order_receipts', 'fa'), receiptData('fa', 'cust1', 1000, { fileName }));
+    await assertFails(attach(''));
+    await assertFails(attach('x'.repeat(101)));
+    await assertSucceeds(attach('x'.repeat(100)));
+  });
+
   it('extra or missing fields are refused', async () => {
     await assertFails(place('k1', receiptData('k1', 'cust1', 1000, { note: 'hi' })));
     await assertFails(place('k2', receiptData('k2', 'cust1', 1000, { downloadUrl: 'https://x.test/a.jpg' })));
@@ -479,13 +491,10 @@ describe('immutability', () => {
     expect(await stored('order_receipts', 'o1')).toBeTruthy();
   });
 
-  it('the payment-verification workflow is unaffected: the company can still confirm the payment', async () => {
-    await assertSucceeds(
-      updateDoc(doc(as('ca1'), 'orders', 'o1'), {
-        paymentStatus: 'confirmed',
-        updatedAt: serverTimestamp(),
-      }),
-    );
+  it('the company confirms the payment (taking the stock then), and the receipt stays as it was', async () => {
+    await assertSucceeds(confirmPayment(as('ca1'), 'o1'));
+    expect((await stored('orders', 'o1'))!.paymentStatus).toBe('confirmed');
+    expect((await stored('products', 'p1'))!.stockCount).toBe(49);
     // and the receipt is still there, readable, and now frozen for good
     await assertSucceeds(getDoc(doc(as('ca1'), 'order_receipts', 'o1')));
     await assertFails(deleteDoc(doc(as('ca1'), 'order_receipts', 'o1')));

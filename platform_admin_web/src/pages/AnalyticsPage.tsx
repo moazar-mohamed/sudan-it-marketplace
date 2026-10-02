@@ -31,7 +31,12 @@ function BarList({ bars, format }: { bars: Bar[]; format: (n: number) => string 
   );
 }
 
-const ORDER_TONE = { processing: 'info', out_for_delivery: 'warning', completed: 'success' } as const;
+const ORDER_TONE = {
+  processing: 'info',
+  out_for_delivery: 'warning',
+  completed: 'success',
+  cancelled: 'danger',
+} as const;
 const COMPANY_TONE = { active: 'success', inactive: 'neutral' } as const;
 
 export function AnalyticsPage() {
@@ -40,7 +45,10 @@ export function AnalyticsPage() {
   const companies = useCompanies();
 
   const stats = useMemo(() => {
-    const totalValue = orders.data.reduce((sum, o) => sum + o.totalAmount, 0);
+    // A cancelled order is no sale.
+    const totalValue = orders.data
+      .filter((o) => o.orderStatus !== 'cancelled')
+      .reduce((sum, o) => sum + o.totalAmount, 0);
     const confirmedValue = orders.data
       .filter((o) => o.paymentStatus === 'confirmed')
       .reduce((sum, o) => sum + o.totalAmount, 0);

@@ -141,7 +141,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     // The offer price while an offer runs.
     final unitPrice = stock.salePrice;
     final totalPrice = unitPrice == null ? null : unitPrice * quantity;
-    final canBuy = stock.isAvailable && stock.hasPrice;
+    // A demo catalogue product has no product document, so the rules refuse
+    // any order for it: never let the customer pay for one.
+    final canBuy =
+        stock.isAvailable && stock.hasPrice && !isDemoProduct(widget.product);
     // Only a real company can be written to (not the demo catalogue).
     final contactCompanyId = widget.product.companyId ?? '';
     final canContact =

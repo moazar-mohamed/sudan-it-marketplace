@@ -101,7 +101,7 @@ export function CustomerDetailsPage() {
                           </td>
                           <td className="nowrap">{money(o.totalAmount)}</td>
                           <td>
-                            <PaymentBadge status={o.paymentStatus} />
+                            <PaymentBadge status={o.paymentStatus} orderStatus={o.orderStatus} />
                           </td>
                           <td>
                             <OrderStatusBadge status={o.orderStatus} />

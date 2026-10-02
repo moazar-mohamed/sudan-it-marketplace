@@ -99,6 +99,32 @@ class OrderCard extends StatelessWidget {
               ),
             ],
           ),
+          // Sent with its receipt, but nothing is reserved until the company
+          // confirms the payment.
+          if (order.isAwaitingPaymentVerification) ...[
+            const SizedBox(height: AppSpacing.s6),
+            Row(
+              key: const ValueKey('order-card-awaiting-confirmation'),
+              children: [
+                Icon(
+                  Icons.hourglass_top_rounded,
+                  size: AppSize.iconSm,
+                  color: AppTone.warning.accent(context.colors),
+                ),
+                const SizedBox(width: AppSpacing.s4),
+                Expanded(
+                  child: Text(
+                    l10n.orderAwaitingConfirmation,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppTone.warning.foreground(context.colors),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: AppSpacing.s12),
           const Divider(height: 1),
           const SizedBox(height: AppSpacing.s8),

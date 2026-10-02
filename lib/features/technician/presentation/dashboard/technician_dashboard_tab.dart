@@ -39,19 +39,17 @@ class TechnicianDashboardTab extends ConsumerWidget {
             ref.invalidate(technicianOrdersStreamProvider(technicianId)),
       ),
       data: (jobs) {
-        final pending = jobs
-            .where((j) => j.orderStatus != OrderStatus.completed)
-            .length;
+        // A cancelled job is neither pending nor done.
+        bool isOpen(OrderEntity j) =>
+            j.orderStatus != OrderStatus.completed && !j.isCancelled;
+        final pending = jobs.where(isOpen).length;
         final completed = jobs
             .where((j) => j.orderStatus == OrderStatus.completed)
             .length;
         final recent = [...jobs]
           ..sort((a, b) =>
               (b.updatedAt ?? b.createdAt).compareTo(a.updatedAt ?? a.createdAt));
-        final upcoming = recent
-            .where((j) => j.orderStatus != OrderStatus.completed)
-            .take(5)
-            .toList();
+        final upcoming = recent.where(isOpen).take(5).toList();
 
         Widget stat(String value, String label) => AppCard(
               padding: const EdgeInsets.all(AppSpacing.s12),

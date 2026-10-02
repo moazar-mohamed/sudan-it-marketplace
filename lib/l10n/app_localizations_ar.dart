@@ -605,6 +605,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String orderPriceChanged(String productName) {
+    return 'تغيّر سعر $productName قبل إرسال طلبك، لذلك لم يُسجَّل الطلب. ارجع لمراجعة السعر الجديد، وإذا كنت قد حوّلت المبلغ فيرجى التواصل مع الشركة.';
+  }
+
+  @override
   String get orderAttachReceiptFailed =>
       'تعذر إرفاق الإيصال. يرجى المحاولة مرة أخرى.';
 
@@ -626,6 +631,150 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get orderConfirmPaymentFailed =>
       'تعذر تأكيد الدفع. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get orderCancelDenied => 'ليست لديك صلاحية لإلغاء هذا الطلب.';
+
+  @override
+  String get orderCancelFailed => 'تعذر إلغاء الطلب. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get orderCancelNotAllowed =>
+      'لا يمكن إلغاء هذا الطلب الآن: أُلغي سابقاً أو تقدّمت حالته، أو أن هذا السبب لا ينطبق على دفع مؤكد.';
+
+  @override
+  String get orderStatusCancelled => 'ملغى';
+
+  @override
+  String get orderCancelledTitle => 'أُلغي هذا الطلب';
+
+  @override
+  String get orderCancelledByCompany => 'ألغته الشركة.';
+
+  @override
+  String get orderCancelledExpired =>
+      'أُلغي تلقائياً: لم يُتحقق من الدفع خلال 24 ساعة.';
+
+  @override
+  String get orderCancelledOutOfStock =>
+      'أُلغي لأن المنتج نفد قبل تأكيد الدفع. تعيد الشركة المبلغ المحوّل خارج التطبيق.';
+
+  @override
+  String get orderCancelledRefundConfirmed =>
+      'كان دفعك قد تأكد: تعيد الشركة إليك المبلغ خارج التطبيق.';
+
+  @override
+  String get orderCancelledRefundIfPaid =>
+      'إذا كنت قد حوّلت مبلغاً لهذا الطلب، فستعيده الشركة إليك خارج التطبيق. يمكنك التواصل معها من محادثة الطلب.';
+
+  @override
+  String get adminCancelledRefundConfirmed =>
+      'كان دفعه قد تأكد: أعد المبلغ إلى العميل خارج التطبيق.';
+
+  @override
+  String get adminCancelledRefundIfPaid =>
+      'إذا كان العميل قد حوّل مبلغاً، فأعده إليه خارج التطبيق.';
+
+  @override
+  String orderCancelledOn(String date) {
+    return 'أُلغي في $date';
+  }
+
+  @override
+  String get paymentStatusNotVerified => 'لم يُتحقق منه';
+
+  @override
+  String get adminCancelOrderButton => 'إلغاء الطلب';
+
+  @override
+  String get adminCancelOrderTitle => 'إلغاء هذا الطلب؟';
+
+  @override
+  String adminCancelOrderBody(String orderId, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'وتعود وحداته الـ$count',
+      many: 'وتعود وحداته الـ$count',
+      few: 'وتعود وحداته الـ$count',
+      two: 'وتعود وحدتاه',
+      one: 'وتعود وحدته الواحدة',
+    );
+    return 'سيُلغى الطلب #$orderId $_temp0 إلى المخزون. لا يمكن التراجع عن ذلك. إذا كان العميل قد دفع، فاتفق معه على استرداد المبلغ.';
+  }
+
+  @override
+  String adminCancelOrderBodyNoStock(String orderId) {
+    return 'سيُلغى الطلب #$orderId. لم يتأكد دفعه، لذلك لم يأخذ أي مخزون ولن يعود شيء. لا يمكن التراجع عن ذلك. إذا كان العميل قد حوّل مبلغاً، فأعده إليه خارج التطبيق.';
+  }
+
+  @override
+  String adminCancelConfirmedOrderBody(
+    String orderId,
+    int count,
+    String amount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'وتعود وحداته الـ$count',
+      many: 'وتعود وحداته الـ$count',
+      few: 'وتعود وحداته الـ$count',
+      two: 'وتعود وحدتاه',
+      one: 'وتعود وحدته الواحدة',
+    );
+    return 'سيُلغى الطلب #$orderId $_temp0 إلى المخزون. دفعه مؤكد: أعد $amount إلى العميل خارج التطبيق. لا يمكن التراجع عن ذلك.';
+  }
+
+  @override
+  String adminCancelConfirmedOrderBodyNoStock(String orderId, String amount) {
+    return 'سيُلغى الطلب #$orderId. سُجّل قبل أن تحفظ الطلبات مخزونها، لذلك لن يعود أي مخزون تلقائياً. دفعه مؤكد: أعد $amount إلى العميل خارج التطبيق. لا يمكن التراجع عن ذلك.';
+  }
+
+  @override
+  String get adminCancelOutOfStockButton => 'إلغاء لنفاد المخزون';
+
+  @override
+  String get adminCancelOutOfStockTitle => 'إلغاء الطلب لنفاد المخزون؟';
+
+  @override
+  String adminCancelOutOfStockBody(String orderId, String amount) {
+    return 'سيُلغى الطلب #$orderId لأن منتجه لا يكفيه. لن يُخصم أي مخزون ولن يعود. سيُبلَّغ العميل بأن المنتج نفد؛ أعد إليه $amount خارج التطبيق إن كان قد حوّله. لا يمكن التراجع عن ذلك.';
+  }
+
+  @override
+  String get adminOrderCancelledOutOfStock => 'أُلغي الطلب لنفاد المخزون.';
+
+  @override
+  String get adminCancelOrderConfirm => 'إلغاء الطلب';
+
+  @override
+  String get adminCancelOrderKeep => 'إبقاء الطلب';
+
+  @override
+  String get adminOrderCancelled => 'أُلغي الطلب.';
+
+  @override
+  String adminCancelStockReturned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عادت $count وحدة إلى المخزون.',
+      many: 'عادت $count وحدة إلى المخزون.',
+      few: 'عادت $count وحدات إلى المخزون.',
+      two: 'عادت وحدتان إلى المخزون.',
+      one: 'عادت وحدة واحدة إلى المخزون.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adminCancelStockNotReturned =>
+      'لم يعد أي مخزون: لم يكن الطلب قد أخذ مخزوناً (لم يتأكد دفعه)، أو حُذف منتجه.';
+
+  @override
+  String get adminOrdersExpiryNote =>
+      'الطلبات التي لا يتأكد دفعها خلال 24 ساعة تُلغى تلقائياً، أما الطلب المؤكد فلا تنتهي مهلته أبداً. يحدث ذلك عند فتح هذه الصفحة، لذا قد يتأخر الإلغاء حتى فتحها.';
 
   @override
   String get orderAssignTechnicianDenied =>
@@ -958,7 +1107,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paymentPendingNote =>
-      'إرسال هذا الإيصال يحفظ مرجع التحويل بحالة \"بانتظار التحقق\". سيتم تأكيد الدفع بعد التحقق من الإدارة/الشركة.';
+      'يُرسل طلبك مع هذا الإيصال. الإيصال ليس تأكيداً للدفع: تتحقق الشركة من التحويل ثم تؤكده، وعندها فقط يُحجز المنتج لك.';
 
   @override
   String get paymentSubmitting => 'جارٍ الإرسال...';
@@ -1068,11 +1217,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pendingBanner => 'بانتظار التحقق';
 
   @override
-  String get pendingTitle => 'تم إرسال الإيصال للتحقق';
+  String get pendingTitle => 'تم إرسال طلبك: بانتظار الشركة';
 
   @override
   String get pendingBody =>
-      'تم حفظ مرجع إيصال التحويل الخاص بك. وهو بانتظار تأكيد الفريق المالي. سيتم تأكيد الدفع فقط بعد التحقق اليدوي.';
+      'أُرسل طلبك وإيصال التحويل إلى الشركة. الإيصال ليس تأكيداً للدفع: تتحقق الشركة من وصول المبلغ ثم تؤكده.';
+
+  @override
+  String get orderNotReservedYet =>
+      'المنتج غير محجوز لك بعد: لا يُخصم من المخزون إلا عندما تؤكد الشركة دفعك. وإذا نفد قبل ذلك، قد تلغي الشركة الطلب وتعيد إليك المبلغ المحوّل خارج التطبيق.';
+
+  @override
+  String get orderPaymentConfirmedNote =>
+      'أكدت الشركة دفعك، والمنتج محجوز لطلبك.';
+
+  @override
+  String get orderAwaitingConfirmation => 'بانتظار تأكيد الشركة لدفعك';
+
+  @override
+  String get checkoutReservationNote =>
+      'بعدها تحوّل المبلغ وترفع الإيصال. ثم تؤكد الشركة الدفع، وعندها فقط يُحجز المنتج لك.';
+
+  @override
+  String orderQuotaReached(int count, String time) {
+    return 'قدّمت $count طلبات خلال آخر 24 ساعة، وهذا هو الحد الأقصى. يمكنك الطلب مرة أخرى بعد $time.';
+  }
+
+  @override
+  String orderQuotaReachedNoTime(int count) {
+    return 'قدّمت $count طلبات خلال آخر 24 ساعة، وهذا هو الحد الأقصى. يُرجى المحاولة لاحقاً.';
+  }
 
   @override
   String get pendingOrderReference => 'مرجع الطلب';
@@ -1364,18 +1538,77 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get adminVerifyReceipt =>
-      'تحقق من إيصال التحويل قبل معالجة هذا الطلب.';
+      'الإيصال مجرد ادعاء من العميل. تحقّق من وصول المبلغ إلى حسابك، ثم أكّد الدفع. التأكيد يخصم وحدات هذا الطلب من المخزون، وقبله لا يُحجز شيء.';
+
+  @override
+  String get adminShipAfterPayment =>
+      'لا يتقدّم الطلب إلى المرحلة التالية إلا بعد تأكيد الدفع.';
+
+  @override
+  String adminStockCannotCover(int available, int count) {
+    return 'المخزون لا يكفي هذا الطلب: المتبقي $available والمطلوب $count. أضف مخزوناً ثم أكّد الدفع، أو ألغِ الطلب لنفاد المخزون.';
+  }
+
+  @override
+  String get adminProductGoneCannotConfirm =>
+      'منتج هذا الطلب لم يعد في كتالوجك، لذا لا يمكن تأكيد دفعه. ألغِ الطلب لنفاد المخزون.';
+
+  @override
+  String adminOutOfStockStillCovers(int available, int count) {
+    return 'ما زال المتوفر من المنتج $available، وهذا يكفي هذا الطلب ($count)، لذا لا يمكن إلغاؤه لنفاد المخزون. أكّد الدفع، أو ألغِ الطلب يدوياً.';
+  }
+
+  @override
+  String get adminStockLabel => 'المخزون';
+
+  @override
+  String adminStockTaken(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خُصمت $count وحدة من المخزون',
+      many: 'خُصمت $count وحدة من المخزون',
+      few: 'خُصمت $count وحدات من المخزون',
+      two: 'خُصمت وحدتان من المخزون',
+      one: 'خُصمت وحدة واحدة من المخزون',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adminStockNotTaken => 'لم يُخصم بعد: يُخصم عند تأكيد الدفع';
+
+  @override
+  String get orderPaymentAlreadyConfirmed =>
+      'سبق تأكيد هذا الدفع، ربما من جهاز آخر. لم يُخصم شيء إضافي من المخزون.';
+
+  @override
+  String get orderPaymentNotAwaiting =>
+      'لم يعد ممكناً تأكيد دفع هذا الطلب: أُلغي الطلب أو تقدّمت حالته.';
+
+  @override
+  String get orderPaymentNoReceipt =>
+      'لا يوجد إيصال محفوظ لهذا الطلب، لذا لا يمكن تأكيد دفعه. اطلب الإيصال من العميل في محادثة الطلب، أو ألغِ الطلب.';
 
   @override
   String get adminConfirmPaymentTitle => 'تأكيد الدفع';
 
   @override
-  String adminConfirmPaymentBody(String id) {
-    return 'هل تريد تحديد الدفع للطلب ‎#$id كمؤكد؟';
+  String adminConfirmPaymentBody(String id, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تُخصم $count وحدة',
+      many: 'تُخصم $count وحدة',
+      few: 'تُخصم $count وحدات',
+      two: 'تُخصم وحدتان',
+      one: 'تُخصم وحدة واحدة',
+    );
+    return 'هل وصلت دفعة الطلب ‎#$id؟ عند التأكيد $_temp0 من المخزون الآن.';
   }
 
   @override
-  String get adminPaymentConfirmed => 'تم تأكيد الدفع.';
+  String get adminPaymentConfirmed => 'تم تأكيد الدفع وخصم المخزون.';
 
   @override
   String get adminConfirmPaymentButton => 'تأكيد الدفع';
@@ -1894,6 +2127,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get techJobCompleted => 'اكتملت هذه المهمة.';
+
+  @override
+  String get techAwaitingPayment => 'بانتظار تأكيد الشركة للدفع.';
+
+  @override
+  String get techAwaitingPaymentHint =>
+      'يمكنك تحريك هذه المهمة بعد تأكيد الدفع.';
 
   @override
   String get techUpdateJobStatus => 'تحديث حالة المهمة';

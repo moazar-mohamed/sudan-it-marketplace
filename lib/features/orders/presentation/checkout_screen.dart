@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/text_clip.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/auth_state.dart';
@@ -17,6 +18,7 @@ import '../../location/presentation/widgets/open_location_button.dart';
 import '../../products/domain/entities/product.dart';
 import '../domain/entities/checkout_order_draft.dart';
 import '../domain/entities/order_entity.dart';
+import '../domain/order_limits.dart';
 import 'manual_payment_screen.dart';
 import 'widgets/price_summary_row.dart';
 import '../../../core/localization/l10n_extension.dart';
@@ -154,17 +156,26 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       installationFee: installationCharge,
       deliveryFee: _deliveryFee,
       totalAmount: finalTotal,
-      deliveryAddress: _useDelivery
-          ? _addressController.text.trim()
-          : 'Pickup: ${_pickupLocation()}',
+      // Both within what the rules accept for an order's address. The typed
+      // one already is (the field stops there); a company's own pickup
+      // address has no such limit, so it is cut here.
+      deliveryAddress: clipToLength(
+        _useDelivery
+            ? _addressController.text.trim()
+            : 'Pickup: ${_pickupLocation()}',
+        OrderLimits.deliveryAddress,
+      ),
       // Pickup uses the company's own location, so no delivery point is saved.
       deliveryLatitude: _useDelivery ? _deliveryLocation?.latitude : null,
       deliveryLongitude: _useDelivery ? _deliveryLocation?.longitude : null,
       contactPhone: _phoneController.value,
       deliveryMethod:
           _useDelivery ? DeliveryMethod.delivery : DeliveryMethod.pickup,
-      customerName:
-          ref.read(profileControllerProvider).asData?.value?.fullName ?? '',
+      // A profile name has no length limit of its own; the order's copy does.
+      customerName: clipToLength(
+        ref.read(profileControllerProvider).asData?.value?.fullName ?? '',
+        OrderLimits.customerName,
+      ),
     );
 
     Navigator.of(context).push(
@@ -351,6 +362,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             textController: _addressController,
                             location: _deliveryLocation,
                             textHint: l10n.checkoutAddressHint,
+                            maxTextLength: OrderLimits.deliveryAddress,
                             errorText: _locationMissing
                                 ? LocationStrings.of(context).locationRequired
                                 : null,
@@ -483,7 +495,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.s24),
+                  const SizedBox(height: AppSpacing.s16),
+                  // What happens next: the product is reserved only once the
+                  // company confirms the payment.
+                  AppBanner(
+                    key: const ValueKey('checkout-reservation-note'),
+                    icon: Icons.inventory_2_outlined,
+                    message: l10n.checkoutReservationNote,
+                  ),
+                  const SizedBox(height: AppSpacing.s16),
 
                   // 5. Confirm.
                   AppButton.primary(

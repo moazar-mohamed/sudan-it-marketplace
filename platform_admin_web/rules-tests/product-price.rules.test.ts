@@ -21,9 +21,9 @@ import {
   setDoc,
   updateDoc,
   where,
-  writeBatch,
 } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { confirmPayment, placeOrder } from './support/checkout';
 
 let env: RulesTestEnvironment;
 const now = new Date();
@@ -43,7 +43,8 @@ afterAll(async () => {
   await env?.cleanup();
 });
 
-const as = (uid: string) => env.authenticatedContext(uid).firestore();
+/** Every account here has confirmed its e-mail (placing an order needs it). */
+const as = (uid: string) => env.authenticatedContext(uid, { email_verified: true }).firestore();
 
 const fields = (id: string, extra: Record<string, unknown> = {}) => ({
   id,
@@ -84,6 +85,15 @@ beforeEach(async () => {
       role: 'company_admin',
       isActive: true,
       companyId: 'c1',
+      createdAt: now,
+    });
+    // Only an active customer may place an order.
+    await setDoc(doc(db, 'users', 'cust1'), {
+      id: 'cust1',
+      fullName: 'Customer',
+      email: 'cust1@x.test',
+      role: 'customer',
+      isActive: true,
       createdAt: now,
     });
     await setDoc(doc(db, 'companies', 'c1'), {
@@ -150,37 +160,37 @@ describe('optional product price', () => {
     productSubtotal: 100 * quantity,
     installationSelected: false,
     installationFee: 0,
-    deliveryFee: 0,
-    totalAmount: 100 * quantity,
+    // Delivery costs the standard fee (standardDeliveryFee in firestore.rules).
+    deliveryFee: 15000,
+    totalAmount: 100 * quantity + 15000,
     deliveryAddress: 'Street',
     contactPhone: '1',
     deliveryMethod: 'delivery',
     customerName: 'C',
     paymentStatus: 'pending_verification',
     orderStatus: 'processing',
+    stockReserved: false,
     receiptFileName: 'r.jpg',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 
-  const reserve = (productId: string, stockAfter: number) => {
-    const db = as('cust1');
-    const batch = writeBatch(db);
-    batch.update(doc(db, 'products', productId), {
-      stockCount: stockAfter,
-      lastOrderId: 'o1',
-      updatedAt: serverTimestamp(),
-    });
-    batch.set(doc(db, 'orders', 'o1'), order(productId));
-    return batch.commit();
-  };
+  /** The app's checkout: the order with its receipt and a quota step. */
+  const checkout = (productId: string) => placeOrder(as('cust1'), 'cust1', order(productId));
 
   it('an unpriced product cannot be ordered through checkout', async () => {
-    await assertFails(reserve('unpriced', 3));
+    await assertFails(checkout('unpriced'));
   });
 
-  it('a priced product is still ordered and its stock reserved as before', async () => {
-    await assertSucceeds(reserve('priced', 3));
+  it('a priced product is still ordered, and its stock is taken when the company confirms the payment', async () => {
+    await assertSucceeds(checkout('priced'));
+    await assertSucceeds(confirmPayment(as('ca1'), 'o1'));
+  });
+
+  it('a product whose price is removed after the order can still have that order confirmed', async () => {
+    await assertSucceeds(checkout('priced'));
+    await assertSucceeds(edit('priced', { price: null }));
+    await assertSucceeds(confirmPayment(as('ca1'), 'o1'));
   });
 });
 

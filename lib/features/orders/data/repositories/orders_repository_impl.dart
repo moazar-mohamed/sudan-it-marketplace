@@ -60,9 +60,16 @@ class OrdersRepositoryImpl implements OrdersRepository {
       createdAt: DateTime.now(),
     );
 
-    final generatedId =
+    final created =
         await _remoteDataSource.createOrder(model, receipt: receipt);
-    return model.toEntity().copyWith(id: generatedId);
+    // The two names are the ones that were stored (the product's own), not
+    // the ones passed in: what is built from this order next, such as its
+    // "new order" notification, must name the product as the order does.
+    return model.toEntity().copyWith(
+          id: created.id,
+          productName: created.productName,
+          companyName: created.companyName,
+        );
   }
 
   @override
@@ -126,8 +133,22 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
-  Future<void> confirmPayment(String orderId) {
-    return _remoteDataSource.confirmPayment(orderId);
+  Future<OrderEntity> confirmPayment(String orderId) async {
+    final order = await _remoteDataSource.confirmPayment(orderId);
+    return order.toEntity();
+  }
+
+  @override
+  Future<void> cancelOrder({
+    required String orderId,
+    required OrderCancelReason reason,
+  }) {
+    return _remoteDataSource.cancelOrder(orderId: orderId, reason: reason);
+  }
+
+  @override
+  Future<int> expireOverdueOrders(String companyId) {
+    return _remoteDataSource.expireOverdueOrders(companyId);
   }
 
   @override

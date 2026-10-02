@@ -84,34 +84,37 @@ class _TechnicianAssignmentCardState
               ? context.l10n.adminNotAssigned
               : assignedName,
         ),
-        const SizedBox(height: AppSpacing.s8),
-        techniciansAsync.when(
-          loading: () => const AppLoadingState(),
-          error: (_, _) => Text(
-            context.l10n.adminTechniciansLoadFailedShort,
-            style: AppTextStyles.caption.copyWith(color: context.colors.errorText),
-          ),
-          data: (technicians) {
-            final active = technicians.where((t) => t.isActive).toList();
-            if (active.isEmpty) {
-              return Text(
-                context.l10n.adminAddTechnicianFirst,
-                style: AppTextStyles.caption.copyWith(
-                  color: context.colors.textSecondary,
-                ),
+        // A cancelled order has no job left to (re)assign.
+        if (!order.isCancelled) ...[
+          const SizedBox(height: AppSpacing.s8),
+          techniciansAsync.when(
+            loading: () => const AppLoadingState(),
+            error: (_, _) => Text(
+              context.l10n.adminTechniciansLoadFailedShort,
+              style: AppTextStyles.caption.copyWith(color: context.colors.errorText),
+            ),
+            data: (technicians) {
+              final active = technicians.where((t) => t.isActive).toList();
+              if (active.isEmpty) {
+                return Text(
+                  context.l10n.adminAddTechnicianFirst,
+                  style: AppTextStyles.caption.copyWith(
+                    color: context.colors.textSecondary,
+                  ),
+                );
+              }
+              return AppButton.outlined(
+                expand: true,
+                icon: Icons.engineering_outlined,
+                loading: _isSaving,
+                label: assignedName.isEmpty
+                    ? context.l10n.adminAssignTechnician
+                    : context.l10n.adminChangeTechnician,
+                onPressed: () => _pickTechnician(active),
               );
-            }
-            return AppButton.outlined(
-              expand: true,
-              icon: Icons.engineering_outlined,
-              loading: _isSaving,
-              label: assignedName.isEmpty
-                  ? context.l10n.adminAssignTechnician
-                  : context.l10n.adminChangeTechnician,
-              onPressed: () => _pickTechnician(active),
-            );
-          },
-        ),
+            },
+          ),
+        ],
       ],
     );
   }

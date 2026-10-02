@@ -205,6 +205,11 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
     });
   }
 
+  /// Reloads the signed-in user, so a freshly verified e-mail shows. When it
+  /// is verified, a new ID token is fetched too: the token the app holds was
+  /// issued before the verification and still says `email_verified: false`
+  /// for up to an hour, and the security rules (placing an order) read the
+  /// token, not the reloaded user.
   @override
   Future<AuthUserModel?> reloadCurrentUser() {
     return _run(() async {
@@ -213,7 +218,11 @@ class FirebaseAuthRemoteDataSource implements AuthRemoteDataSource {
         return null;
       }
       await user.reload();
-      return _mapUser(_firebaseAuth.currentUser);
+      final reloaded = _firebaseAuth.currentUser;
+      if (reloaded != null && reloaded.emailVerified) {
+        await reloaded.getIdToken(true);
+      }
+      return _mapUser(reloaded);
     });
   }
 

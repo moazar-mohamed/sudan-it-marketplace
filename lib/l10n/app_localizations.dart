@@ -1172,6 +1172,12 @@ abstract class AppLocalizations {
   /// **'{productName} has no listed price yet. Please contact the company to order it.'**
   String orderProductNoPrice(String productName);
 
+  /// No description provided for @orderPriceChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The price of {productName} changed before your order was sent, so it was not placed. Go back to see the new price. If you already transferred money, please contact the company.'**
+  String orderPriceChanged(String productName);
+
   /// No description provided for @orderAttachReceiptFailed.
   ///
   /// In en, this message translates to:
@@ -1207,6 +1213,190 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not confirm the payment. Please try again.'**
   String get orderConfirmPaymentFailed;
+
+  /// No description provided for @orderCancelDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to cancel this order.'**
+  String get orderCancelDenied;
+
+  /// No description provided for @orderCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not cancel the order. Please try again.'**
+  String get orderCancelFailed;
+
+  /// No description provided for @orderCancelNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'This order cannot be cancelled now: it was already cancelled or has moved on, or this reason does not apply to a confirmed payment.'**
+  String get orderCancelNotAllowed;
+
+  /// No description provided for @orderStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get orderStatusCancelled;
+
+  /// No description provided for @orderCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This order was cancelled'**
+  String get orderCancelledTitle;
+
+  /// No description provided for @orderCancelledByCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by the company.'**
+  String get orderCancelledByCompany;
+
+  /// No description provided for @orderCancelledExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled automatically: the payment was not verified within 24 hours.'**
+  String get orderCancelledExpired;
+
+  /// No description provided for @orderCancelledOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled because the product ran out of stock before the payment was confirmed. The company returns the transferred money outside the app.'**
+  String get orderCancelledOutOfStock;
+
+  /// No description provided for @orderCancelledRefundConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment had been confirmed: the company returns the money to you outside the app.'**
+  String get orderCancelledRefundConfirmed;
+
+  /// No description provided for @orderCancelledRefundIfPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'If you transferred money for this order, the company returns it outside the app. You can reach them in the order\'s chat.'**
+  String get orderCancelledRefundIfPaid;
+
+  /// No description provided for @adminCancelledRefundConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Its payment had been confirmed: return the money to the customer outside the app.'**
+  String get adminCancelledRefundConfirmed;
+
+  /// No description provided for @adminCancelledRefundIfPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'If the customer transferred money, return it outside the app.'**
+  String get adminCancelledRefundIfPaid;
+
+  /// No description provided for @orderCancelledOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled on {date}'**
+  String orderCancelledOn(String date);
+
+  /// No description provided for @paymentStatusNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified'**
+  String get paymentStatusNotVerified;
+
+  /// No description provided for @adminCancelOrderButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel order'**
+  String get adminCancelOrderButton;
+
+  /// No description provided for @adminCancelOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this order?'**
+  String get adminCancelOrderTitle;
+
+  /// No description provided for @adminCancelOrderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId} will be cancelled and {count, plural, =1{its 1 unit goes} other{its {count} units go}} back to stock. This cannot be undone. If the customer already paid, arrange the refund with them.'**
+  String adminCancelOrderBody(String orderId, int count);
+
+  /// No description provided for @adminCancelOrderBodyNoStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId} will be cancelled. Its payment is not confirmed, so it took no stock and none goes back. This cannot be undone. If the customer already transferred money, return it outside the app.'**
+  String adminCancelOrderBodyNoStock(String orderId);
+
+  /// No description provided for @adminCancelConfirmedOrderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId} will be cancelled and {count, plural, =1{its 1 unit goes} other{its {count} units go}} back to stock. Its payment was confirmed: return {amount} to the customer outside the app. This cannot be undone.'**
+  String adminCancelConfirmedOrderBody(
+    String orderId,
+    int count,
+    String amount,
+  );
+
+  /// No description provided for @adminCancelConfirmedOrderBodyNoStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId} will be cancelled. It was placed before orders recorded their stock, so no stock goes back automatically. Its payment was confirmed: return {amount} to the customer outside the app. This cannot be undone.'**
+  String adminCancelConfirmedOrderBodyNoStock(String orderId, String amount);
+
+  /// No description provided for @adminCancelOutOfStockButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel: out of stock'**
+  String get adminCancelOutOfStockButton;
+
+  /// No description provided for @adminCancelOutOfStockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel as out of stock?'**
+  String get adminCancelOutOfStockTitle;
+
+  /// No description provided for @adminCancelOutOfStockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{orderId} will be cancelled because its product cannot cover it. No stock is taken or returned. The customer is told the product ran out; return {amount} to them outside the app if they transferred it. This cannot be undone.'**
+  String adminCancelOutOfStockBody(String orderId, String amount);
+
+  /// No description provided for @adminOrderCancelledOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Order cancelled as out of stock.'**
+  String get adminOrderCancelledOutOfStock;
+
+  /// No description provided for @adminCancelOrderConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel order'**
+  String get adminCancelOrderConfirm;
+
+  /// No description provided for @adminCancelOrderKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep order'**
+  String get adminCancelOrderKeep;
+
+  /// No description provided for @adminOrderCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Order cancelled.'**
+  String get adminOrderCancelled;
+
+  /// No description provided for @adminCancelStockReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 unit went back to stock.} other{{count} units went back to stock.}}'**
+  String adminCancelStockReturned(int count);
+
+  /// No description provided for @adminCancelStockNotReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'No stock went back: the order had taken none (its payment was not confirmed), or its product was removed.'**
+  String get adminCancelStockNotReturned;
+
+  /// No description provided for @adminOrdersExpiryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders whose payment is not confirmed within 24 hours are cancelled automatically; a confirmed order never expires. This happens when you open this page, so a cancellation can wait until then.'**
+  String get adminOrdersExpiryNote;
 
   /// No description provided for @orderAssignTechnicianDenied.
   ///
@@ -1763,7 +1953,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentPendingNote.
   ///
   /// In en, this message translates to:
-  /// **'Submitting this receipt saves the transfer reference as \"Pending Verification\". Payment will be marked Confirmed after the company verifies it.'**
+  /// **'Your order is sent together with this receipt. A receipt is not a confirmed payment: the company checks the transfer and confirms it, and only then is the product reserved for you.'**
   String get paymentPendingNote;
 
   /// No description provided for @paymentSubmitting.
@@ -1961,14 +2151,50 @@ abstract class AppLocalizations {
   /// No description provided for @pendingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Receipt Submitted for Verification'**
+  /// **'Order sent: waiting for the company'**
   String get pendingTitle;
 
   /// No description provided for @pendingBody.
   ///
   /// In en, this message translates to:
-  /// **'Your transfer receipt reference has been saved. It is awaiting confirmation from the company. Payment will be marked Confirmed only after manual verification.'**
+  /// **'Your order and your transfer receipt were sent to the company. A receipt is not a confirmed payment: the company checks that the money arrived, then confirms it.'**
   String get pendingBody;
+
+  /// No description provided for @orderNotReservedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'The product is not reserved for you yet: stock is taken only when the company confirms your payment. If it sells out first, the company may cancel the order and return your transfer outside the app.'**
+  String get orderNotReservedYet;
+
+  /// No description provided for @orderPaymentConfirmedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The company confirmed your payment, and the product is reserved for your order.'**
+  String get orderPaymentConfirmedNote;
+
+  /// No description provided for @orderAwaitingConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the company to confirm your payment'**
+  String get orderAwaitingConfirmation;
+
+  /// No description provided for @checkoutReservationNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Next you transfer the amount and upload the receipt. The company then confirms the payment, and only then is the product reserved for you.'**
+  String get checkoutReservationNote;
+
+  /// No description provided for @orderQuotaReached.
+  ///
+  /// In en, this message translates to:
+  /// **'You have placed {count} orders in the last 24 hours, the most allowed. You can order again after {time}.'**
+  String orderQuotaReached(int count, String time);
+
+  /// No description provided for @orderQuotaReachedNoTime.
+  ///
+  /// In en, this message translates to:
+  /// **'You have placed {count} orders in the last 24 hours, the most allowed. Please try again later.'**
+  String orderQuotaReachedNoTime(int count);
 
   /// No description provided for @pendingOrderReference.
   ///
@@ -2513,8 +2739,68 @@ abstract class AppLocalizations {
   /// No description provided for @adminVerifyReceipt.
   ///
   /// In en, this message translates to:
-  /// **'Verify the transfer receipt before processing this order.'**
+  /// **'A receipt is only the customer\'s claim. Check that the money arrived in your account, then confirm the payment. Confirming takes this order\'s units from stock; until then nothing is reserved.'**
   String get adminVerifyReceipt;
+
+  /// No description provided for @adminShipAfterPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'The order can move on only after its payment is confirmed.'**
+  String get adminShipAfterPayment;
+
+  /// No description provided for @adminStockCannotCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough stock for this order: {available} left, {count} needed. Restock the product and confirm the payment, or cancel the order as out of stock.'**
+  String adminStockCannotCover(int available, int count);
+
+  /// No description provided for @adminProductGoneCannotConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This order\'s product is no longer in your catalogue, so its payment cannot be confirmed. Cancel the order as out of stock.'**
+  String get adminProductGoneCannotConfirm;
+
+  /// No description provided for @adminOutOfStockStillCovers.
+  ///
+  /// In en, this message translates to:
+  /// **'The product still has {available} left, enough for this order ({count}), so it cannot be cancelled as out of stock. Confirm the payment, or cancel the order by hand.'**
+  String adminOutOfStockStillCovers(int available, int count);
+
+  /// No description provided for @adminStockLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock'**
+  String get adminStockLabel;
+
+  /// No description provided for @adminStockTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 unit taken from stock} other{{count} units taken from stock}}'**
+  String adminStockTaken(int count);
+
+  /// No description provided for @adminStockNotTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Not taken yet: taken when you confirm the payment'**
+  String get adminStockNotTaken;
+
+  /// No description provided for @orderPaymentAlreadyConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment was already confirmed, perhaps from another device. Nothing more was taken from stock.'**
+  String get orderPaymentAlreadyConfirmed;
+
+  /// No description provided for @orderPaymentNotAwaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'This order\'s payment can no longer be confirmed: the order was cancelled or has moved on.'**
+  String get orderPaymentNotAwaiting;
+
+  /// No description provided for @orderPaymentNoReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'This order has no stored receipt, so its payment cannot be confirmed. Ask the customer for the receipt in the order\'s chat, or cancel the order.'**
+  String get orderPaymentNoReceipt;
 
   /// No description provided for @adminConfirmPaymentTitle.
   ///
@@ -2525,13 +2811,13 @@ abstract class AppLocalizations {
   /// No description provided for @adminConfirmPaymentBody.
   ///
   /// In en, this message translates to:
-  /// **'Mark the payment for order #{id} as confirmed?'**
-  String adminConfirmPaymentBody(String id);
+  /// **'Confirm that the payment for order #{id} has arrived? {count, plural, =1{1 unit is} other{{count} units are}} taken from stock now.'**
+  String adminConfirmPaymentBody(String id, int count);
 
   /// No description provided for @adminPaymentConfirmed.
   ///
   /// In en, this message translates to:
-  /// **'Payment confirmed.'**
+  /// **'Payment confirmed and stock taken.'**
   String get adminPaymentConfirmed;
 
   /// No description provided for @adminConfirmPaymentButton.
@@ -3493,6 +3779,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This job is completed.'**
   String get techJobCompleted;
+
+  /// No description provided for @techAwaitingPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the company to confirm the payment.'**
+  String get techAwaitingPayment;
+
+  /// No description provided for @techAwaitingPaymentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can move this job on once the payment is confirmed.'**
+  String get techAwaitingPaymentHint;
 
   /// No description provided for @techUpdateJobStatus.
   ///

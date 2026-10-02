@@ -15,8 +15,9 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
-import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
+import { doc, getDoc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { confirmPayment, placeOrder } from './support/checkout';
 
 let env: RulesTestEnvironment;
 const now = new Date();
@@ -36,7 +37,8 @@ afterAll(async () => {
   await env?.cleanup();
 });
 
-const as = (uid: string) => env.authenticatedContext(uid).firestore();
+/** Every account here has confirmed its e-mail (placing an order needs it). */
+const as = (uid: string) => env.authenticatedContext(uid, { email_verified: true }).firestore();
 
 const fields = (id: string, extra: Record<string, unknown> = {}) => ({
   id,
@@ -86,6 +88,15 @@ beforeEach(async () => {
       role: 'company_admin',
       isActive: true,
       companyId: 'c1',
+      createdAt: now,
+    });
+    // Only an active customer may place an order.
+    await setDoc(doc(db, 'users', 'cust1'), {
+      id: 'cust1',
+      fullName: 'Customer',
+      email: 'cust1@x.test',
+      role: 'customer',
+      isActive: true,
       createdAt: now,
     });
     await setDoc(doc(db, 'companies', 'c1'), {
@@ -173,7 +184,7 @@ describe('assigning a category to a product', () => {
   );
 });
 
-describe('stock reservation cannot be used to change the category', () => {
+describe('ordering and confirming a payment never change the category', () => {
   const order = (productId: string) => ({
     id: 'o1',
     customerId: 'cust1',
@@ -186,20 +197,31 @@ describe('stock reservation cannot be used to change the category', () => {
     productSubtotal: 100,
     installationSelected: false,
     installationFee: 0,
-    deliveryFee: 0,
-    totalAmount: 100,
+    // Delivery costs the standard fee (standardDeliveryFee in firestore.rules).
+    deliveryFee: 15000,
+    totalAmount: 100 + 15000,
     deliveryAddress: 'Street',
     contactPhone: '1',
     deliveryMethod: 'delivery',
     customerName: 'C',
     paymentStatus: 'pending_verification',
     orderStatus: 'processing',
+    stockReserved: false,
     receiptFileName: 'r.jpg',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 
-  const reserve = (extra: Record<string, unknown>) => {
+  const categorized = async () => {
+    let data: Record<string, unknown> | undefined;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      data = (await getDoc(doc(ctx.firestore(), 'products', 'categorized'))).data();
+    });
+    return data!;
+  };
+
+  /** The customer's order written together with a write on the product (the old checkout). */
+  const orderWithProductWrite = (extra: Record<string, unknown>) => {
     const db = as('cust1');
     const batch = writeBatch(db);
     batch.update(doc(db, 'products', 'categorized'), {
@@ -212,13 +234,31 @@ describe('stock reservation cannot be used to change the category', () => {
     return batch.commit();
   };
 
-  it('a customer can reserve stock on a categorized product', async () => {
-    await assertSucceeds(reserve({}));
+  it('a customer orders a categorized product without touching it', async () => {
+    await assertSucceeds(placeOrder(as('cust1'), 'cust1', order('categorized')));
+    expect(await categorized()).toMatchObject({ categoryId: 'active1', stockCount: 5 });
   });
 
-  it('a customer cannot change or clear the category while reserving', async () => {
-    await assertFails(reserve({ categoryId: 'inactive1' }));
-    await assertFails(reserve({ categoryId: null }));
+  it('a customer cannot write the product at all: not its stock, and not its category', async () => {
+    await assertFails(orderWithProductWrite({}));
+    await assertFails(orderWithProductWrite({ categoryId: 'inactive1' }));
+    await assertFails(orderWithProductWrite({ categoryId: null }));
+    expect(await categorized()).toMatchObject({ categoryId: 'active1', stockCount: 5 });
+  });
+
+  it('the company confirms the payment: the stock is taken and the category stays', async () => {
+    await assertSucceeds(placeOrder(as('cust1'), 'cust1', order('categorized')));
+    await assertSucceeds(confirmPayment(as('ca1'), 'o1'));
+    expect(await categorized()).toMatchObject({ categoryId: 'active1', stockCount: 4 });
+  });
+
+  it('...even once that category has been deactivated by Platform Admin', async () => {
+    await assertSucceeds(placeOrder(as('cust1'), 'cust1', order('categorized')));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'categories', 'active1'), { isActive: false });
+    });
+    await assertSucceeds(confirmPayment(as('ca1'), 'o1'));
+    expect(await categorized()).toMatchObject({ categoryId: 'active1', stockCount: 4 });
   });
 });
 

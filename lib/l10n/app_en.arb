@@ -214,12 +214,114 @@
       }
     }
   },
+  "orderPriceChanged": "The price of {productName} changed before your order was sent, so it was not placed. Go back to see the new price. If you already transferred money, please contact the company.",
+  "@orderPriceChanged": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
   "orderAttachReceiptFailed": "Could not attach the receipt. Please try again.",
   "orderFetchFailed": "Could not load the order. Please try again.",
   "orderUpdateStatusDenied": "You do not have permission to update the status of this order.",
   "orderUpdateStatusFailed": "Could not update the order status. Please try again.",
   "orderConfirmPaymentDenied": "You do not have permission to confirm the payment for this order.",
   "orderConfirmPaymentFailed": "Could not confirm the payment. Please try again.",
+  "orderCancelDenied": "You do not have permission to cancel this order.",
+  "orderCancelFailed": "Could not cancel the order. Please try again.",
+  "orderCancelNotAllowed": "This order cannot be cancelled now: it was already cancelled or has moved on, or this reason does not apply to a confirmed payment.",
+  "orderStatusCancelled": "Cancelled",
+  "orderCancelledTitle": "This order was cancelled",
+  "orderCancelledByCompany": "Cancelled by the company.",
+  "orderCancelledExpired": "Cancelled automatically: the payment was not verified within 24 hours.",
+  "orderCancelledOutOfStock": "Cancelled because the product ran out of stock before the payment was confirmed. The company returns the transferred money outside the app.",
+  "orderCancelledRefundConfirmed": "Your payment had been confirmed: the company returns the money to you outside the app.",
+  "orderCancelledRefundIfPaid": "If you transferred money for this order, the company returns it outside the app. You can reach them in the order's chat.",
+  "adminCancelledRefundConfirmed": "Its payment had been confirmed: return the money to the customer outside the app.",
+  "adminCancelledRefundIfPaid": "If the customer transferred money, return it outside the app.",
+  "orderCancelledOn": "Cancelled on {date}",
+  "@orderCancelledOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentStatusNotVerified": "Not verified",
+  "adminCancelOrderButton": "Cancel order",
+  "adminCancelOrderTitle": "Cancel this order?",
+  "adminCancelOrderBody": "Order #{orderId} will be cancelled and {count, plural, =1{its 1 unit goes} other{its {count} units go}} back to stock. This cannot be undone. If the customer already paid, arrange the refund with them.",
+  "@adminCancelOrderBody": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCancelOrderBodyNoStock": "Order #{orderId} will be cancelled. Its payment is not confirmed, so it took no stock and none goes back. This cannot be undone. If the customer already transferred money, return it outside the app.",
+  "@adminCancelOrderBodyNoStock": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCancelConfirmedOrderBody": "Order #{orderId} will be cancelled and {count, plural, =1{its 1 unit goes} other{its {count} units go}} back to stock. Its payment was confirmed: return {amount} to the customer outside the app. This cannot be undone.",
+  "@adminCancelConfirmedOrderBody": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCancelConfirmedOrderBodyNoStock": "Order #{orderId} will be cancelled. It was placed before orders recorded their stock, so no stock goes back automatically. Its payment was confirmed: return {amount} to the customer outside the app. This cannot be undone.",
+  "@adminCancelConfirmedOrderBodyNoStock": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCancelOutOfStockButton": "Cancel: out of stock",
+  "adminCancelOutOfStockTitle": "Cancel as out of stock?",
+  "adminCancelOutOfStockBody": "Order #{orderId} will be cancelled because its product cannot cover it. No stock is taken or returned. The customer is told the product ran out; return {amount} to them outside the app if they transferred it. This cannot be undone.",
+  "@adminCancelOutOfStockBody": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "adminOrderCancelledOutOfStock": "Order cancelled as out of stock.",
+  "adminCancelOrderConfirm": "Cancel order",
+  "adminCancelOrderKeep": "Keep order",
+  "adminOrderCancelled": "Order cancelled.",
+  "adminCancelStockReturned": "{count, plural, =1{1 unit went back to stock.} other{{count} units went back to stock.}}",
+  "@adminCancelStockReturned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCancelStockNotReturned": "No stock went back: the order had taken none (its payment was not confirmed), or its product was removed.",
+  "adminOrdersExpiryNote": "Orders whose payment is not confirmed within 24 hours are cancelled automatically; a confirmed order never expires. This happens when you open this page, so a cancellation can wait until then.",
   "orderAssignTechnicianDenied": "You do not have permission to assign a technician to this order.",
   "orderAssignTechnicianFailed": "Could not assign the technician. Please try again.",
   "stockNoLongerAvailable": "This product is no longer available.",
@@ -421,7 +523,7 @@
   "receiptLoadFailed": "Could not load the receipt. Check your connection and try again.",
   "paymentReceiptSelected": "Receipt Selected",
   "paymentReplace": "Replace",
-  "paymentPendingNote": "Submitting this receipt saves the transfer reference as \"Pending Verification\". Payment will be marked Confirmed after the company verifies it.",
+  "paymentPendingNote": "Your order is sent together with this receipt. A receipt is not a confirmed payment: the company checks the transfer and confirms it, and only then is the product reserved for you.",
   "paymentSubmitting": "Submitting...",
   "paymentSubmit": "Submit Receipt for Verification",
   "paymentAccountName": "Account Name",
@@ -489,8 +591,31 @@
   "orderTotal": "Total",
   "orderOrderStatus": "Order Status",
   "pendingBanner": "PENDING VERIFICATION",
-  "pendingTitle": "Receipt Submitted for Verification",
-  "pendingBody": "Your transfer receipt reference has been saved. It is awaiting confirmation from the company. Payment will be marked Confirmed only after manual verification.",
+  "pendingTitle": "Order sent: waiting for the company",
+  "pendingBody": "Your order and your transfer receipt were sent to the company. A receipt is not a confirmed payment: the company checks that the money arrived, then confirms it.",
+  "orderNotReservedYet": "The product is not reserved for you yet: stock is taken only when the company confirms your payment. If it sells out first, the company may cancel the order and return your transfer outside the app.",
+  "orderPaymentConfirmedNote": "The company confirmed your payment, and the product is reserved for your order.",
+  "orderAwaitingConfirmation": "Waiting for the company to confirm your payment",
+  "checkoutReservationNote": "Next you transfer the amount and upload the receipt. The company then confirms the payment, and only then is the product reserved for you.",
+  "orderQuotaReached": "You have placed {count} orders in the last 24 hours, the most allowed. You can order again after {time}.",
+  "@orderQuotaReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "orderQuotaReachedNoTime": "You have placed {count} orders in the last 24 hours, the most allowed. Please try again later.",
+  "@orderQuotaReachedNoTime": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pendingOrderReference": "Order Reference",
   "pendingDeliveryAddress": "Delivery Address",
   "pendingInstallation": "Installation",
@@ -647,17 +772,57 @@
   "adminLastUpdated": "Last Updated",
   "adminCurrentStatus": "Current Status",
   "adminManageOrder": "Manage Order",
-  "adminVerifyReceipt": "Verify the transfer receipt before processing this order.",
+  "adminVerifyReceipt": "A receipt is only the customer's claim. Check that the money arrived in your account, then confirm the payment. Confirming takes this order's units from stock; until then nothing is reserved.",
+  "adminShipAfterPayment": "The order can move on only after its payment is confirmed.",
+  "adminStockCannotCover": "Not enough stock for this order: {available} left, {count} needed. Restock the product and confirm the payment, or cancel the order as out of stock.",
+  "@adminStockCannotCover": {
+    "placeholders": {
+      "available": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminProductGoneCannotConfirm": "This order's product is no longer in your catalogue, so its payment cannot be confirmed. Cancel the order as out of stock.",
+  "adminOutOfStockStillCovers": "The product still has {available} left, enough for this order ({count}), so it cannot be cancelled as out of stock. Confirm the payment, or cancel the order by hand.",
+  "@adminOutOfStockStillCovers": {
+    "placeholders": {
+      "available": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminStockLabel": "Stock",
+  "adminStockTaken": "{count, plural, =1{1 unit taken from stock} other{{count} units taken from stock}}",
+  "@adminStockTaken": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminStockNotTaken": "Not taken yet: taken when you confirm the payment",
+  "orderPaymentAlreadyConfirmed": "This payment was already confirmed, perhaps from another device. Nothing more was taken from stock.",
+  "orderPaymentNotAwaiting": "This order's payment can no longer be confirmed: the order was cancelled or has moved on.",
+  "orderPaymentNoReceipt": "This order has no stored receipt, so its payment cannot be confirmed. Ask the customer for the receipt in the order's chat, or cancel the order.",
   "adminConfirmPaymentTitle": "Confirm payment",
-  "adminConfirmPaymentBody": "Mark the payment for order #{id} as confirmed?",
+  "adminConfirmPaymentBody": "Confirm that the payment for order #{id} has arrived? {count, plural, =1{1 unit is} other{{count} units are}} taken from stock now.",
   "@adminConfirmPaymentBody": {
     "placeholders": {
       "id": {
         "type": "String"
+      },
+      "count": {
+        "type": "int"
       }
     }
   },
-  "adminPaymentConfirmed": "Payment confirmed.",
+  "adminPaymentConfirmed": "Payment confirmed and stock taken.",
   "adminConfirmPaymentButton": "Confirm Payment",
   "adminOrderCompleted": "This order is completed.",
   "adminMarkCompletedHint": "Mark completed once the technician has finished the installation.",
@@ -919,6 +1084,8 @@
   "techJobsLoadFailed": "Could not load your jobs.",
   "techNoJobsAssigned": "No installation jobs assigned to you yet.",
   "techJobCompleted": "This job is completed.",
+  "techAwaitingPayment": "Waiting for the company to confirm the payment.",
+  "techAwaitingPaymentHint": "You can move this job on once the payment is confirmed.",
   "techUpdateJobStatus": "Update job status",
   "techChangeJobBody": "Change job #{id} to \"{status}\"? This cannot be undone.",
   "@techChangeJobBody": {
