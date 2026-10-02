@@ -106,120 +106,14 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   }
 
   Future<void> _showChangePasswordSheet() async {
-    final currentPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    var isSubmitting = false;
-
-    await showModalBottomSheet<void>(
+    final changed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            Future<void> submit() async {
-              if (isSubmitting || !(formKey.currentState?.validate() ?? false)) {
-                return;
-              }
-              setSheetState(() => isSubmitting = true);
-              final error = await ref
-                  .read(profileControllerProvider.notifier)
-                  .changePassword(
-                    currentPassword: currentPasswordController.text,
-                    newPassword: newPasswordController.text,
-                  );
-              if (!sheetContext.mounted) {
-                return;
-              }
-              setSheetState(() => isSubmitting = false);
-              if (error == null) {
-                Navigator.of(sheetContext).pop();
-                _showMessage(context.l10n.profilePasswordChanged);
-              } else {
-                _showMessage(error, isError: true);
-              }
-            }
-
-            return SafeArea(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.s24,
-                  AppSpacing.s8,
-                  AppSpacing.s24,
-                  MediaQuery.viewInsetsOf(sheetContext).bottom + AppSpacing.s24,
-                ),
-                child: Form(
-                  key: formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          context.l10n.profileChangePassword,
-                          style: AppTextStyles.h2,
-                        ),
-                        const SizedBox(height: AppSpacing.s20),
-                        AppTextField(
-                          label: context.l10n.profileCurrentPassword,
-                          controller: currentPasswordController,
-                          password: true,
-                          validator: (value) => value == null || value.isEmpty
-                              ? context.l10n.profileCurrentPasswordRequired
-                              : null,
-                        ),
-                        const SizedBox(height: AppSpacing.s16),
-                        AppTextField(
-                          label: context.l10n.passwordChangeNew,
-                          controller: newPasswordController,
-                          password: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return context.l10n.passwordChangeNewRequired;
-                            }
-                            if (value.length < 6) {
-                              return context.l10n.profilePasswordMin;
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.s16),
-                        AppTextField(
-                          label: context.l10n.passwordChangeConfirm,
-                          controller: confirmPasswordController,
-                          password: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return context.l10n.profileConfirmPasswordRequired;
-                            }
-                            if (value != newPasswordController.text) {
-                              return context.l10n.authPasswordsMismatch;
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.s24),
-                        AppButton.primary(
-                          label: context.l10n.profileUpdatePassword,
-                          loading: isSubmitting,
-                          expand: true,
-                          onPressed: submit,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
+      builder: (_) => const _ChangePasswordSheet(),
     );
-
-    currentPasswordController.dispose();
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
+    if (changed == true && mounted) {
+      _showMessage(context.l10n.profilePasswordChanged);
+    }
   }
 
   void _showMessage(String message, {bool isError = false}) {
@@ -289,6 +183,149 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
           onSignOut: () => ref.read(authControllerProvider.notifier).signOut(),
         );
       },
+    );
+  }
+}
+
+
+/// The change-password form. It owns its text fields' controllers, so they
+/// are disposed only once the sheet has finished sliding shut. (Disposing them
+/// as soon as the sheet's future completed, at the start of that animation,
+/// crashed the screen with "_dependents.isEmpty".)
+class _ChangePasswordSheet extends ConsumerStatefulWidget {
+  const _ChangePasswordSheet();
+
+  @override
+  ConsumerState<_ChangePasswordSheet> createState() =>
+      _ChangePasswordSheetState();
+}
+
+class _ChangePasswordSheetState extends ConsumerState<_ChangePasswordSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _currentPassword = TextEditingController();
+  final _newPassword = TextEditingController();
+  final _confirmPassword = TextEditingController();
+  bool _isSubmitting = false;
+
+  /// Why the last attempt was refused, shown inside the sheet (a snack bar
+  /// would sit behind it).
+  String? _error;
+
+  @override
+  void dispose() {
+    _currentPassword.dispose();
+    _newPassword.dispose();
+    _confirmPassword.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_isSubmitting || !(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+    setState(() {
+      _isSubmitting = true;
+      _error = null;
+    });
+    final error =
+        await ref.read(profileControllerProvider.notifier).changePassword(
+              currentPassword: _currentPassword.text,
+              newPassword: _newPassword.text,
+            );
+    if (!mounted) {
+      return;
+    }
+    if (error == null) {
+      Navigator.of(context).pop(true);
+      return;
+    }
+    setState(() {
+      _isSubmitting = false;
+      _error = error;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.s24,
+          AppSpacing.s8,
+          AppSpacing.s24,
+          MediaQuery.viewInsetsOf(context).bottom + AppSpacing.s24,
+        ),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.profileChangePassword,
+                  style: AppTextStyles.h2,
+                ),
+                const SizedBox(height: AppSpacing.s20),
+                AppTextField(
+                  label: l10n.profileCurrentPassword,
+                  controller: _currentPassword,
+                  password: true,
+                  validator: (value) => value == null || value.isEmpty
+                      ? l10n.profileCurrentPasswordRequired
+                      : null,
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                AppTextField(
+                  label: l10n.passwordChangeNew,
+                  controller: _newPassword,
+                  password: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return l10n.passwordChangeNewRequired;
+                    }
+                    if (value.length < 6) {
+                      return l10n.profilePasswordMin;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                AppTextField(
+                  label: l10n.passwordChangeConfirm,
+                  controller: _confirmPassword,
+                  password: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return l10n.profileConfirmPasswordRequired;
+                    }
+                    if (value != _newPassword.text) {
+                      return l10n.authPasswordsMismatch;
+                    }
+                    return null;
+                  },
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: AppSpacing.s12),
+                  Text(
+                    _error!,
+                    style: AppTextStyles.body
+                        .copyWith(color: context.colors.errorText),
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.s24),
+                AppButton.primary(
+                  label: l10n.profileUpdatePassword,
+                  loading: _isSubmitting,
+                  expand: true,
+                  onPressed: _submit,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
