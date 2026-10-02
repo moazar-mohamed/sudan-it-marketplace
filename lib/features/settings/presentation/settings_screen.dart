@@ -1,14 +1,17 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/app_locale.dart';
 import '../../../core/localization/l10n_extension.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/push/push_relay.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/widgets/app_widgets.dart';
+import '../../push/presentation/push_preference.dart';
 import 'language_selector.dart';
 import 'settings_option_sheet.dart';
 
@@ -22,6 +25,9 @@ class SettingsScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final locale = ref.watch(localeControllerProvider);
     final mode = ref.watch(themeModeControllerProvider);
+    // The switch only exists where pushes can be sent at all (not on the web,
+    // and not in a build with no push relay).
+    final pushAvailable = !kIsWeb && ref.watch(pushRelayProvider).isEnabled;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
@@ -46,6 +52,21 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          if (pushAvailable) ...[
+            const SizedBox(height: AppSpacing.s20),
+            _GroupLabel(l10n.settingsNotifications),
+            _SettingsGroup(
+              children: [
+                _PushSwitchRow(
+                  enabled: ref.watch(pushEnabledProvider),
+                  blocked: ref.watch(pushBlockedProvider),
+                  onChanged: (value) => ref
+                      .read(pushEnabledProvider.notifier)
+                      .setEnabled(value),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -224,6 +245,79 @@ class _SettingsRow extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.s4),
                 Icon(Icons.chevron_right_rounded, color: colors.iconMuted),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The switch for this phone's notifications: its subtitle says whether it is
+/// on, off, or on but blocked by the phone's own settings.
+class _PushSwitchRow extends StatelessWidget {
+  const _PushSwitchRow({
+    required this.enabled,
+    required this.blocked,
+    required this.onChanged,
+  });
+
+  final bool enabled;
+  final bool blocked;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final colors = context.colors;
+    final blockedNow = enabled && blocked;
+    final subtitle = blockedNow
+        ? l10n.settingsPushBlocked
+        : enabled
+            ? l10n.settingsPushOn
+            : l10n.settingsPushOff;
+    return Semantics(
+      container: true,
+      child: InkWell(
+        key: const ValueKey('settings-push'),
+        onTap: () => onChanged(!enabled),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 64),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.s16,
+              vertical: AppSpacing.s12,
+            ),
+            child: Row(
+              children: [
+                AppIconTile(
+                  icon: enabled
+                      ? Icons.notifications_active_outlined
+                      : Icons.notifications_off_outlined,
+                  size: 40,
+                  iconSize: AppSize.iconMd,
+                ),
+                const SizedBox(width: AppSpacing.s12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.settingsPushTitle,
+                          style: AppTextStyles.bodyStrong),
+                      Text(
+                        subtitle,
+                        style: AppTextStyles.body.copyWith(
+                          color: blockedNow
+                              ? colors.error
+                              : colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.s8),
+                Switch(value: enabled, onChanged: onChanged),
               ],
             ),
           ),

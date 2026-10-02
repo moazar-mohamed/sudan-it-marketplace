@@ -21,11 +21,13 @@ import '../../orders/presentation/order_details_screen.dart';
 import '../../orders/presentation/orders_providers.dart';
 import '../data/push_tokens.dart';
 import 'push_destination.dart';
+import 'push_preference.dart';
 
 /// Phone push notifications, watched once from the root widget:
 ///
 /// * once someone is signed in, this phone is registered to receive their
-///   pushes (asking for permission the first time);
+///   pushes (asking for permission the first time), unless the user turned
+///   the phone's notifications off in Settings ([pushEnabledProvider]);
 /// * on sign-out the phone's registration is dropped, so a shared phone
 ///   stops receiving the previous user's pushes;
 /// * a push that arrives while the app is open shows as a short banner;
@@ -42,23 +44,31 @@ final pushSetupProvider = Provider<void>((ref) {
   var checkedLaunchPush = false;
 
   Future<void> register(String uid) async {
-    try {
-      final settings = await messaging.requestPermission();
-      if (settings.authorizationStatus == AuthorizationStatus.denied) return;
-      final token = await messaging.getToken();
-      if (token != null && signedInUid == uid) {
-        await tokens.register(uid, token);
-      }
-      tokenRefresh ??= messaging.onTokenRefresh.listen((fresh) {
-        final current = signedInUid;
-        if (current != null) {
-          tokens.register(current, fresh).catchError(
-                (Object error) => debugLog('Push', 'token refresh: $error'),
-              );
+    if (ref.read(pushEnabledProvider)) {
+      try {
+        final settings = await messaging.requestPermission();
+        final blocked =
+            settings.authorizationStatus == AuthorizationStatus.denied;
+        ref.read(pushBlockedProvider.notifier).set(blocked);
+        if (!blocked) {
+          final token = await messaging.getToken();
+          if (token != null &&
+              signedInUid == uid &&
+              ref.read(pushEnabledProvider)) {
+            await tokens.register(uid, token);
+          }
+          tokenRefresh ??= messaging.onTokenRefresh.listen((fresh) {
+            final current = signedInUid;
+            if (current != null && ref.read(pushEnabledProvider)) {
+              tokens.register(current, fresh).catchError(
+                    (Object error) => debugLog('Push', 'token refresh: $error'),
+                  );
+            }
+          });
         }
-      });
-    } catch (error) {
-      debugLog('Push', 'could not register this phone: $error');
+      } catch (error) {
+        debugLog('Push', 'could not register this phone: $error');
+      }
     }
     // The app was started by tapping a push: open what it was about.
     if (!checkedLaunchPush) {
@@ -66,6 +76,19 @@ final pushSetupProvider = Provider<void>((ref) {
       final launch = await messaging.getInitialMessage();
       if (launch != null) _open(ref, launch.data);
     }
+  }
+
+  /// The switch was turned off: this phone stops receiving [uid]'s pushes
+  /// at once, instead of waiting for the relay to find its address dead.
+  Future<void> unregister(String uid) async {
+    try {
+      final token = await messaging.getToken();
+      if (token != null) await tokens.unregister(uid, token);
+      await messaging.deleteToken();
+    } catch (error) {
+      debugLog('Push', 'could not stop pushes on this phone: $error');
+    }
+    ref.read(pushBlockedProvider.notifier).set(false);
   }
 
   ref.listen<AsyncValue<UserProfile?>>(profileControllerProvider, (_, next) {
@@ -86,6 +109,16 @@ final pushSetupProvider = Provider<void>((ref) {
           );
     }
   }, fireImmediately: true);
+
+  ref.listen<bool>(pushEnabledProvider, (_, enabled) {
+    final uid = signedInUid;
+    if (uid == null) return;
+    if (enabled) {
+      register(uid);
+    } else {
+      unregister(uid);
+    }
+  });
 
   final subscriptions = [
     FirebaseMessaging.onMessage.listen((message) => _showBanner(ref, message)),

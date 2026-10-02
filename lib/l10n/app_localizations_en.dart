@@ -107,6 +107,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAppearanceSubtitle => 'Choose how the app looks';
 
   @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get settingsPushTitle => 'Phone notifications';
+
+  @override
+  String get settingsPushOn => 'On for this phone';
+
+  @override
+  String get settingsPushOff => 'Off for this phone';
+
+  @override
+  String get settingsPushBlocked =>
+      'Blocked in your phone\'s settings. Allow notifications for this app there.';
+
+  @override
   String get themeSystem => 'System default';
 
   @override

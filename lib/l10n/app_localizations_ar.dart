@@ -107,6 +107,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsAppearanceSubtitle => 'اختر شكل التطبيق';
 
   @override
+  String get settingsNotifications => 'الإشعارات';
+
+  @override
+  String get settingsPushTitle => 'إشعارات الهاتف';
+
+  @override
+  String get settingsPushOn => 'مفعّلة على هذا الهاتف';
+
+  @override
+  String get settingsPushOff => 'متوقفة على هذا الهاتف';
+
+  @override
+  String get settingsPushBlocked =>
+      'محظورة من إعدادات الهاتف. اسمح بإشعارات هذا التطبيق من هناك.';
+
+  @override
   String get themeSystem => 'حسب الجهاز';
 
   @override

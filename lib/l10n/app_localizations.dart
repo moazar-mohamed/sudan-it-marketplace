@@ -290,6 +290,36 @@ abstract class AppLocalizations {
   /// **'Choose how the app looks'**
   String get settingsAppearanceSubtitle;
 
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get settingsNotifications;
+
+  /// No description provided for @settingsPushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone notifications'**
+  String get settingsPushTitle;
+
+  /// No description provided for @settingsPushOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On for this phone'**
+  String get settingsPushOn;
+
+  /// No description provided for @settingsPushOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off for this phone'**
+  String get settingsPushOff;
+
+  /// No description provided for @settingsPushBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked in your phone\'s settings. Allow notifications for this app there.'**
+  String get settingsPushBlocked;
+
   /// No description provided for @themeSystem.
   ///
   /// In en, this message translates to:
