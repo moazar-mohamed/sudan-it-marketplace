@@ -377,15 +377,12 @@ describe('services can use any active category', () => {
     await assertFails(own('t3', 'ghost'));
   });
 
-  it('Platform Admin creates and moves catalogue services among existing categories', async () => {
-    await assertSucceeds(
-      setDoc(doc(admin(), 'services', 'cat1'), { ...serviceData('cat1', 'scat'), createdAt: serverTimestamp() }),
-    );
-    await assertSucceeds(
-      setDoc(doc(admin(), 'services', 'cat2'), { ...serviceData('cat2', 'pcat'), createdAt: serverTimestamp() }),
-    );
+  it('Platform Admin moves existing catalogue services among existing categories', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'services', 'cat1'), { ...serviceData('cat1', 'scat'), createdAt: new Date() });
+    });
     await assertFails(
-      setDoc(doc(admin(), 'services', 'cat3'), { ...serviceData('cat3', 'ghost'), createdAt: serverTimestamp() }),
+      setDoc(doc(admin(), 'services', 'cat2'), { ...serviceData('cat2', 'pcat'), createdAt: serverTimestamp() }),
     );
     await assertSucceeds(updateDoc(doc(admin(), 'services', 'cat1'), { categoryId: 'skid' }));
     await assertFails(updateDoc(doc(admin(), 'services', 'cat1'), { categoryId: 'ghost' }));

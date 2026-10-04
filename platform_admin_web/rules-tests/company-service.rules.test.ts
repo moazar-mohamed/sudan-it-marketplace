@@ -150,11 +150,8 @@ describe('a company admin creating a service of their own', () => {
 });
 
 describe('Platform Admin keeps the catalogue', () => {
-  it('creates a catalogue service with no owner', async () => {
-    await assertSucceeds(createService('admin', 'cat2'));
-  });
-
-  it('cannot create a service on behalf of a company', async () => {
+  it('no longer creates services, with or without an owner', async () => {
+    await assertFails(createService('admin', 'cat2'));
     await assertFails(createService('admin', 'cat3', { ownerCompanyId: 'c1' }));
   });
 

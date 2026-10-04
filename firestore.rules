@@ -120,6 +120,41 @@ service cloud.firestore {
     // way. The account starts with mustChangePassword: true, and its email is
     // the company's login email. No password is stored anywhere in Firestore:
     // it lives only in Firebase Authentication.
+    // Platform Admin may add another Platform Admin: a brand-new profile (the
+    // account itself is made in Firebase Authentication) with exactly these
+    // fields, active from the start. Nothing but a platform_admin profile can
+    // be made this way, and no password is stored in Firestore.
+    function isPlatformAdminAdminCreate(uid) {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'fullName', 'email', 'role', 'isActive', 'createdAt'])
+        && data.keys().hasAll(['id', 'fullName', 'email', 'role', 'isActive', 'createdAt'])
+        && data.id == uid
+        && uid != request.auth.uid
+        && data.role == 'platform_admin'
+        && data.isActive == true
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.fullName.size() <= 100
+        && data.email is string
+        && data.email.size() > 2
+        && data.email.size() <= 200
+        && data.email == data.email.lower()
+        && data.createdAt == request.time;
+    }
+
+    // Platform Admin may switch ANOTHER Platform Admin off or on: only isActive
+    // changes (never your own, so you cannot lock yourself out, and never a
+    // delete).
+    function isPlatformAdminAdminUpdate(uid) {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && resource.data.get('role', '') == 'platform_admin'
+        && uid != request.auth.uid
+        && data.diff(resource.data).affectedKeys().hasOnly(['isActive'])
+        && data.isActive is bool;
+    }
+
     function isPlatformAdminCompanyAdminCreate(uid) {
       let data = request.resource.data;
       return isPlatformAdmin()
@@ -579,6 +614,22 @@ service cloud.firestore {
               'offerBadge', 'updatedAt']);
     }
 
+    // Platform Admin's only write on a company's service link: ending its
+    // running offer (price, end time and badge cleared together, the server's
+    // time in updatedAt). The company's price, note and on / off switch stay
+    // the company's.
+    function isPlatformAdminServiceOfferEnd() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return isPlatformAdmin()
+        && isValidCompanyServiceWrite(before.id)
+        && after.updatedAt == request.time
+        && after.diff(before).affectedKeys().hasOnly(['offerPrice', 'offerEndsAt', 'offerBadge', 'updatedAt'])
+        && after.get('offerPrice', null) == null
+        && after.get('offerEndsAt', null) == null
+        && after.get('offerBadge', null) == null;
+    }
+
     match /users/{uid} {
       // Owners read their own profile. Platform Admin can additionally read
       // customer profiles (queries must filter on role == 'customer'), and the
@@ -587,16 +638,17 @@ service cloud.firestore {
       // company's people stay unreadable to Platform Admin.
       allow get: if isOwner(uid)
         || (isPlatformAdmin()
-          && (resource.data.role == 'customer' || isOrphanedStaffProfile()));
+          && (resource.data.role in ['customer', 'platform_admin'] || isOrphanedStaffProfile()));
 
       allow list: if isPlatformAdmin()
-        && (resource.data.role == 'customer' || isOrphanedStaffProfile());
+        && (resource.data.role in ['customer', 'platform_admin'] || isOrphanedStaffProfile());
 
       allow create: if (isOwner(uid)
           && request.auth.uid == uid
           && request.resource.data.id == uid
           && isValidCustomerCreate())
         || isPlatformAdminCompanyAdminCreate(uid)
+        || isPlatformAdminAdminCreate(uid)
         || isCompanyAdminTechnicianCreate(uid);
 
       allow update: if (isOwner(uid)
@@ -604,7 +656,8 @@ service cloud.firestore {
         || (isOwner(uid) && isPasswordChangeCompletion())
         || (isOwner(uid) && isOwnLanguageUpdate())
         || (isOwner(uid) && isOwnPushTokensUpdate())
-        || isPlatformAdminCustomerUpdate();
+        || isPlatformAdminCustomerUpdate()
+        || isPlatformAdminAdminUpdate(uid);
 
       // Only the company_admin / technician profile of a company that is gone.
       // Customers, Platform Admins and every profile of a live company stay.
@@ -634,13 +687,10 @@ service cloud.firestore {
     match /services/{serviceId} {
       allow get, list: if isSignedIn();
 
-      allow create: if (isPlatformAdmin()
-          && request.resource.data.id == serviceId
-          && request.resource.data.get('ownerCompanyId', null) == null
-          && isValidServiceCreate(serviceId)
-          && categoryExists(request.resource.data.categoryId))
-        || (request.resource.data.id == serviceId
-          && isCompanyOwnServiceCreate(serviceId));
+      // Only a company creates a service (its own). Platform Admin no longer
+      // adds catalogue services; it can still edit, move or switch off any.
+      allow create: if request.resource.data.id == serviceId
+        && isCompanyOwnServiceCreate(serviceId);
 
       // Platform Admin may move a service to another existing category.
       allow update: if (isPlatformAdmin()
@@ -997,6 +1047,35 @@ service cloud.firestore {
               == get(productPath).data.stockCount + before.quantity));
     }
 
+    // Platform Admin cancels an order that is stuck, with the fixed reason
+    // 'admin'. Everything is as for the company's own cancellation
+    // (isCompanyOrderCancellation): only while Processing, with its payment
+    // waiting or confirmed, nothing else on the order changes, and the stock
+    // goes back, once and exactly the order's quantity, only for an order that
+    // took it. The admin writes the reason into the activity log.
+    function isPlatformAdminOrderCancellation(orderId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let productPath = /databases/$(database)/documents/products/$(before.productId);
+      let returnsStock = orderTookStock(before)
+        && exists(productPath)
+        && get(productPath).data.get('companyId', '') == before.companyId;
+      return isPlatformAdmin()
+        && before.orderStatus == 'processing'
+        && before.paymentStatus in ['pending_verification', 'confirmed']
+        && after.diff(before).affectedKeys()
+          .hasOnly(['orderStatus', 'cancelReason', 'cancelledAt', 'stockReleased', 'updatedAt'])
+        && after.orderStatus == 'cancelled'
+        && after.cancelReason == 'admin'
+        && after.cancelledAt == request.time
+        && after.updatedAt == request.time
+        && after.stockReleased == returnsStock
+        && (!returnsStock
+          || (getAfter(productPath).data.get('lastReleasedOrderId', '') == orderId
+            && getAfter(productPath).data.stockCount
+              == get(productPath).data.stockCount + before.quantity));
+    }
+
     // The company confirms a payment and takes the order's stock in ONE
     // write. Only the order's own company, only while the order is Processing
     // with its payment still waiting, and only once its receipt is stored (a
@@ -1052,6 +1131,8 @@ service cloud.firestore {
       let productPath = /databases/$(database)/documents/products/$(productId);
       return exists(productPath)
         && get(productPath).data.get('inStock', true) == true
+        // A product Platform Admin hid cannot be ordered.
+        && get(productPath).data.get('hidden', false) != true
         // A product without a price cannot be ordered through checkout.
         && get(productPath).data.get('price', null) != null
         && get(productPath).data.stockCount is int
@@ -1146,7 +1227,7 @@ service cloud.firestore {
         && order.orderStatus == 'processing'
         && getAfter(orderPath).data.orderStatus == 'cancelled'
         && getAfter(orderPath).data.stockReleased == true
-        && isCompanyAdminOf(order.companyId)
+        && (isCompanyAdminOf(order.companyId) || isPlatformAdmin())
         && before.stockCount is int
         && after.stockCount == before.stockCount + order.quantity;
     }
@@ -1173,6 +1254,8 @@ service cloud.firestore {
         'offerPrice',
         'offerEndsAt',
         'offerBadge',
+        'hidden',
+        'hiddenReason',
         'createdAt',
         'updatedAt'
       ]);
@@ -1210,6 +1293,11 @@ service cloud.firestore {
           || (data.isInstallationAvailable == false
             && data.installationPrice == null))
         && isValidOffer(data)
+        // Set only by Platform Admin (isPlatformAdminProductModeration): a
+        // product that is hidden is kept from customers, with the reason.
+        && data.get('hidden', false) is bool
+        && data.get('hiddenReason', '') is string
+        && data.get('hiddenReason', '').size() <= 200
         && data.updatedAt == request.time;
     }
 
@@ -1226,6 +1314,33 @@ service cloud.firestore {
         || categoryAllowsAssignment(categoryId);
     }
 
+    // Platform Admin hides a product from customers (with the reason, which
+    // the company sees) or shows it again, and ends a running offer. Nothing
+    // else on the product changes, so price, stock, name and every other field
+    // stay the company's. Hiding needs a reason; showing clears it; ending an
+    // offer clears the price, the end time and the badge together.
+    function isPlatformAdminProductModeration() {
+      let before = resource.data;
+      let after = request.resource.data;
+      let changed = after.diff(before).affectedKeys();
+      let touchesHidden = changed.hasAny(['hidden', 'hiddenReason']);
+      let touchesOffer = changed.hasAny(['offerPrice', 'offerEndsAt', 'offerBadge']);
+      return isPlatformAdmin()
+        && changed.hasOnly(['hidden', 'hiddenReason', 'offerPrice', 'offerEndsAt', 'offerBadge'])
+        && (touchesHidden || touchesOffer)
+        && (!touchesHidden
+          || (after.get('hidden', false) is bool
+            && after.get('hiddenReason', '') is string
+            && after.get('hiddenReason', '').size() <= 200
+            && (after.get('hidden', false) == true
+              ? after.get('hiddenReason', '').size() > 0
+              : after.get('hiddenReason', '') == '')))
+        && (!touchesOffer
+          || (after.get('offerPrice', null) == null
+            && after.get('offerEndsAt', null) == null
+            && after.get('offerBadge', null) == null));
+    }
+
     match /products/{productId} {
       allow get, list: if isSignedIn();
 
@@ -1233,6 +1348,8 @@ service cloud.firestore {
         && request.resource.data.id == productId
         && request.resource.data.createdAt == request.time
         && isValidProductData()
+        && request.resource.data.get('hidden', false) == false
+        && request.resource.data.get('hiddenReason', '') == ''
         && isValidProductCategoryAssignment(null);
 
       // Only the owning company edits a product, its stock included (a payment
@@ -1244,8 +1361,11 @@ service cloud.firestore {
           && request.resource.data.companyId == resource.data.companyId
           && request.resource.data.createdAt == resource.data.createdAt
           && isValidProductData()
+          && request.resource.data.get('hidden', false) == resource.data.get('hidden', false)
+          && request.resource.data.get('hiddenReason', '') == resource.data.get('hiddenReason', '')
           && isValidProductCategoryAssignment(resource.data.get('categoryId', null)))
-        || isStockReturn(productId);
+        || isStockReturn(productId)
+        || isPlatformAdminProductModeration();
 
       // A company admin deletes their own products. Platform Admin can remove
       // a product only in the same batch that deletes (or after it has
@@ -1447,6 +1567,45 @@ service cloud.firestore {
           && isCompanyAdminOf(serviceRequest.companyId));
     }
 
+    // Platform Admin tells a person that their report moved on: "in progress"
+    // or "closed". It is written in the same batch that changes the report, so
+    // the report must really be in that status, and it goes only to the
+    // person who sent it (a customer by their uid, a company admin by their
+    // company id). The one text it holds, the subject, is the report's own.
+    // One per report and type: the id is fixed.
+    function isValidReportNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && data.keys().hasAny(['reportId'])
+        && isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'reportId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'reportId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.id == notificationId
+        && data.senderId == request.auth.uid
+        && data.reportId is string
+        && data.reportId.size() > 0
+        && data.reportId.size() <= 128
+        && data.type in ['report_in_progress', 'report_closed']
+        && notificationId == data.reportId + '_' + data.type
+        && data.isRead == false
+        && data.createdAt == request.time
+        && reportNotificationMatchesReport();
+    }
+
+    // What the notification says must be true of the report as the batch leaves it.
+    function reportNotificationMatchesReport() {
+      let data = request.resource.data;
+      let report = getAfter(/databases/$(database)/documents/reports/$(data.reportId)).data;
+      return report.status == (data.type == 'report_closed' ? 'closed' : 'in_progress')
+        && ((data.recipientType == 'customer'
+            && report.reporterRole == 'customer'
+            && data.recipientId == report.reporterId)
+          || (data.recipientType == 'company_admin'
+            && report.reporterRole == 'company_admin'
+            && data.recipientId == report.get('companyId', '')))
+        && data.productName == report.subject;
+    }
+
     // The only text a notification holds is the name of what it is about, and
     // it must be that order's product name or that request's service name.
     function notificationNameIsTrusted() {
@@ -1509,6 +1668,268 @@ service cloud.firestore {
           && assignedTechnician(resource.data.recipientId).email == signedInUser().email);
     }
 
+    // Platform-wide notices, written only by Platform Admin and read by every
+    // app (even before sign-in, so a maintenance message can be shown at the
+    // login screen). One document, `public`, holds three notices:
+    //   maintenance   the apps show it instead of the app while it is on;
+    //   announcement  a banner for everyone, customers or companies, of one
+    //                 kind (info, warning or success);
+    //   update        the lowest app build allowed to be used (0 = none): an
+    //                 older app must update before it can be used.
+    // Maintenance and the announcement each carry an Arabic and an English text
+    // of at most 300 characters (some text while on), an optional schedule
+    // (startsAt / endsAt, the end after the start) that turns them on and off
+    // by itself, and an optional button (an https link with a label of at most
+    // 40 characters) that opens a page. There is nothing private in the document.
+    function isValidNoticeSchedule(notice) {
+      return (notice.startsAt == null || notice.startsAt is timestamp)
+        && (notice.endsAt == null || notice.endsAt is timestamp)
+        && (notice.startsAt == null || notice.endsAt == null || notice.endsAt > notice.startsAt);
+    }
+
+    function isValidNoticeLink(notice) {
+      return notice.linkUrl is string && notice.linkUrl.size() <= 300
+        && notice.linkLabelAr is string && notice.linkLabelAr.size() <= 40
+        && notice.linkLabelEn is string && notice.linkLabelEn.size() <= 40
+        && (notice.linkUrl == ''
+          || (notice.linkUrl.matches('^https://[^ ]+$')
+            && (notice.linkLabelAr.size() > 0 || notice.linkLabelEn.size() > 0)));
+    }
+
+    function isValidNotice(notice, keys) {
+      return notice is map
+        && notice.keys().hasOnly(keys)
+        && notice.keys().hasAll(keys)
+        && notice.enabled is bool
+        && notice.messageAr is string && notice.messageAr.size() <= 300
+        && notice.messageEn is string && notice.messageEn.size() <= 300
+        && (notice.enabled == false
+          || notice.messageAr.size() > 0
+          || notice.messageEn.size() > 0)
+        && isValidNoticeSchedule(notice)
+        && isValidNoticeLink(notice);
+    }
+
+    function isValidRequiredUpdate(update) {
+      return update is map
+        && update.keys().hasOnly(['minBuild', 'url', 'messageAr', 'messageEn'])
+        && update.keys().hasAll(['minBuild', 'url', 'messageAr', 'messageEn'])
+        && update.minBuild is int && update.minBuild >= 0 && update.minBuild <= 1000000
+        && update.url is string && update.url.size() <= 300
+        && (update.url == '' || update.url.matches('^https://[^ ]+$'))
+        && (update.minBuild == 0 || update.url != '')
+        && update.messageAr is string && update.messageAr.size() <= 300
+        && update.messageEn is string && update.messageEn.size() <= 300;
+    }
+
+    function isValidPlatformSettings() {
+      let data = request.resource.data;
+      let noticeKeys = ['enabled', 'messageAr', 'messageEn', 'startsAt', 'endsAt', 'linkUrl', 'linkLabelAr', 'linkLabelEn'];
+      return data.keys().hasOnly(['maintenance', 'announcement', 'update', 'updatedAt', 'updatedBy'])
+        && data.keys().hasAll(['maintenance', 'announcement', 'update', 'updatedAt', 'updatedBy'])
+        && isValidNotice(data.maintenance, noticeKeys)
+        && isValidNotice(data.announcement, noticeKeys.concat(['audience', 'kind']))
+        && data.announcement.audience in ['all', 'customers', 'companies']
+        && data.announcement.kind in ['info', 'warning', 'success']
+        && isValidRequiredUpdate(data.update)
+        && data.updatedAt == request.time
+        && data.updatedBy == request.auth.uid;
+    }
+
+    match /platform_settings/{settingsId} {
+      allow get: if settingsId == 'public';
+      allow list: if false;
+      allow create, update: if settingsId == 'public'
+        && isPlatformAdmin()
+        && isValidPlatformSettings();
+      allow delete: if false;
+    }
+
+    // Platform Admin's own activity trail: who changed what, and when. Append
+    // only: an entry is written by the admin it names (actorId is the signed-in
+    // uid, createdAt is the server's time) and can never be edited or deleted,
+    // not even by Platform Admin. Only Platform Admin reads it.
+    function isValidAuditEntry() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['actorId', 'actorName', 'action', 'targetType', 'targetId', 'targetName', 'detail', 'createdAt'])
+        && data.keys().hasAll(['actorId', 'actorName', 'action', 'targetType', 'targetId', 'targetName', 'createdAt'])
+        && data.actorId == request.auth.uid
+        && data.actorName is string && data.actorName.size() <= 200
+        && data.action is string && data.action.size() > 0 && data.action.size() <= 60
+        && data.targetType in ['company', 'customer', 'review', 'category', 'service', 'settings', 'product', 'order', 'admin', 'report']
+        && data.targetId is string && data.targetId.size() > 0 && data.targetId.size() <= 128
+        && data.targetName is string && data.targetName.size() <= 200
+        && (!('detail' in data.keys()) || (data.detail is string && data.detail.size() <= 200))
+        && data.createdAt == request.time;
+    }
+
+    // A report (a problem a customer, a company admin or a technician sends to
+    // the platform team): "I did not get my order", "this company is
+    // misleading". The sender writes it once, in their own name, as new and
+    // with no reply; they read only their own. Platform Admin reads them all and
+    // changes only the status and the written outcome. Nobody deletes one.
+    function isValidReportCreate(reportId) {
+      let data = request.resource.data;
+      let me = signedInUser();
+      return signedInUserExists()
+        && callerIsNotDeactivated()
+        && me.get('role', '') in ['customer', 'company_admin', 'technician']
+        && data.keys().hasOnly([
+          'id', 'reporterId', 'reporterRole', 'reporterName', 'reporterEmail',
+          'companyId', 'reason', 'subject', 'details', 'orderRef',
+          'status', 'resolution', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'id', 'reporterId', 'reporterRole', 'reporterName', 'reporterEmail',
+          'reason', 'subject', 'details', 'status', 'resolution',
+          'createdAt', 'updatedAt'
+        ])
+        && data.id == reportId
+        && data.reporterId == request.auth.uid
+        && data.reporterRole == me.get('role', '')
+        && data.reporterName is string && data.reporterName.size() <= 120
+        && data.reporterEmail is string && data.reporterEmail.size() <= 200
+        && (!('companyId' in data.keys())
+          || (data.companyId is string
+            && data.companyId.size() > 0
+            && data.companyId == me.get('companyId', '')))
+        && data.reason in ['order_problem', 'payment', 'company_conduct', 'product_issue', 'app_problem', 'other']
+        && data.subject is string && data.subject.size() > 0 && data.subject.size() <= 120
+        && data.details is string && data.details.size() > 0 && data.details.size() <= 2000
+        && (!('orderRef' in data.keys())
+          || (data.orderRef is string && data.orderRef.size() <= 40))
+        && data.status == 'new'
+        && data.resolution == ''
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && reportCountsAgainstQuota(reportId);
+    }
+
+    // At most 5 reports per person in ANY 24 hours, against spam, the same way
+    // the order limit works: the person's quota document keeps the times of
+    // their last five reports in five slots, t0..t4, written in turn; `next`
+    // is the slot the next report writes and it always holds the oldest of the
+    // five. A new report is allowed only when that slot is empty or at least 24
+    // hours old, and it must write the server's time there and move `next` on,
+    // in the same batch as the report. Keep the limit in step with
+    // ReportQuota.reportsPerDay in the app.
+    function reportCountsAgainstQuota(reportId) {
+      let quotaPath = /databases/$(database)/documents/report_quota/$(request.auth.uid);
+      let after = getAfter(quotaPath).data;
+      return after.lastReportId == reportId
+        && (exists(quotaPath)
+          ? reportQuotaAdvances(get(quotaPath).data, after)
+          : (after.keys().hasOnly(['t0', 'next', 'lastReportId'])
+            && after.t0 == request.time
+            && after.next == 1));
+    }
+
+    function reportQuotaAdvances(before, after) {
+      let slot = 't' + string(before.next);
+      let oldest = before.get(slot, null);
+      return before.next is int
+        && before.next >= 0
+        && before.next <= 4
+        && (oldest == null || request.time >= oldest + duration.value(24, 'h'))
+        && after[slot] == request.time
+        && after.next == (before.next + 1) % 5
+        && after.diff(before).affectedKeys().hasOnly([slot, 'next', 'lastReportId']);
+    }
+
+    // The quota document is only ever written together with a brand-new report
+    // of its owner (whose own create rule checks the step), never on its own
+    // and never deleted.
+    function isReportQuotaWrite(uid) {
+      let data = request.resource.data;
+      let reportPath = /databases/$(database)/documents/reports/$(data.lastReportId);
+      return data.keys().hasOnly(['t0', 't1', 't2', 't3', 't4', 'next', 'lastReportId'])
+        && data.lastReportId is string
+        && data.lastReportId.size() > 0
+        && data.lastReportId.size() <= 36
+        && !exists(reportPath)
+        && existsAfter(reportPath)
+        && getAfter(reportPath).data.reporterId == uid;
+    }
+
+    match /report_quota/{uid} {
+      allow get: if isOwner(uid) || isPlatformAdmin();
+      allow list: if false;
+      allow create, update: if isOwner(uid) && isReportQuotaWrite(uid);
+      allow delete: if false;
+    }
+
+    function isPlatformAdminReportUpdate() {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.diff(resource.data).affectedKeys().hasOnly(['status', 'resolution', 'updatedAt'])
+        && data.status in ['new', 'in_progress', 'closed']
+        && data.resolution is string && data.resolution.size() <= 500
+        && data.updatedAt == request.time;
+    }
+
+    match /reports/{reportId} {
+      allow get, list: if isPlatformAdmin()
+        || (isSignedIn() && resource.data.reporterId == request.auth.uid);
+      allow create: if isValidReportCreate(reportId);
+      allow update: if isPlatformAdminReportUpdate();
+      allow delete: if false;
+    }
+
+    // Usage figures for the Platform Admin, with no personal content: one tiny
+    // document per person per day they opened the app (usage_days, whose id is
+    // the day and their uid, so it can be written once and never changed), and a
+    // running count of how often each product was opened (product_stats). Only
+    // Platform Admin reads either. A person can only add one to a count, in
+    // their own name.
+    function callerRoleIn(roles) {
+      return signedInUserExists()
+        && callerIsNotDeactivated()
+        && signedInUser().get('role', '') in roles;
+    }
+
+    function isValidUsageDayCreate(usageId) {
+      let data = request.resource.data;
+      return callerRoleIn(['customer', 'company_admin', 'technician'])
+        && data.keys().hasOnly(['day', 'userId', 'role', 'createdAt'])
+        && data.keys().hasAll(['day', 'userId', 'role', 'createdAt'])
+        && data.day is string
+        && data.day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.userId == request.auth.uid
+        && data.role == signedInUser().get('role', '')
+        && usageId == data.day + '_' + request.auth.uid
+        && data.createdAt == request.time;
+    }
+
+    match /usage_days/{usageId} {
+      allow get, list: if isPlatformAdmin();
+      allow create: if isValidUsageDayCreate(usageId);
+      allow update, delete: if false;
+    }
+
+    // Only customers' views count, and only of a product that exists.
+    match /product_stats/{productId} {
+      allow get, list: if isPlatformAdmin();
+
+      allow create: if callerRoleIn(['customer'])
+        && request.resource.data.keys().hasOnly(['views', 'updatedAt'])
+        && request.resource.data.views == 1
+        && request.resource.data.updatedAt == request.time
+        && exists(/databases/$(database)/documents/products/$(productId));
+
+      allow update: if callerRoleIn(['customer'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views', 'updatedAt'])
+        && request.resource.data.views == resource.data.views + 1
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if false;
+    }
+
+    match /admin_audit_log/{entryId} {
+      allow get, list: if isPlatformAdmin();
+      allow create: if isPlatformAdmin() && isValidAuditEntry();
+      allow update, delete: if false;
+    }
+
     // What the push relay has already sent (written only with its service
     // account, which the rules do not govern). The app never touches it.
     match /push_log/{entryId} {
@@ -1520,7 +1941,8 @@ service cloud.firestore {
         && (isPlatformAdmin() || isNotificationRecipient());
 
       // A deactivated account can no longer send notifications.
-      allow create: if isSignedIn()
+      allow create: if isValidReportNotificationCreate(notificationId)
+        || isSignedIn()
         && callerIsNotDeactivated()
         && isValidNotificationCreate(notificationId)
         && ((request.resource.data.keys().hasAny(['serviceRequestId'])
@@ -1711,14 +2133,16 @@ service cloud.firestore {
           || isPlatformAdmin()
           || isCompanyAdminOf(resource.data.companyId));
 
-      allow create: if (isPlatformAdmin()
-          || isCompanyAdminOf(request.resource.data.companyId))
+      // Only a company offers its own services.
+      allow create: if isCompanyAdminOf(request.resource.data.companyId)
         && request.resource.data.id == companyServiceId
         && isValidCompanyServiceCreate(companyServiceId);
 
-      allow update: if (isPlatformAdmin()
-          || isCompanyAdminOf(resource.data.companyId))
-        && isSafeCompanyServiceUpdate(companyServiceId);
+      // The company edits its link (price, note, switch, offer); Platform Admin
+      // may only end a running offer (isPlatformAdminServiceOfferEnd).
+      allow update: if (isCompanyAdminOf(resource.data.companyId)
+          && isSafeCompanyServiceUpdate(companyServiceId))
+        || isPlatformAdminServiceOfferEnd();
 
       // Platform Admin removes the links of a company that is gone, and the
       // links to a service that sits in a category being deleted (so deleting a
@@ -2173,6 +2597,7 @@ service cloud.firestore {
         && ((isCompanyAdminOf(resource.data.companyId)
             && isCompanyOrderManagementUpdate())
           || isCompanyOrderCancellation(orderId)
+          || isPlatformAdminOrderCancellation(orderId)
           || isCompanyPaymentConfirmation(orderId)
           || isCustomerReceiptAttachment(orderId)
           || isTechnicianOrderStatusUpdate());

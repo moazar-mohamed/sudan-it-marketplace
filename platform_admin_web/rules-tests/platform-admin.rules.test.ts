@@ -605,7 +605,7 @@ describe('Customers', () => {
   it('cannot deactivate non-customers, create or delete customers', async () => {
     await assertFails(updateDoc(doc(admin(), 'users', 'ca1'), { isActive: false }));
     await assertFails(updateDoc(doc(admin(), 'users', 'tech1'), { isActive: false }));
-    await assertFails(updateDoc(doc(admin(), 'users', 'admin_off'), { isActive: true }));
+    // Another Platform Admin is switched on and off by an admin: see platform-admins.rules.test.ts.
     await assertFails(
       setDoc(doc(admin(), 'users', 'newcust'), {
         id: 'newcust', fullName: 'N', email: 'n@x.test', role: 'customer', isActive: true, createdAt: serverTimestamp(),
