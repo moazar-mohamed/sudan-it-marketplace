@@ -176,10 +176,12 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
       data: {
         type: String(notification.type ?? ''),
         notificationId,
-        // About an order or about a service request, as the app opens it.
-        ...(notification.serviceRequestId
-          ? { serviceRequestId: String(notification.serviceRequestId) }
-          : { orderId: String(notification.orderId ?? '') }),
+        // About a report, a service request or an order, as the app opens it.
+        ...(notification.reportId
+          ? { reportId: String(notification.reportId) }
+          : notification.serviceRequestId
+            ? { serviceRequestId: String(notification.serviceRequestId) }
+            : { orderId: String(notification.orderId ?? '') }),
         recipientType: String(notification.recipientType ?? ''),
       },
     }));

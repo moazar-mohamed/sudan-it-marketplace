@@ -351,6 +351,55 @@ describe('service request notifications', () => {
   });
 });
 
+describe('report notifications', () => {
+  beforeEach(() => {
+    google.idTokens.set('token-admin1', 'admin1');
+    google.docs.set('notifications/rp1', {
+      recipientType: 'customer', recipientId: 'cust1', reportId: 'r1', type: 'report_closed',
+      productName: 'My order never arrived', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+    google.docs.set('notifications/rp2', {
+      recipientType: 'company_admin', recipientId: 'c1', reportId: 'r2', type: 'report_in_progress',
+      productName: 'Unpaid order', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+  });
+
+  it('reaches the customer in their language, and opens the reports', async () => {
+    const result = await call({ notificationId: 'rp1' }, 'token-admin1');
+    assert.equal(result.status, 200);
+    assert.equal(result.body.sent, 1);
+    const [message] = google.sent;
+    assert.equal(message.token, 'phone-cust1');
+    assert.ok(['Your report was closed', 'تم إغلاق بلاغك'].includes(message.notification.title));
+    assert.match(message.notification.body, /My order never arrived/);
+    assert.equal(message.data.reportId, 'r1');
+    assert.equal(message.data.recipientType, 'customer');
+    assert.equal(message.data.orderId, undefined);
+  });
+
+  it('reaches every admin of a company', async () => {
+    const result = await call({ notificationId: 'rp2' }, 'token-admin1');
+    assert.equal(result.body.sent, 3); // both admins, one of them with two phones
+    assert.ok(google.sent.every((m) => m.data.reportId === 'r2' && m.data.recipientType === 'company_admin'));
+  });
+
+  it('is sent once, and only for the person who wrote it', async () => {
+    assert.equal((await call({ notificationId: 'rp1' }, 'token-admin1')).body.sent, 1);
+    assert.deepEqual((await call({ notificationId: 'rp1' }, 'token-admin1')).body, { skipped: 'already_sent' });
+    assert.equal((await call({ notificationId: 'rp2' }, 'token-cust1')).status, 403);
+  });
+
+  it('the text is the relay own: a stored title or body is never pushed', () => {
+    const text = orderNotificationText(
+      { type: 'report_closed', productName: 'Refund', title: 'Pay me', body: 'Call now' },
+      'en',
+    );
+    assert.deepEqual(Object.keys(text).sort(), ['body', 'title']);
+    assert.ok(!JSON.stringify(text).includes('Pay me'));
+    assert.equal(orderNotificationText({ type: 'report_closed' }, 'en'), null);
+  });
+});
+
 describe('chat messages', () => {
   it("a customer's message reaches the company's admins, tagged per conversation", async () => {
     const result = await call({ chatId: 'chat1', messageId: 'm1' });

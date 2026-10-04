@@ -56,6 +56,16 @@ const ORDER_TEXTS = {
     en: ['Request cancelled', (p) => `A customer cancelled the request for "${p}".`],
     ar: ['تم إلغاء الطلب', (p) => `ألغى عميل طلبه للخدمة «${p}».`],
   },
+  // Reports: the quoted name is the subject of the report. Written by Platform
+  // Admin when it moves a report along (firestore.rules checks it is true).
+  report_in_progress: {
+    en: ['Your report is being handled', (p) => `We started working on "${p}".`],
+    ar: ['بلاغك قيد المعالجة', (p) => `بدأنا العمل على «${p}».`],
+  },
+  report_closed: {
+    en: ['Your report was closed', (p) => `Your report "${p}" was closed. Open My reports to read our reply.`],
+    ar: ['تم إغلاق بلاغك', (p) => `تم إغلاق بلاغك «${p}». افتح «بلاغاتي» لقراءة ردّنا.`],
+  },
 };
 
 const CHAT_TEXTS = {
