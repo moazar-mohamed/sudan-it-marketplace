@@ -38,6 +38,10 @@ class ProductModel {
           rawOfferEndsAt is Timestamp ? rawOfferEndsAt.toDate() : null,
       offerBadge: OfferBadge.parse(map['offerBadge']),
       createdAt: rawCreatedAt is Timestamp ? rawCreatedAt.toDate() : null,
+      // Set only by Platform Admin; the app never writes them, so a company's
+      // edit leaves them as they are.
+      hidden: map['hidden'] == true,
+      hiddenReason: map['hiddenReason'] as String? ?? '',
     );
   }
 

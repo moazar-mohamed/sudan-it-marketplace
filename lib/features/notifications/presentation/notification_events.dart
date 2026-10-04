@@ -20,6 +20,11 @@ abstract final class NotificationTypes {
   static const serviceRequestCompleted = 'service_request_completed';
   static const serviceRequestCancelled = 'service_request_cancelled';
 
+  /// Written by Platform Admin when it moves a report along (never by the
+  /// app itself, so they are not in [all]).
+  static const reportInProgress = 'report_in_progress';
+  static const reportClosed = 'report_closed';
+
   static const all = {
     newOrder,
     paymentConfirmed,

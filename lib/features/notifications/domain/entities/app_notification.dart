@@ -34,6 +34,7 @@ class AppNotification {
     required this.recipientId,
     this.orderId = '',
     this.serviceRequestId = '',
+    this.reportId = '',
     required this.type,
     this.productName = '',
     this.isRead = false,
@@ -66,6 +67,9 @@ class AppNotification {
   final String recipientId;
   final String orderId;
   final String serviceRequestId;
+
+  /// Set only on a notification about a report (written by Platform Admin).
+  final String reportId;
   final String type;
 
   /// Empty for a notification stored before product names were kept apart.
@@ -80,6 +84,7 @@ class AppNotification {
       recipientId: recipientId,
       orderId: orderId,
       serviceRequestId: serviceRequestId,
+      reportId: reportId,
       type: type,
       productName: productName,
       isRead: isRead ?? this.isRead,

@@ -1,3 +1,4 @@
+import '../../reports/presentation/my_reports_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,6 +70,14 @@ class CustomerNotificationsScreen extends ConsumerWidget {
                     ref
                         .read(notificationsRepositoryProvider)
                         .markAsRead(notification.id);
+                  }
+                  if (notification.reportId.isNotEmpty) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const MyReportsScreen(),
+                      ),
+                    );
+                    return;
                   }
                   if (notification.serviceRequestId.isNotEmpty) {
                     Navigator.of(context).push(

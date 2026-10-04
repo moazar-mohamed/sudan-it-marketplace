@@ -699,7 +699,6 @@ void main() {
     testWidgets(
       'products: the chips narrow the grid, and tell when nothing matches',
       (tester) async {
-        // Wide enough for every chip (on a phone the row scrolls sideways).
         await pumpHome(tester, width: 900);
         final controls = find.byKey(const ValueKey('home-product-controls'));
         await tester.tap(

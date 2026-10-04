@@ -36,7 +36,10 @@ enum OrderCancelReason {
   /// Its payment was not verified yet and its product can no longer cover it
   /// (gone, now another company's, or fewer units left than ordered), so it
   /// could never be confirmed. The company returns the money outside the app.
-  outOfStock('out_of_stock');
+  outOfStock('out_of_stock'),
+
+  /// Platform Admin cancelled it while it was stuck.
+  admin('admin');
 
   const OrderCancelReason(this.value);
 

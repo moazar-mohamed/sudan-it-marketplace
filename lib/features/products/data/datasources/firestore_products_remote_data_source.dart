@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/entities/product.dart';
+import '../../domain/product_visibility.dart';
 import '../models/product_model.dart';
 import 'products_remote_data_source.dart';
 import '../../../../core/errors/app_exception.dart';
@@ -25,16 +26,19 @@ class FirestoreProductsRemoteDataSource implements ProductsRemoteDataSource {
     return list;
   }
 
-  /// Products a customer can see: only those with units left. A product at
-  /// `stockCount == 0` (or with no stock field) is left out here but stays in
-  /// Firestore and in the company's own list, and reappears the moment the
-  /// company restocks it. A single-field range filter needs no composite index.
+  /// Products a customer can see: only those with units left, and not hidden
+  /// by Platform Admin. A product at `stockCount == 0` (or with no stock
+  /// field) is left out here but stays in Firestore and in the company's own
+  /// list, and reappears the moment the company restocks it. A hidden product
+  /// is filtered here rather than in the query, because most products have no
+  /// `hidden` field and a query on it would leave them out. A single-field
+  /// range filter needs no composite index.
   @override
   Stream<List<Product>> watchMarketplaceProducts() {
     return _products
         .where('stockCount', isGreaterThan: 0)
         .snapshots()
-        .map(_sorted);
+        .map((snapshot) => withoutHiddenProducts(_sorted(snapshot)));
   }
 
   @override

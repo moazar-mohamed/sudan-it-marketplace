@@ -16,6 +16,7 @@ import '../domain/entities/product.dart';
 import 'product_price_strings.dart';
 import '../../offers/presentation/offer_price.dart';
 import 'products_providers.dart';
+import '../../usage/presentation/usage_providers.dart';
 import '../../../core/localization/l10n_extension.dart';
 import '../../reviews/domain/review.dart';
 import '../../reviews/presentation/review_widgets.dart';
@@ -37,6 +38,17 @@ class ProductDetailsScreen extends ConsumerStatefulWidget {
 
 class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
   int _quantity = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    // One more view of this product, for the platform's figures (best effort).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(usageTrackerProvider).productViewed(widget.product.id);
+      }
+    });
+  }
 
   String _formatPrice(double price) {
     final parts = price.toStringAsFixed(0).split('.');

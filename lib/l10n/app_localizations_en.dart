@@ -3248,4 +3248,173 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeVisitCompany => 'Visit company';
+
+  @override
+  String get maintenanceTitle => 'Under maintenance';
+
+  @override
+  String get maintenanceTryLater => 'Please try again in a little while.';
+
+  @override
+  String get announcementDismiss => 'Dismiss';
+
+  @override
+  String maintenanceBackAt(Object time) {
+    return 'Expected back: $time';
+  }
+
+  @override
+  String maintenanceBackIn(Object duration) {
+    return 'That is in about $duration.';
+  }
+
+  @override
+  String noticeDurationDays(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeDurationHoursMinutes(Object hours, Object minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String noticeDurationMinutes(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get updateRequiredTitle => 'Update required';
+
+  @override
+  String get updateRequiredBody =>
+      'A newer version of the app is needed to keep using it.';
+
+  @override
+  String get updateRequiredButton => 'Update';
+
+  @override
+  String get orderCancelledByAdmin => 'Cancelled by the platform.';
+
+  @override
+  String get adminProductHidden => 'Hidden by the platform';
+
+  @override
+  String get adminProductHiddenReason => 'Reason';
+
+  @override
+  String get adminProductHiddenNoReason => 'No reason was given.';
+
+  @override
+  String get settingsHelp => 'Help';
+
+  @override
+  String get reportFormTitle => 'Report a problem';
+
+  @override
+  String get reportIntro =>
+      'Tell us what went wrong. The platform team reads every report and replies under My reports.';
+
+  @override
+  String get reportReasonLabel => 'What is it about?';
+
+  @override
+  String get reportReasonOrderProblem => 'Order problem';
+
+  @override
+  String get reportReasonPayment => 'Payment';
+
+  @override
+  String get reportReasonCompanyConduct => 'A company\'s conduct';
+
+  @override
+  String get reportReasonProductIssue => 'Product issue';
+
+  @override
+  String get reportReasonAppProblem => 'App problem';
+
+  @override
+  String get reportReasonOther => 'Other';
+
+  @override
+  String get reportSubjectLabel => 'Subject';
+
+  @override
+  String get reportSubjectHint => 'In a few words';
+
+  @override
+  String get reportSubjectRequired => 'Enter a subject.';
+
+  @override
+  String get reportDetailsLabel => 'What happened?';
+
+  @override
+  String get reportDetailsHint =>
+      'Say what happened, when, and with which company or order.';
+
+  @override
+  String get reportDetailsRequired => 'Describe the problem.';
+
+  @override
+  String get reportOrderLabel => 'Order number';
+
+  @override
+  String get reportSubmit => 'Send report';
+
+  @override
+  String get reportSent =>
+      'Your report was sent. We will reply under My reports.';
+
+  @override
+  String get myReportsTitle => 'My reports';
+
+  @override
+  String get myReportsEmpty => 'You have not sent any report.';
+
+  @override
+  String get reportStatusNew => 'Received';
+
+  @override
+  String get reportStatusInProgress => 'Being handled';
+
+  @override
+  String get reportStatusClosed => 'Closed';
+
+  @override
+  String get reportReplyTitle => 'Reply from the platform team';
+
+  @override
+  String get reportNoReplyYet => 'No reply yet.';
+
+  @override
+  String get notifReportInProgressTitle => 'Your report is being handled';
+
+  @override
+  String notifReportInProgressBody(String subject) {
+    return 'We started working on \"$subject\".';
+  }
+
+  @override
+  String get notifReportClosedTitle => 'Your report was closed';
+
+  @override
+  String notifReportClosedBody(String subject) {
+    return 'Your report \"$subject\" was closed. Open My reports to read our reply.';
+  }
+
+  @override
+  String get reportLimitReached =>
+      'You can send 5 reports in 24 hours. Please try again later.';
 }

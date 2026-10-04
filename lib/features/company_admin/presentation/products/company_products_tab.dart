@@ -219,6 +219,12 @@ class _CompanyProductTile extends StatelessWidget {
                         : context.l10n.adminOutOfStock,
                 tone: product.isAvailable ? AppTone.success : AppTone.error,
               ),
+              if (product.hidden)
+                StatusChip(
+                  key: const Key('product-hidden-chip'),
+                  label: context.l10n.adminProductHidden,
+                  tone: AppTone.error,
+                ),
               if (product.isInstallationAvailable)
                 StatusChip(
                   label: context.l10n.adminInstallationBadge,

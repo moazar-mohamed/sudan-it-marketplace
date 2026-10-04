@@ -21,6 +21,8 @@ class Product with OfferPricing {
     this.offerEndsAt,
     this.offerBadge,
     this.createdAt,
+    this.hidden = false,
+    this.hiddenReason = '',
   });
 
   final String id;
@@ -57,6 +59,11 @@ class Product with OfferPricing {
   final OfferBadge? offerBadge;
   final DateTime? createdAt;
 
+  /// Platform Admin hid this product from customers. It stays in its
+  /// company's own list, marked, with [hiddenReason] so the company knows why.
+  final bool hidden;
+  final String hiddenReason;
+
   bool get hasPrice => price != null;
 
 
@@ -92,6 +99,8 @@ class Product with OfferPricing {
         offerEndsAt: offerEndsAt,
         offerBadge: offerBadge,
         createdAt: createdAt,
+        hidden: hidden,
+        hiddenReason: hiddenReason,
       );
 
   /// This product with [offerPrice] until [offerEndsAt] under [badge]; a
@@ -121,5 +130,7 @@ class Product with OfferPricing {
         offerEndsAt: offerPrice == null ? null : offerEndsAt,
         offerBadge: offerPrice == null ? null : badge,
         createdAt: createdAt,
+        hidden: hidden,
+        hiddenReason: hiddenReason,
       );
 }

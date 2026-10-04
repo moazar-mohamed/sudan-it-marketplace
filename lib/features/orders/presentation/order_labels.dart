@@ -35,6 +35,7 @@ extension OrderCancelReasonLabel on OrderCancelReason {
         OrderCancelReason.company => l10n.orderCancelledByCompany,
         OrderCancelReason.expired => l10n.orderCancelledExpired,
         OrderCancelReason.outOfStock => l10n.orderCancelledOutOfStock,
+        OrderCancelReason.admin => l10n.orderCancelledByAdmin,
       };
 }
 

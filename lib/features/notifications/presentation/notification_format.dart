@@ -33,6 +33,8 @@ class NotificationFormat {
         l10n.notifServiceRequestCompletedTitle,
       NotificationTypes.serviceRequestCancelled =>
         l10n.notifServiceRequestCancelledTitle,
+      NotificationTypes.reportInProgress => l10n.notifReportInProgressTitle,
+      NotificationTypes.reportClosed => l10n.notifReportClosedTitle,
       _ => l10n.notifGenericTitle,
     };
   }
@@ -67,6 +69,10 @@ class NotificationFormat {
         l10n.notifServiceRequestCompletedBody(product),
       NotificationTypes.serviceRequestCancelled when named =>
         l10n.notifServiceRequestCancelledBody(product),
+      NotificationTypes.reportInProgress when named =>
+        l10n.notifReportInProgressBody(product),
+      NotificationTypes.reportClosed when named =>
+        l10n.notifReportClosedBody(product),
       _ => l10n.notifGenericBody,
     };
   }
@@ -131,6 +137,14 @@ class NotificationFormat {
       NotificationTypes.serviceRequestCancelled => (
           icon: Icons.cancel_outlined,
           tone: AppTone.neutral,
+        ),
+      NotificationTypes.reportInProgress => (
+          icon: Icons.flag_outlined,
+          tone: AppTone.progress,
+        ),
+      NotificationTypes.reportClosed => (
+          icon: Icons.flag_outlined,
+          tone: AppTone.success,
         ),
       _ => (icon: Icons.notifications_outlined, tone: AppTone.brand),
     };

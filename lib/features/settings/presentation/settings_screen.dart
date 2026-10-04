@@ -12,6 +12,8 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../push/presentation/push_preference.dart';
+import '../../reports/presentation/my_reports_screen.dart';
+import '../../reports/presentation/report_form_screen.dart';
 import 'language_selector.dart';
 import 'settings_option_sheet.dart';
 
@@ -67,6 +69,32 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ],
+          const SizedBox(height: AppSpacing.s20),
+          _GroupLabel(l10n.settingsHelp),
+          _SettingsGroup(
+            children: [
+              _SettingsRow(
+                key: const ValueKey('settings-report'),
+                icon: Icons.flag_outlined,
+                title: l10n.reportFormTitle,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<bool>(
+                    builder: (_) => const ReportFormScreen(),
+                  ),
+                ),
+              ),
+              _SettingsRow(
+                key: const ValueKey('settings-my-reports'),
+                icon: Icons.inbox_outlined,
+                title: l10n.myReportsTitle,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MyReportsScreen(),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -201,7 +229,7 @@ class _SettingsRow extends StatelessWidget {
     super.key,
     required this.icon,
     required this.title,
-    required this.value,
+    this.value = '',
     required this.onTap,
   });
 
@@ -215,7 +243,7 @@ class _SettingsRow extends StatelessWidget {
     final colors = context.colors;
     return Semantics(
       button: true,
-      label: '$title, $value',
+      label: value.isEmpty ? title : '$title, $value',
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
@@ -232,7 +260,8 @@ class _SettingsRow extends StatelessWidget {
                 const SizedBox(width: AppSpacing.s12),
                 Expanded(child: Text(title, style: AppTextStyles.bodyStrong)),
                 const SizedBox(width: AppSpacing.s8),
-                ConstrainedBox(
+                if (value.isNotEmpty)
+                  ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 160),
                   child: Text(
                     value,

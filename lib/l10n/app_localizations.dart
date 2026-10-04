@@ -5693,6 +5693,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visit company'**
   String get homeVisitCompany;
+
+  /// No description provided for @maintenanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Under maintenance'**
+  String get maintenanceTitle;
+
+  /// No description provided for @maintenanceTryLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Please try again in a little while.'**
+  String get maintenanceTryLater;
+
+  /// No description provided for @announcementDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get announcementDismiss;
+
+  /// No description provided for @maintenanceBackAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected back: {time}'**
+  String maintenanceBackAt(Object time);
+
+  /// No description provided for @maintenanceBackIn.
+  ///
+  /// In en, this message translates to:
+  /// **'That is in about {duration}.'**
+  String maintenanceBackIn(Object duration);
+
+  /// No description provided for @noticeDurationDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String noticeDurationDays(num count);
+
+  /// No description provided for @noticeDurationHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String noticeDurationHoursMinutes(Object hours, Object minutes);
+
+  /// No description provided for @noticeDurationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 minute} other{{count} minutes}}'**
+  String noticeDurationMinutes(num count);
+
+  /// No description provided for @updateRequiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update required'**
+  String get updateRequiredTitle;
+
+  /// No description provided for @updateRequiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A newer version of the app is needed to keep using it.'**
+  String get updateRequiredBody;
+
+  /// No description provided for @updateRequiredButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get updateRequiredButton;
+
+  /// No description provided for @orderCancelledByAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by the platform.'**
+  String get orderCancelledByAdmin;
+
+  /// No description provided for @adminProductHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden by the platform'**
+  String get adminProductHidden;
+
+  /// No description provided for @adminProductHiddenReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get adminProductHiddenReason;
+
+  /// No description provided for @adminProductHiddenNoReason.
+  ///
+  /// In en, this message translates to:
+  /// **'No reason was given.'**
+  String get adminProductHiddenNoReason;
+
+  /// No description provided for @settingsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get settingsHelp;
+
+  /// No description provided for @reportFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get reportFormTitle;
+
+  /// No description provided for @reportIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what went wrong. The platform team reads every report and replies under My reports.'**
+  String get reportIntro;
+
+  /// No description provided for @reportReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What is it about?'**
+  String get reportReasonLabel;
+
+  /// No description provided for @reportReasonOrderProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Order problem'**
+  String get reportReasonOrderProblem;
+
+  /// No description provided for @reportReasonPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get reportReasonPayment;
+
+  /// No description provided for @reportReasonCompanyConduct.
+  ///
+  /// In en, this message translates to:
+  /// **'A company\'s conduct'**
+  String get reportReasonCompanyConduct;
+
+  /// No description provided for @reportReasonProductIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'Product issue'**
+  String get reportReasonProductIssue;
+
+  /// No description provided for @reportReasonAppProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'App problem'**
+  String get reportReasonAppProblem;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get reportReasonOther;
+
+  /// No description provided for @reportSubjectLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get reportSubjectLabel;
+
+  /// No description provided for @reportSubjectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'In a few words'**
+  String get reportSubjectHint;
+
+  /// No description provided for @reportSubjectRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a subject.'**
+  String get reportSubjectRequired;
+
+  /// No description provided for @reportDetailsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get reportDetailsLabel;
+
+  /// No description provided for @reportDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Say what happened, when, and with which company or order.'**
+  String get reportDetailsHint;
+
+  /// No description provided for @reportDetailsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the problem.'**
+  String get reportDetailsRequired;
+
+  /// No description provided for @reportOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order number'**
+  String get reportOrderLabel;
+
+  /// No description provided for @reportSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get reportSubmit;
+
+  /// No description provided for @reportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your report was sent. We will reply under My reports.'**
+  String get reportSent;
+
+  /// No description provided for @myReportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My reports'**
+  String get myReportsTitle;
+
+  /// No description provided for @myReportsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not sent any report.'**
+  String get myReportsEmpty;
+
+  /// No description provided for @reportStatusNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get reportStatusNew;
+
+  /// No description provided for @reportStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Being handled'**
+  String get reportStatusInProgress;
+
+  /// No description provided for @reportStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get reportStatusClosed;
+
+  /// No description provided for @reportReplyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply from the platform team'**
+  String get reportReplyTitle;
+
+  /// No description provided for @reportNoReplyYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No reply yet.'**
+  String get reportNoReplyYet;
+
+  /// No description provided for @notifReportInProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your report is being handled'**
+  String get notifReportInProgressTitle;
+
+  /// No description provided for @notifReportInProgressBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We started working on \"{subject}\".'**
+  String notifReportInProgressBody(String subject);
+
+  /// No description provided for @notifReportClosedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your report was closed'**
+  String get notifReportClosedTitle;
+
+  /// No description provided for @notifReportClosedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your report \"{subject}\" was closed. Open My reports to read our reply.'**
+  String notifReportClosedBody(String subject);
+
+  /// No description provided for @reportLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'You can send 5 reports in 24 hours. Please try again later.'**
+  String get reportLimitReached;
 }
 
 class _AppLocalizationsDelegate

@@ -11,7 +11,9 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'features/auth/presentation/auth_gate.dart';
 import 'features/auth/presentation/language_sync.dart';
+import 'features/platform_notices/presentation/platform_notice_gate.dart';
 import 'features/push/presentation/push_setup.dart';
+import 'features/usage/presentation/usage_providers.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 
@@ -52,6 +54,8 @@ class SudanITMarketplaceApp extends ConsumerWidget {
     ref.watch(languageSyncProvider);
     // Phone push notifications (off until the push relay is configured).
     ref.watch(pushSetupProvider);
+    // Tells the platform the app was opened today (once a day, nothing personal).
+    ref.watch(usageSyncProvider);
 
     return MaterialApp(
       navigatorKey: appNavigatorKey,
@@ -64,8 +68,9 @@ class SudanITMarketplaceApp extends ConsumerWidget {
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      builder: (context, child) =>
-          FormLocaleRefresher(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => FormLocaleRefresher(
+        child: PlatformNoticeGate(child: child ?? const SizedBox.shrink()),
+      ),
       home: const AuthGate(),
     );
   }

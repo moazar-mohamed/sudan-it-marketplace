@@ -3240,4 +3240,177 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeVisitCompany => 'زيارة الشركة';
+
+  @override
+  String get maintenanceTitle => 'المنصة تحت الصيانة';
+
+  @override
+  String get maintenanceTryLater => 'يرجى المحاولة مرة أخرى بعد قليل.';
+
+  @override
+  String get announcementDismiss => 'إغلاق';
+
+  @override
+  String maintenanceBackAt(Object time) {
+    return 'العودة المتوقعة: $time';
+  }
+
+  @override
+  String maintenanceBackIn(Object duration) {
+    return 'أي بعد نحو $duration.';
+  }
+
+  @override
+  String noticeDurationDays(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يوماً',
+      few: '$count أيام',
+      two: 'يومين',
+      one: 'يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeDurationHoursMinutes(Object hours, Object minutes) {
+    return '$hours س $minutes د';
+  }
+
+  @override
+  String noticeDurationMinutes(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      many: '$count دقيقة',
+      few: '$count دقائق',
+      two: 'دقيقتين',
+      one: 'دقيقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get updateRequiredTitle => 'تحديث مطلوب';
+
+  @override
+  String get updateRequiredBody =>
+      'يلزم إصدار أحدث من التطبيق لمتابعة استخدامه.';
+
+  @override
+  String get updateRequiredButton => 'تحديث';
+
+  @override
+  String get orderCancelledByAdmin => 'ألغته المنصة.';
+
+  @override
+  String get adminProductHidden => 'مخفي من المنصة';
+
+  @override
+  String get adminProductHiddenReason => 'السبب';
+
+  @override
+  String get adminProductHiddenNoReason => 'لم يُذكر سبب.';
+
+  @override
+  String get settingsHelp => 'المساعدة';
+
+  @override
+  String get reportFormTitle => 'الإبلاغ عن مشكلة';
+
+  @override
+  String get reportIntro =>
+      'أخبرنا بما حدث. يقرأ فريق المنصة كل بلاغ ويرد عليك في «بلاغاتي».';
+
+  @override
+  String get reportReasonLabel => 'ما موضوع البلاغ؟';
+
+  @override
+  String get reportReasonOrderProblem => 'مشكلة في طلب';
+
+  @override
+  String get reportReasonPayment => 'مشكلة في الدفع';
+
+  @override
+  String get reportReasonCompanyConduct => 'سلوك شركة';
+
+  @override
+  String get reportReasonProductIssue => 'مشكلة في منتج';
+
+  @override
+  String get reportReasonAppProblem => 'مشكلة في التطبيق';
+
+  @override
+  String get reportReasonOther => 'أخرى';
+
+  @override
+  String get reportSubjectLabel => 'الموضوع';
+
+  @override
+  String get reportSubjectHint => 'بإيجاز';
+
+  @override
+  String get reportSubjectRequired => 'اكتب موضوعاً.';
+
+  @override
+  String get reportDetailsLabel => 'ماذا حدث؟';
+
+  @override
+  String get reportDetailsHint => 'اشرح ما حدث ومتى ومع أي شركة أو طلب.';
+
+  @override
+  String get reportDetailsRequired => 'صف المشكلة.';
+
+  @override
+  String get reportOrderLabel => 'رقم الطلب';
+
+  @override
+  String get reportSubmit => 'إرسال البلاغ';
+
+  @override
+  String get reportSent => 'تم إرسال بلاغك. سنرد عليك في «بلاغاتي».';
+
+  @override
+  String get myReportsTitle => 'بلاغاتي';
+
+  @override
+  String get myReportsEmpty => 'لم ترسل أي بلاغ.';
+
+  @override
+  String get reportStatusNew => 'تم الاستلام';
+
+  @override
+  String get reportStatusInProgress => 'قيد المعالجة';
+
+  @override
+  String get reportStatusClosed => 'مغلق';
+
+  @override
+  String get reportReplyTitle => 'رد فريق المنصة';
+
+  @override
+  String get reportNoReplyYet => 'لا رد بعد.';
+
+  @override
+  String get notifReportInProgressTitle => 'بلاغك قيد المعالجة';
+
+  @override
+  String notifReportInProgressBody(String subject) {
+    return 'بدأنا العمل على «$subject».';
+  }
+
+  @override
+  String get notifReportClosedTitle => 'تم إغلاق بلاغك';
+
+  @override
+  String notifReportClosedBody(String subject) {
+    return 'تم إغلاق بلاغك «$subject». افتح «بلاغاتي» لقراءة ردّنا.';
+  }
+
+  @override
+  String get reportLimitReached =>
+      'يمكنك إرسال 5 بلاغات كل 24 ساعة. يرجى المحاولة لاحقاً.';
 }

@@ -195,21 +195,21 @@ class _Controls extends StatelessWidget {
         () => filters.copyWith(topRated: !filters.topRated),
       ),
     ];
-    return SingleChildScrollView(
+    // Wraps onto a second line on a phone, so no chip is cut off the edge.
+    return Padding(
       key: const ValueKey('home-product-controls'),
-      scrollDirection: Axis.horizontal,
       padding: padding,
-      child: Row(
+      child: Wrap(
+        spacing: AppSpacing.s8,
+        runSpacing: AppSpacing.s8,
         children: [
           _SortButton(sort: sort, onChanged: onSortChanged),
-          for (final chip in chips) ...[
-            const SizedBox(width: AppSpacing.s8),
+          for (final chip in chips)
             _FilterChip(
               label: chip.$1,
               selected: chip.$2,
               onTap: () => onFiltersChanged(chip.$3()),
             ),
-          ],
         ],
       ),
     );
@@ -315,13 +315,16 @@ class _FilterChip extends StatelessWidget {
           onTap: onTap,
           child: Container(
             height: 40,
-            alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-            child: Text(
-              label,
-              style: AppTextStyles.labelLarge.copyWith(
-                color: selected ? colors.textBrand : colors.textSecondary,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            // widthFactor keeps the chip as wide as its label inside a Wrap.
+            child: Center(
+              widthFactor: 1,
+              child: Text(
+                label,
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: selected ? colors.textBrand : colors.textSecondary,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
               ),
             ),
           ),

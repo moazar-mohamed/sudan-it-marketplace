@@ -153,6 +153,21 @@ class _ProductDetailsBody extends StatelessWidget {
         const SizedBox(height: AppSpacing.s16),
         ProductOfferSection(product: product),
         const SizedBox(height: AppSpacing.s12),
+        if (product.hidden) ...[
+          AdminSectionCard(
+            title: l10n.adminProductHidden,
+            children: [
+              AdminInfoRow(
+                label: l10n.adminProductHiddenReason,
+                value: product.hiddenReason.isEmpty
+                    ? l10n.adminProductHiddenNoReason
+                    : product.hiddenReason,
+                valueColor: context.colors.errorText,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.s12),
+        ],
         AdminSectionCard(
           title: l10n.adminAvailability,
           children: [
