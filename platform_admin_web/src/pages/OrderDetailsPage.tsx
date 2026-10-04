@@ -1,8 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
+import { AdminOrderCancel } from '../components/AdminOrderCancel';
 import { OrderStatusBadge, PaymentBadge } from '../components/StatusBadges';
 import { ReceiptViewer } from '../components/ReceiptViewer';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
-import { useCompanies, useOrders, useProducts } from '../data/hooks';
+import { useCompanies, useProducts } from '../data/hooks';
+import { useOrder } from '../data/orderHooks';
 import { formatCoordinate, osmViewUrl, toGeoPoint } from '../data/location';
 import { displayPhone } from '../data/phone';
 import { fetchOrderReceipt } from '../data/receipts';
@@ -13,11 +15,12 @@ import { customerLabel, shortId } from '../utils';
 export function OrderDetailsPage() {
   const { id = '' } = useParams();
   const { t, number, money, dateTime } = useI18n();
-  const orders = useOrders();
+  // Only this order is read (its own document), not every order there is.
+  const orderState = useOrder(id);
   const companies = useCompanies();
   const products = useProducts();
 
-  const order = orders.data.find((o) => o.id === id);
+  const order = orderState.order ?? undefined;
   // The order stores no pickup location of its own; for pickup orders it is
   // the company's pickup address. The company or product may since have been
   // deleted: the order keeps its own copy of their names, and only links to
@@ -33,8 +36,9 @@ export function OrderDetailsPage() {
       <PageHeader
         title={order ? `${t('order.details')} #${shortId(order.id)}` : t('order.details')}
         back={{ to: '/orders', label: t('orders.title') }}
+        actions={order?.orderStatus === 'processing' ? <AdminOrderCancel orderId={order.id} /> : undefined}
       />
-      <DataGate gates={[orders]}>
+      <DataGate gates={[orderState]}>
         {!order ? (
           <EmptyState message={t('common.notFound')} />
         ) : (

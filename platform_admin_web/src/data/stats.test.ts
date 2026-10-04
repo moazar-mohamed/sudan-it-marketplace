@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import dashboardSource from '../pages/DashboardPage.tsx?raw';
+import attentionSource from './attentionItems.ts?raw';
 import { mapCompany, mapCustomer, mapOrder, mapProduct } from './mappers';
-import { countActiveCompanies, countOrdersWithStatus, isActiveCompany } from './stats';
+import { countActiveCompanies, countOrdersWithStatus, isActiveCompany, ORDER_ATTENTIONS } from './stats';
 import { COMPANY_FILTER_STATUSES, ORDER_STATUSES } from './types';
 
 // Documents shaped like the ones Firestore returns (and the Flutter app writes).
@@ -53,13 +54,12 @@ describe('dashboard statistic cards', () => {
 describe('dashboard source', () => {
   it('reads live Firestore data only: no mock/demo data', () => {
     expect(dashboardSource).not.toMatch(/mock|demo|faker/i);
-    for (const hook of ['useCompanies', 'useCustomers', 'useProducts', 'useOrders']) {
-      expect(dashboardSource).toContain(hook);
-    }
+    // Its figures come from Firestore queries (dashboardData.ts) through this hook.
+    expect(dashboardSource).toContain('useDashboard');
   });
 
   it('has no Pending companies card or statistic', () => {
-    expect(dashboardSource).not.toMatch(/pending/i);
+    expect(dashboardSource).not.toMatch(/pendingCompanies|status=pending|kpi\.pending/i);
   });
 
   it('every card links to a page and a filter that exist', () => {
@@ -67,7 +67,7 @@ describe('dashboard source', () => {
     expect(links.length).toBeGreaterThanOrEqual(7); // seven cards (+ the two "view all" links)
     for (const link of links) {
       const url = new URL(link, 'http://x');
-      expect(['/companies', '/customers', '/products', '/orders']).toContain(url.pathname);
+      expect(['/companies', '/customers', '/products', '/orders', '/analytics']).toContain(url.pathname);
       const status = url.searchParams.get('status');
       if (status === null) continue;
       const allowed: readonly string[] =
@@ -78,5 +78,20 @@ describe('dashboard source', () => {
     expect(links).toContain('/companies?status=active');
     expect(links).toContain('/orders?status=processing');
     expect(links).toContain('/orders?status=completed');
+  });
+
+  it('every "needs attention" link opens a list that understands its filter', () => {
+    // The rules live in one place, shared by the dashboard panel and the alerts bell.
+    const links = [...attentionSource.matchAll(/to: '(\/[^']*)'/g)].map((m) => m[1]);
+    expect(links).toEqual([
+      '/orders?attention=unverified',
+      '/orders?attention=stuck',
+      '/service-requests?attention=stale',
+      '/reviews?attention=low',
+      '/companies?attention=noProducts',
+    ]);
+    const orderAttentions: readonly string[] = ORDER_ATTENTIONS;
+    expect(orderAttentions).toContain('unverified');
+    expect(orderAttentions).toContain('stuck');
   });
 });

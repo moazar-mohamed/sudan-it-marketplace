@@ -221,6 +221,35 @@ describe('the rows of the tree page', () => {
     expect(visibleRows(list, new Set(), 'nothing here')).toEqual([]);
   });
 
+  describe('by status', () => {
+    // r (active) > a (INACTIVE) > a1 (active); z (inactive) at the top; y (active) at the top
+    const mixed = [
+      ...tree([['r', null], ['a', 'r'], ['a1', 'a']]).map((c) => (c.id === 'a' ? { ...c, isActive: false } : c)),
+      category('z', null, { isActive: false }),
+      category('y', null),
+    ];
+
+    it('"all" is the ordinary tree', () => {
+      expect(visibleRows(mixed, new Set(), '', 'all').map((r) => r.category.id)).toEqual(visibleRows(mixed, new Set(), '').map((r) => r.category.id));
+    });
+
+    it('"active" shows every active category in its place, with an inactive parent shown as the way to it', () => {
+      const rows = visibleRows(mixed, new Set(), '', 'active');
+      expect(rows.map((r) => [r.category.id, r.depth])).toEqual([['r', 0], ['a', 1], ['a1', 2], ['y', 0]]);
+      expect(rows.every((r) => !r.matched)).toBe(true); // nothing is highlighted: only the text search highlights
+    });
+
+    it('"inactive" shows the inactive ones with the path above them, and only that', () => {
+      expect(visibleRows(mixed, new Set(), '', 'inactive').map((r) => [r.category.id, r.depth])).toEqual([['r', 0], ['a', 1], ['z', 0]]);
+    });
+
+    it('combines with the text search', () => {
+      const named = mixed.map((c) => ({ ...c, nameEn: c.id === 'a1' ? 'Wi-Fi' : c.id }));
+      expect(visibleRows(named, new Set(), 'wi-fi', 'active').map((r) => r.category.id)).toEqual(['r', 'a', 'a1']);
+      expect(visibleRows(named, new Set(), 'wi-fi', 'inactive')).toEqual([]);
+    });
+  });
+
   it('lists older categories (no parent, no chain) as top-level ones', () => {
     const withOld = [...list, category('old', null)];
     expect(visibleRows(withOld, new Set(), '').map((r) => r.category.id)).toEqual(['old', 'r']);

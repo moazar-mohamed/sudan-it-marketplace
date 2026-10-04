@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { AvailabilityBadge } from '../components/StatusBadges';
-import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text, Thumb } from '../components/ui';
+import { ProductModeration } from '../components/ProductModeration';
+import { Badge, Card, DataGate, EmptyState, KeyValue, PageHeader, Text, Thumb } from '../components/ui';
 import { useProducts } from '../data/hooks';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -32,8 +33,11 @@ export function ProductDetailsPage() {
                   <Text>{product.name}</Text>
                 </h2>
                 <AvailabilityBadge available={product.inStock && product.stockCount > 0} />
+                {product.hidden && <Badge tone="warning">{t('product.hiddenBadge')}</Badge>}
               </div>
             </div>
+
+            <ProductModeration product={product} />
 
             <div className="grid-2">
               <Card title={t('product.section.info')}>

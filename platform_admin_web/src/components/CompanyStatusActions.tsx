@@ -41,7 +41,7 @@ export function CompanyStatusActions({
       });
       if (!ok) return;
     }
-    await run(company.id, () => setCompanyStatus(company.id, status), t('companies.updated'));
+    await run(company.id, () => setCompanyStatus(company.id, status, company.name), t('companies.updated'));
   };
 
   const remove = async () => {
@@ -60,8 +60,8 @@ export function CompanyStatusActions({
     // first (a step the rules already allow); the cascade then removes it and
     // everything it owns. Orders are never part of it.
     const cascade = async () => {
-      if (isActive) await setCompanyStatus(company.id, 'inactive');
-      return deleteCompany(company.id);
+      if (isActive) await setCompanyStatus(company.id, 'inactive', company.name);
+      return deleteCompany(company.id, company.name);
     };
     const done = await run(company.id, cascade, (r: CompanyDeletionSummary) =>
       t('companies.deletedCascade', {

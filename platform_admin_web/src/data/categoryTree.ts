@@ -182,24 +182,32 @@ function matches(category: Category, query: string): boolean {
   return matchesQuery(query, category.name, category.nameAr, category.nameEn);
 }
 
+export type StatusFilter = 'all' | 'active' | 'inactive';
+
 /**
  * The rows to show for the tree: every expanded branch, or, when [query] is
- * given, only the categories whose Arabic or English name matches together with
- * their ancestors (all opened, so the match is visible in place).
+ * given and / or [status] is not 'all', only the categories whose name matches
+ * and / or whose OWN active flag is the one asked for, together with their
+ * ancestors (all opened, so each match is visible in place). An ancestor that
+ * does not match itself is only there to show where the match sits: so an
+ * inactive parent of an active child is shown under "Active" as the path to it.
  */
 export function visibleRows(
   all: readonly Category[],
   expanded: ReadonlySet<string>,
   query: string,
+  status: StatusFilter = 'all',
 ): TreeRow[] {
   const index = buildIndex(all);
-  const searching = query.trim().length > 0;
+  const searchingText = query.trim().length > 0;
+  const searching = searchingText || status !== 'all';
 
   const keep = new Set<string>();
   const direct = new Set<string>();
   if (searching) {
     for (const category of index.byId.values()) {
-      if (!matches(category, query)) continue;
+      if (searchingText && !matches(category, query)) continue;
+      if (status !== 'all' && category.isActive !== (status === 'active')) continue;
       direct.add(category.id);
       for (const ancestor of pathOf(index, category.id)) keep.add(ancestor.id);
     }
@@ -219,7 +227,7 @@ export function visibleRows(
         depth,
         hasChildren: childrenOf(index, category.id).length > 0,
         expanded: open,
-        matched: direct.has(category.id),
+        matched: searchingText && direct.has(category.id),
       });
       if (open) walk(category.id, depth + 1);
     }

@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { setCustomerActive, updateCustomerProfile } from '../data/actions';
-import { createCustomerAccount } from '../data/provisionCustomer';
+import { createCustomer, setCustomerActive, updateCustomerProfile } from '../data/actions';
 import type { Customer } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
 import type { TranslationKey } from '../i18n/dictionary';
@@ -26,7 +25,7 @@ export function useToggleCustomerActive() {
     }
     await run(
       customer.id,
-      () => setCustomerActive(customer.id, !customer.isActive),
+      () => setCustomerActive(customer.id, !customer.isActive, customer.fullName || customer.email),
       t(customer.isActive ? 'customer.deactivated' : 'customer.reactivated'),
     );
   };
@@ -145,7 +144,7 @@ export function CustomerCreateModal({ onClose }: { onClose: () => void }) {
     setSubmitting(true);
     setFailure(null);
     try {
-      const result = await createCustomerAccount({ fullName, email, phone });
+      const result = await createCustomer({ fullName, email, phone });
       const address = email.trim().toLowerCase();
       if (result.passwordEmailSent && result.phoneSaved) {
         toast(t('customers.created', { email: address }), 'success');

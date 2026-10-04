@@ -15,6 +15,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { setAuditActorName } from '../data/auditLog';
 import { resetStores } from '../data/store';
 import { readStoredLocale, useI18n } from '../i18n/I18nProvider';
 import { reconcileLanguage } from '../i18n/reconcile';
@@ -64,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (run !== runRef.current) return;
           if (decision.ok) {
             noticeRef.current = null;
+            setAuditActorName(decision.profile.fullName || decision.profile.email);
             setState({ status: 'authorized', profile: decision.profile });
             // The account's language wins; else this browser's choice is
             // saved to the account. Nothing was read before sign-in.

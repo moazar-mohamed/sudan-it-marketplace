@@ -3,7 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { CustomerEditModal, useToggleCustomerActive } from '../components/CustomerActions';
 import { ActiveBadge, OrderStatusBadge, PaymentBadge } from '../components/StatusBadges';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
-import { useCustomers, useOrders } from '../data/hooks';
+import { useCustomers } from '../data/hooks';
+import { useOrdersOf } from '../data/orderHooks';
 import { displayPhone } from '../data/phone';
 import { useI18n } from '../i18n/I18nProvider';
 import { shortId } from '../utils';
@@ -12,12 +13,13 @@ export function CustomerDetailsPage() {
   const { id = '' } = useParams();
   const { t, money, date, dateTime } = useI18n();
   const customers = useCustomers();
-  const orders = useOrders();
+  // Only this customer's orders are read, not every order there is.
+  const orders = useOrdersOf('customerId', id);
   const { toggle, busyId } = useToggleCustomerActive();
   const [editing, setEditing] = useState(false);
 
   const customer = customers.data.find((c) => c.id === id);
-  const history = orders.data.filter((o) => o.customerId === id);
+  const history = orders.orders;
 
   return (
     <>
@@ -27,6 +29,9 @@ export function CustomerDetailsPage() {
         actions={
           customer ? (
             <>
+              <Link to={`/activity?target=${customer.id}`} className="btn">
+                {t('activity.onRecord')}
+              </Link>
               <button className="btn" onClick={() => setEditing(true)}>
                 {t('common.edit')}
               </button>

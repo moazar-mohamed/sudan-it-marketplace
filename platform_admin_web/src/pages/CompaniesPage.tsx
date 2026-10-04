@@ -1,8 +1,10 @@
 import { useState, type MouseEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { AttentionBanner } from '../components/AttentionBanner';
 import { CompanyCreateModal } from '../components/CompanyCreateModal';
 import { CompanyStatusActions } from '../components/CompanyStatusActions';
 import { CompanyStatusBadge } from '../components/StatusBadges';
+import { SortTh, useSortedRows } from '../components/sort';
 import {
   Chips,
   DataGate,
@@ -12,10 +14,22 @@ import {
   Text,
   Thumb,
 } from '../components/ui';
-import { useCompanies } from '../data/hooks';
-import { COMPANY_FILTER_STATUSES, type CompanyFilterStatus } from '../data/types';
+import { companiesToCsv, csvFilename, downloadCsv } from '../data/csv';
+import { useCompanies, useProducts } from '../data/hooks';
+import { isStalledCompany, NO_PRODUCTS_GRACE_DAYS } from '../data/stats';
+import { COMPANY_FILTER_STATUSES, type Company, type CompanyFilterStatus } from '../data/types';
+import { useNow } from '../data/useNow';
 import { useI18n } from '../i18n/I18nProvider';
 import { joinLocation, matchesQuery } from '../utils';
+
+const SORTS = {
+  name: (c: Company) => c.name,
+  location: (c: Company) => joinLocation(c.city, c.address),
+  rating: (c: Company) => c.rating,
+  reviews: (c: Company) => c.reviewCount,
+  status: (c: Company) => c.status,
+  created: (c: Company) => c.createdAt,
+};
 
 export function CompaniesPage() {
   const { t, number, date } = useI18n();
@@ -27,8 +41,15 @@ export function CompaniesPage() {
   const statusParam = params.get('status');
   const status: CompanyFilterStatus | 'all' =
     COMPANY_FILTER_STATUSES.find((s) => s === statusParam) ?? 'all';
+  // ?attention=noProducts narrows the list to active companies that listed nothing yet.
+  const noProducts = params.get('attention') === 'noProducts';
+  const products = useProducts(noProducts);
+  const now = useNow();
   const setStatus = (next: CompanyFilterStatus | 'all') =>
-    setParams(next === 'all' ? {} : { status: next }, { replace: true });
+    setParams(
+      { ...(next === 'all' ? {} : { status: next }), ...(noProducts ? { attention: 'noProducts' } : {}) },
+      { replace: true },
+    );
   const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
 
@@ -39,11 +60,16 @@ export function CompaniesPage() {
     navigate(`/companies/${id}`);
   };
 
-  const visible = companies.data.filter(
+  const withProducts = new Set(products.data.map((p) => p.companyId));
+  const inScope = noProducts
+    ? companies.data.filter((c) => isStalledCompany(c, withProducts.has(c.id), now))
+    : companies.data;
+  const visible = inScope.filter(
     (c) =>
       (status === 'all' || c.status === status) &&
       matchesQuery(query, c.name, c.city, c.address, c.email),
   );
+  const { rows: sortedRows, sort, toggle } = useSortedRows(visible, SORTS);
 
   return (
     <>
@@ -52,23 +78,38 @@ export function CompaniesPage() {
         subtitle={t('companies.subtitle')}
         back={{ to: '/', label: t('nav.dashboard') }}
         actions={
-          <button className="btn btn--primary" onClick={() => setAdding(true)}>
-            + {t('companies.add')}
-          </button>
+          <>
+            <button
+              className="btn btn--sm"
+              disabled={visible.length === 0}
+              onClick={() => downloadCsv(csvFilename('companies', now), companiesToCsv(visible))}
+            >
+              {t('common.exportCsv')}
+            </button>
+            <button className="btn btn--primary" onClick={() => setAdding(true)}>
+              + {t('companies.add')}
+            </button>
+          </>
         }
       />
       {adding && <CompanyCreateModal onClose={() => setAdding(false)} />}
-      <DataGate gates={[companies]}>
+      <DataGate gates={noProducts ? [companies, products] : [companies]}>
+        {noProducts && (
+          <AttentionBanner
+            label={t('attention.noProducts', { days: NO_PRODUCTS_GRACE_DAYS })}
+            onClear={() => setParams(status === 'all' ? {} : { status }, { replace: true })}
+          />
+        )}
         <div className="toolbar">
           <Chips
             value={status}
             onChange={setStatus}
             options={[
-              { value: 'all', label: t('common.all'), count: companies.data.length },
+              { value: 'all', label: t('common.all'), count: inScope.length },
               ...COMPANY_FILTER_STATUSES.map((s) => ({
                 value: s,
                 label: t(`company.status.${s}`),
-                count: companies.data.filter((c) => c.status === s).length,
+                count: inScope.filter((c) => c.status === s).length,
               })),
             ]}
           />
@@ -87,17 +128,17 @@ export function CompaniesPage() {
                 <thead>
                   <tr>
                     <th>{t('col.logo')}</th>
-                    <th>{t('col.name')}</th>
-                    <th>{t('col.location')}</th>
-                    <th>{t('col.rating')}</th>
-                    <th>{t('col.reviews')}</th>
-                    <th>{t('col.status')}</th>
-                    <th>{t('col.created')}</th>
+                    <SortTh label={t('col.name')} sortKey="name" sort={sort} onSort={toggle} />
+                    <SortTh label={t('col.location')} sortKey="location" sort={sort} onSort={toggle} />
+                    <SortTh label={t('col.rating')} sortKey="rating" sort={sort} onSort={toggle} />
+                    <SortTh label={t('col.reviews')} sortKey="reviews" sort={sort} onSort={toggle} />
+                    <SortTh label={t('col.status')} sortKey="status" sort={sort} onSort={toggle} />
+                    <SortTh label={t('col.created')} sortKey="created" sort={sort} onSort={toggle} />
                     <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {visible.map((c) => (
+                  {sortedRows.map((c) => (
                     <tr key={c.id} className="row--clickable" onClick={openCompany(c.id)}>
                       <td>
                         <Thumb src={c.logoUrl} />

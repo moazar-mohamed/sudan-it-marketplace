@@ -1,11 +1,148 @@
+import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
-import { Card, KeyValue, PageHeader, Text } from '../components/ui';
+import { changeOwnPassword, passwordChangeProblem, type PasswordChangeProblem } from '../auth/changePassword';
+import { requestPasswordReset } from '../auth/passwordReset';
+import { useToast } from '../components/feedback';
+import { Disclosure, PageHeader, Text } from '../components/ui';
+import { useAdmins } from '../data/hooks';
+import { auth } from '../firebase';
 import { useI18n } from '../i18n/I18nProvider';
+import type { TranslationKey } from '../i18n/dictionary';
+
+const PROBLEM_KEYS: Record<PasswordChangeProblem, TranslationKey> = {
+  'current-required': 'profile.password.errRequired',
+  'too-short': 'profile.password.errShort',
+  mismatch: 'profile.password.errMismatch',
+  same: 'profile.password.errSame',
+};
+
+function failureKey(error: unknown): TranslationKey {
+  switch ((error as { code?: string } | null)?.code) {
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return 'profile.password.errCurrent';
+    case 'auth/weak-password':
+      return 'profile.password.errShort';
+    case 'auth/requires-recent-login':
+    case 'auth/no-current-user':
+      return 'profile.password.errRecent';
+    case 'auth/too-many-requests':
+      return 'login.error.tooMany';
+    case 'auth/network-request-failed':
+      return 'login.error.network';
+    default:
+      return 'profile.password.errGeneric';
+  }
+}
+
+function PasswordCard({ email }: { email: string }) {
+  const { t, locale } = useI18n();
+  const toast = useToast();
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<TranslationKey | null>(null);
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (saving) return;
+    const problem = passwordChangeProblem(current, next, confirm);
+    if (problem) {
+      setError(PROBLEM_KEYS[problem]);
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await changeOwnPassword(current, next);
+      toast(t('profile.password.changed'), 'success');
+      setCurrent('');
+      setNext('');
+      setConfirm('');
+    } catch (err) {
+      setError(failureKey(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const sendLink = async () => {
+    try {
+      await requestPasswordReset(email, locale);
+      toast(t('profile.password.linkSent', { email }), 'success');
+    } catch (err) {
+      toast(t(failureKey(err)), 'error');
+    }
+  };
+
+  return (
+    <Disclosure title={t('profile.security')} icon="shield">
+      <form onSubmit={onSubmit} noValidate>
+        <p className="muted profile__hint">{t('profile.security.hint')}</p>
+        {error && (
+          <div className="alert alert--error" role="alert">
+            {t(error)}
+          </div>
+        )}
+        <label className="field">
+          <span>{t('profile.password.current')}</span>
+          <input
+            type="password"
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+            autoComplete="current-password"
+            dir="ltr"
+          />
+        </label>
+        <div className="field-row">
+          <label className="field">
+            <span>{t('profile.password.new')}</span>
+            <input
+              type="password"
+              value={next}
+              onChange={(e) => setNext(e.target.value)}
+              autoComplete="new-password"
+              dir="ltr"
+            />
+          </label>
+          <label className="field">
+            <span>{t('profile.password.confirm')}</span>
+            <input
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              autoComplete="new-password"
+              dir="ltr"
+            />
+          </label>
+        </div>
+        <div className="profile__row">
+          <button type="submit" className="btn btn--primary" disabled={saving}>
+            {saving ? t('profile.password.saving') : t('profile.password.save')}
+          </button>
+          <span className="muted">
+            {t('profile.password.forgot')}{' '}
+            <button type="button" className="link-btn" onClick={() => void sendLink()}>
+              {t('profile.password.sendLink')}
+            </button>
+          </span>
+        </div>
+      </form>
+    </Disclosure>
+  );
+}
 
 export function ProfilePage() {
-  const { t } = useI18n();
+  const { t, number, date } = useI18n();
   const { state, signOut } = useAuth();
+  const admins = useAdmins();
   const profile = state.status === 'authorized' ? state.profile : null;
+  const meta = auth.currentUser?.metadata;
+  const since = meta?.creationTime ? new Date(meta.creationTime) : null;
+  const lastIn = meta?.lastSignInTime ? new Date(meta.lastSignInTime) : null;
+  const activeAdmins = admins.data.filter((a) => a.isActive).length;
 
   return (
     <>
@@ -15,33 +152,54 @@ export function ProfilePage() {
         back={{ to: '/', label: t('nav.dashboard') }}
       />
       {profile && (
-        <Card>
-          <div className="hero">
+        <>
+          <section className="card profile__hero">
             <span className="userchip__avatar userchip__avatar--lg">
               {(profile.fullName || profile.email || 'A').charAt(0).toUpperCase()}
             </span>
-            <div>
+            <div className="profile__who">
               <h2>
                 <Text>{profile.fullName || profile.email}</Text>
               </h2>
-              <span className="muted">{t('profile.roleValue')}</span>
+              <div className="profile__badges">
+                <span className="badge badge--info">{t('profile.roleValue')}</span>
+                <span className="badge badge--success">{t('profile.active')}</span>
+              </div>
+              <dl className="profile__meta">
+                <div>
+                  <dt>{t('profile.email')}</dt>
+                  <dd>
+                    <bdi dir="ltr">{profile.email || '—'}</bdi>
+                  </dd>
+                </div>
+                {since && (
+                  <div>
+                    <dt>{t('profile.memberSince')}</dt>
+                    <dd>{date(since)}</dd>
+                  </div>
+                )}
+                {lastIn && (
+                  <div>
+                    <dt>{t('profile.lastSignIn')}</dt>
+                    <dd>{date(lastIn)}</dd>
+                  </div>
+                )}
+              </dl>
             </div>
+            <div className="profile__hero-actions">
+              <Link to="/admins" className="btn btn--sm">
+                {t('profile.admins.manage')}
+                {admins.status === 'ready' && ` · ${t('profile.admins.count', { n: number(activeAdmins) })}`}
+              </Link>
+              <button className="btn btn--sm btn--danger-ghost" onClick={() => void signOut()}>
+                {t('common.signOut')}
+              </button>
+            </div>
+          </section>
+          <div className="profile__grid">
+            <PasswordCard email={profile.email} />
           </div>
-          <dl className="kv-list">
-            <KeyValue label={t('profile.name')}>
-              {profile.fullName ? <Text>{profile.fullName}</Text> : '—'}
-            </KeyValue>
-            <KeyValue label={t('profile.email')}>
-              <bdi dir="ltr">{profile.email || '—'}</bdi>
-            </KeyValue>
-            <KeyValue label={t('profile.role')}>{t('profile.roleValue')}</KeyValue>
-          </dl>
-          <div className="card__foot">
-            <button className="btn btn--danger-ghost" onClick={() => void signOut()}>
-              {t('common.signOut')}
-            </button>
-          </div>
-        </Card>
+        </>
       )}
     </>
   );

@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { setBaseTitle } from '../ui/titleBadge';
 import { ar, en, type TranslationKey } from './dictionary';
 
 export type Locale = 'en' | 'ar';
@@ -49,7 +50,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = locale;
     document.documentElement.dir = dir;
     const dict: Record<TranslationKey, string> = locale === 'ar' ? ar : en;
-    document.title = `${dict['app.name']} - ${dict['app.role']}`;
+    setBaseTitle(`${dict['app.name']} - ${dict['app.role']}`);
   }, [locale, dir]);
 
   const setLocale = useCallback((next: Locale) => {

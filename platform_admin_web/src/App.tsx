@@ -1,26 +1,35 @@
+import { lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useAuth } from './auth/AuthProvider';
 import { Layout } from './components/Layout';
 import { EmptyState } from './components/ui';
 import { useI18n } from './i18n/I18nProvider';
-import { AnalyticsPage } from './pages/AnalyticsPage';
-import { CategoriesPage } from './pages/CategoriesPage';
-import { ServicesPage } from './pages/ServicesPage';
-import { ServiceRequestDetailsPage } from './pages/ServiceRequestDetailsPage';
-import { ServiceRequestsPage } from './pages/ServiceRequestsPage';
-import { CompaniesPage } from './pages/CompaniesPage';
-import { CompanyDetailsPage } from './pages/CompanyDetailsPage';
-import { CustomerDetailsPage } from './pages/CustomerDetailsPage';
-import { CustomersPage } from './pages/CustomersPage';
-import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
-import { OrderDetailsPage } from './pages/OrderDetailsPage';
-import { OrdersPage } from './pages/OrdersPage';
-import { ProductDetailsPage } from './pages/ProductDetailsPage';
-import { ProductsPage } from './pages/ProductsPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { ReviewsPage } from './pages/ReviewsPage';
-import { SettingsPage } from './pages/SettingsPage';
+
+// Each page is its own file, fetched when it is first opened, so the first screen loads fast.
+const page = <K extends string>(load: () => Promise<Record<K, React.ComponentType>>, name: K) =>
+  lazy(() => load().then((m) => ({ default: m[name] })));
+const AdminsPage = page(() => import('./pages/AdminsPage'), 'AdminsPage');
+const ActivityPage = page(() => import('./pages/ActivityPage'), 'ActivityPage');
+const AnalyticsPage = page(() => import('./pages/AnalyticsPage'), 'AnalyticsPage');
+const CategoriesPage = page(() => import('./pages/CategoriesPage'), 'CategoriesPage');
+const ServicesPage = page(() => import('./pages/ServicesPage'), 'ServicesPage');
+const ServiceRequestDetailsPage = page(() => import('./pages/ServiceRequestDetailsPage'), 'ServiceRequestDetailsPage');
+const ServiceRequestsPage = page(() => import('./pages/ServiceRequestsPage'), 'ServiceRequestsPage');
+const CompaniesPage = page(() => import('./pages/CompaniesPage'), 'CompaniesPage');
+const CompanyDetailsPage = page(() => import('./pages/CompanyDetailsPage'), 'CompanyDetailsPage');
+const CustomerDetailsPage = page(() => import('./pages/CustomerDetailsPage'), 'CustomerDetailsPage');
+const CustomersPage = page(() => import('./pages/CustomersPage'), 'CustomersPage');
+const DashboardPage = page(() => import('./pages/DashboardPage'), 'DashboardPage');
+const OffersPage = page(() => import('./pages/OffersPage'), 'OffersPage');
+const OrderDetailsPage = page(() => import('./pages/OrderDetailsPage'), 'OrderDetailsPage');
+const OrdersPage = page(() => import('./pages/OrdersPage'), 'OrdersPage');
+const ProductDetailsPage = page(() => import('./pages/ProductDetailsPage'), 'ProductDetailsPage');
+const ProductsPage = page(() => import('./pages/ProductsPage'), 'ProductsPage');
+const ProfilePage = page(() => import('./pages/ProfilePage'), 'ProfilePage');
+const ReportsPage = page(() => import('./pages/ReportsPage'), 'ReportsPage');
+const ReviewsPage = page(() => import('./pages/ReviewsPage'), 'ReviewsPage');
+const SettingsPage = page(() => import('./pages/SettingsPage'), 'SettingsPage');
 
 export function App() {
   const { t } = useI18n();
@@ -56,8 +65,12 @@ export function App() {
         <Route path="services" element={<ServicesPage />} />
         <Route path="service-requests" element={<ServiceRequestsPage />} />
         <Route path="service-requests/:id" element={<ServiceRequestDetailsPage />} />
+        <Route path="offers" element={<OffersPage />} />
+        <Route path="reports" element={<ReportsPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="activity" element={<ActivityPage />} />
+        <Route path="admins" element={<AdminsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<EmptyState message={t('common.notFound')} />} />

@@ -12,7 +12,8 @@ import {
   Thumb,
 } from '../components/ui';
 import { loadCompanyDocument, saveCompanyRegistration } from '../data/actions';
-import { useCompanies, useOrders, useProducts } from '../data/hooks';
+import { useCompanies, useProducts } from '../data/hooks';
+import { useOrderCountOf } from '../data/orderHooks';
 import { formatCoordinate, osmViewUrl, toGeoPoint } from '../data/location';
 import { displayPhone } from '../data/phone';
 import { useI18n } from '../i18n/I18nProvider';
@@ -23,11 +24,11 @@ export function CompanyDetailsPage() {
   const { t, number, date } = useI18n();
   const companies = useCompanies();
   const products = useProducts();
-  const orders = useOrders();
+  // A server count, so a company with many orders does not pull them all in.
+  const orderTotal = useOrderCountOf('companyId', id);
 
   const company = companies.data.find((c) => c.id === id);
   const productCount = products.data.filter((p) => p.companyId === id).length;
-  const orderCount = orders.data.filter((o) => o.companyId === id).length;
   const dash = (v: string) => (v.trim() ? <Text>{v}</Text> : '—');
   const point = company ? toGeoPoint(company.latitude, company.longitude) : null;
 
@@ -38,11 +39,16 @@ export function CompanyDetailsPage() {
         back={{ to: '/companies', label: t('companies.title') }}
         actions={
           company ? (
-            <CompanyStatusActions company={company} onDeleted={() => navigate('/companies')} />
+            <>
+              <Link to={`/activity?target=${company.id}`} className="btn btn--sm">
+                {t('activity.onRecord')}
+              </Link>
+              <CompanyStatusActions company={company} onDeleted={() => navigate('/companies')} />
+            </>
           ) : undefined
         }
       />
-      <DataGate gates={[companies, products, orders]}>
+      <DataGate gates={[companies, products]}>
         {!company ? (
           <EmptyState message={t('common.notFound')} />
         ) : (
@@ -115,7 +121,7 @@ export function CompanyDetailsPage() {
                   </Link>
                 </KeyValue>
                 <KeyValue label={t('company.ordersCount')}>
-                  {number(orderCount)}{' '}
+                  {orderTotal === null ? '…' : number(orderTotal)}{' '}
                   <Link to={`/orders?company=${company.id}`} className="link-sm">
                     {t('company.viewOrders')}
                   </Link>

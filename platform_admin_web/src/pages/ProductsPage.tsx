@@ -1,17 +1,31 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { SortTh, useSortedRows } from '../components/sort';
 import { AvailabilityBadge } from '../components/StatusBadges';
+import { Badge } from '../components/ui';
 import { Chips, DataGate, EmptyState, PageHeader, SearchInput, Text, Thumb } from '../components/ui';
+import { csvFilename, downloadCsv, productsToCsv } from '../data/csv';
 import { useProducts } from '../data/hooks';
+import type { Product } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
 import { matchesQuery } from '../utils';
+
+const SORTS = {
+  name: (p: Product) => p.name,
+  company: (p: Product) => p.companyName,
+  price: (p: Product) => p.price,
+  stock: (p: Product) => p.stockCount,
+  delivery: (p: Product) => (p.isDeliveryAvailable ? 1 : 0),
+  installation: (p: Product) => (p.isInstallationAvailable ? 1 : 0),
+  availability: (p: Product) => (p.inStock && p.stockCount > 0 ? 1 : 0),
+};
 
 export function ProductsPage() {
   const { t, number, money } = useI18n();
   const products = useProducts();
   const [params, setParams] = useSearchParams();
   const companyId = params.get('company') ?? '';
-  const [availability, setAvailability] = useState<'available' | 'unavailable' | 'all'>('all');
+  const [availability, setAvailability] = useState<'available' | 'unavailable' | 'hidden' | 'all'>('all');
   const [query, setQuery] = useState('');
 
   const companyOptions = useMemo(() => {
@@ -26,9 +40,11 @@ export function ProductsPage() {
   const inCompany = products.data.filter((p) => !companyId || p.companyId === companyId);
   const visible = inCompany.filter(
     (p) =>
-      (availability === 'all' || (availability === 'available') === isAvailable(p)) &&
+      (availability === 'all' ||
+        (availability === 'hidden' ? p.hidden : availability === 'available' ? isAvailable(p) : !isAvailable(p))) &&
       matchesQuery(query, p.name, p.companyName, p.description),
   );
+  const { rows: sortedRows, sort, toggle: toggleSort } = useSortedRows(visible, SORTS);
 
   return (
     <>
@@ -36,6 +52,15 @@ export function ProductsPage() {
         title={t('products.title')}
         subtitle={t('products.subtitle')}
         back={{ to: '/', label: t('nav.dashboard') }}
+        actions={
+          <button
+            className="btn btn--sm"
+            disabled={visible.length === 0}
+            onClick={() => downloadCsv(csvFilename('products', Date.now()), productsToCsv(sortedRows))}
+          >
+            {t('common.exportCsv')}
+          </button>
+        }
       />
       <DataGate gates={[products]}>
         <div className="toolbar">
@@ -53,6 +78,11 @@ export function ProductsPage() {
                 value: 'unavailable',
                 label: t('product.unavailable'),
                 count: inCompany.filter((p) => !isAvailable(p)).length,
+              },
+              {
+                value: 'hidden',
+                label: t('products.filterHidden'),
+                count: inCompany.filter((p) => p.hidden).length,
               },
             ]}
           />
@@ -85,18 +115,18 @@ export function ProductsPage() {
                 <thead>
                   <tr>
                     <th>{t('col.image')}</th>
-                    <th>{t('col.product')}</th>
-                    <th>{t('col.company')}</th>
-                    <th>{t('col.price')}</th>
-                    <th>{t('col.stock')}</th>
-                    <th>{t('col.delivery')}</th>
-                    <th>{t('col.installation')}</th>
-                    <th>{t('col.availability')}</th>
+                    <SortTh label={t('col.product')} sortKey="name" sort={sort} onSort={toggleSort} />
+                    <SortTh label={t('col.company')} sortKey="company" sort={sort} onSort={toggleSort} />
+                    <SortTh label={t('col.price')} sortKey="price" sort={sort} onSort={toggleSort} />
+                    <SortTh label={t('col.stock')} sortKey="stock" sort={sort} onSort={toggleSort} />
+                    <SortTh label={t('col.delivery')} sortKey="delivery" sort={sort} onSort={toggleSort} />
+                    <SortTh label={t('col.installation')} sortKey="installation" sort={sort} onSort={toggleSort} />
+                    <SortTh label={t('col.availability')} sortKey="availability" sort={sort} onSort={toggleSort} />
                     <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {visible.map((p) => (
+                  {sortedRows.map((p) => (
                     <tr key={p.id}>
                       <td>
                         <Thumb src={p.imageUrl} />
@@ -117,6 +147,7 @@ export function ProductsPage() {
                       </td>
                       <td>
                         <AvailabilityBadge available={isAvailable(p)} />
+                        {p.hidden && <Badge tone="warning">{t('product.hiddenBadge')}</Badge>}
                       </td>
                       <td>
                         <Link to={`/products/${p.id}`} className="btn btn--sm">

@@ -158,7 +158,7 @@ describe('Deactivate', () => {
     expect(dialog()).toBeTruthy();
     fireEvent.click(within(dialog()).getByRole('button', { name: en['companies.deactivate'] }));
 
-    await waitFor(() => expect(setCompanyStatus).toHaveBeenCalledWith('A', 'inactive'));
+    await waitFor(() => expect(setCompanyStatus).toHaveBeenCalledWith('A', 'inactive', expect.any(String)));
     expect(deleteCompany).not.toHaveBeenCalled();
     expect(screen.queryByTestId('details')).toBeNull();
   });
@@ -232,8 +232,8 @@ describe('Delete', () => {
     fireEvent.click(within(dialog()).getByRole('button', { name: en['companies.delete'] }));
 
     await waitFor(() => expect(screen.queryByText('Alpha Tech')).toBeNull());
-    expect(setCompanyStatus).toHaveBeenCalledWith('A', 'inactive');
-    expect(deleteCompany).toHaveBeenCalledWith('A'); // the cascade, not a bare document delete
+    expect(setCompanyStatus).toHaveBeenCalledWith('A', 'inactive', expect.any(String));
+    expect(deleteCompany).toHaveBeenCalledWith('A', 'Alpha Tech'); // the cascade, not a bare document delete
     expect(vi.mocked(setCompanyStatus).mock.invocationCallOrder[0]).toBeLessThan(
       vi.mocked(deleteCompany).mock.invocationCallOrder[0],
     );
@@ -258,7 +258,7 @@ describe('Delete', () => {
 
     await waitFor(() => expect(screen.queryByText('Beta Corp')).toBeNull());
     expect(setCompanyStatus).not.toHaveBeenCalled();
-    expect(deleteCompany).toHaveBeenCalledWith('B');
+    expect(deleteCompany).toHaveBeenCalledWith('B', 'Beta Corp');
     expect(screen.getByText('Alpha Tech')).toBeTruthy();
   });
 

@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { AttentionBanner } from '../components/AttentionBanner';
 import { ServiceRequestStatusBadge } from '../components/StatusBadges';
 import { Chips, DataGate, EmptyState, PageHeader, SearchInput, Text } from '../components/ui';
 import { useServiceRequests } from '../data/hooks';
+import { isStaleServiceRequest, STALE_REQUEST_HOURS } from '../data/stats';
 import { SERVICE_REQUEST_STATUSES, type ServiceRequestStatus } from '../data/types';
+import { useNow } from '../data/useNow';
 import { useI18n } from '../i18n/I18nProvider';
 import { customerLabel, matchesQuery, shortId } from '../utils';
 
@@ -17,13 +20,21 @@ export function ServiceRequestsPage() {
   const statusParam = params.get('status');
   const status: ServiceRequestStatus | 'all' =
     SERVICE_REQUEST_STATUSES.find((s) => s === statusParam) ?? 'all';
-  const updateFilters = (next: { company?: string; status?: ServiceRequestStatus | 'all' }) => {
+  // ?attention=stale narrows the list to requests no company has answered in time.
+  const stale = params.get('attention') === 'stale';
+  const updateFilters = (next: {
+    company?: string;
+    status?: ServiceRequestStatus | 'all';
+    stale?: false;
+  }) => {
     const company = next.company ?? companyId;
     const nextStatus = next.status ?? status;
+    const nextStale = next.stale === false ? false : stale;
     setParams(
       {
         ...(company ? { company } : {}),
         ...(nextStatus !== 'all' ? { status: nextStatus } : {}),
+        ...(nextStale ? { attention: 'stale' } : {}),
       },
       { replace: true },
     );
@@ -38,7 +49,10 @@ export function ServiceRequestsPage() {
     return [...byId.entries()].sort((a, b) => a[1].localeCompare(b[1]));
   }, [requests.data]);
 
-  const inCompany = requests.data.filter((r) => !companyId || r.companyId === companyId);
+  const now = useNow();
+  const inCompany = requests.data.filter(
+    (r) => (!companyId || r.companyId === companyId) && (!stale || isStaleServiceRequest(r, now)),
+  );
   const visible = inCompany.filter(
     (r) =>
       (status === 'all' || r.status === status) &&
@@ -53,6 +67,12 @@ export function ServiceRequestsPage() {
         back={{ to: '/', label: t('nav.dashboard') }}
       />
       <DataGate gates={[requests]}>
+        {stale && (
+          <AttentionBanner
+            label={t('attention.staleRequests', { hours: STALE_REQUEST_HOURS })}
+            onClear={() => updateFilters({ stale: false })}
+          />
+        )}
         <div className="toolbar">
           <Chips
             value={status}

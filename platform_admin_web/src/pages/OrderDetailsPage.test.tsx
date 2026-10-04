@@ -19,11 +19,13 @@ vi.mock('../data/hooks', () => {
     data: data() as never[],
   });
   return {
-    useOrders: ready(() => store.orders),
     useCompanies: ready(() => []),
     useProducts: ready(() => []),
   };
 });
+vi.mock('../data/orderHooks', () => ({
+  useOrder: () => ({ status: 'ready' as const, error: null, order: (store.orders[0] as Order | undefined) ?? null, retry: () => undefined }),
+}));
 vi.mock('../firebase', () => ({ db: {} }));
 vi.mock('../data/receipts', () => ({ fetchOrderReceipt: vi.fn() }));
 

@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
-import { Icon } from './Icon';
+import { Sparkline } from './charts';
+import { Icon, type IconName } from './Icon';
 
 /* ---------- Layout primitives ---------- */
 
@@ -56,6 +57,61 @@ export function Card({
   );
 }
 
+/**
+ * A card that is closed until its title is pressed (the arrow turns), so a page
+ * of settings is a short list rather than a long form. The body stays on the
+ * page while closed, so what was typed is not lost by closing it.
+ */
+export function Disclosure({
+  title,
+  icon,
+  summary,
+  tone = 'neutral',
+  defaultOpen = false,
+  lazy = false,
+  children,
+}: {
+  title: string;
+  icon?: IconName;
+  /** What the closed card says about itself: the current choice, or whether it is on. */
+  summary?: ReactNode;
+  tone?: 'neutral' | 'success' | 'warning';
+  defaultOpen?: boolean;
+  /** Builds the body only once the card has been opened (for a body that reads data when it appears). */
+  lazy?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const [everOpened, setEverOpened] = useState(defaultOpen);
+  const bodyId = useId();
+  return (
+    <section className={open ? 'card disclosure disclosure--open' : 'card disclosure'}>
+      <h2 className="disclosure__title">
+        <button
+          type="button"
+          className="disclosure__head"
+          aria-expanded={open}
+          aria-controls={bodyId}
+          onClick={() => {
+            setOpen((v) => !v);
+            setEverOpened(true);
+          }}
+        >
+          {icon && <Icon name={icon} size={18} />}
+          <span className="disclosure__name">{title}</span>
+          {summary && <span className={`disclosure__summary disclosure__summary--${tone}`}>{summary}</span>}
+          <span className="disclosure__chevron">
+            <Icon name="chevronDown" size={18} />
+          </span>
+        </button>
+      </h2>
+      <div id={bodyId} className="disclosure__body" hidden={!open}>
+        {lazy && !everOpened ? null : children}
+      </div>
+    </section>
+  );
+}
+
 export function KeyValue({
   label,
   children,
@@ -76,19 +132,49 @@ export function StatCard({
   value,
   icon,
   to,
+  hint,
+  hintTone,
+  hintArrow,
+  spark,
 }: {
   label: string;
   value: string;
   icon: Parameters<typeof Icon>[0]['name'];
   to?: string;
+  /** A short line under the label, e.g. the change since the period before. */
+  hint?: string;
+  /** Green (better) or red (worse); the line also carries an arrow, so colour is never the only signal. */
+  hintTone?: 'up' | 'down';
+  /** Which way the figure moved when that differs from the colour (a falling cancel rate is green but points down). */
+  hintArrow?: 'up' | 'down';
+  /** The last days as a small line under the figure. */
+  spark?: readonly number[];
 }) {
+  // "…" is the placeholder while a figure is being read: shown as a shimmering bar.
+  const loading = value === '…';
   const inner = (
     <>
       <span className="stat__icon">
         <Icon name={icon} size={20} />
       </span>
-      <span className="stat__value">{value}</span>
+      <span className={loading ? 'stat__value skeleton' : 'stat__value'}>{value}</span>
       <span className="stat__label">{label}</span>
+      {hint && (
+        <span
+          className={
+            hintTone
+              ? `stat__hint stat__hint--${hintTone} stat__hint--arrow-${hintArrow ?? hintTone}`
+              : 'stat__hint'
+          }
+        >
+          {hint}
+        </span>
+      )}
+      {spark && spark.length > 1 && (
+        <span className={hintTone ? `stat__spark stat__spark--${hintTone}` : 'stat__spark'}>
+          <Sparkline values={spark} />
+        </span>
+      )}
     </>
   );
   return to ? (
@@ -141,12 +227,20 @@ export function Thumb({
 
 /* ---------- Loading / empty / error ---------- */
 
+/** Grey placeholder bars in the shape of a table while a list is being read. */
 export function LoadingState() {
   const { t } = useI18n();
   return (
-    <div className="state" role="status">
-      <span className="spinner" aria-hidden="true" />
-      <p className="muted">{t('common.loading')}</p>
+    <div className="skeleton-list" role="status" aria-busy="true">
+      <span className="sr-only">{t('common.loading')}</span>
+      <div className="skeleton skeleton--head" aria-hidden="true" />
+      {Array.from({ length: 6 }, (_, i) => (
+        <div className="skeleton-row" key={i} aria-hidden="true">
+          <span className="skeleton skeleton--avatar" />
+          <span className="skeleton skeleton--line" />
+          <span className="skeleton skeleton--short" />
+        </div>
+      ))}
     </div>
   );
 }
@@ -239,7 +333,7 @@ export function Chips<T extends string>({
   value,
   onChange,
 }: {
-  options: { value: T | 'all'; label: string; count: number }[];
+  options: { value: T | 'all'; label: string; count?: number }[];
   value: T | 'all';
   onChange: (value: T | 'all') => void;
 }) {
@@ -253,7 +347,7 @@ export function Chips<T extends string>({
           aria-pressed={o.value === value}
           onClick={() => onChange(o.value)}
         >
-          {o.label} <span className="chip__count">{o.count}</span>
+          {o.label} {o.count !== undefined && <span className="chip__count">{o.count}</span>}
         </button>
       ))}
     </div>

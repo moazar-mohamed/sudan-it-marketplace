@@ -5,11 +5,14 @@ import { App } from './App';
 import { AuthProvider } from './auth/AuthProvider';
 import { ConfirmProvider, ToastProvider } from './components/feedback';
 import { I18nProvider } from './i18n/I18nProvider';
+import { initTheme } from './theme/theme';
 import '@fontsource/cairo/400.css';
 import '@fontsource/cairo/500.css';
 import '@fontsource/cairo/600.css';
 import '@fontsource/cairo/700.css';
 import './styles.css';
+
+initTheme();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

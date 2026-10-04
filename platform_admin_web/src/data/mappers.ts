@@ -1,11 +1,16 @@
 import type { DocumentData } from 'firebase/firestore';
 import { toGeoPoint } from './location';
 import type {
+  AuditEntry,
   CatalogService,
   Category,
+  CompanyServiceLink,
   Company,
   CompanyStatus,
   Customer,
+  PlatformAdmin,
+  Report,
+  ReportStatus,
   DeliveryMethod,
   Order,
   OrderCancelReason,
@@ -44,7 +49,7 @@ export function parseOrderStatus(v: unknown): OrderStatus {
 }
 
 export function parseOrderCancelReason(v: unknown): OrderCancelReason | null {
-  return v === 'company' || v === 'expired' || v === 'out_of_stock' ? v : null;
+  return v === 'company' || v === 'expired' || v === 'out_of_stock' || v === 'admin' ? v : null;
 }
 
 export function parsePaymentStatus(v: unknown): PaymentStatus {
@@ -87,6 +92,38 @@ export function mapCustomer(id: string, d: DocumentData): Customer {
   };
 }
 
+export function mapPlatformAdmin(id: string, d: DocumentData): PlatformAdmin {
+  return {
+    id,
+    fullName: str(d.fullName) || str(d.name),
+    email: str(d.email),
+    // A missing flag is NOT active: the rules treat such an admin as having no access.
+    isActive: d.isActive === true,
+    createdAt: toDate(d.createdAt),
+  };
+}
+
+const REPORT_STATUS_SET: readonly string[] = ['new', 'in_progress', 'closed'];
+
+export function mapReport(id: string, d: DocumentData): Report {
+  return {
+    id,
+    reporterId: str(d.reporterId),
+    reporterRole: str(d.reporterRole),
+    reporterName: str(d.reporterName),
+    reporterEmail: str(d.reporterEmail),
+    companyId: str(d.companyId),
+    reason: str(d.reason) || 'other',
+    subject: str(d.subject),
+    details: str(d.details),
+    orderRef: str(d.orderRef),
+    status: REPORT_STATUS_SET.includes(d.status) ? (d.status as ReportStatus) : 'new',
+    resolution: str(d.resolution),
+    createdAt: toDate(d.createdAt),
+    updatedAt: toDate(d.updatedAt),
+  };
+}
+
 export function mapProduct(id: string, d: DocumentData): Product {
   const specs: Record<string, string> = {};
   if (d.specifications && typeof d.specifications === 'object') {
@@ -112,6 +149,11 @@ export function mapProduct(id: string, d: DocumentData): Product {
     isInstallationAvailable: d.isInstallationAvailable === true,
     installationPrice:
       typeof d.installationPrice === 'number' ? d.installationPrice : null,
+    offerPrice: typeof d.offerPrice === 'number' && isFinite(d.offerPrice) ? d.offerPrice : null,
+    offerEndsAt: toDate(d.offerEndsAt),
+    offerBadge: typeof d.offerBadge === 'string' && d.offerBadge ? d.offerBadge : null,
+    hidden: d.hidden === true,
+    hiddenReason: str(d.hiddenReason),
     createdAt: toDate(d.createdAt),
   };
 }
@@ -213,6 +255,21 @@ export function mapService(id: string, d: DocumentData): CatalogService {
   };
 }
 
+export function mapCompanyService(id: string, d: DocumentData): CompanyServiceLink {
+  const positive = (v: unknown) => (typeof v === 'number' && isFinite(v) && v > 0 ? v : null);
+  return {
+    id,
+    companyId: str(d.companyId),
+    serviceId: str(d.serviceId),
+    isActive: d.isActive === true,
+    price: positive(d.price),
+    offerPrice: positive(d.offerPrice),
+    offerEndsAt: toDate(d.offerEndsAt),
+    offerBadge: typeof d.offerBadge === 'string' && d.offerBadge ? d.offerBadge : null,
+    createdAt: toDate(d.createdAt),
+  };
+}
+
 // A customer's rating of a completed order or service request (the app writes
 // it; see the reviews rules).
 export function mapReview(id: string, d: DocumentData): Review {
@@ -231,6 +288,20 @@ export function mapReview(id: string, d: DocumentData): Review {
     orderId: sourceType === 'order' ? id : '',
     hidden: d.hidden === true,
     reply: str(d.reply),
+    createdAt: toDate(d.createdAt),
+  };
+}
+
+export function mapAuditEntry(id: string, d: DocumentData): AuditEntry {
+  return {
+    id,
+    actorId: str(d.actorId),
+    actorName: str(d.actorName),
+    action: str(d.action),
+    targetType: str(d.targetType),
+    targetId: str(d.targetId),
+    targetName: str(d.targetName),
+    detail: str(d.detail),
     createdAt: toDate(d.createdAt),
   };
 }

@@ -99,14 +99,20 @@ function renderPage() {
   );
 }
 
-const rows = () => screen.getAllByRole('row').slice(1);
+const rows = () => [...document.querySelectorAll<HTMLElement>('.cat-row')];
 const rowText = () => rows().map((r) => r.textContent ?? '');
 const rowFor = (text: string) => {
-  const row = screen.getAllByRole('row').find((r) => (r.textContent ?? '').includes(text));
+  const row = rows().find((r) => (r.textContent ?? '').includes(text));
   if (!row) throw new Error(`no row containing ${text}`);
   return row;
 };
-const names = () => rows().map((r) => within(r).getAllByRole('cell')[0].textContent ?? '');
+const names = () => rows().map((r) => r.querySelector('.cat-main')?.textContent ?? '');
+/** Opens a row's "⋯" menu and returns the item with this name. */
+const menuItem = (row: HTMLElement, name: string) => {
+  fireEvent.click(within(row).getByRole('button', { name: /^(More actions for|المزيد من الإجراءات)/ }));
+  return screen.getByRole('menuitem', { name }) as HTMLButtonElement;
+};
+const choose = (row: HTMLElement, name: string) => fireEvent.click(menuItem(row, name));
 const expand = (name: string) =>
   fireEvent.click(screen.getByRole('button', { name: en['categories.expand'].replace('{name}', name) }));
 
@@ -170,6 +176,15 @@ describe('showing the tree', () => {
     expect(rows()).toHaveLength(2);
   });
 
+  it('draws one card for each main category, with what is open under it inside that card', () => {
+    renderPage();
+    expect(document.querySelectorAll('.cat-card')).toHaveLength(2);
+    expand('Networking');
+    const cards = [...document.querySelectorAll('.cat-card')];
+    expect(cards[0].querySelectorAll('.cat-row')).toHaveLength(3); // Networking, Routers, Switches
+    expect(cards[1].querySelectorAll('.cat-row')).toHaveLength(1); // Laptops
+  });
+
   it('expands and collapses everything at once', () => {
     renderPage();
     fireEvent.click(screen.getByRole('button', { name: en['categories.expandAll'] }));
@@ -200,11 +215,25 @@ describe('showing the tree', () => {
     expect(screen.getByText(en['categories.noMatch'])).toBeTruthy();
   });
 
+  it('narrows to active or inactive categories, with a count on each, and cannot reorder while narrowed', () => {
+    store.categories = (store.categories as Category[]).map((c) => (c.id === 'lap' ? { ...c, isActive: false } : c));
+    renderPage();
+    const chip = (label: string) => screen.getByRole('button', { name: new RegExp(`^${label}`) });
+    expect(chip(en['user.inactive']).textContent).toContain('1');
+    fireEvent.click(chip(en['user.inactive']));
+    expect(names().join('|')).toContain('Laptops');
+    expect(names().join('|')).not.toContain('Networking');
+    expect(menuItem(rowFor('Laptops'), en['categories.moveUp']).disabled).toBe(true);
+    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.click(chip(en['user.active']));
+    expect(names().join('|')).toContain('Networking');
+    expect(names().join('|')).not.toContain('Laptops');
+  });
+
   it('cannot reorder while a search hides siblings', () => {
     renderPage();
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'lap' } });
-    const up = within(rowFor('Laptops')).getByRole('button', { name: en['categories.moveUp'] });
-    expect((up as HTMLButtonElement).disabled).toBe(true);
+    expect(menuItem(rowFor('Laptops'), en['categories.moveUp']).disabled).toBe(true);
   });
 
   it('says so when there are no categories', () => {
@@ -277,7 +306,7 @@ describe('adding categories', () => {
 describe('editing', () => {
   it('changes the two names, description and icon of a category', async () => {
     renderPage();
-    fireEvent.click(within(rowFor('Laptops')).getByRole('button', { name: en['common.edit'] }));
+    choose(rowFor('Laptops'), en['common.edit']);
     fireEvent.change(screen.getByLabelText(new RegExp(`^${en['categories.nameEnLabel']}`)), { target: { value: 'Notebooks' } });
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: en['common.save'] }));
@@ -292,8 +321,7 @@ describe('editing', () => {
 });
 
 describe('moving', () => {
-  const openMove = (name: string) =>
-    fireEvent.click(within(rowFor(name)).getByRole('button', { name: en['categories.move'] }));
+  const openMove = (name: string) => choose(rowFor(name), en['categories.move']);
   const choices = () =>
     within(screen.getByRole('dialog')).getAllByRole('option').map((o) => o.textContent ?? '');
 
@@ -344,35 +372,34 @@ describe('ordering, activating', () => {
   it('reorders only among siblings and saves their whole new order', async () => {
     renderPage();
     expand('Networking');
+    const down = menuItem(rowFor('Routers'), en['categories.moveDown']);
     await act(async () => {
-      fireEvent.click(within(rowFor('Routers')).getByRole('button', { name: en['categories.moveDown'] }));
+      fireEvent.click(down);
     });
     expect(saveSiblingOrder).toHaveBeenCalledWith(['swi', 'rou']); // never mixes in other levels
   });
 
   it('the first sibling cannot go up and the last cannot go down', () => {
     renderPage();
-    const first = within(rowFor('Networking')).getByRole('button', { name: en['categories.moveUp'] });
-    const last = within(rowFor('Laptops')).getByRole('button', { name: en['categories.moveDown'] });
-    expect((first as HTMLButtonElement).disabled).toBe(true);
-    expect((last as HTMLButtonElement).disabled).toBe(true);
+    expect(menuItem(rowFor('Networking'), en['categories.moveUp']).disabled).toBe(true);
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(menuItem(rowFor('Laptops'), en['categories.moveDown']).disabled).toBe(true);
   });
 
   it('asks before deactivating, then hides the category and its tree from customers', async () => {
     renderPage();
-    fireEvent.click(within(rowFor('Laptops')).getByRole('button', { name: en['categories.deactivate'] }));
+    choose(rowFor('Laptops'), en['categories.deactivate']);
     const dialog = await screen.findByRole('dialog');
     expect(dialog.textContent).toContain(en['categories.deactivateHint']);
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: en['categories.deactivate'] }));
     });
-    expect(setCategoryActive).toHaveBeenCalledWith('lap', false);
+    expect(setCategoryActive).toHaveBeenCalledWith('lap', false, expect.any(String));
   });
 });
 
 describe('deleting a category tree', () => {
-  const openDelete = (name: string) =>
-    fireEvent.click(within(rowFor(name)).getByRole('button', { name: en['categories.delete'] }));
+  const openDelete = (name: string) => choose(rowFor(name), en['categories.delete']);
   const confirmButton = () => screen.getByRole('button', { name: en['categories.deleteEverything'] }) as HTMLButtonElement;
 
   it('first says exactly what will be deleted and what is kept', async () => {
@@ -496,7 +523,7 @@ describe('Arabic', () => {
     expect(document.documentElement.dir).toBe('rtl');
     expect(names()[0]).toContain('شبكات');
     expect(screen.getByRole('button', { name: ar['categories.expand'].replace('{name}', 'شبكات') })).toBeTruthy();
-    fireEvent.click(within(rowFor('لابتوبات')).getByRole('button', { name: ar['categories.delete'] }));
+    choose(rowFor('لابتوبات'), ar['categories.delete']);
     return waitFor(() => expect(screen.getByRole('dialog').textContent).toContain('حذف'));
   });
 });

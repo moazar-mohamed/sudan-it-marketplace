@@ -14,7 +14,7 @@ import { Modal } from './ui';
 
 interface ToastItem {
   id: number;
-  kind: 'success' | 'error';
+  kind: 'success' | 'error' | 'info';
   message: string;
 }
 type ToastFn = (message: string, kind?: ToastItem['kind']) => void;
@@ -138,7 +138,9 @@ export function useRunner() {
                     ? t('companies.error.weakPassword')
                     : code === 'company-account/registration-required'
                       ? t('registration.required')
-                      : t('error.action'),
+                      : code === 'order/not-processing'
+                        ? t('order.cancelAdmin.notProcessing')
+                        : t('error.action'),
           'error',
         );
         return false;

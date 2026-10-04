@@ -5,7 +5,7 @@ import { ORDER_STATUSES, type OrderCancelReason } from './types';
 
 // Every reason the rules accept; the type check fails here if one is added
 // to (or removed from) OrderCancelReason without this list.
-const REASONS: Record<OrderCancelReason, true> = { company: true, expired: true, out_of_stock: true };
+const REASONS: Record<OrderCancelReason, true> = { company: true, expired: true, out_of_stock: true, admin: true };
 
 describe('a cancelled order is never shown as Processing', () => {
   it('the stored value parses to cancelled; unknown values stay processing', () => {

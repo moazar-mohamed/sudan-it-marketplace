@@ -2,12 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useConfirm, useRunner } from '../components/feedback';
 import { ActiveBadge } from '../components/StatusBadges';
 import { DataGate, EmptyState, Modal, PageHeader, Text } from '../components/ui';
-import {
-  createService,
-  setServiceActive,
-  updateService,
-  type ServiceInput,
-} from '../data/actions';
+import { setServiceActive, updateService, type ServiceInput } from '../data/actions';
 import { buildIndex, isEffectivelyActive, pathLabel } from '../data/categoryTree';
 import { useCategories, useServices } from '../data/hooks';
 import type { CatalogService, Category } from '../data/types';
@@ -18,15 +13,15 @@ function ServiceForm({
   categories,
   onClose,
 }: {
-  service: CatalogService | null;
+  service: CatalogService;
   categories: Category[];
   onClose: () => void;
 }) {
   const { t, locale } = useI18n();
   const { busy, run } = useRunner();
-  const [name, setName] = useState(service?.name ?? '');
-  const [description, setDescription] = useState(service?.description ?? '');
-  const [categoryId, setCategoryId] = useState(service?.categoryId ?? '');
+  const [name, setName] = useState(service.name);
+  const [description, setDescription] = useState(service.description);
+  const [categoryId, setCategoryId] = useState(service.categoryId);
   const [showError, setShowError] = useState(false);
 
   // Categories that are shown to customers (active, under active parents),
@@ -34,7 +29,7 @@ function ServiceForm({
   // deactivated since, so editing never silently changes it.
   const index = buildIndex(categories);
   const options = categories
-    .filter((c) => isEffectivelyActive(index, c.id) || c.id === service?.categoryId)
+    .filter((c) => isEffectivelyActive(index, c.id) || c.id === service.categoryId)
     .map((c) => ({ id: c.id, label: pathLabel(index, c.id, locale) || c.id }))
     .sort((a, b) => a.label.localeCompare(b.label));
   const nameMissing = !name.trim();
@@ -47,16 +42,12 @@ function ServiceForm({
       return;
     }
     const input: ServiceInput = { categoryId, name, description };
-    const ok = await run(
-      'save',
-      () => (service ? updateService(service.id, input) : createService(input)),
-      t(service ? 'services.updated' : 'services.saved'),
-    );
+    const ok = await run('save', () => updateService(service.id, input), t('services.updated'));
     if (ok) onClose();
   };
 
   return (
-    <Modal title={t(service ? 'services.editTitle' : 'services.addTitle')} onClose={onClose}>
+    <Modal title={t('services.editTitle')} onClose={onClose}>
       <form onSubmit={onSubmit} noValidate>
         <label className="field">
           <span>{t('services.nameLabel')}</span>
@@ -119,8 +110,7 @@ export function ServicesPage() {
   const categories = useCategories();
   const confirm = useConfirm();
   const { busy, run } = useRunner();
-  // `undefined` = closed, `null` = adding a new service.
-  const [editing, setEditing] = useState<CatalogService | null | undefined>(undefined);
+  const [editing, setEditing] = useState<CatalogService | null>(null);
 
   const categoryIndex = buildIndex(categories.data);
   const categoryName = (id: string) => pathLabel(categoryIndex, id, locale) || '—';
@@ -135,7 +125,7 @@ export function ServicesPage() {
       });
       if (!ok) return;
     }
-    await run(s.id, () => setServiceActive(s.id, !s.isActive), t('services.updated'));
+    await run(s.id, () => setServiceActive(s.id, !s.isActive, s.name), t('services.updated'));
   };
 
   return (
@@ -144,11 +134,6 @@ export function ServicesPage() {
         title={t('services.title')}
         subtitle={t('services.subtitle')}
         back={{ to: '/', label: t('nav.dashboard') }}
-        actions={
-          <button className="btn btn--primary" onClick={() => setEditing(null)}>
-            + {t('services.add')}
-          </button>
-        }
       />
       <DataGate gates={[services, categories]}>
         {services.data.length === 0 ? (
@@ -205,12 +190,8 @@ export function ServicesPage() {
           </div>
         )}
       </DataGate>
-      {editing !== undefined && (
-        <ServiceForm
-          service={editing}
-          categories={categories.data}
-          onClose={() => setEditing(undefined)}
-        />
+      {editing && (
+        <ServiceForm service={editing} categories={categories.data} onClose={() => setEditing(null)} />
       )}
     </>
   );

@@ -18,10 +18,11 @@ export const ORDER_STATUSES: OrderStatus[] = [
 
 /**
  * Why an order was cancelled: by the company; its payment was not verified
- * within 24 hours; or its product ran out before its payment was confirmed
- * (`out_of_stock`: the company returns the money outside the app).
+ * within 24 hours; its product ran out before its payment was confirmed
+ * (`out_of_stock`: the company returns the money outside the app); or Platform
+ * Admin cancelled it while it was stuck (`admin`).
  */
-export type OrderCancelReason = 'company' | 'expired' | 'out_of_stock';
+export type OrderCancelReason = 'company' | 'expired' | 'out_of_stock' | 'admin';
 
 export type PaymentStatus = 'pending_verification' | 'confirmed';
 export type DeliveryMethod = 'delivery' | 'pickup';
@@ -55,6 +56,49 @@ export interface Customer {
   createdAt: Date | null;
 }
 
+export type ReportStatus = 'new' | 'in_progress' | 'closed';
+export const REPORT_STATUSES: ReportStatus[] = ['new', 'in_progress', 'closed'];
+export type ReportReason = 'order_problem' | 'payment' | 'company_conduct' | 'product_issue' | 'app_problem' | 'other';
+export const REPORT_REASONS: ReportReason[] = [
+  'order_problem',
+  'payment',
+  'company_conduct',
+  'product_issue',
+  'app_problem',
+  'other',
+];
+export type ReporterRole = 'customer' | 'company_admin' | 'technician';
+
+/** A problem a customer, company admin or technician sent to the platform team (reports/{id}). */
+export interface Report {
+  id: string;
+  reporterId: string;
+  reporterRole: ReporterRole | string;
+  reporterName: string;
+  reporterEmail: string;
+  /** Set when the sender is a company admin or technician. */
+  companyId: string;
+  reason: ReportReason | string;
+  subject: string;
+  details: string;
+  /** The order the sender named, as they typed it (may be empty). */
+  orderRef: string;
+  status: ReportStatus;
+  /** What Platform Admin wrote when handling it; the sender can read it in the app. */
+  resolution: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+/** Another Platform Admin account (users/{uid} with role platform_admin). */
+export interface PlatformAdmin {
+  id: string;
+  fullName: string;
+  email: string;
+  isActive: boolean;
+  createdAt: Date | null;
+}
+
 export interface Product {
   id: string;
   companyId: string;
@@ -73,6 +117,13 @@ export interface Product {
   isDeliveryAvailable: boolean;
   isInstallationAvailable: boolean;
   installationPrice: number | null;
+  /** A running offer: the price customers pay (below `price`) until `offerEndsAt`; null = no offer. */
+  offerPrice: number | null;
+  offerEndsAt: Date | null;
+  offerBadge: string | null;
+  /** Platform Admin hid it from customers, with this reason (shown to its company). */
+  hidden: boolean;
+  hiddenReason: string;
   createdAt: Date | null;
 }
 
@@ -141,6 +192,20 @@ export interface CatalogService {
   createdAt: Date | null;
 }
 
+/** A company offering a catalogue service (company_services/{id}), with its price and any offer. */
+export interface CompanyServiceLink {
+  id: string;
+  companyId: string;
+  serviceId: string;
+  isActive: boolean;
+  /** null = the company set no price (never 0). */
+  price: number | null;
+  offerPrice: number | null;
+  offerEndsAt: Date | null;
+  offerBadge: string | null;
+  createdAt: Date | null;
+}
+
 /** Status of a service request (service_requests/{id}); see the Flutter app. */
 export type ServiceRequestStatus =
   | 'pending'
@@ -200,5 +265,45 @@ export interface Review {
   orderId: string;
   hidden: boolean;
   reply: string;
+  createdAt: Date | null;
+}
+
+/** What an audit entry is about (admin_audit_log/{id}.targetType). */
+export type AuditTargetType =
+  | 'company'
+  | 'customer'
+  | 'review'
+  | 'category'
+  | 'service'
+  | 'settings'
+  | 'product'
+  | 'order'
+  | 'admin'
+  | 'report';
+export const AUDIT_TARGET_TYPES: AuditTargetType[] = [
+  'company',
+  'customer',
+  'review',
+  'category',
+  'service',
+  'settings',
+  'product',
+  'order',
+  'admin',
+  'report',
+];
+
+/** One thing Platform Admin did: who, what, to which record, when. Append-only. */
+export interface AuditEntry {
+  id: string;
+  actorId: string;
+  actorName: string;
+  /** Machine code such as `company.status`; shown through the dictionary. */
+  action: string;
+  targetType: AuditTargetType | string;
+  targetId: string;
+  targetName: string;
+  /** The new value where there is one (a status, hidden / shown ...). */
+  detail: string;
   createdAt: Date | null;
 }

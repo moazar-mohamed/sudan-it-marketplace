@@ -6,6 +6,7 @@ import { ToastProvider } from '../components/feedback';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
 import { saveLanguage } from '../i18n/saveLanguage';
+import { setTheme, THEME_STORAGE_KEY } from '../theme/theme';
 import { SettingsPage } from './SettingsPage';
 
 const auth = vi.hoisted(() => ({
@@ -13,6 +14,8 @@ const auth = vi.hoisted(() => ({
 }));
 vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ state: auth.state }) }));
 vi.mock('../i18n/saveLanguage', () => ({ saveLanguage: vi.fn() }));
+// The notices section is tested on its own; here it must not reach Firestore.
+vi.mock('../components/NoticesCard', () => ({ NoticesSection: () => null }));
 
 const renderPage = () =>
   render(
@@ -25,7 +28,11 @@ const renderPage = () =>
     </I18nProvider>,
   );
 
-const radio = (name: string) => screen.getByRole('radio', { name }) as HTMLInputElement;
+/** Language and Appearance start closed: open every closed card, then find the choice. */
+const radio = (name: string) => {
+  for (const head of document.querySelectorAll('button[aria-expanded="false"]')) fireEvent.click(head);
+  return screen.getByRole('radio', { name }) as HTMLInputElement;
+};
 
 beforeEach(() => {
   localStorage.clear();
@@ -35,6 +42,19 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('Settings page', () => {
+  it('starts with its cards closed, each saying its current choice, and opens one when pressed', () => {
+    renderPage();
+    const heads = [...document.querySelectorAll<HTMLButtonElement>('.disclosure__head')];
+    expect(heads.map((h) => h.getAttribute('aria-expanded'))).toEqual(['false', 'false']);
+    expect(heads[0].textContent).toContain('English');
+    expect(heads[1].textContent).toContain(en['settings.themeSystem']);
+    fireEvent.click(heads[0]);
+    expect(heads[0].getAttribute('aria-expanded')).toBe('true');
+    expect(heads[1].getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(heads[0]);
+    expect(heads[0].getAttribute('aria-expanded')).toBe('false');
+  });
+
   it('offers English and العربية and marks the current one', () => {
     renderPage();
     expect(screen.getByRole('heading', { name: en['settings.title'] })).toBeTruthy();
@@ -89,5 +109,41 @@ describe('Settings page', () => {
     renderPage();
     fireEvent.click(radio('English'));
     expect(saveLanguage).not.toHaveBeenCalled();
+  });
+});
+
+describe('Settings page appearance', () => {
+  beforeEach(() => setTheme('system'));
+  afterEach(() => setTheme('system'));
+
+  it('follows the device until another look is chosen', () => {
+    renderPage();
+    expect(radio(en['settings.themeSystem']).checked).toBe(true);
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+  });
+
+  it('lets the admin force the dark or the light look, and remembers it in this browser', () => {
+    renderPage();
+    fireEvent.click(radio(en['settings.themeDark']));
+    expect(radio(en['settings.themeDark']).checked).toBe(true);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
+    fireEvent.click(radio(en['settings.themeLight']));
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+  });
+
+  it('goes back to the device with "same as the device"', () => {
+    renderPage();
+    fireEvent.click(radio(en['settings.themeDark']));
+    fireEvent.click(radio(en['settings.themeSystem']));
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
+  });
+
+  it('is named in Arabic too', () => {
+    localStorage.setItem('platform_admin_locale', 'ar');
+    renderPage();
+    expect(radio(ar['settings.themeDark'])).toBeTruthy();
+    expect(screen.getByText(ar['settings.theme'])).toBeTruthy();
   });
 });

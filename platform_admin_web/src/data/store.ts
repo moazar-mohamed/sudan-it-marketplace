@@ -1,7 +1,9 @@
 import { useSyncExternalStore } from 'react';
 import {
   collection,
+  limit,
   onSnapshot,
+  orderBy,
   query,
   where,
   type DocumentData,
@@ -9,23 +11,30 @@ import {
   type Query,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { resetOrderCaches } from './orderQueries';
 import {
+  mapAuditEntry,
   mapCategory,
   mapCompany,
+  mapCompanyService,
   mapCustomer,
-  mapOrder,
+  mapPlatformAdmin,
   mapProduct,
+  mapReport,
   mapReview,
   mapService,
   mapServiceRequest,
 } from './mappers';
 import type {
+  AuditEntry,
   CatalogService,
   Category,
   Company,
+  CompanyServiceLink,
   Customer,
-  Order,
+  PlatformAdmin,
   Product,
+  Report,
   Review,
   ServiceRequest,
 } from './types';
@@ -102,6 +111,8 @@ class LiveCollection<T> {
   }
 }
 
+export const AUDIT_LOG_LIMIT = 300;
+
 const time = (d: Date | null) => (d ? d.getTime() : 0);
 const newestFirst = <T extends { createdAt: Date | null }>(a: T, b: T) =>
   time(b.createdAt) - time(a.createdAt);
@@ -119,14 +130,24 @@ export const stores = {
     mapCustomer,
     newestFirst,
   ),
+  // The other Platform Admins: users whose role is "platform_admin" (the rules
+  // return only those, and only to an active admin).
+  admins: new LiveCollection<PlatformAdmin>(
+    () => query(collection(db, 'users'), where('role', '==', 'platform_admin')),
+    mapPlatformAdmin,
+    newestFirst,
+  ),
+  // Every report, for the Reports page.
+  reports: new LiveCollection<Report>(() => collection(db, 'reports'), mapReport, newestFirst),
+  // Only the ones nobody has started on: the sidebar badge (a handful of documents).
+  newReports: new LiveCollection<Report>(
+    () => query(collection(db, 'reports'), where('status', '==', 'new')),
+    mapReport,
+    newestFirst,
+  ),
   products: new LiveCollection<Product>(
     () => collection(db, 'products'),
     mapProduct,
-    newestFirst,
-  ),
-  orders: new LiveCollection<Order>(
-    () => collection(db, 'orders'),
-    mapOrder,
     newestFirst,
   ),
   categories: new LiveCollection<Category>(
@@ -139,7 +160,14 @@ export const stores = {
     mapService,
     (a, b) => a.name.localeCompare(b.name),
   ),
-  // Read-only, like orders. Chats are never read by Platform Admin.
+  // Which company offers which service, with its price and offer.
+  companyServices: new LiveCollection<CompanyServiceLink>(
+    () => collection(db, 'company_services'),
+    mapCompanyService,
+    newestFirst,
+  ),
+  // Read-only. Chats are never read by Platform Admin. (Orders are not kept open here: they are
+  // read a page, a count or a period at a time, see orderQueries.ts.)
   serviceRequests: new LiveCollection<ServiceRequest>(
     () => collection(db, 'service_requests'),
     mapServiceRequest,
@@ -150,15 +178,27 @@ export const stores = {
     mapReview,
     newestFirst,
   ),
+  // Only the newest entries: the trail grows forever, the screen shows recent history.
+  auditLog: new LiveCollection<AuditEntry>(
+    () => query(collection(db, 'admin_audit_log'), orderBy('createdAt', 'desc'), limit(AUDIT_LOG_LIMIT)),
+    mapAuditEntry,
+  ),
 };
 
 export function resetStores() {
   Object.values(stores).forEach((s) => s.reset());
+  resetOrderCaches();
 }
 
-export function useStore<T>(store: LiveCollection<T>): StoreState<T> & {
+const NEVER_SUBSCRIBED = () => () => undefined;
+
+/**
+ * `enabled = false` leaves the collection unread (its listener never starts) for
+ * a screen that only needs it under some filter; the state then stays "loading".
+ */
+export function useStore<T>(store: LiveCollection<T>, enabled = true): StoreState<T> & {
   retry: () => void;
 } {
-  const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const state = useSyncExternalStore(enabled ? store.subscribe : NEVER_SUBSCRIBED, store.getSnapshot);
   return { ...state, retry: () => store.retry() };
 }
