@@ -183,7 +183,7 @@ beforeEach(seedBase);
 // ───────────────────────────────────────────────────────────────── creating
 
 describe('creating categories with the dashboard operation', () => {
-  const fields = (n: string) => ({ nameAr: `${n}-ar`, nameEn: n, description: '', iconName: '' });
+  const fields = (n: string) => ({ nameAr: `${n}-ar`, nameEn: n, description: '', iconName: '', color: 'teal' });
 
   it('builds top-level and nested categories with correct parent, chain and order', async () => {
     let all = await load();

@@ -81,7 +81,9 @@ service cloud.firestore {
       let changed = data.diff(resource.data).affectedKeys();
       return isPlatformAdmin()
         && resource.data.role == 'customer'
-        && changed.hasOnly(['isActive', 'fullName', 'phone', 'updatedAt'])
+        && changed.hasOnly(['isActive', 'fullName', 'phone', 'cityId', 'updatedAt'])
+        && (!changed.hasAny(['cityId'])
+          || (data.cityId is string && data.cityId in validCityIds()))
         && (!changed.hasAny(['isActive']) || data.isActive is bool)
         && (!changed.hasAny(['fullName'])
           || (data.fullName is string
@@ -89,7 +91,7 @@ service cloud.firestore {
             && data.fullName.size() <= 100))
         && (!changed.hasAny(['phone'])
           || (data.phone is string && data.phone.size() <= 30))
-        && (!changed.hasAny(['fullName', 'phone'])
+        && (!changed.hasAny(['fullName', 'phone', 'cityId'])
           || data.updatedAt == request.time)
         && (!changed.hasAny(['updatedAt']) || data.updatedAt == request.time);
     }
@@ -153,6 +155,18 @@ service cloud.firestore {
         && uid != request.auth.uid
         && data.diff(resource.data).affectedKeys().hasOnly(['isActive'])
         && data.isActive is bool;
+    }
+
+    // A Platform Admin whose sign-in email was changed (through the confirmation
+    // link) brings the email in their profile in line with it: that field only,
+    // and only to the very address they are signed in with.
+    function isOwnAdminEmailSync() {
+      let data = request.resource.data;
+      return resource.data.get('role', '') == 'platform_admin'
+        && data.diff(resource.data).affectedKeys().hasOnly(['email', 'updatedAt'])
+        && data.email is string
+        && data.email.lower() == request.auth.token.email.lower()
+        && (!data.keys().hasAny(['updatedAt']) || data.updatedAt == request.time);
     }
 
     function isPlatformAdminCompanyAdminCreate(uid) {
@@ -270,9 +284,98 @@ service cloud.firestore {
         && request.resource.data.language in ['en', 'ar'];
     }
 
+    // The cities customers and companies can choose. Platform Admin keeps the
+    // list in platform_settings/cities (ids of every city ever added, which are
+    // never removed: a city is hidden, not deleted); until it has saved one,
+    // the list the app ships with is the list.
+    function citiesPath() {
+      return /databases/$(database)/documents/platform_settings/cities;
+    }
+
+    function validCityIds() {
+      return exists(citiesPath())
+        ? get(citiesPath()).data.ids
+        : [
+          'khartoum',
+          'omdurman',
+          'bahri',
+          'port_sudan',
+          'wad_madani',
+          'kassala',
+          'gedaref',
+          'atbara',
+          'shendi',
+          'ed_damer',
+          'berber',
+          'dongola',
+          'wadi_halfa',
+          'el_obeid',
+          'kosti',
+          'rabak',
+          'ed_dueim',
+          'sennar',
+          'singa',
+          'ed_damazin',
+          'nyala',
+          'el_fasher',
+          'el_geneina',
+          'zalingei',
+          'ed_daein',
+          'kadugli',
+          'al_fula',
+          'tokar'
+        ];
+    }
+
+    // A customer chooses the city they shop in. Only `cityId` may change, and
+    // only to a city of the list; no other field can ride along with it.
+    function isOwnCityUpdate() {
+      return resource.data.get('role', '') == 'customer'
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['cityId'])
+        && request.resource.data.cityId is string
+        && request.resource.data.cityId in validCityIds();
+    }
+
+    // The cities a company serves: a short list of ids from the city list.
+    // Empty (or absent, for companies that predate the setting) means every
+    // city.
+    function isValidServiceCityIds(ids) {
+      return ids is list
+        && ids.size() <= 40
+        && ids.hasOnly(validCityIds());
+    }
+
+    // A company takes orders and service requests from a customer when it
+    // serves all cities, or the customer's city is one of the cities it
+    // serves. A customer who has chosen no city is served only by a company
+    // that serves all cities.
+    function companyServesCustomer(companyId) {
+      let cities = get(/databases/$(database)/documents/companies/$(companyId))
+        .data.get('serviceCityIds', []);
+      return cities.size() == 0
+        || signedInUser().get('cityId', '') in cities;
+    }
+
     // Every signed-in user registers the phones that should receive their
     // push notifications (FCM device tokens), and nothing else rides along.
     // The app keeps the newest few; the push relay drops tokens FCM rejects.
+    // Which kinds of phone notification a person wants: one yes/no per kind, in
+    // their own profile, read by the push relay before it sends. Nothing else
+    // can ride along with it.
+    function isOwnPushPrefsUpdate() {
+      let prefs = request.resource.data.get('pushPrefs', {});
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pushPrefs'])
+        && prefs is map
+        && prefs.keys().hasOnly(['orders', 'chat', 'serviceRequests', 'reports', 'platform', 'cityAnnouncements'])
+        && prefs.get('orders', true) is bool
+        && prefs.get('chat', true) is bool
+        && prefs.get('serviceRequests', true) is bool
+        && prefs.get('reports', true) is bool
+        && prefs.get('platform', true) is bool
+        && prefs.get('cityAnnouncements', true) is bool;
+    }
+
     function isOwnPushTokensUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['fcmTokens'])
@@ -345,7 +448,11 @@ service cloud.firestore {
         'sortOrder',
         'description',
         'iconName',
+        'color',
         'isActive',
+        'trashedAt',
+        'trashRootId',
+        'activeBeforeTrash',
         'createdAt'
       ]);
     }
@@ -397,8 +504,19 @@ service cloud.firestore {
             && request.resource.data.sortOrder < 100000))
         && request.resource.data.description is string
         && request.resource.data.iconName is string
+        // The tile colour Platform Admin picked (a palette name); absent or
+        // empty means the app picks one.
+        && request.resource.data.get('color', '') is string
+        && request.resource.data.get('color', '').size() <= 20
         && request.resource.data.isActive is bool
         && request.resource.data.get('deletionPending', false) is bool
+        // The trash: when it went there, which category the whole subtree was
+        // sent with, and whether it was active before.
+        && (request.resource.data.get('trashedAt', null) == null
+          || request.resource.data.trashedAt is timestamp)
+        && request.resource.data.get('trashRootId', '') is string
+        && request.resource.data.get('trashRootId', '').size() <= 128
+        && request.resource.data.get('activeBeforeTrash', false) is bool
         && (request.resource.data.get('parentId', null) == null
           || request.resource.data.parentId is string)
         && request.resource.data.get('ancestorIds', []) is list
@@ -414,6 +532,7 @@ service cloud.firestore {
       return isValidCategoryWrite(categoryId)
         && isValidCategoryParent(categoryId)
         && request.resource.data.get('deletionPending', false) == false
+        && request.resource.data.get('trashedAt', null) == null
         && request.resource.data.isActive == true
         && request.resource.data.createdAt == request.time;
     }
@@ -427,6 +546,11 @@ service cloud.firestore {
         && ((request.resource.data.get('parentId', null) == resource.data.get('parentId', null)
             && request.resource.data.get('ancestorIds', []) == resource.data.get('ancestorIds', []))
           || isValidCategoryParent(categoryId))
+        // Into the trash (stamped with this request's time), out of it (the
+        // marker removed), or left as it is.
+        && (request.resource.data.get('trashedAt', null) == resource.data.get('trashedAt', null)
+          || request.resource.data.get('trashedAt', null) == null
+          || request.resource.data.trashedAt == request.time)
         && request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly([
               'name',
@@ -438,7 +562,11 @@ service cloud.firestore {
               'sortOrder',
               'description',
               'iconName',
-              'isActive'
+              'color',
+              'isActive',
+              'trashedAt',
+              'trashRootId',
+              'activeBeforeTrash'
             ]);
     }
 
@@ -655,7 +783,10 @@ service cloud.firestore {
           && isSafeCustomerProfileUpdate())
         || (isOwner(uid) && isPasswordChangeCompletion())
         || (isOwner(uid) && isOwnLanguageUpdate())
+        || (isOwner(uid) && isOwnCityUpdate())
         || (isOwner(uid) && isOwnPushTokensUpdate())
+        || (isOwner(uid) && isOwnPushPrefsUpdate())
+        || (isOwner(uid) && isOwnAdminEmailSync())
         || isPlatformAdminCustomerUpdate()
         || isPlatformAdminAdminUpdate(uid);
 
@@ -1247,6 +1378,7 @@ service cloud.firestore {
         'lastOrderId',
         'lastReleasedOrderId',
         'description',
+        'brand',
         'specifications',
         'isDeliveryAvailable',
         'isInstallationAvailable',
@@ -1284,6 +1416,9 @@ service cloud.firestore {
         && data.stockCount >= 0
         && data.inStock is bool
         && data.description is string
+        // Optional brand name ("HP"); absent or empty means none.
+        && data.get('brand', '') is string
+        && data.get('brand', '').size() <= 60
         && data.specifications is map
         && data.isDeliveryAvailable is bool
         && data.isInstallationAvailable is bool
@@ -1592,6 +1727,73 @@ service cloud.firestore {
         && reportNotificationMatchesReport();
     }
 
+    // Platform Admin tells people what it did, in the same batch that does it:
+    //   an order it cancelled      -> the customer, and the company's admins;
+    //   a product it hid or showed -> the company that owns it.
+    // The notification holds no text of its own (the apps and the relay word
+    // it from the type and the name), and what it says must be true of the
+    // order or product as the batch leaves it.
+    function isValidAdminOrderNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && data.keys().hasAny(['orderId'])
+        && isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'orderId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'orderId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.id == notificationId
+        && data.senderId == request.auth.uid
+        && data.orderId is string
+        && data.orderId.size() > 0
+        && data.orderId.size() <= 128
+        && data.type in ['order_cancelled_by_admin', 'order_cancelled_by_admin_company']
+        && notificationId == data.orderId + '_' + data.type
+        && data.isRead == false
+        && data.createdAt == request.time
+        && adminOrderNotificationMatchesOrder();
+    }
+
+    function adminOrderNotificationMatchesOrder() {
+      let data = request.resource.data;
+      let order = getAfter(/databases/$(database)/documents/orders/$(data.orderId)).data;
+      return order.orderStatus == 'cancelled'
+        && order.get('cancelReason', '') == 'admin'
+        && ((data.type == 'order_cancelled_by_admin'
+            && data.recipientType == 'customer'
+            && data.recipientId == order.customerId)
+          || (data.type == 'order_cancelled_by_admin_company'
+            && data.recipientType == 'company_admin'
+            && data.recipientId == order.companyId))
+        && data.productName == order.productName;
+    }
+
+    function isValidAdminProductNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && data.keys().hasAny(['productId'])
+        && isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'productId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'productId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.id == notificationId
+        && notificationId.size() <= 128
+        && data.senderId == request.auth.uid
+        && data.productId is string
+        && data.productId.size() > 0
+        && data.productId.size() <= 128
+        && data.type in ['product_hidden', 'product_shown']
+        && data.recipientType == 'company_admin'
+        && data.isRead == false
+        && data.createdAt == request.time
+        && adminProductNotificationMatchesProduct();
+    }
+
+    function adminProductNotificationMatchesProduct() {
+      let data = request.resource.data;
+      let product = getAfter(/databases/$(database)/documents/products/$(data.productId)).data;
+      return data.recipientId == product.get('companyId', '')
+        && data.productName == product.get('name', '')
+        && product.get('hidden', false) == (data.type == 'product_hidden');
+    }
+
     // What the notification says must be true of the report as the batch leaves it.
     function reportNotificationMatchesReport() {
       let data = request.resource.data;
@@ -1736,13 +1938,63 @@ service cloud.firestore {
         && data.updatedBy == request.auth.uid;
     }
 
+    // The list of cities (platform_settings/cities): `items` carries each
+    // city's names and place, `ids` the same cities' ids so the rules can
+    // check an id with one read. Platform Admin adds cities and hides them;
+    // an id is never taken out, so nothing already saved turns invalid.
+    function isValidCitiesDocument() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['items', 'ids', 'updatedAt'])
+        && data.keys().hasAll(['items', 'ids', 'updatedAt'])
+        && data.ids is list
+        && data.ids.size() > 0
+        && data.ids.size() <= 200
+        && data.items is list
+        && data.items.size() == data.ids.size()
+        && validCityIds().hasOnly(data.ids)
+        && data.updatedAt == request.time;
+    }
+
     match /platform_settings/{settingsId} {
-      allow get: if settingsId == 'public';
+      allow get: if settingsId in ['public', 'cities'];
       allow list: if false;
-      allow create, update: if settingsId == 'public'
-        && isPlatformAdmin()
-        && isValidPlatformSettings();
+      allow create, update: if (settingsId == 'public'
+          && isPlatformAdmin()
+          && isValidPlatformSettings())
+        || (settingsId == 'cities'
+          && isPlatformAdmin()
+          && isValidCitiesDocument());
       allow delete: if false;
+    }
+
+    // "A company now serves your city": one per company and city, ever (its id
+    // is the pair, and it can never be changed or removed), written by the
+    // company's own admin or by Platform Admin once the city is among the
+    // company's service cities. Nobody reads them from the apps: the push
+    // relay reads one to tell the customers of that city.
+    function isValidCityAnnouncement(announcementId) {
+      let data = request.resource.data;
+      let companyPath = /databases/$(database)/documents/companies/$(data.companyId);
+      return data.keys().hasOnly(['companyId', 'companyName', 'cityId', 'senderId', 'createdAt'])
+        && data.keys().hasAll(['companyId', 'companyName', 'cityId', 'senderId', 'createdAt'])
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.cityId is string
+        && data.cityId in validCityIds()
+        && announcementId == data.companyId + '_' + data.cityId
+        && data.senderId == request.auth.uid
+        && (isCompanyAdminOf(data.companyId) || isPlatformAdmin())
+        && data.createdAt == request.time
+        && existsAfter(companyPath)
+        && getAfter(companyPath).data.get('status', 'active') == 'active'
+        && data.companyName == getAfter(companyPath).data.name
+        && data.cityId in getAfter(companyPath).data.get('serviceCityIds', []);
+    }
+
+    match /city_announcements/{announcementId} {
+      allow get, list: if false;
+      allow create: if isSignedIn() && isValidCityAnnouncement(announcementId);
+      allow update, delete: if false;
     }
 
     // Platform Admin's own activity trail: who changed what, and when. Append
@@ -1875,6 +2127,34 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Internal notes Platform Admins leave on a company, a customer or an order.
+    // Nobody else reads or writes them. A note is written once, signed with the
+    // writer's own id and the server time, and only its author removes it.
+    function isValidAdminNoteCreate() {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.keys().hasOnly(['targetType', 'targetId', 'text', 'authorId', 'authorName', 'createdAt'])
+        && data.keys().hasAll(['targetType', 'targetId', 'text', 'authorId', 'authorName', 'createdAt'])
+        && data.targetType in ['company', 'customer', 'order']
+        && data.targetId is string
+        && data.targetId.size() > 0
+        && data.targetId.size() <= 128
+        && data.text is string
+        && data.text.size() > 0
+        && data.text.size() <= 1000
+        && data.authorId == request.auth.uid
+        && data.authorName is string
+        && data.authorName.size() <= 120
+        && data.createdAt == request.time;
+    }
+
+    match /admin_notes/{noteId} {
+      allow get, list: if isPlatformAdmin();
+      allow create: if isValidAdminNoteCreate();
+      allow update: if false;
+      allow delete: if isPlatformAdmin() && resource.data.authorId == request.auth.uid;
+    }
+
     // Usage figures for the Platform Admin, with no personal content: one tiny
     // document per person per day they opened the app (usage_days, whose id is
     // the day and their uid, so it can be written once and never changed), and a
@@ -1942,6 +2222,8 @@ service cloud.firestore {
 
       // A deactivated account can no longer send notifications.
       allow create: if isValidReportNotificationCreate(notificationId)
+        || isValidAdminOrderNotificationCreate(notificationId)
+        || isValidAdminProductNotificationCreate(notificationId)
         || isSignedIn()
         && callerIsNotDeactivated()
         && isValidNotificationCreate(notificationId)
@@ -2020,8 +2302,10 @@ service cloud.firestore {
           'email',
           'pickupAddress',
           'paymentAccounts',
+          'serviceCityIds',
           'updatedAt'
         ])
+        && isValidServiceCityIds(data.get('serviceCityIds', []))
         && data.name is string
         && data.name.size() > 0
         && data.logoUrl is string
@@ -2056,6 +2340,39 @@ service cloud.firestore {
           || (current in ['inactive', 'rejected'] && next == 'active'));
     }
 
+    // Platform Admin moves a company to the trash (it becomes inactive, with
+    // the time and what its status was) and brings it back (the status it had).
+    // Nothing is deleted by either; only these markers and the status change.
+    function isPlatformAdminCompanyTrashUpdate() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return isPlatformAdmin()
+        && after.diff(before).affectedKeys()
+            .hasOnly(['status', 'statusBeforeTrash', 'trashedAt', 'updatedAt'])
+        && after.updatedAt == request.time
+        && ((before.get('trashedAt', null) == null
+            && after.trashedAt == request.time
+            && after.status == 'inactive'
+            && after.statusBeforeTrash == before.get('status', 'active')
+            && after.statusBeforeTrash in ['pending', 'active', 'rejected', 'inactive'])
+          || (before.get('trashedAt', null) != null
+            && after.get('trashedAt', null) == null
+            && !after.keys().hasAny(['statusBeforeTrash'])
+            && after.status == before.get('statusBeforeTrash', 'inactive')
+            && after.status in ['pending', 'active', 'rejected', 'inactive']));
+    }
+
+    // Platform Admin may also set the cities a company serves (and nothing
+    // else with it), so a company can be fixed or listed from the admin panel.
+    function isPlatformAdminCompanyCitiesUpdate() {
+      return isPlatformAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['serviceCityIds', 'updatedAt'])
+        && request.resource.data.keys().hasAny(['serviceCityIds'])
+        && isValidServiceCityIds(request.resource.data.get('serviceCityIds', []))
+        && request.resource.data.updatedAt == request.time;
+    }
+
     function optionalString(data, key) {
       return !data.keys().hasAny([key]) || data[key] is string;
     }
@@ -2077,6 +2394,7 @@ service cloud.firestore {
           'phone',
           'email',
           'pickupAddress',
+          'serviceCityIds',
           'rating',
           'reviewCount',
           'status',
@@ -2094,6 +2412,7 @@ service cloud.firestore {
         && optionalString(data, 'phone')
         && optionalString(data, 'email')
         && optionalString(data, 'pickupAddress')
+        && isValidServiceCityIds(data.get('serviceCityIds', []))
         && isValidCoordinatePair(
           data.get('latitude', null),
           data.get('longitude', null))
@@ -2117,6 +2436,8 @@ service cloud.firestore {
       allow create: if isValidPlatformAdminCompanyCreate();
 
       allow update: if isPlatformAdminCompanyStatusUpdate()
+        || isPlatformAdminCompanyCitiesUpdate()
+        || isPlatformAdminCompanyTrashUpdate()
         || (isCompanyAdminOf(companyId) && isCompanyProfileUpdate());
 
       allow delete: if isPlatformAdminCompanyDelete();
@@ -2254,6 +2575,7 @@ service cloud.firestore {
           || linkOfferPriceIs(get(linkPath).data, data.get('price', null)))
         && exists(companyPath)
         && get(companyPath).data.get('status', 'active') == 'active'
+        && companyServesCustomer(data.companyId)
         && catalogServiceExists(data.serviceId)
         && existsAfter(/databases/$(database)/documents/chats/$(requestId));
     }
@@ -2584,6 +2906,7 @@ service cloud.firestore {
         && request.resource.data.id == orderId
         && isValidOrderCreate(orderId)
         && companyAcceptsOrders(request.resource.data.companyId)
+        && companyServesCustomer(request.resource.data.companyId)
         && orderProductBelongsToCompany(request.resource.data)
         && orderNamesMatchProduct(request.resource.data)
         && orderPriceIsTrusted(request.resource.data)

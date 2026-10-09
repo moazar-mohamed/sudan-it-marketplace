@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 /*
  * The real Platform Admin company list, driven with clicks, on top of the REAL
- * cascade delete and the project's Firestore rules (Firestore emulator).
- * Nothing about the deletion is mocked: it proves the row disappears, the
- * company's employees / products / invites / admin profile are removed, and
- * every order is left exactly as it was. Local emulator only (npm run test:rules).
+ * trash and cascade delete and the project's Firestore rules (Firestore
+ * emulator). Nothing about them is mocked: it proves "Move to trash" hides the
+ * company and deletes nothing, and that deleting it for good afterwards removes
+ * the company's employees / products / invites / admin profile and leaves
+ * every order exactly as it was. Local emulator only (npm run test:rules).
  */
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import {
@@ -29,6 +30,14 @@ vi.mock('../src/data/actions', async () => {
   const { doc, updateDoc, serverTimestamp } = await import('firebase/firestore');
   return {
     deleteCompany: (id: string) => deleteCompanyCascade(holder.db, id),
+    // The same write the panel's trashCompany makes (src/data/actions.ts).
+    trashCompany: (company: { id: string; status: string }) =>
+      updateDoc(doc(holder.db, 'companies', company.id), {
+        status: 'inactive',
+        statusBeforeTrash: company.status,
+        trashedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }),
     setCompanyStatus: (id: string, status: string) =>
       updateDoc(doc(holder.db, 'companies', id), { status, updatedAt: serverTimestamp() }),
   };
@@ -202,11 +211,11 @@ afterEach(() => {
 const rowOf = (name: string) => screen.getByText(name).closest('tr') as HTMLElement;
 
 describe('company list, end to end on the emulator', () => {
-  it('lists the companies with Delete | Deactivate and no View button', async () => {
+  it('lists the companies with Move to trash | Deactivate and no View button', async () => {
     renderList();
     await screen.findByText('Alpha Tech');
     const buttons = within(rowOf('Alpha Tech')).getAllByRole('button').map((b) => b.textContent);
-    expect(buttons).toEqual([en['companies.delete'], en['companies.deactivate']]);
+    expect(buttons).toEqual([en['companies.trash'], en['companies.deactivate']]);
     expect(screen.queryByText(en['common.view'])).toBeNull();
   });
 
@@ -217,25 +226,54 @@ describe('company list, end to end on the emulator', () => {
     expect(screen.getByTestId('details').textContent).toBe('Company details coB');
   });
 
-  it('Delete runs the real cascade: row gone, people and catalogue deleted, orders untouched', async () => {
+  it('Move to trash hides the company and deletes nothing', async () => {
+    const before = {
+      products: await dump('products'),
+      orders: await dump('orders'),
+      users: await dump('users'),
+    };
+    renderList();
+    await screen.findByText('Alpha Tech');
+
+    fireEvent.click(within(rowOf('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
+    expect(screen.queryByTestId('details')).toBeNull(); // did not navigate
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.textContent).toContain('Nothing is deleted');
+    fireEvent.click(within(dialog).getByRole('button', { name: en['companies.trash'] }));
+
+    // the company is marked, and the list stops showing it...
+    await waitFor(async () => {
+      let data: Record<string, unknown> | undefined;
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        data = (await getDoc(doc(ctx.firestore(), 'companies', 'coA'))).data();
+      });
+      expect(data?.status).toBe('inactive');
+      expect(data?.statusBeforeTrash).toBe('active');
+      expect(data?.trashedAt).toBeTruthy();
+    });
+    await waitFor(() => expect(screen.queryByText('Alpha Tech')).toBeNull());
+    expect(screen.getByText('Beta Corp')).toBeTruthy();
+    // ...but nothing of it, or of anyone else, is gone.
+    expect(await dump('products')).toEqual(before.products);
+    expect(await dump('orders')).toEqual(before.orders);
+    expect(await dump('users')).toEqual(before.users);
+    expect(await exists('companies', 'coA')).toBe(true);
+  });
+
+  it('then deleting it for good runs the real cascade: people and catalogue deleted, orders untouched', async () => {
     const ordersBefore = await dump('orders');
     const customersBefore = await dump('users');
     renderList();
     await screen.findByText('Alpha Tech');
-
-    fireEvent.click(within(rowOf('Alpha Tech')).getByRole('button', { name: en['companies.delete'] }));
-    expect(screen.queryByTestId('details')).toBeNull(); // did not navigate
-    const dialog = screen.getByRole('dialog');
-    expect(dialog.textContent).toContain('Orders and order history will NOT be deleted');
-    fireEvent.click(within(dialog).getByRole('button', { name: en['companies.delete'] }));
-
-    // the live list drops the row as soon as the company document is gone...
+    fireEvent.click(within(rowOf('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: en['companies.trash'] }));
     await waitFor(() => expect(screen.queryByText('Alpha Tech')).toBeNull(), { timeout: 15000 });
-    expect(screen.getByText('Beta Corp')).toBeTruthy();
-    expect(screen.queryByTestId('details')).toBeNull();
-    // ...and the success message means the WHOLE cascade has finished.
-    const toast = await screen.findByText(/Company deleted/, undefined, { timeout: 15000 });
-    expect(toast.textContent).toContain('2 order(s) kept');
+
+    // Deleting for good (the Trash page's button) is the same cascade, and the
+    // rules accept it because the trashed company is not active.
+    const { deleteCompanyCascade } = await import('../src/data/deleteCompany');
+    const summary = await deleteCompanyCascade(holder.db, 'coA');
+    expect(summary.ordersKept).toBe(2);
 
     // everything company A owned is gone...
     expect(await exists('companies', 'coA')).toBe(false);
@@ -283,7 +321,7 @@ describe('company list, end to end on the emulator', () => {
     expect(screen.queryByTestId('details')).toBeNull();
   });
 
-  it('cancelling the confirmation deletes nothing', async () => {
+  it('cancelling the confirmation moves nothing', async () => {
     const before = {
       products: await dump('products'),
       orders: await dump('orders'),
@@ -291,7 +329,7 @@ describe('company list, end to end on the emulator', () => {
     };
     renderList();
     await screen.findByText('Alpha Tech');
-    fireEvent.click(within(rowOf('Alpha Tech')).getByRole('button', { name: en['companies.delete'] }));
+    fireEvent.click(within(rowOf('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: en['common.cancel'] }));
 
     expect(screen.getByText('Alpha Tech')).toBeTruthy();
