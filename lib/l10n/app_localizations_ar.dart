@@ -3411,6 +3411,227 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get notifOrderCancelledByAdminTitle => 'تم إلغاء طلبك';
+
+  @override
+  String notifOrderCancelledByAdminBody(String product) {
+    return 'ألغت المنصة طلبك «$product».';
+  }
+
+  @override
+  String get notifOrderCancelledByAdminCompanyTitle => 'تم إلغاء طلب';
+
+  @override
+  String notifOrderCancelledByAdminCompanyBody(String product) {
+    return 'ألغت المنصة الطلب الخاص بـ«$product».';
+  }
+
+  @override
+  String get notifProductHiddenTitle => 'تم إخفاء منتج';
+
+  @override
+  String notifProductHiddenBody(String product) {
+    return 'أُخفي «$product» عن العملاء. افتحه لمعرفة السبب.';
+  }
+
+  @override
+  String get notifProductShownTitle => 'المنتج ظاهر من جديد';
+
+  @override
+  String notifProductShownBody(String product) {
+    return 'أصبح «$product» ظاهراً للعملاء من جديد.';
+  }
+
+  @override
+  String get settingsPushKindsTitle => 'ما الذي يصلك إشعار عنه';
+
+  @override
+  String get settingsPushKindsHint =>
+      'إيقاف أحدها يوقف إشعارات الهاتف الخاصة به فقط. تبقى كل الإشعارات ظاهرة داخل التطبيق.';
+
+  @override
+  String get pushKindOrders => 'الطلبات';
+
+  @override
+  String get pushKindOrdersHint => 'الطلبات الجديدة والدفع والتوصيل والتقييمات';
+
+  @override
+  String get pushKindChat => 'الرسائل';
+
+  @override
+  String get pushKindChatHint => 'رسائل المحادثات الجديدة';
+
+  @override
+  String get pushKindServiceRequests => 'طلبات الخدمة';
+
+  @override
+  String get pushKindServiceRequestsHint => 'الطلبات الجديدة وتقدّمها';
+
+  @override
+  String get pushKindReports => 'البلاغات';
+
+  @override
+  String get pushKindReportsHint => 'الردود على البلاغات التي أرسلتها';
+
+  @override
+  String get pushKindPlatform => 'رسائل المنصة';
+
+  @override
+  String get pushKindPlatformHint =>
+      'المنتجات التي أخفتها المنصة أو أظهرتها من جديد';
+
+  @override
+  String get pushKindCity => 'شركات جديدة في مدينتي';
+
+  @override
+  String get pushKindCityHint => 'عندما تبدأ شركة بخدمة مدينتك';
+
+  @override
   String get reportLimitReached =>
       'يمكنك إرسال 5 بلاغات كل 24 ساعة. يرجى المحاولة لاحقاً.';
+
+  @override
+  String get cityPickerTitle => 'اختر مدينتك';
+
+  @override
+  String get cityPickerSubtitle =>
+      'نعرض لك الشركات التي تخدم مدينتك فقط، حتى تصلك طلباتك.';
+
+  @override
+  String get cityChangeTooltip => 'تغيير المدينة';
+
+  @override
+  String get citySaveFailed => 'تعذّر حفظ مدينتك. حاول مرة أخرى.';
+
+  @override
+  String get cityServiceAreaTitle => 'المدن التي تخدمها';
+
+  @override
+  String get cityServiceAreaHint =>
+      'يرى العملاء شركتك ومنتجاتك وخدماتك في المدن التي تختارها فقط. اتركها فارغة لتظهر في كل المدن.';
+
+  @override
+  String get cityServiceAreaAll => 'كل المدن';
+
+  @override
+  String get cityServiceAreaChoose => 'اختر المدن';
+
+  @override
+  String cityServiceAreaCount(int count) {
+    return '$count مدن';
+  }
+
+  @override
+  String get cityNotServed => 'هذه الشركة لا تخدم مدينتك.';
+
+  @override
+  String get citySearchHint => 'ابحث عن مدينة';
+
+  @override
+  String get cityUseMyLocation => 'استخدم موقعي';
+
+  @override
+  String get cityLocationFailed => 'تعذّر تحديد موقعك. اختر مدينتك من القائمة.';
+
+  @override
+  String get cityBrowseAll => 'تصفح كل المدن';
+
+  @override
+  String get cityBrowseAllHint =>
+      'يمكنك تصفح كل الشركات، لكن الطلب يكون فقط من شركات تخدم مدينتك.';
+
+  @override
+  String cityCompaniesCount(int count) {
+    return '$count شركة';
+  }
+
+  @override
+  String get cityNoResults => 'لا توجد مدينة بهذا الاسم.';
+
+  @override
+  String get cityCompanyNoCitiesTitle => 'اختر المدن التي تخدمها';
+
+  @override
+  String get cityCompanyNoCitiesBody =>
+      'شركتك لم تحدد مدناً بعد، فيراها كل العملاء في كل المدن ويطلبون منها. اختر المدن التي توصّل إليها.';
+
+  @override
+  String categoryChipAll(int count) {
+    return 'الكل ($count)';
+  }
+
+  @override
+  String categoryItemCount(int count) {
+    return '$count عنصر';
+  }
+
+  @override
+  String get categoryKindAll => 'الكل';
+
+  @override
+  String get categoryKindProducts => 'المنتجات';
+
+  @override
+  String get categoryKindServices => 'الخدمات';
+
+  @override
+  String get categoryFilterInStock => 'متوفر';
+
+  @override
+  String get categoryFilterBrand => 'الماركة';
+
+  @override
+  String get categoryFilterPrice => 'السعر';
+
+  @override
+  String get categoryFilterCompany => 'الشركة';
+
+  @override
+  String get categoryFilterAnyBrand => 'كل الماركات';
+
+  @override
+  String get categoryFilterAnyCompany => 'كل الشركات';
+
+  @override
+  String get categoryFilterPriceFrom => 'من';
+
+  @override
+  String get categoryFilterPriceTo => 'إلى';
+
+  @override
+  String get categoryFilterApply => 'تطبيق';
+
+  @override
+  String get categoryFilterClear => 'مسح';
+
+  @override
+  String categorySectionProducts(int count) {
+    return 'المنتجات ($count)';
+  }
+
+  @override
+  String categorySectionServices(int count) {
+    return 'الخدمات ($count)';
+  }
+
+  @override
+  String get categoryScreenEmpty => 'لا يوجد شيء هنا بعد.';
+
+  @override
+  String get categoryNoMatches => 'لا شيء يطابق هذه الفلاتر.';
+
+  @override
+  String get categoryClearFilters => 'مسح الفلاتر';
+
+  @override
+  String get formBrandLabel => 'الماركة';
+
+  @override
+  String get formBrandHint => 'مثلاً HP أو Cisco أو Samsung';
+
+  @override
+  String get formCategoryRequired => 'التصنيف مطلوب';
+
+  @override
+  String get productBrand => 'الماركة';
 }

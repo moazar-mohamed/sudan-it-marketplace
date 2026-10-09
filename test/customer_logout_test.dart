@@ -33,6 +33,7 @@ final _customerProfile = UserProfile(
   fullName: 'Moazer Mohamed',
   email: 'customer@example.test',
   role: UserRole.customer,
+  cityId: 'khartoum',
   createdAt: DateTime(2026),
   isActive: true,
 );

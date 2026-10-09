@@ -991,5 +991,98 @@
   "notifReportInProgressBody": "بدأنا العمل على «{subject}».",
   "notifReportClosedTitle": "تم إغلاق بلاغك",
   "notifReportClosedBody": "تم إغلاق بلاغك «{subject}». افتح «بلاغاتي» لقراءة ردّنا.",
-  "reportLimitReached": "يمكنك إرسال 5 بلاغات كل 24 ساعة. يرجى المحاولة لاحقاً."
+  "notifOrderCancelledByAdminTitle": "تم إلغاء طلبك",
+  "notifOrderCancelledByAdminBody": "ألغت المنصة طلبك «{product}».",
+  "notifOrderCancelledByAdminCompanyTitle": "تم إلغاء طلب",
+  "notifOrderCancelledByAdminCompanyBody": "ألغت المنصة الطلب الخاص بـ«{product}».",
+  "notifProductHiddenTitle": "تم إخفاء منتج",
+  "notifProductHiddenBody": "أُخفي «{product}» عن العملاء. افتحه لمعرفة السبب.",
+  "notifProductShownTitle": "المنتج ظاهر من جديد",
+  "notifProductShownBody": "أصبح «{product}» ظاهراً للعملاء من جديد.",
+  "settingsPushKindsTitle": "ما الذي يصلك إشعار عنه",
+  "settingsPushKindsHint": "إيقاف أحدها يوقف إشعارات الهاتف الخاصة به فقط. تبقى كل الإشعارات ظاهرة داخل التطبيق.",
+  "pushKindOrders": "الطلبات",
+  "pushKindOrdersHint": "الطلبات الجديدة والدفع والتوصيل والتقييمات",
+  "pushKindChat": "الرسائل",
+  "pushKindChatHint": "رسائل المحادثات الجديدة",
+  "pushKindServiceRequests": "طلبات الخدمة",
+  "pushKindServiceRequestsHint": "الطلبات الجديدة وتقدّمها",
+  "pushKindReports": "البلاغات",
+  "pushKindReportsHint": "الردود على البلاغات التي أرسلتها",
+  "pushKindPlatform": "رسائل المنصة",
+  "pushKindPlatformHint": "المنتجات التي أخفتها المنصة أو أظهرتها من جديد",
+  "pushKindCity": "شركات جديدة في مدينتي",
+  "pushKindCityHint": "عندما تبدأ شركة بخدمة مدينتك",
+  "reportLimitReached": "يمكنك إرسال 5 بلاغات كل 24 ساعة. يرجى المحاولة لاحقاً.",
+  "cityPickerTitle": "اختر مدينتك",
+  "cityPickerSubtitle": "نعرض لك الشركات التي تخدم مدينتك فقط، حتى تصلك طلباتك.",
+  "cityChangeTooltip": "تغيير المدينة",
+  "citySaveFailed": "تعذّر حفظ مدينتك. حاول مرة أخرى.",
+  "cityServiceAreaTitle": "المدن التي تخدمها",
+  "cityServiceAreaHint": "يرى العملاء شركتك ومنتجاتك وخدماتك في المدن التي تختارها فقط. اتركها فارغة لتظهر في كل المدن.",
+  "cityServiceAreaAll": "كل المدن",
+  "cityServiceAreaChoose": "اختر المدن",
+  "cityServiceAreaCount": "{count} مدن",
+  "cityNotServed": "هذه الشركة لا تخدم مدينتك.",
+  "citySearchHint": "ابحث عن مدينة",
+  "cityUseMyLocation": "استخدم موقعي",
+  "cityLocationFailed": "تعذّر تحديد موقعك. اختر مدينتك من القائمة.",
+  "cityBrowseAll": "تصفح كل المدن",
+  "cityBrowseAllHint": "يمكنك تصفح كل الشركات، لكن الطلب يكون فقط من شركات تخدم مدينتك.",
+  "cityCompaniesCount": "{count} شركة",
+  "cityNoResults": "لا توجد مدينة بهذا الاسم.",
+  "cityCompanyNoCitiesTitle": "اختر المدن التي تخدمها",
+  "cityCompanyNoCitiesBody": "شركتك لم تحدد مدناً بعد، فيراها كل العملاء في كل المدن ويطلبون منها. اختر المدن التي توصّل إليها.",
+  "categoryChipAll": "الكل ({count})",
+  "@categoryChipAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryItemCount": "{count} عنصر",
+  "@categoryItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryKindAll": "الكل",
+  "categoryKindProducts": "المنتجات",
+  "categoryKindServices": "الخدمات",
+  "categoryFilterInStock": "متوفر",
+  "categoryFilterBrand": "الماركة",
+  "categoryFilterPrice": "السعر",
+  "categoryFilterCompany": "الشركة",
+  "categoryFilterAnyBrand": "كل الماركات",
+  "categoryFilterAnyCompany": "كل الشركات",
+  "categoryFilterPriceFrom": "من",
+  "categoryFilterPriceTo": "إلى",
+  "categoryFilterApply": "تطبيق",
+  "categoryFilterClear": "مسح",
+  "categorySectionProducts": "المنتجات ({count})",
+  "@categorySectionProducts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categorySectionServices": "الخدمات ({count})",
+  "@categorySectionServices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryScreenEmpty": "لا يوجد شيء هنا بعد.",
+  "categoryNoMatches": "لا شيء يطابق هذه الفلاتر.",
+  "categoryClearFilters": "مسح الفلاتر",
+  "formBrandLabel": "الماركة",
+  "formBrandHint": "مثلاً HP أو Cisco أو Samsung",
+  "formCategoryRequired": "التصنيف مطلوب",
+  "productBrand": "الماركة"
 }

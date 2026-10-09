@@ -9,7 +9,6 @@ import '../../../core/widgets/app_widgets.dart';
 import '../../chats/domain/entities/chat_conversation.dart';
 import '../../chats/presentation/chat_providers.dart';
 import '../../chats/presentation/chat_screen.dart';
-import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../location/presentation/location_strings.dart';
 import '../../reviews/presentation/review_widgets.dart';
 import '../../reviews/presentation/reviews_providers.dart';
@@ -39,11 +38,6 @@ class OrderDetailsScreen extends ConsumerWidget {
   String _resolveCompanyName() {
     if (order.companyName.isNotEmpty) {
       return order.companyName;
-    }
-    for (final company in mockCompanies) {
-      if (company.id == order.companyId) {
-        return company.name;
-      }
     }
     return 'IT Partner Co.';
   }

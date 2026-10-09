@@ -144,8 +144,8 @@ void main() {
       // the same tree a service is filed in: its top level is offered too
       expect(find.byKey(const ValueKey('category-row-ins')), findsOneWidget);
       expect(find.byKey(const ValueKey('category-row-cab')), findsNothing);
-      // "No category" is still an option
-      expect(find.byKey(const ValueKey('category-none')), findsOneWidget);
+      // a product must have a category, so there is no "No category" option
+      expect(find.byKey(const ValueKey('category-none')), findsNothing);
     });
 
     testWidgets('walks down level by level and chooses the final category', (
@@ -257,15 +257,11 @@ void main() {
       expect(repository.created.single.categoryId, 'l11');
     });
 
-    testWidgets('"No category" clears the choice', (tester) async {
+    testWidgets('saving without a category is refused', (tester) async {
       await pumpForm(tester);
-      await openPicker(tester);
-      await tapKey(tester, 'category-row-lap');
-      expect(find.text('Laptops'), findsOneWidget);
-      await openPicker(tester);
-      await tapKey(tester, 'category-none');
       await save(tester);
-      expect(repository.created.single.categoryId, isNull);
+      expect(find.text('A category is required'), findsOneWidget);
+      expect(repository.created, isEmpty);
     });
 
     testWidgets('dismissing the sheet leaves the choice unchanged', (

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -14,8 +15,10 @@ import '../../../offers/presentation/offer_price.dart';
 import 'home_design.dart';
 
 /// The big banner at the top of the products tab: the best offers one at a
-/// time on a dark card, swiped sideways, with dots underneath. Shows nothing
-/// when no offer runs.
+/// time on a dark card, swiped sideways, with dots underneath. Moves on by
+/// itself every few seconds (and back to the first after the last), pausing
+/// while a finger is on it; stays still when the device asks for no
+/// animations. Shows nothing when no offer runs.
 class HomeHeroOffers extends StatefulWidget {
   const HomeHeroOffers({
     super.key,
@@ -34,18 +37,51 @@ class HomeHeroOffers extends StatefulWidget {
 }
 
 class _HomeHeroOffersState extends State<HomeHeroOffers> {
+  /// How long an offer stays before the next one slides in.
+  static const _autoPlayEvery = Duration(seconds: 5);
+
   final _controller = PageController(viewportFraction: 0.92);
+  Timer? _timer;
   int _page = 0;
+  int _count = 0;
+  bool _touching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _schedule();
+  }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// Arms the next move; every touch or move restarts the full wait.
+  void _schedule() {
+    _timer?.cancel();
+    _timer = Timer(_autoPlayEvery, _advance);
+  }
+
+  void _advance() {
+    if (!mounted) return;
+    final still = _touching || MediaQuery.disableAnimationsOf(context);
+    if (!still && _count > 1 && _controller.hasClients) {
+      _controller.animateToPage(
+        (_page + 1) % _count,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOut,
+      );
+    }
+    _schedule();
   }
 
   @override
   Widget build(BuildContext context) {
     final items = widget.offers.take(widget.maxItems).toList();
+    _count = items.length;
     if (items.isEmpty) return const SizedBox.shrink();
     final colors = context.colors;
     // The card has a fixed height, so very large text is capped here.
@@ -58,17 +94,30 @@ class _HomeHeroOffersState extends State<HomeHeroOffers> {
         children: [
           SizedBox(
             height: 212 * (1 + (scale - 1) * 0.7),
-            child: PageView.builder(
-              controller: _controller,
-              itemCount: items.length,
-              onPageChanged: (page) => setState(() => _page = page),
-              itemBuilder: (context, index) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s4),
-                child: _HeroCard(
-                  item: items[index],
-                  look: CategoryLook.of(
-                    widget.categories[items[index].categoryId],
-                    fallbackId: items[index].id,
+            child: Listener(
+              onPointerDown: (_) {
+                _touching = true;
+                _schedule();
+              },
+              onPointerUp: (_) => _touching = false,
+              onPointerCancel: (_) => _touching = false,
+              child: PageView.builder(
+                controller: _controller,
+                itemCount: items.length,
+                onPageChanged: (page) {
+                  setState(() => _page = page);
+                  _schedule();
+                },
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.s4,
+                  ),
+                  child: _HeroCard(
+                    item: items[index],
+                    look: CategoryLook.of(
+                      widget.categories[items[index].categoryId],
+                      fallbackId: items[index].id,
+                    ),
                   ),
                 ),
               ),

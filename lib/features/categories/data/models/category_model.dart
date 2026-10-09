@@ -10,6 +10,7 @@ class CategoryModel extends Category {
     required super.createdAt,
     super.nameAr,
     super.nameEn,
+    super.colorName,
     super.sortOrder,
     super.parentId,
     super.ancestorIds,
@@ -35,6 +36,7 @@ class CategoryModel extends Category {
       deletionPending: data['deletionPending'] == true,
       description: data['description'] as String? ?? '',
       iconName: data['iconName'] as String? ?? '',
+      colorName: data['color'] as String? ?? '',
       isActive: data['isActive'] as bool? ?? false,
       createdAt: data['createdAt'] is DateTime
           ? (data['createdAt'] as DateTime).toUtc()

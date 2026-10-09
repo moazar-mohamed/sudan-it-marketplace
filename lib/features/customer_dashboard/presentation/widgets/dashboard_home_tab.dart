@@ -5,12 +5,15 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../categories/presentation/category_providers.dart';
+import '../category_counts_provider.dart';
+import '../category_screen.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../products/presentation/products_providers.dart';
 import '../../../services/presentation/service_providers.dart';
 import '../../../company_services/domain/entities/company_service.dart';
 import '../../../services/domain/entities/catalog_service.dart';
 import '../../../company_services/presentation/company_service_providers.dart';
+import 'category_browse.dart';
 import 'category_browser.dart';
 import 'category_grid_style.dart';
 import 'home_header.dart';
@@ -46,10 +49,6 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
   // which the sibling IndexedStack tabs also attach to.
   final ScrollController _scrollController = ScrollController();
 
-  /// The category being browsed in each tree (its whole subtree is the
-  /// filter); null = every product or service.
-  String? _productCategory;
-  String? _serviceCategory;
   _HomeTab _selectedTab = _HomeTab.products;
 
   /// How the products list is ordered and narrowed (the chips above it).
@@ -95,6 +94,14 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
     }
   }
 
+  /// A category opens on its own screen, with its sub-categories, filters and
+  /// everything in it.
+  void _openCategory(String id) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => CategoryScreen(categoryId: id)),
+    );
+  }
+
   void _selectTab(_HomeTab tab) {
     if (_selectedTab == tab) return;
     setState(() => _selectedTab = tab);
@@ -109,28 +116,16 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
     final categoryNames = ref.watch(categoryNamesProvider);
     final productTree = ref.watch(categoryTreeProvider);
 
-    final productCategory = CategoryBrowser.validCurrent(
-      productTree,
-      _productCategory,
-    );
-    final productScope = productCategory == null
-        ? null
-        : productTree.subtreeIds(productCategory);
+    final counts = ref.watch(categoryCountsProvider);
 
     final filteredCompanies = mockCompanies;
-    final filteredProducts = [
-      for (final product in mockProducts)
-        if (productScope == null || productScope.contains(product.categoryId))
-          product,
-    ];
+    final filteredProducts = mockProducts;
 
-    // Products and services on offer in the category being browsed.
+    // Products and services on offer.
     final serviceOffers = ref.watch(marketplaceServiceOffersProvider);
     final offers = runningOffers([
       for (final product in filteredProducts) ProductOfferItem(product),
-      for (final item in serviceOffers)
-        if (productScope == null || productScope.contains(item.categoryId))
-          item,
+      ...serviceOffers,
     ]);
 
     final isProductsTab = _selectedTab == _HomeTab.products;
@@ -138,9 +133,6 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
 
     final categoriesById = ref.watch(categoriesByIdProvider);
     final recent = recentProducts(filteredProducts, DateTime.now());
-    final hasTiles =
-        productTree.activeChildrenOf(productCategory).isNotEmpty ||
-        productCategory != null;
 
     // Each section sets its own side space, so a sideways row or a full-width
     // band can reach the screen edge.
@@ -173,13 +165,13 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           ],
           CategoryBrowser(
             tree: productTree,
-            currentId: productCategory,
+            counts: counts,
             title: context.l10n.homeShopByCategory,
             style: CategoryGridStyle.homeRow,
             horizontalPadding: horizontalPadding,
-            onChanged: (id) => setState(() => _productCategory = id),
+            onOpen: _openCategory,
           ),
-          if (hasTiles) gap,
+          gap,
           padded(const HomeTrustStrip()),
           gap,
           // Under the categories: the offers of the category being browsed.
@@ -191,24 +183,21 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
             ),
             gap,
           ],
-          // Without a category chosen: the verified companies and what was
-          // added lately. Choosing one narrows the page to its products.
-          if (productCategory == null) ...[
-            HomeVerifiedCompaniesRow(
-              companies: filteredCompanies,
+          // The verified companies and what was added lately.
+          HomeVerifiedCompaniesRow(
+            companies: filteredCompanies,
+            horizontalPadding: horizontalPadding,
+            onViewAll: () => _selectTab(_HomeTab.companies),
+          ),
+          gap,
+          if (recent.isNotEmpty) ...[
+            HomeRecentRow(
+              products: recent,
+              categories: categoriesById,
               horizontalPadding: horizontalPadding,
-              onViewAll: () => _selectTab(_HomeTab.companies),
+              onViewAll: _showAllProducts,
             ),
             gap,
-            if (recent.isNotEmpty) ...[
-              HomeRecentRow(
-                products: recent,
-                categories: categoriesById,
-                horizontalPadding: horizontalPadding,
-                onViewAll: _showAllProducts,
-              ),
-              gap,
-            ],
           ],
           HomeProductsSection(
             headerKey: _allProductsKey,
@@ -223,8 +212,8 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
           ),
         ] else if (isServicesTab)
           _ServicesList(
-            categoryId: _serviceCategory,
-            onCategoryChanged: (id) => setState(() => _serviceCategory = id),
+            counts: counts,
+            onCategorySelected: _openCategory,
             horizontalPadding: horizontalPadding,
             listKey: _servicesListKey,
             onRequest: () => _scrollTo(_servicesListKey),
@@ -261,16 +250,16 @@ class _DashboardHomeTabState extends ConsumerState<DashboardHomeTab> {
 /// until the customer asks for it.
 class _ServicesList extends ConsumerWidget {
   const _ServicesList({
-    required this.categoryId,
-    required this.onCategoryChanged,
+    required this.counts,
+    required this.onCategorySelected,
     required this.horizontalPadding,
     required this.listKey,
     required this.onRequest,
   });
 
-  /// The service category being browsed (its subtree is the filter).
-  final String? categoryId;
-  final ValueChanged<String?> onCategoryChanged;
+  /// What each category holds, and what opening one does.
+  final Map<String, CategoryCount>? counts;
+  final ValueChanged<String> onCategorySelected;
   final double horizontalPadding;
 
   /// Marks where the list of services starts.
@@ -289,8 +278,6 @@ class _ServicesList extends ConsumerWidget {
         ref.watch(allActiveCompanyServicesProvider).asData?.value ??
         const <CompanyService>[];
     final companies = ref.watch(marketplaceCompaniesProvider);
-    final current = CategoryBrowser.validCurrent(serviceTree, categoryId);
-    final scope = current == null ? null : serviceTree.subtreeIds(current);
 
     Widget padded(Widget child) => Padding(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -306,14 +293,13 @@ class _ServicesList extends ConsumerWidget {
         const SizedBox(height: 20),
         CategoryBrowser(
           tree: serviceTree,
-          currentId: current,
+          counts: counts,
           title: context.l10n.homeServicesByCategory,
           style: CategoryGridStyle.homeRow,
           horizontalPadding: horizontalPadding,
-          onChanged: onCategoryChanged,
+          onOpen: onCategorySelected,
         ),
-        if (serviceTree.activeChildrenOf(current).isNotEmpty || current != null)
-          const SizedBox(height: 20),
+        const SizedBox(height: 20),
         servicesAsync.when(
           loading: () => padded(const AppSkeletonList(count: 2)),
           error: (_, _) => padded(
@@ -324,11 +310,7 @@ class _ServicesList extends ConsumerWidget {
           ),
           data: (services) {
             final listings = buildServiceListings(
-              services: [
-                for (final service in services)
-                  if (scope == null || scope.contains(service.categoryId))
-                    service,
-              ],
+              services: services,
               links: links,
               companies: companies,
             );

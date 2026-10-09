@@ -85,7 +85,7 @@ class HomeProductsSection extends ConsumerWidget {
                   icon: Icons.filter_alt_off_outlined,
                   message: l10n.homeNoMatchingProducts,
                 )
-              : _Grid(
+              : ProductsGrid(
                   children: [
                     for (final product in shown) _card(context, product, now),
                   ],
@@ -112,8 +112,8 @@ class HomeProductsSection extends ConsumerWidget {
 }
 
 /// Cards in rows of equal height, as many columns as the width allows.
-class _Grid extends StatelessWidget {
-  const _Grid({required this.children});
+class ProductsGrid extends StatelessWidget {
+  const ProductsGrid({super.key, required this.children});
 
   final List<Widget> children;
 
@@ -200,12 +200,12 @@ class _Controls extends StatelessWidget {
       key: const ValueKey('home-product-controls'),
       padding: padding,
       child: Wrap(
-        spacing: AppSpacing.s8,
+        spacing: AppSpacing.s6,
         runSpacing: AppSpacing.s8,
         children: [
-          _SortButton(sort: sort, onChanged: onSortChanged),
+          HomeSortButton(sort: sort, onChanged: onSortChanged),
           for (final chip in chips)
-            _FilterChip(
+            HomeFilterChip(
               label: chip.$1,
               selected: chip.$2,
               onTap: () => onFiltersChanged(chip.$3()),
@@ -216,7 +216,7 @@ class _Controls extends StatelessWidget {
   }
 }
 
-String _sortLabel(BuildContext context, ProductSort sort) {
+String productSortLabel(BuildContext context, ProductSort sort) {
   final l10n = context.l10n;
   return switch (sort) {
     ProductSort.newest => l10n.homeSortNewest,
@@ -226,8 +226,12 @@ String _sortLabel(BuildContext context, ProductSort sort) {
   };
 }
 
-class _SortButton extends StatelessWidget {
-  const _SortButton({required this.sort, required this.onChanged});
+class HomeSortButton extends StatelessWidget {
+  const HomeSortButton({
+    super.key,
+    required this.sort,
+    required this.onChanged,
+  });
 
   final ProductSort sort;
   final ValueChanged<ProductSort> onChanged;
@@ -239,13 +243,13 @@ class _SortButton extends StatelessWidget {
       key: const ValueKey('home-sort-button'),
       initialValue: sort,
       onSelected: onChanged,
-      tooltip: _sortLabel(context, sort),
+      tooltip: productSortLabel(context, sort),
       position: PopupMenuPosition.under,
       itemBuilder: (context) => [
         for (final option in ProductSort.values)
           PopupMenuItem(
             value: option,
-            child: Text(_sortLabel(context, option)),
+            child: Text(productSortLabel(context, option)),
           ),
       ],
       child: Container(
@@ -265,7 +269,7 @@ class _SortButton extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.s6),
             Text(
-              _sortLabel(context, sort),
+              productSortLabel(context, sort),
               style: AppTextStyles.labelLarge.copyWith(
                 color: colors.textInverse,
               ),
@@ -283,8 +287,9 @@ class _SortButton extends StatelessWidget {
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
+class HomeFilterChip extends StatelessWidget {
+  const HomeFilterChip({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,
@@ -315,7 +320,7 @@ class _FilterChip extends StatelessWidget {
           onTap: onTap,
           child: Container(
             height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
             // widthFactor keeps the chip as wide as its label inside a Wrap.
             child: Center(
               widthFactor: 1,

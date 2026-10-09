@@ -8,6 +8,7 @@ import '../../../../core/utils/arabic_text.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../categories/domain/entities/category.dart';
 import '../../../categories/presentation/category_label.dart';
+import 'category_browse.dart';
 import 'category_grid_style.dart';
 
 /// "Categories" section of the customer home: a grid of coloured cards, each
@@ -23,11 +24,16 @@ class CategoryGrid extends StatelessWidget {
     this.style = CategoryGridStyle.standard,
     this.title,
     this.horizontalPadding = 0,
+    this.counts,
   });
 
   final List<Category> categories;
   final String? selectedId;
   final CategoryGridStyle style;
+
+  /// How many products and services each category holds; when given, every
+  /// tile shows it under the name. Null while the counts are still loading.
+  final Map<String, CategoryCount>? counts;
 
   /// The section's name; "Categories" when null.
   final String? title;
@@ -67,6 +73,7 @@ class CategoryGrid extends StatelessWidget {
               _Tiles(
                 categories: categories,
                 selectedId: selectedId,
+                counts: counts,
                 style: CategoryGridStyle.standard,
                 onTap: (id) => Navigator.of(sheetContext).pop(id),
               ),
@@ -125,6 +132,7 @@ class CategoryGrid extends StatelessWidget {
         _Tiles(
           categories: preview,
           selectedId: selectedId,
+          counts: counts,
           style: style,
           onTap: (id) => onSelected(id == selectedId ? null : id),
         ),
@@ -179,7 +187,7 @@ class CategoryGrid extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.s8),
         SizedBox(
-          height: style.rowTileSize + 58,
+          height: style.rowTileSize + (counts == null ? 58 : 76),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -187,6 +195,7 @@ class CategoryGrid extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.s8),
             itemBuilder: (context, i) => _RowTile(
               category: categories[i],
+              count: counts?[categories[i].id]?.total,
               selected: categories[i].id == selectedId,
               style: style,
               onTap: () => onSelected(
@@ -207,9 +216,13 @@ class _RowTile extends StatelessWidget {
     required this.selected,
     required this.style,
     required this.onTap,
+    this.count,
   });
 
   final Category category;
+
+  /// What the category holds, shown under its name; null shows nothing.
+  final int? count;
   final bool selected;
   final CategoryGridStyle style;
   final VoidCallback onTap;
@@ -219,7 +232,7 @@ class _RowTile extends StatelessWidget {
     final colors = context.colors;
     final name = category.localizedName(context);
     final icon = categoryIconFor(category);
-    final accent = style.colorFor(icon, category.id);
+    final accent = style.colorOfCategory(category, icon);
     return Semantics(
       button: true,
       selected: selected,
@@ -264,6 +277,15 @@ class _RowTile extends StatelessWidget {
                   height: 1.25,
                 ),
               ),
+              if (count != null)
+                Text(
+                  context.l10n.categoryItemCount(count!),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.caption.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
             ],
           ),
         ),
@@ -278,9 +300,11 @@ class _Tiles extends StatelessWidget {
     required this.selectedId,
     required this.style,
     required this.onTap,
+    this.counts,
   });
 
   final List<Category> categories;
+  final Map<String, CategoryCount>? counts;
   final String? selectedId;
   final CategoryGridStyle style;
   final ValueChanged<String> onTap;
@@ -301,6 +325,7 @@ class _Tiles extends StatelessWidget {
         final category = categories[i];
         return _Tile(
           category: category,
+          count: counts?[category.id]?.total,
           selected: category.id == selectedId,
           style: style,
           onTap: () => onTap(category.id),
@@ -316,9 +341,13 @@ class _Tile extends StatelessWidget {
     required this.selected,
     required this.style,
     required this.onTap,
+    this.count,
   });
 
   final Category category;
+
+  /// What the category holds, shown under its name; null shows nothing.
+  final int? count;
   final bool selected;
   final CategoryGridStyle style;
   final VoidCallback onTap;
@@ -328,7 +357,7 @@ class _Tile extends StatelessWidget {
     final colors = context.colors;
     final name = category.localizedName(context);
     final icon = categoryIconFor(category);
-    final accent = style.colorFor(icon, category.id);
+    final accent = style.colorOfCategory(category, icon);
     final brightness = Theme.of(context).brightness;
     const arrowSize = AppSize.iconMd;
     return Semantics(
@@ -380,6 +409,15 @@ class _Tile extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (count != null)
+                    Text(
+                      context.l10n.categoryItemCount(count!),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.caption.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
                 ],
               ),
             ),

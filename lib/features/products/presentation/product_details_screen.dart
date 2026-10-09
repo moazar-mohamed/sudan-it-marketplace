@@ -10,7 +10,6 @@ import '../../categories/presentation/category_providers.dart';
 import '../../chats/presentation/widgets/contact_company_button.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../companies/presentation/company_details_screen.dart';
-import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../orders/presentation/checkout_screen.dart';
 import '../domain/entities/product.dart';
 import 'product_price_strings.dart';
@@ -33,7 +32,8 @@ class ProductDetailsScreen extends ConsumerStatefulWidget {
   final bool openedFromCompany;
 
   @override
-  ConsumerState<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+  ConsumerState<ProductDetailsScreen> createState() =>
+      _ProductDetailsScreenState();
 }
 
 class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
@@ -67,14 +67,6 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
         return resolved;
       }
     }
-    if (widget.product.companyName != null) {
-      for (final company in mockCompanies) {
-        if (company.name.toLowerCase() ==
-            widget.product.companyName!.toLowerCase()) {
-          return company;
-        }
-      }
-    }
     return null;
   }
 
@@ -101,9 +93,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
   /// opened from a stale card or a direct link, so stock is never taken from
   /// the snapshot it was opened with once the live catalogue is known.
   Product get _liveProduct => resolveLiveProduct(
-        widget.product,
-        ref.read(firestoreProductsStreamProvider),
-      );
+    widget.product,
+    ref.read(firestoreProductsStreamProvider),
+  );
 
   /// The chosen quantity, kept within what is left (1 when nothing is).
   int _effectiveQuantity(Product product) {
@@ -121,6 +113,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
 
   void _onBuyNow(BuildContext context) {
     final product = _liveProduct;
+    if (!ref.read(companyServesMyCityProvider(product.companyId ?? ''))) {
+      showAppSnackBar(context, context.l10n.cityNotServed, tone: AppTone.error);
+      return;
+    }
     if (!product.hasPrice) {
       return;
     }
@@ -153,17 +149,17 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     // The offer price while an offer runs.
     final unitPrice = stock.salePrice;
     final totalPrice = unitPrice == null ? null : unitPrice * quantity;
-    // A demo catalogue product has no product document, so the rules refuse
-    // any order for it: never let the customer pay for one.
-    final canBuy =
-        stock.isAvailable && stock.hasPrice && !isDemoProduct(widget.product);
-    // Only a real company can be written to (not the demo catalogue).
+    final servesMyCity = ref.watch(
+      companyServesMyCityProvider(widget.product.companyId ?? ''),
+    );
+    final canBuy = stock.isAvailable && stock.hasPrice && servesMyCity;
     final contactCompanyId = widget.product.companyId ?? '';
-    final canContact =
-        contactCompanyId.isNotEmpty && !isDemoProduct(widget.product);
+    final canContact = contactCompanyId.isNotEmpty;
     final categoryName =
-        ref.watch(categoryPathNamesProvider)[widget.product.categoryId]?.trim() ??
-            '';
+        ref
+            .watch(categoryPathNamesProvider)[widget.product.categoryId]
+            ?.trim() ??
+        '';
     final companyName = widget.product.companyName ?? '';
     final specs = widget.product.specifications.entries.toList();
     final description = widget.product.description?.trim() ?? '';
@@ -171,12 +167,15 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     final margin = AppSpacing.screenMargin(screenWidth);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.product.name),
-      ),
+      appBar: AppBar(title: Text(widget.product.name)),
       body: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
+        padding: EdgeInsets.fromLTRB(
+          margin,
+          AppSpacing.s16,
+          margin,
+          AppSpacing.s24,
+        ),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
@@ -211,14 +210,29 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 RatingLine(
                   ratingsKey: RatingStats.productKey(widget.product.id),
                 ),
-                if (categoryName.isNotEmpty) ...[
+                if (categoryName.isNotEmpty ||
+                    widget.product.brand.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.s8),
                   Align(
                     alignment: AlignmentDirectional.centerStart,
-                    child: StatusChip(
-                      label: categoryName,
-                      tone: AppTone.brand,
-                      showDot: false,
+                    child: Wrap(
+                      spacing: AppSpacing.s8,
+                      runSpacing: AppSpacing.s4,
+                      children: [
+                        if (widget.product.brand.isNotEmpty)
+                          StatusChip(
+                            key: const ValueKey('product-brand'),
+                            label: widget.product.brand,
+                            tone: AppTone.neutral,
+                            showDot: false,
+                          ),
+                        if (categoryName.isNotEmpty)
+                          StatusChip(
+                            label: categoryName,
+                            tone: AppTone.brand,
+                            showDot: false,
+                          ),
+                      ],
                     ),
                   ),
                 ],
@@ -226,7 +240,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 // A product without a price says so; it is never shown as 0.
                 ProductOfferPrice(
                   product: stock,
-                  style: unitPrice == null ? AppTextStyles.h2 : AppTextStyles.stat,
+                  style: unitPrice == null
+                      ? AppTextStyles.h2
+                      : AppTextStyles.stat,
                 ),
                 if (stock.hasActiveOffer && stock.offerEndsAt != null) ...[
                   const SizedBox(height: AppSpacing.s4),
@@ -235,11 +251,20 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                       MaterialLocalizations.of(context)
                           .formatMediumDate(stock.offerEndsAt!),
                     ),
-                    style: AppTextStyles.caption
-                        .copyWith(color: context.colors.errorText),
+                    style: AppTextStyles.caption.copyWith(
+                      color: context.colors.errorText,
+                    ),
                   ),
                 ],
                 const SizedBox(height: AppSpacing.s16),
+                if (!servesMyCity) ...[
+                  AppBanner(
+                    tone: AppTone.warning,
+                    icon: Icons.location_off_outlined,
+                    message: context.l10n.cityNotServed,
+                  ),
+                  const SizedBox(height: AppSpacing.s16),
+                ],
                 if (matchedCompany != null || companyName.isNotEmpty) ...[
                   AppListCard(
                     onTap: matchedCompany != null
@@ -258,7 +283,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                           companyName.isNotEmpty
                               ? companyName
                               : matchedCompany?.name ??
-                                  context.l10n.productVerifiedSeller,
+                                    context.l10n.productVerifiedSeller,
                           style: AppTextStyles.bodyStrong,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -290,7 +315,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   const SizedBox(height: AppSpacing.s20),
                 ],
                 if (description.isNotEmpty) ...[
-                  Text(context.l10n.productDescription, style: AppTextStyles.h3),
+                  Text(
+                    context.l10n.productDescription,
+                    style: AppTextStyles.h3,
+                  ),
                   const SizedBox(height: AppSpacing.s8),
                   Text(description, style: AppTextStyles.body),
                   const SizedBox(height: AppSpacing.s20),
@@ -309,7 +337,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                     child: Column(
                       children: [
                         for (var i = 0; i < specs.length; i++) ...[
-                          KeyValueRow(label: specs[i].key, value: specs[i].value),
+                          KeyValueRow(
+                            label: specs[i].key,
+                            value: specs[i].value,
+                          ),
                           if (i < specs.length - 1) const Divider(height: 1),
                         ],
                       ],
@@ -365,7 +396,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                             totalPrice == null
                                 ? ProductPriceStrings.priceOnRequest(context)
                                 : '${_formatPrice(totalPrice)} '
-                                    '${widget.product.currency}',
+                                      '${widget.product.currency}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.h3,

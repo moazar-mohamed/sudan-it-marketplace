@@ -7,6 +7,7 @@ import 'package:sudan_it_marketplace/features/categories/domain/entities/categor
 import 'package:sudan_it_marketplace/features/categories/presentation/category_providers.dart';
 import 'package:sudan_it_marketplace/features/companies/domain/entities/company.dart';
 import 'package:sudan_it_marketplace/features/companies/presentation/companies_providers.dart';
+import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/category_screen.dart';
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/category_grid.dart';
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/dashboard_home_tab.dart';
 import 'package:sudan_it_marketplace/features/products/domain/entities/product.dart';
@@ -90,7 +91,7 @@ final _services = [
   _s('Help desk', 'sup'),
 ];
 
-/// A category tile of the browser (its name also appears on product cards).
+/// A category tile of the home (its name also appears on product cards).
 Finder tile(String name) =>
     find.descendant(of: find.byType(CategoryGrid), matching: find.text(name));
 
@@ -113,8 +114,9 @@ void main() {
           firestoreCompaniesStreamProvider.overrideWith(
             (ref) => Stream.value(const [_company]),
           ),
-          activeServicesProvider(null)
-              .overrideWith((ref) => Stream.value(_services)),
+          activeServicesProvider(
+            null,
+          ).overrideWith((ref) => Stream.value(_services)),
           allCategoriesProvider.overrideWith(
             (ref) => categories ?? Stream.value(_categories()),
           ),
@@ -137,7 +139,13 @@ void main() {
 
   final tileNet = tile('Networking');
 
-  group('browsing the categories on the products tab', () {
+  /// A chip of the sub-category row of a category screen.
+  Finder chip(String label) => find.descendant(
+    of: find.byKey(const ValueKey('category-sub-chips')),
+    matching: find.text(label),
+  );
+
+  group('the categories on the products tab', () {
     testWidgets(
       'shows every top-level category, including one with nothing in it yet',
       (tester) async {
@@ -149,94 +157,65 @@ void main() {
         expect(tile('Support'), findsOneWidget);
         // deeper levels are not shown at the top
         expect(tile('Routers'), findsNothing);
-        // every product is listed until a category is chosen
+        // the home keeps listing every product
         expect(find.text('TP-Link AX'), findsOneWidget);
         expect(find.text('Dell Latitude'), findsOneWidget);
       },
     );
 
     testWidgets(
-      'choosing a category filters by its whole subtree and shows its sub-categories',
+      'choosing a category opens its own screen with its whole subtree',
       (tester) async {
         await pumpHome(tester);
         await tapTile(tester, 'Networking');
 
+        expect(find.byType(CategoryScreen), findsOneWidget);
         // products of Networking, Routers and Wi-Fi 6 (three levels), not Laptops
         expect(find.text('TP-Link AX'), findsOneWidget);
         expect(find.text('Cisco Router'), findsOneWidget);
         expect(find.text('Dell Latitude'), findsNothing);
-        // the way back, and the next level (empty sub-categories included)
-        expect(find.byKey(const ValueKey('browse-crumb-root')), findsOneWidget);
-        expect(tile('Routers'), findsOneWidget);
-        expect(tile('Switches'), findsOneWidget);
-        expect(tile('Laptops'), findsNothing);
+        // the next level, empty sub-categories included while counts load
+        expect(chip('Routers'), findsOneWidget);
+        expect(chip('Switches'), findsOneWidget);
+        expect(chip('Laptops'), findsNothing);
       },
     );
 
-    testWidgets(
-      'goes deeper and narrows the list, then back up with the breadcrumb',
-      (tester) async {
-        await pumpHome(tester);
-        await tapTile(tester, 'Networking');
-        await tapTile(tester, 'Routers');
-        expect(find.text('TP-Link AX'), findsOneWidget);
-        expect(
-          find.text('Cisco Router'),
-          findsOneWidget,
-        ); // filed directly in Routers
-        await tapTile(tester, 'Wi-Fi 6');
-        expect(find.text('TP-Link AX'), findsOneWidget);
-        expect(find.text('Cisco Router'), findsNothing);
-
-        // up one level, then all
-        await tester.tap(find.byKey(const ValueKey('browse-crumb-rou')));
-        await tester.pumpAndSettle();
-        expect(find.text('Cisco Router'), findsOneWidget);
-        await tester.tap(find.byKey(const ValueKey('browse-crumb-root')));
-        await tester.pumpAndSettle();
-        expect(find.text('Dell Latitude'), findsOneWidget);
-        expect(find.byKey(const ValueKey('browse-crumb-root')), findsNothing);
-      },
-    );
-
-    testWidgets('a Back button goes up one level, and is absent at the top', (tester) async {
+    testWidgets('goes deeper and narrows the list, then back up the path', (
+      tester,
+    ) async {
       await pumpHome(tester);
-      final back = find.byKey(const ValueKey('browse-back'));
-      expect(back, findsNothing);
-
       await tapTile(tester, 'Networking');
-      await tapTile(tester, 'Routers');
-      await tapTile(tester, 'Wi-Fi 6');
-      expect(back, findsOneWidget);
-      expect(find.text('Cisco Router'), findsNothing); // narrowed to Wi-Fi 6
+      await tester.tap(chip('Routers'));
+      await tester.pumpAndSettle();
+      expect(find.text('TP-Link AX'), findsOneWidget);
+      expect(
+        find.text('Cisco Router'),
+        findsOneWidget,
+      ); // filed directly in Routers
 
-      await tester.tap(back); // Wi-Fi 6 -> Routers
+      await tester.tap(chip('Wi-Fi 6'));
+      await tester.pumpAndSettle();
+      expect(find.text('TP-Link AX'), findsOneWidget);
+      expect(find.text('Cisco Router'), findsNothing);
+
+      // up the path: Networking shows everything under it again
+      await tester.tap(find.byKey(const ValueKey('crumb-net')));
       await tester.pumpAndSettle();
       expect(find.text('Cisco Router'), findsOneWidget);
-      expect(tile('Wi-Fi 6'), findsOneWidget);
-
-      await tester.tap(back); // Routers -> Networking
-      await tester.pumpAndSettle();
-      expect(tile('Routers'), findsOneWidget);
-      expect(tile('Switches'), findsOneWidget);
-
-      await tester.tap(back); // Networking -> all categories
-      await tester.pumpAndSettle();
-      expect(tile('Laptops'), findsOneWidget);
-      expect(find.text('Dell Latitude'), findsOneWidget);
-      expect(back, findsNothing);
+      expect(chip('Routers'), findsOneWidget);
     });
 
-    testWidgets('the Back button works on the services tab too', (tester) async {
+    testWidgets('"All categories" in the path returns to the home', (
+      tester,
+    ) async {
       await pumpHome(tester);
-      await tester.tap(find.text('Services'));
+      await tapTile(tester, 'Networking');
+      await tester.tap(find.byKey(const ValueKey('crumb-root')));
       await tester.pumpAndSettle();
-      await tapTile(tester, 'Installation');
-      expect(find.text('Help desk'), findsNothing);
-      await tester.tap(find.byKey(const ValueKey('browse-back')));
-      await tester.pumpAndSettle();
-      expect(find.text('Help desk'), findsOneWidget);
-      expect(find.byKey(const ValueKey('browse-back')), findsNothing);
+      expect(find.byType(CategoryScreen), findsNothing);
+      expect(tile('Laptops'), findsOneWidget);
+      expect(find.text('Dell Latitude'), findsOneWidget);
     });
 
     testWidgets(
@@ -262,20 +241,20 @@ void main() {
       },
     );
 
-    testWidgets(
-      'a category browsed when it disappears falls back to all products',
-      (tester) async {
-        final feed = StreamController<List<Category>>();
-        addTearDown(feed.close);
-        feed.add(_categories());
-        await pumpHome(tester, categories: feed.stream);
-        await tapTile(tester, 'Networking');
-        expect(find.text('Dell Latitude'), findsNothing);
-        feed.add(_categories().where((c) => c.id != 'net').toList());
-        await tester.pumpAndSettle();
-        expect(find.text('Dell Latitude'), findsOneWidget);
-      },
-    );
+    testWidgets('a category being viewed says so when it disappears', (
+      tester,
+    ) async {
+      final feed = StreamController<List<Category>>();
+      addTearDown(feed.close);
+      feed.add(_categories());
+      await pumpHome(tester, categories: feed.stream);
+      await tapTile(tester, 'Networking');
+      expect(find.text('Cisco Router'), findsOneWidget);
+      feed.add(_categories().where((c) => c.id != 'net').toList());
+      await tester.pumpAndSettle();
+      expect(find.text('Cisco Router'), findsNothing);
+      expect(find.byType(CategoryScreen), findsOneWidget);
+    });
 
     testWidgets('a new category appears at once, before any product is in it', (
       tester,
@@ -301,8 +280,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(tile('Printers'), findsOneWidget);
       await tapTile(tester, 'Printers');
-      expect(find.text('No products found'), findsOneWidget);
-      expect(tile('Laser'), findsOneWidget);
+      expect(find.text('Nothing is listed here yet.'), findsOneWidget);
 
       // then a company files a product in it
       products.add([..._products, _p('HP LaserJet', 'las')]);
@@ -324,7 +302,7 @@ void main() {
     });
   });
 
-  group('browsing the categories on the services tab', () {
+  group('the categories on the services tab', () {
     Future<void> openServices(WidgetTester tester) async {
       await tester.tap(find.text('Services'));
       await tester.pumpAndSettle();
@@ -358,32 +336,14 @@ void main() {
       expect(find.text('Help desk'), findsOneWidget);
     });
 
-    testWidgets('choosing a service category filters services by its subtree', (
+    testWidgets('choosing a service category opens the same screen', (
       tester,
     ) async {
       await pumpHome(tester);
       await openServices(tester);
       await tapTile(tester, 'Installation');
-      expect(
-        find.text('Wall cabling'),
-        findsOneWidget,
-      ); // in Cabling, below Installation
-      expect(find.text('Rack install'), findsOneWidget);
-      expect(find.text('Help desk'), findsNothing);
-      expect(tile('Cabling'), findsOneWidget); // the next level
-    });
-
-    testWidgets('each tab remembers its own category', (tester) async {
-      await pumpHome(tester);
-      await tapTile(tester, 'Laptops');
-      await openServices(tester);
-      await tapTile(tester, 'Support');
-      expect(find.text('Help desk'), findsOneWidget);
-      expect(find.text('Wall cabling'), findsNothing);
-      await tester.tap(find.text('Products'));
-      await tester.pumpAndSettle();
-      expect(find.text('Dell Latitude'), findsOneWidget); // still on Laptops
-      expect(find.text('TP-Link AX'), findsNothing);
+      expect(find.byType(CategoryScreen), findsOneWidget);
+      expect(find.byKey(const ValueKey('crumb-ins')), findsOneWidget);
     });
 
     testWidgets('a service under a deactivated category is hidden', (
@@ -415,6 +375,6 @@ void main() {
     await pumpHome(tester, locale: const Locale('ar'));
     expect(tile('شبكات'), findsOneWidget);
     await tapTile(tester, 'شبكات');
-    expect(tile('راوترات'), findsOneWidget);
+    expect(chip('راوترات'), findsOneWidget);
   });
 }

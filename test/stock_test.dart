@@ -286,13 +286,5 @@ void main() {
       expect(live.stockCount, 0);
       expect(live.isAvailable, isFalse);
     });
-
-    test('never touches the built-in demo products', () {
-      final demo = _product('p1', 8);
-      expect(
-        resolveLiveProduct(demo, const AsyncData(<Product>[])).stockCount,
-        8,
-      );
-    });
   });
 }

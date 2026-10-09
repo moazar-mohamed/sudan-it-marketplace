@@ -90,8 +90,9 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
 
     try {
       final repo = ref.read(userProfileRepositoryProvider);
-      final trimmedPhone =
-          (phone?.trim().isEmpty ?? true) ? null : phone!.trim();
+      final trimmedPhone = (phone?.trim().isEmpty ?? true)
+          ? null
+          : phone!.trim();
       await repo.updateProfile(
         userId: userId,
         fullName: fullName.trim(),
@@ -168,6 +169,14 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
       return passwordChangeErrorMessage(l10n, e.code);
     } catch (_) {
       return l10n.passwordErrorGeneric;
+    }
+  }
+
+  /// Reflects a city the customer just chose (and saved) in the loaded profile.
+  void applyCity(String cityId) {
+    final current = state.asData?.value;
+    if (current != null && current.cityId != cityId) {
+      state = AsyncData(current.copyWith(cityId: cityId));
     }
   }
 

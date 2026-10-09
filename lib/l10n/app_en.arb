@@ -1776,5 +1776,104 @@
   "notifReportClosedTitle": "Your report was closed",
   "notifReportClosedBody": "Your report \"{subject}\" was closed. Open My reports to read our reply.",
   "@notifReportClosedBody": {"placeholders": {"subject": {"type": "String"}}},
-  "reportLimitReached": "You can send 5 reports in 24 hours. Please try again later."
+  "notifOrderCancelledByAdminTitle": "Your order was cancelled",
+  "notifOrderCancelledByAdminBody": "The platform cancelled your order \"{product}\".",
+  "@notifOrderCancelledByAdminBody": {"placeholders": {"product": {"type": "String"}}},
+  "notifOrderCancelledByAdminCompanyTitle": "An order was cancelled",
+  "notifOrderCancelledByAdminCompanyBody": "The platform cancelled the order for \"{product}\".",
+  "@notifOrderCancelledByAdminCompanyBody": {"placeholders": {"product": {"type": "String"}}},
+  "notifProductHiddenTitle": "A product was hidden",
+  "notifProductHiddenBody": "\"{product}\" was hidden from customers. Open it to see why.",
+  "@notifProductHiddenBody": {"placeholders": {"product": {"type": "String"}}},
+  "notifProductShownTitle": "A product is visible again",
+  "notifProductShownBody": "\"{product}\" is visible to customers again.",
+  "@notifProductShownBody": {"placeholders": {"product": {"type": "String"}}},
+  "settingsPushKindsTitle": "What to be notified about",
+  "settingsPushKindsHint": "Turning one off stops only its phone notifications. You still see everything inside the app.",
+  "pushKindOrders": "Orders",
+  "pushKindOrdersHint": "New orders, payments, delivery and ratings",
+  "pushKindChat": "Messages",
+  "pushKindChatHint": "New chat messages",
+  "pushKindServiceRequests": "Service requests",
+  "pushKindServiceRequestsHint": "New requests and their progress",
+  "pushKindReports": "Reports",
+  "pushKindReportsHint": "Replies to the reports you sent",
+  "pushKindPlatform": "Platform messages",
+  "pushKindPlatformHint": "Products the platform hid or showed again",
+  "pushKindCity": "New companies in my city",
+  "pushKindCityHint": "When a company starts serving your city",
+  "reportLimitReached": "You can send 5 reports in 24 hours. Please try again later.",
+  "cityPickerTitle": "Choose your city",
+  "cityPickerSubtitle": "We show you the companies that serve your city, so your orders can be delivered.",
+  "cityChangeTooltip": "Change city",
+  "citySaveFailed": "Could not save your city. Please try again.",
+  "cityServiceAreaTitle": "Cities you serve",
+  "cityServiceAreaHint": "Customers see your company, products and services only in the cities you pick. Leave empty to appear in every city.",
+  "cityServiceAreaAll": "All cities",
+  "cityServiceAreaChoose": "Choose cities",
+  "cityServiceAreaCount": "{count} cities",
+  "@cityServiceAreaCount": {"placeholders": {"count": {"type": "int"}}},
+  "cityNotServed": "This company does not serve your city.",
+  "citySearchHint": "Search cities",
+  "cityUseMyLocation": "Use my location",
+  "cityLocationFailed": "Could not find your location. Choose your city from the list.",
+  "cityBrowseAll": "Browse all cities",
+  "cityBrowseAllHint": "You can look at every company, but you can only order from companies that serve your city.",
+  "cityCompaniesCount": "{count} companies",
+  "@cityCompaniesCount": {"placeholders": {"count": {"type": "int"}}},
+  "cityNoResults": "No city matches your search.",
+  "cityCompanyNoCitiesTitle": "Choose the cities you serve",
+  "cityCompanyNoCitiesBody": "Your company has no service cities yet, so every customer in every city sees it and can order. Choose the cities you deliver to.",
+  "categoryChipAll": "All ({count})",
+  "@categoryChipAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryItemCount": "{count} items",
+  "@categoryItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryKindAll": "All",
+  "categoryKindProducts": "Products",
+  "categoryKindServices": "Services",
+  "categoryFilterInStock": "In stock",
+  "categoryFilterBrand": "Brand",
+  "categoryFilterPrice": "Price",
+  "categoryFilterCompany": "Company",
+  "categoryFilterAnyBrand": "All brands",
+  "categoryFilterAnyCompany": "All companies",
+  "categoryFilterPriceFrom": "From",
+  "categoryFilterPriceTo": "To",
+  "categoryFilterApply": "Apply",
+  "categoryFilterClear": "Clear",
+  "categorySectionProducts": "Products ({count})",
+  "@categorySectionProducts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categorySectionServices": "Services ({count})",
+  "@categorySectionServices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryScreenEmpty": "Nothing is listed here yet.",
+  "categoryNoMatches": "Nothing matches these filters.",
+  "categoryClearFilters": "Clear filters",
+  "formBrandLabel": "Brand",
+  "formBrandHint": "For example HP, Cisco, Samsung",
+  "formCategoryRequired": "A category is required",
+  "productBrand": "Brand"
 }

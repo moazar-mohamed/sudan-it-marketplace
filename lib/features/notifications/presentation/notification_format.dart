@@ -35,6 +35,12 @@ class NotificationFormat {
         l10n.notifServiceRequestCancelledTitle,
       NotificationTypes.reportInProgress => l10n.notifReportInProgressTitle,
       NotificationTypes.reportClosed => l10n.notifReportClosedTitle,
+      NotificationTypes.orderCancelledByAdmin =>
+        l10n.notifOrderCancelledByAdminTitle,
+      NotificationTypes.orderCancelledByAdminCompany =>
+        l10n.notifOrderCancelledByAdminCompanyTitle,
+      NotificationTypes.productHidden => l10n.notifProductHiddenTitle,
+      NotificationTypes.productShown => l10n.notifProductShownTitle,
       _ => l10n.notifGenericTitle,
     };
   }
@@ -73,6 +79,14 @@ class NotificationFormat {
         l10n.notifReportInProgressBody(product),
       NotificationTypes.reportClosed when named =>
         l10n.notifReportClosedBody(product),
+      NotificationTypes.orderCancelledByAdmin when named =>
+        l10n.notifOrderCancelledByAdminBody(product),
+      NotificationTypes.orderCancelledByAdminCompany when named =>
+        l10n.notifOrderCancelledByAdminCompanyBody(product),
+      NotificationTypes.productHidden when named =>
+        l10n.notifProductHiddenBody(product),
+      NotificationTypes.productShown when named =>
+        l10n.notifProductShownBody(product),
       _ => l10n.notifGenericBody,
     };
   }
@@ -144,6 +158,19 @@ class NotificationFormat {
         ),
       NotificationTypes.reportClosed => (
           icon: Icons.flag_outlined,
+          tone: AppTone.success,
+        ),
+      NotificationTypes.orderCancelledByAdmin ||
+      NotificationTypes.orderCancelledByAdminCompany => (
+          icon: Icons.cancel_outlined,
+          tone: AppTone.error,
+        ),
+      NotificationTypes.productHidden => (
+          icon: Icons.visibility_off_outlined,
+          tone: AppTone.warning,
+        ),
+      NotificationTypes.productShown => (
+          icon: Icons.visibility_outlined,
           tone: AppTone.success,
         ),
       _ => (icon: Icons.notifications_outlined, tone: AppTone.brand),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +10,10 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../../core/widgets/image_picker_field.dart';
 import '../../../../core/widgets/image_picker_strings.dart';
+import '../../../cities/data/city_announcer.dart';
+import '../../../cities/domain/sudan_city.dart';
+import '../../../cities/presentation/city_picker_sheets.dart';
+import '../../../cities/presentation/city_providers.dart';
 import '../../../companies/domain/entities/company.dart';
 import '../../../location/domain/geo_location.dart';
 import '../../../location/presentation/widgets/location_field.dart';
@@ -36,6 +42,7 @@ class _EditCompanyProfileScreenState
   late final TextEditingController _pickupController;
   late final TextEditingController _descriptionController;
   GeoLocation? _coordinates;
+  List<String> _serviceCityIds = const [];
   bool _isSaving = false;
 
   @override
@@ -43,6 +50,7 @@ class _EditCompanyProfileScreenState
     super.initState();
     final c = widget.company;
     _coordinates = c.coordinates;
+    _serviceCityIds = c.serviceCityIds;
     _logoController = ImagePickerController(url: c.logoUrl);
     _nameController = TextEditingController(text: c.name);
     _phoneController = PhoneController(text: c.phone ?? '');
@@ -107,8 +115,10 @@ class _EditCompanyProfileScreenState
       clearCoordinates: _coordinates == null,
       pickupAddress: _pickupController.text.trim(),
       description: _descriptionController.text.trim(),
+      serviceCityIds: _serviceCityIds,
     );
 
+    final announcer = ref.read(cityAnnouncerProvider);
     final error = await ref
         .read(companyAdminActionsProvider)
         .updateCompanyProfile(updated);
@@ -122,6 +132,20 @@ class _EditCompanyProfileScreenState
       tone: error == null ? AppTone.success : AppTone.error,
     );
     if (error == null) {
+      // Customers of the cities just added are told, without waiting for it.
+      final added = CityAnnouncer.addedCities(
+        widget.company.serviceCityIds,
+        updated.serviceCityIds,
+      );
+      if (added.isNotEmpty && widget.company.isActive) {
+        unawaited(
+          announcer.announce(
+            companyId: updated.id,
+            companyName: updated.name,
+            cityIds: added,
+          ),
+        );
+      }
       Navigator.of(context).pop();
     }
   }
@@ -151,8 +175,45 @@ class _EditCompanyProfileScreenState
     );
   }
 
+  Future<void> _chooseServiceCities() async {
+    final chosen = await showCityMultiPickerSheet(
+      context,
+      selectedIds: _serviceCityIds,
+    );
+    if (chosen != null && mounted) {
+      setState(() => _serviceCityIds = chosen);
+    }
+  }
+
+  Widget _serviceCitiesField() {
+    final l10n = context.l10n;
+    final language = Localizations.localeOf(context).languageCode;
+    final text = _serviceCityIds.isEmpty
+        ? l10n.cityServiceAreaAll
+        : cityNamesText(_serviceCityIds, language);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.s16),
+      child: InkWell(
+        key: const ValueKey('service-cities-field'),
+        borderRadius: AppRadius.mdAll,
+        onTap: _isSaving ? null : _chooseServiceCities,
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: l10n.cityServiceAreaTitle,
+            helperText: l10n.cityServiceAreaHint,
+            helperMaxLines: 3,
+            prefixIcon: const Icon(Icons.map_outlined),
+            suffixIcon: const Icon(Icons.arrow_drop_down),
+          ),
+          child: Text(text),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.watch(citiesProvider);
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.adminEditCompanyProfile)),
       body: Form(
@@ -198,6 +259,7 @@ class _EditCompanyProfileScreenState
               },
             ),
             _field(_cityController, context.l10n.adminCity, Icons.location_city_outlined),
+            _serviceCitiesField(),
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.s16),
               child: LocationField(

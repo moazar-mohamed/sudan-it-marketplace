@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../customer_dashboard/data/mock_marketplace_data.dart';
+import '../../cities/domain/sudan_city.dart';
+import '../../cities/presentation/city_providers.dart';
 import '../data/datasources/companies_remote_data_source.dart';
 import '../data/datasources/firestore_companies_remote_data_source.dart';
 import '../data/repositories/companies_repository_impl.dart';
@@ -25,18 +26,40 @@ final firestoreCompaniesStreamProvider = StreamProvider<List<Company>>((ref) {
 List<Company> activeCompanies(List<Company> companies) =>
     companies.where((company) => company.isActive).toList();
 
-/// Customer-facing company list: active Firestore companies plus the demo
-/// companies whose ids are not already present in Firestore.
+/// Customer-facing company list: the active Firestore companies that serve
+/// the customer's city. Nothing here is made up: no demo companies.
 final marketplaceCompaniesProvider = Provider<List<Company>>((ref) {
   final remote = ref.watch(firestoreCompaniesStreamProvider).asData?.value ??
       const <Company>[];
-  // Ids of every Firestore company (whatever its status), so a deactivated
-  // company is never replaced by a same-id demo entry.
-  final remoteIds = remote.map((company) => company.id).toSet();
-  return [
-    ...activeCompanies(remote),
-    ...mockCompanies.where((company) => !remoteIds.contains(company.id)),
-  ];
+  final cityId = ref.watch(cityFilterProvider);
+  return companiesServingCity(activeCompanies(remote), cityId);
+});
+
+/// The companies a customer in [cityId] can order from (all of them while the
+/// customer has no city).
+List<Company> companiesServingCity(List<Company> companies, String? cityId) =>
+    companies.where((company) => company.servesCity(cityId)).toList();
+
+/// How many active companies serve each city (a company that listed no cities
+/// serves all of them), for the city list.
+final cityCompanyCountsProvider = Provider<Map<String, int>>((ref) {
+  final remote = ref.watch(firestoreCompaniesStreamProvider).asData?.value;
+  if (remote == null) return const {};
+  final active = activeCompanies(remote);
+  return {
+    for (final city in sudanCities)
+      city.id: active.where((company) => company.servesCity(city.id)).length,
+  };
+});
+
+/// Whether the signed-in customer's city is one the company serves. True for
+/// a company that cannot be resolved (demo data) or while no city is chosen.
+final companyServesMyCityProvider = Provider.family<bool, String>((
+  ref,
+  companyId,
+) {
+  final company = ref.watch(resolvedCompanyProvider(companyId));
+  return company?.servesCity(ref.watch(customerCityIdProvider)) ?? true;
 });
 
 final companyStreamProvider =
@@ -44,17 +67,8 @@ final companyStreamProvider =
   return ref.watch(companiesRepositoryProvider).watchCompany(companyId);
 });
 
-/// Resolves a company from Firestore first, then the demo data.
+/// Resolves a company from Firestore; null while it loads or when it is gone.
 final resolvedCompanyProvider =
     Provider.family<Company?, String>((ref, companyId) {
-  final remote = ref.watch(companyStreamProvider(companyId)).asData?.value;
-  if (remote != null) {
-    return remote;
-  }
-  for (final company in mockCompanies) {
-    if (company.id == companyId) {
-      return company;
-    }
-  }
-  return null;
+  return ref.watch(companyStreamProvider(companyId)).asData?.value;
 });

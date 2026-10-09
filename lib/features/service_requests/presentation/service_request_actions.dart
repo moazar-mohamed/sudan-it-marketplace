@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/error_messages.dart';
 import '../../../core/localization/locale_controller.dart';
 import '../../chats/presentation/chat_providers.dart';
+import '../../cities/presentation/city_providers.dart';
 import '../../companies/domain/entities/company.dart';
 import '../../company_services/domain/entities/company_service.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
@@ -43,6 +44,12 @@ class ServiceRequestActions {
       return (
         requestId: null,
         error: _ref.read(appLocalizationsProvider).errorPermissionDenied,
+      );
+    }
+    if (!company.servesCity(_ref.read(customerCityIdProvider))) {
+      return (
+        requestId: null,
+        error: _ref.read(appLocalizationsProvider).cityNotServed,
       );
     }
     final repository = _ref.read(serviceRequestsRepositoryProvider);

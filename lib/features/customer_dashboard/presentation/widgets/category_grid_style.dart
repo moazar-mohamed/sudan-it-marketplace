@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../categories/domain/entities/category.dart';
+
 /// How the categories are laid out: coloured cards in rows, or one sideways
 /// row of soft square tiles with the name underneath.
 enum CategoryLayout { grid, row }
@@ -10,7 +12,7 @@ class CategoryGridStyle {
   const CategoryGridStyle({
     this.previewCount = 9,
     this.columns = 3,
-    this.tileHeight = 108,
+    this.tileHeight = 122,
     this.spacing = 12,
     this.padding = 10,
     this.iconCircleSize = 40,
@@ -98,6 +100,21 @@ class CategoryGridStyle {
     Color(0xFFDB2777), // 9 pink
   ];
 
+  /// The name Platform Admin stores for each [defaultPalette] colour, in the
+  /// same order, so a category can pick its colour by name.
+  static const paletteNames = <String>[
+    'blue',
+    'green',
+    'purple',
+    'red',
+    'indigo',
+    'amber',
+    'teal',
+    'sky',
+    'orange',
+    'pink',
+  ];
+
   /// Which [palette] colour goes with each icon, so similar categories look
   /// alike (security is red, power is orange, …). An index past the end of
   /// [palette] wraps around.
@@ -128,6 +145,15 @@ class CategoryGridStyle {
     Icons.tablet_mac: 9,
     Icons.sports_esports_outlined: 9,
   };
+
+  /// The colour of [category]: the one Platform Admin picked, else the one its
+  /// [icon] goes with.
+  Color colorOfCategory(Category category, IconData icon) {
+    final named = paletteNames.indexOf(category.colorName.trim().toLowerCase());
+    return named >= 0
+        ? palette[named % palette.length]
+        : colorFor(icon, category.id);
+  }
 
   /// The colour of a category with [icon] and [id].
   Color colorFor(IconData icon, String id) {

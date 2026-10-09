@@ -359,21 +359,6 @@ void main() {
       expect(buy.onPressed, isNull);
     });
 
-    testWidgets('a demo product has no real company to write to',
-        (tester) async {
-      await tester.pumpWidget(
-        _app(ProductDetailsScreen(product: _product(id: 'p1')), _FakeChats()),
-      );
-      await tester.pump();
-
-      expect(find.text('Contact'), findsNothing);
-      expect(_button('Buy Now'), findsOneWidget);
-      // Nor a product document: the rules refuse any order for it, so the
-      // customer is never taken to checkout to pay for it.
-      final buy = tester.widget<FilledButton>(_button('Buy Now'));
-      expect(buy.onPressed, isNull);
-    });
-
     testWidgets('a refusal is explained and nothing opens', (tester) async {
       final chats = _FakeChats(
         failWith: const AppException(AppErrorCode.chatInquiryDenied),

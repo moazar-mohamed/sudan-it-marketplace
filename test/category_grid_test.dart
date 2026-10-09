@@ -5,11 +5,17 @@ import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/wi
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/category_grid_style.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 
-Category _category(String id, String name, {String iconName = ''}) => Category(
+Category _category(
+  String id,
+  String name, {
+  String iconName = '',
+  String colorName = '',
+}) => Category(
       id: id,
       name: name,
       description: '',
       iconName: iconName,
+      colorName: colorName,
       isActive: true,
       createdAt: DateTime(2026),
     );
@@ -164,6 +170,30 @@ void main() {
     test('is picked from the id when the icon has none, and never changes', () {
       expect(colour('misc-1', 'Misc'), colour('misc-1', 'Other name'));
       expect(style.palette, contains(colour('misc-1', 'Misc')));
+    });
+
+    test('is the one Platform Admin picked, whatever the icon', () {
+      final security = _category('s', 'Cybersecurity', colorName: 'teal');
+      final icon = categoryIconFor(security);
+      final teal = style.palette[CategoryGridStyle.paletteNames.indexOf('teal')];
+      expect(style.colorOfCategory(security, icon), teal);
+      // The name is not case sensitive, and an unknown one falls back to the icon.
+      expect(
+        style.colorOfCategory(_category('s', 'Cybersecurity', colorName: ' Teal '), icon),
+        teal,
+      );
+      final unknown = _category('s', 'Cybersecurity', colorName: 'mauve');
+      expect(
+        style.colorOfCategory(unknown, icon),
+        style.colorFor(icon, unknown.id),
+      );
+    });
+
+    test('every colour name has a colour in the palette', () {
+      expect(
+        CategoryGridStyle.paletteNames.length,
+        CategoryGridStyle.defaultPalette.length,
+      );
     });
   });
 

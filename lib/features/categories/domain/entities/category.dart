@@ -8,6 +8,7 @@ class Category {
     required this.createdAt,
     this.nameAr = '',
     this.nameEn = '',
+    this.colorName = '',
     this.sortOrder,
     this.parentId,
     this.ancestorIds = const [],
@@ -25,6 +26,10 @@ class Category {
   final String nameEn;
   final String description;
   final String iconName;
+
+  /// The tile colour Platform Admin picked (a palette name such as `teal`);
+  /// empty means the app picks one from the icon.
+  final String colorName;
   final bool isActive;
   final DateTime createdAt;
 

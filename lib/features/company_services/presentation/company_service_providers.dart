@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../cities/presentation/city_providers.dart';
 import '../../companies/domain/entities/company.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../data/datasources/company_service_remote_data_source.dart';
@@ -68,7 +69,11 @@ final serviceOffersProvider =
     return const AsyncValue.loading();
   }
   final companiesById = {
-    for (final company in activeCompanies(companyList)) company.id: company,
+    for (final company in companiesServingCity(
+      activeCompanies(companyList),
+      ref.watch(cityFilterProvider),
+    ))
+      company.id: company,
   };
   final offers = [
     for (final link in linkList)

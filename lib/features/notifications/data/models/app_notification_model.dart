@@ -21,6 +21,7 @@ class AppNotificationModel {
       orderId: data['orderId'] as String? ?? '',
       serviceRequestId: data['serviceRequestId'] as String? ?? '',
       reportId: data['reportId'] as String? ?? '',
+      productId: data['productId'] as String? ?? '',
       type: data['type'] as String? ?? '',
       productName: data['productName'] as String? ?? '',
       isRead: data['isRead'] as bool? ?? false,
@@ -45,6 +46,7 @@ class AppNotificationModel {
       if (notification.serviceRequestId.isNotEmpty)
         'serviceRequestId': notification.serviceRequestId,
       if (notification.reportId.isNotEmpty) 'reportId': notification.reportId,
+      if (notification.productId.isNotEmpty) 'productId': notification.productId,
       'type': notification.type,
       'productName': notification.productName,
       'isRead': false,

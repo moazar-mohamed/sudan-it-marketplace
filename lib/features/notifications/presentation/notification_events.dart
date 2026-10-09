@@ -25,6 +25,14 @@ abstract final class NotificationTypes {
   static const reportInProgress = 'report_in_progress';
   static const reportClosed = 'report_closed';
 
+  /// Written by Platform Admin in the batch that cancels an order (one for
+  /// the customer, one for the company) and in the one that hides or shows a
+  /// product (for its company). Never created by the app itself.
+  static const orderCancelledByAdmin = 'order_cancelled_by_admin';
+  static const orderCancelledByAdminCompany = 'order_cancelled_by_admin_company';
+  static const productHidden = 'product_hidden';
+  static const productShown = 'product_shown';
+
   static const all = {
     newOrder,
     paymentConfirmed,

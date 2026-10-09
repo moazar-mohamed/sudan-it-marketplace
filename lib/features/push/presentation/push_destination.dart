@@ -40,6 +40,21 @@ class ReportDestination extends PushDestination {
   const ReportDestination();
 }
 
+/// One of a company's own products (the platform hid or showed it).
+class CompanyProductDestination extends PushDestination {
+  const CompanyProductDestination(this.companyId, this.productId);
+
+  final String companyId;
+  final String productId;
+}
+
+/// A company that now serves the customer's city (a city announcement).
+class CompanyDestination extends PushDestination {
+  const CompanyDestination(this.companyId);
+
+  final String companyId;
+}
+
 /// Where a push with [data] (as the push relay sends it) leads for the
 /// signed-in [profile], or null when it has no screen for them (it was meant
 /// for another kind of account, or a technician's job, which opens the app).
@@ -58,10 +73,26 @@ PushDestination? pushDestination(Map<String, dynamic> data, UserProfile profile)
     };
   }
 
+  if (text('type') == 'city_announcement') {
+    final companyId = text('companyId');
+    if (companyId.isEmpty || profile.role != UserRole.customer) return null;
+    return CompanyDestination(companyId);
+  }
+
   if (text('reportId').isNotEmpty) {
     return switch ((text('recipientType'), profile.role)) {
       ('company_admin', UserRole.companyAdmin) => const ReportDestination(),
       ('customer', UserRole.customer) => const ReportDestination(),
+      _ => null,
+    };
+  }
+
+  final productId = text('productId');
+  if (productId.isNotEmpty) {
+    final ownCompany = profile.companyId?.trim() ?? '';
+    return switch ((text('recipientType'), profile.role)) {
+      ('company_admin', UserRole.companyAdmin) when ownCompany.isNotEmpty =>
+        CompanyProductDestination(ownCompany, productId),
       _ => null,
     };
   }

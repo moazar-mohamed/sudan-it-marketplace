@@ -14,6 +14,7 @@ class UserProfile {
     this.mustChangePassword = false,
     this.createdByCompany = false,
     this.language,
+    this.cityId,
   });
 
   final String id;
@@ -48,6 +49,10 @@ class UserProfile {
   /// predates the setting; the app then falls back to the device preference.
   final String? language;
 
+  /// The city the customer shops in (an id of the fixed city list). Only
+  /// companies that serve it are shown. Absent until the customer picks one.
+  final String? cityId;
+
   /// A company admin or technician on a temporary password must choose their
   /// own before using the app.
   bool get requiresPasswordChange =>
@@ -67,6 +72,7 @@ class UserProfile {
     bool? mustChangePassword,
     bool? createdByCompany,
     String? language,
+    String? cityId,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -81,6 +87,7 @@ class UserProfile {
       mustChangePassword: mustChangePassword ?? this.mustChangePassword,
       createdByCompany: createdByCompany ?? this.createdByCompany,
       language: language ?? this.language,
+      cityId: cityId ?? this.cityId,
     );
   }
 }

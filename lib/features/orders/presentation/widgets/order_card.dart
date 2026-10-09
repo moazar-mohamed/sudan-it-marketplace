@@ -4,7 +4,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
-import '../../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../../domain/entities/order_entity.dart';
 import '../order_details_screen.dart';
 import '../order_labels.dart';
@@ -27,11 +26,6 @@ class OrderCard extends StatelessWidget {
   String _resolveCompanyName() {
     if (order.companyName.isNotEmpty) {
       return order.companyName;
-    }
-    for (final company in mockCompanies) {
-      if (company.id == order.companyId) {
-        return company.name;
-      }
     }
     return 'IT Partner Co.';
   }

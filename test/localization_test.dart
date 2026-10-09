@@ -40,6 +40,7 @@ UserProfile _profile({String? language}) => UserProfile(
       role: UserRole.customer,
       createdAt: DateTime(2026),
       isActive: true,
+      cityId: 'khartoum',
       language: language,
     );
 

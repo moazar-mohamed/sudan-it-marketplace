@@ -11,6 +11,10 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/widgets/app_widgets.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../chats/presentation/chat_providers.dart';
+import '../../customer_dashboard/presentation/profile_controller.dart';
+import '../../push/domain/push_categories.dart';
 import '../../push/presentation/push_preference.dart';
 import '../../reports/presentation/my_reports_screen.dart';
 import '../../reports/presentation/report_form_screen.dart';
@@ -30,6 +34,10 @@ class SettingsScreen extends ConsumerWidget {
     // The switch only exists where pushes can be sent at all (not on the web,
     // and not in a build with no push relay).
     final pushAvailable = !kIsWeb && ref.watch(pushRelayProvider).isEnabled;
+    final pushOn = ref.watch(pushEnabledProvider);
+    final role = ref.watch(profileControllerProvider).asData?.value?.role;
+    final kinds = role == null ? const <PushCategory>[] : PushCategory.forRole(role);
+    final prefs = ref.watch(pushPrefsProvider).asData?.value ?? const PushPrefs();
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
@@ -68,6 +76,38 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            if (pushOn && kinds.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.s20),
+              _GroupLabel(l10n.settingsPushKindsTitle),
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+                child: Text(
+                  l10n.settingsPushKindsHint,
+                  style: AppTextStyles.body
+                      .copyWith(color: context.colors.textSecondary),
+                ),
+              ),
+              _SettingsGroup(
+                children: [
+                  for (final kind in kinds)
+                    _PushKindRow(
+                      key: ValueKey('settings-push-${kind.key}'),
+                      icon: _pushKindIcon(kind),
+                      title: _pushKindTitle(l10n, kind),
+                      hint: _pushKindHint(l10n, kind),
+                      value: prefs.isOn(kind),
+                      onChanged: (value) {
+                        final uid = ref.read(currentUserIdProvider);
+                        if (uid == null) return;
+                        ref
+                            .read(pushPrefsStoreProvider)
+                            .set(uid, kind, value)
+                            .catchError((Object _) {});
+                      },
+                    ),
+                ],
+              ),
+            ],
           ],
           const SizedBox(height: AppSpacing.s20),
           _GroupLabel(l10n.settingsHelp),
@@ -99,6 +139,33 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  IconData _pushKindIcon(PushCategory kind) => switch (kind) {
+        PushCategory.orders => Icons.receipt_long_outlined,
+        PushCategory.chat => Icons.chat_bubble_outline_rounded,
+        PushCategory.serviceRequests => Icons.build_circle_outlined,
+        PushCategory.reports => Icons.flag_outlined,
+        PushCategory.platform => Icons.campaign_outlined,
+        PushCategory.cityAnnouncements => Icons.location_city_outlined,
+      };
+
+  String _pushKindTitle(AppLocalizations l10n, PushCategory kind) => switch (kind) {
+        PushCategory.orders => l10n.pushKindOrders,
+        PushCategory.chat => l10n.pushKindChat,
+        PushCategory.serviceRequests => l10n.pushKindServiceRequests,
+        PushCategory.reports => l10n.pushKindReports,
+        PushCategory.platform => l10n.pushKindPlatform,
+        PushCategory.cityAnnouncements => l10n.pushKindCity,
+      };
+
+  String _pushKindHint(AppLocalizations l10n, PushCategory kind) => switch (kind) {
+        PushCategory.orders => l10n.pushKindOrdersHint,
+        PushCategory.chat => l10n.pushKindChatHint,
+        PushCategory.serviceRequests => l10n.pushKindServiceRequestsHint,
+        PushCategory.reports => l10n.pushKindReportsHint,
+        PushCategory.platform => l10n.pushKindPlatformHint,
+        PushCategory.cityAnnouncements => l10n.pushKindCityHint,
+      };
 
   Future<void> _pickLanguage(
     BuildContext context,
@@ -347,6 +414,65 @@ class _PushSwitchRow extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.s8),
                 Switch(value: enabled, onChanged: onChanged),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One kind of push (orders, messages...) with its own switch.
+class _PushKindRow extends StatelessWidget {
+  const _PushKindRow({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.hint,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final String title;
+  final String hint;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Semantics(
+      container: true,
+      child: InkWell(
+        onTap: () => onChanged(!value),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 64),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.s16,
+              vertical: AppSpacing.s12,
+            ),
+            child: Row(
+              children: [
+                AppIconTile(icon: icon, size: 40, iconSize: AppSize.iconMd),
+                const SizedBox(width: AppSpacing.s12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: AppTextStyles.bodyStrong),
+                      Text(
+                        hint,
+                        style: AppTextStyles.body
+                            .copyWith(color: colors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.s8),
+                Switch(value: value, onChanged: onChanged),
               ],
             ),
           ),

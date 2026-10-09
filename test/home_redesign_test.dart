@@ -515,6 +515,8 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('categories-view-all')));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Category 8').last);
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Category 8').last);
       await tester.pumpAndSettle();
       expect(picked, 'c8');
@@ -745,20 +747,20 @@ void main() {
     });
 
     testWidgets(
-      'products: choosing a category narrows the page to its products',
+      'products: choosing a category opens the screen of that category',
       (tester) async {
         await pumpHome(tester);
         await tester.tap(find.text('Laptops').first);
         await tester.pumpAndSettle();
+        // Its own screen, with only the products filed in it.
+        expect(find.byKey(const ValueKey('category-screen')), findsOneWidget);
         expect(gridOrder(tester), ['p2']);
-        // The companies and "recently added" rows belong to the whole catalogue.
-        expect(
-          find.byKey(const ValueKey('home-verified-companies')),
-          findsNothing,
-        );
-        expect(find.byKey(const ValueKey('home-recent')), findsNothing);
-        // The way back is still there.
-        expect(find.byKey(const ValueKey('browse-crumb-root')), findsOneWidget);
+        expect(find.byKey(const ValueKey('category-breadcrumb')), findsOneWidget);
+        // Back to the home, which still shows the whole catalogue.
+        await tester.tap(find.byKey(const ValueKey('crumb-root')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('category-screen')), findsNothing);
+        expect(find.byKey(const ValueKey('home-recent')), findsOneWidget);
       },
     );
 

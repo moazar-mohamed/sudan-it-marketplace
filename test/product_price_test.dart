@@ -9,6 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sudan_it_marketplace/core/services/image_upload_service.dart';
 import 'package:sudan_it_marketplace/features/companies/domain/entities/company.dart';
+import 'package:sudan_it_marketplace/features/categories/domain/entities/category.dart';
+import 'package:sudan_it_marketplace/features/categories/presentation/category_picker.dart';
+import 'package:sudan_it_marketplace/features/categories/presentation/category_providers.dart';
 import 'package:sudan_it_marketplace/features/companies/presentation/companies_providers.dart';
 import 'package:sudan_it_marketplace/features/company_admin/presentation/products/product_form_screen.dart';
 import 'package:sudan_it_marketplace/features/products/data/models/product_model.dart';
@@ -249,6 +252,18 @@ void main() {
               ImageUploadService(storage: _FakeStorage()),
             ),
             companyStreamProvider.overrideWith((ref, id) => Stream.value(null)),
+            allCategoriesProvider.overrideWith(
+              (ref) => Stream.value([
+                Category(
+                  id: 'cat1',
+                  name: 'Laptops',
+                  description: '',
+                  iconName: '',
+                  isActive: true,
+                  createdAt: DateTime(2026),
+                ),
+              ]),
+            ),
           ],
         ),
       );
@@ -272,6 +287,11 @@ void main() {
         fieldWithLabel('Stock Quantity'),
         '4',
       );
+      // A category is required.
+      await tester.tap(find.byType(CategoryPickerField));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Laptops').last);
+      await tester.pumpAndSettle();
     }
 
     Future<void> submit(WidgetTester tester) async {

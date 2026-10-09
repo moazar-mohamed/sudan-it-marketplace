@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../cities/domain/sudan_city.dart';
 import '../../../location/domain/geo_location.dart';
 import '../../domain/entities/company.dart';
 import '../../domain/entities/payment_account.dart';
@@ -31,6 +32,11 @@ class CompanyModel {
       pickupAddress: map['pickupAddress'] as String?,
       status: _parseStatus(map['status']),
       paymentAccounts: _parsePaymentAccounts(map['paymentAccounts']),
+      serviceCityIds: normalizeCityIds(
+        map['serviceCityIds'] is List
+            ? map['serviceCityIds'] as List
+            : const <Object?>[],
+      ),
     );
   }
 
@@ -71,6 +77,7 @@ class CompanyModel {
       'phone': company.phone ?? '',
       'email': company.email ?? '',
       'pickupAddress': company.pickupAddress ?? '',
+      'serviceCityIds': company.serviceCityIds,
     };
   }
 }

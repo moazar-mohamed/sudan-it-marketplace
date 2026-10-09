@@ -134,7 +134,7 @@ void main() {
       expect(repository.created.single.categoryId, 'cat1');
     });
 
-    testWidgets('a product can still be added with no category selected',
+    testWidgets('a product cannot be added without a category',
         (tester) async {
       await pumpAdd(tester);
       await fillRequiredFields(tester);
@@ -142,11 +142,11 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Add Product'));
       await tester.pumpAndSettle();
 
-      expect(repository.created, hasLength(1));
-      expect(repository.created.single.categoryId, isNull);
+      expect(find.text('A category is required'), findsOneWidget);
+      expect(repository.created, isEmpty);
     });
 
-    testWidgets('a chosen category can be cleared with "No category"',
+    testWidgets('a chosen category can be changed but not removed',
         (tester) async {
       final product = Product(
         id: 'p1',
@@ -170,7 +170,8 @@ void main() {
 
       await tester.tap(find.text('Electronics'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('No category').last);
+      expect(find.text('No category'), findsNothing);
+      await tester.tap(find.text('Home Appliances').last);
       await tester.pumpAndSettle();
 
       await tester.ensureVisible(
@@ -179,7 +180,7 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Save changes'));
       await tester.pumpAndSettle();
 
-      expect(repository.updated.single.categoryId, isNull);
+      expect(repository.updated.single.categoryId, 'cat2');
     });
 
     testWidgets('editing while categories are still loading does not crash',

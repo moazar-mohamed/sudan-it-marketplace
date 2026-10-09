@@ -6,6 +6,7 @@ import '../../../notifications/presentation/notifications_providers.dart';
 import '../../../notifications/presentation/widgets/notification_tile.dart';
 import '../../../service_requests/presentation/service_request_details_screen.dart';
 import '../orders/company_order_details_screen.dart';
+import '../products/company_product_details_screen.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
@@ -60,6 +61,17 @@ class CompanyNotificationsScreen extends ConsumerWidget {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => const MyReportsScreen(),
+                      ),
+                    );
+                    return;
+                  }
+                  if (notification.productId.isNotEmpty) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => CompanyProductDetailsScreen(
+                          companyId: companyId,
+                          productId: notification.productId,
+                        ),
                       ),
                     );
                     return;

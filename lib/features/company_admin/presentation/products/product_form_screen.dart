@@ -12,7 +12,10 @@ import '../../../../core/widgets/image_picker_strings.dart';
 import '../../../categories/presentation/category_picker.dart';
 import '../../../categories/presentation/category_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
+import '../../../customer_dashboard/presentation/widgets/category_browse.dart'
+    show brandsOf;
 import '../../../products/domain/entities/product.dart';
+import '../../../products/presentation/products_providers.dart';
 import '../company_admin_actions.dart';
 import '../company_admin_format.dart';
 import '../../../../core/localization/l10n_extension.dart';
@@ -21,10 +24,10 @@ import '../../../../core/localization/l10n_extension.dart';
 /// installation price is only shown and required when installation is on.
 class ProductFormScreen extends ConsumerStatefulWidget {
   const ProductFormScreen.add({super.key, required this.companyId})
-      : product = null;
+    : product = null;
 
   ProductFormScreen.edit({super.key, required Product this.product})
-      : companyId = product.companyId ?? '';
+    : companyId = product.companyId ?? '';
 
   final String companyId;
   final Product? product;
@@ -37,8 +40,8 @@ class ProductFormScreen extends ConsumerStatefulWidget {
 
 class _SpecRow {
   _SpecRow({String key = '', String value = ''})
-      : keyController = TextEditingController(text: key),
-        valueController = TextEditingController(text: value);
+    : keyController = TextEditingController(text: key),
+      valueController = TextEditingController(text: value);
 
   final TextEditingController keyController;
   final TextEditingController valueController;
@@ -52,6 +55,7 @@ class _SpecRow {
 class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
+  late final TextEditingController _brandController;
   late final ImagePickerController _imageController;
   late final TextEditingController _priceController;
   late final TextEditingController _stockController;
@@ -71,6 +75,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     final product = widget.product;
     _categoryId = product?.categoryId;
     _nameController = TextEditingController(text: product?.name ?? '');
+    _brandController = TextEditingController(text: product?.brand ?? '');
     _imageController = ImagePickerController(url: product?.imageUrl);
     _priceController = TextEditingController(
       text: product?.price == null ? '' : _numberText(product!.price!),
@@ -78,8 +83,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     _stockController = TextEditingController(
       text: product == null ? '' : '${product.stockCount}',
     );
-    _descriptionController =
-        TextEditingController(text: product?.description ?? '');
+    _descriptionController = TextEditingController(
+      text: product?.description ?? '',
+    );
     _installationPriceController = TextEditingController(
       text: product?.installationPrice == null
           ? ''
@@ -88,8 +94,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     _inStock = product?.inStock ?? true;
     _deliveryAvailable = product?.isDeliveryAvailable ?? true;
     _installationAvailable = product?.isInstallationAvailable ?? false;
-    for (final entry in product?.specifications.entries ??
-        const <MapEntry<String, String>>[]) {
+    for (final entry
+        in product?.specifications.entries ??
+            const <MapEntry<String, String>>[]) {
       _specRows.add(_SpecRow(key: entry.key, value: entry.value));
     }
   }
@@ -97,6 +104,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _brandController.dispose();
     _imageController.dispose();
     _priceController.dispose();
     _stockController.dispose();
@@ -114,8 +122,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         : value.toString();
   }
 
-  static final _decimalFormatter =
-      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'));
+  static final _decimalFormatter = FilteringTextInputFormatter.allow(
+    RegExp(r'[0-9.]'),
+  );
 
   String? _validatePositiveNumber(
     String? value, {
@@ -207,7 +216,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
     final actions = ref.read(companyAdminActionsProvider);
     final existing = widget.product;
-    final companyName = existing?.companyName ??
+    final companyName =
+        existing?.companyName ??
         ref.read(companyStreamProvider(widget.companyId)).asData?.value?.name ??
         '';
 
@@ -216,6 +226,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       companyId: widget.companyId,
       companyName: companyName,
       name: _nameController.text.trim(),
+      brand: _brandController.text.trim(),
       imageUrl: imageUrl,
       categoryId: _categoryId,
       // Optional: an empty field saves no price (null), never 0.
@@ -269,16 +280,20 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     final categoryTree = ref.watch(categoryTreeProvider);
 
     Widget sectionTitle(String title) => Padding(
-          padding: const EdgeInsets.only(
-            top: AppSpacing.s20,
-            bottom: AppSpacing.s8,
-          ),
-          child: Text(title, style: AppTextStyles.h3),
-        );
+      padding: const EdgeInsets.only(
+        top: AppSpacing.s20,
+        bottom: AppSpacing.s8,
+      ),
+      child: Text(title, style: AppTextStyles.h3),
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? context.l10n.adminEditProduct : context.l10n.adminAddProduct),
+        title: Text(
+          widget.isEditing
+              ? context.l10n.adminEditProduct
+              : context.l10n.adminAddProduct,
+        ),
       ),
       body: SafeArea(
         top: false,
@@ -286,7 +301,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           key: _formKey,
           child: AppCenteredList(
             topPadding: AppSpacing.s8,
-            bottomPadding: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.s24,
+            bottomPadding:
+                MediaQuery.viewInsetsOf(context).bottom + AppSpacing.s24,
             children: [
               sectionTitle(context.l10n.adminProduct),
               AppTextField(
@@ -300,6 +316,24 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     : null,
               ),
               const SizedBox(height: AppSpacing.s16),
+              AppTextField(
+                label: context.l10n.formBrandLabel,
+                hint: context.l10n.formBrandHint,
+                optional: true,
+                controller: _brandController,
+                enabled: !_isSaving,
+                maxLength: 60,
+                textCapitalization: TextCapitalization.words,
+                prefixIcon: Icons.sell_outlined,
+                onChanged: (_) => setState(() {}),
+              ),
+              _BrandSuggestions(
+                typed: _brandController.text,
+                enabled: !_isSaving,
+                onPick: (brand) =>
+                    setState(() => _brandController.text = brand),
+              ),
+              const SizedBox(height: AppSpacing.s16),
               ImagePickerField(
                 controller: _imageController,
                 enabled: !_isSaving,
@@ -310,15 +344,19 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 value: _categoryId,
                 label: context.l10n.formCategoryLabel,
                 enabled: !_isSaving && categoriesLoaded,
+                allowNone: false,
                 onChanged: (value) => setState(() => _categoryId = value),
+                validator: (value) =>
+                    value == null ? context.l10n.formCategoryRequired : null,
               ),
               const SizedBox(height: AppSpacing.s16),
               AppTextField(
                 label: context.l10n.formPriceOptional,
                 controller: _priceController,
                 enabled: !_isSaving,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 inputFormatters: [_decimalFormatter],
                 prefixIcon: Icons.payments_outlined,
                 validator: _validateOptionalPrice,
@@ -346,9 +384,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     ? null
                     : (value) => setState(() => _inStock = value),
                 title: Text(context.l10n.formAvailableForSale),
-                subtitle: Text(
-                  context.l10n.formAvailableHint,
-                ),
+                subtitle: Text(context.l10n.formAvailableHint),
               ),
               sectionTitle(context.l10n.productDescription),
               AppTextField(
@@ -424,8 +460,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 value: _installationAvailable,
                 onChanged: _isSaving
                     ? null
-                    : (value) =>
-                        setState(() => _installationAvailable = value),
+                    : (value) => setState(() => _installationAvailable = value),
                 title: Text(context.l10n.formInstallationAvailable),
                 subtitle: Text(
                   _installationAvailable
@@ -439,8 +474,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   label: context.l10n.formInstallationPrice,
                   controller: _installationPriceController,
                   enabled: !_isSaving,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [_decimalFormatter],
                   prefixIcon: Icons.handyman_outlined,
                   validator: (value) => _validatePositiveNumber(
@@ -462,6 +498,47 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The brands already used on the marketplace, offered as chips under the
+/// brand field so the same make is always spelled the same way.
+class _BrandSuggestions extends ConsumerWidget {
+  const _BrandSuggestions({
+    required this.typed,
+    required this.enabled,
+    required this.onPick,
+  });
+
+  final String typed;
+  final bool enabled;
+  final ValueChanged<String> onPick;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final needle = typed.trim().toLowerCase();
+    final suggestions = [
+      for (final brand in brandsOf(ref.watch(marketplaceProductsProvider)))
+        if (brand.toLowerCase() != needle &&
+            (needle.isEmpty || brand.toLowerCase().contains(needle)))
+          brand,
+    ].take(8).toList();
+    if (suggestions.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.s4),
+      child: Wrap(
+        spacing: AppSpacing.s8,
+        runSpacing: AppSpacing.s4,
+        children: [
+          for (final brand in suggestions)
+            ActionChip(
+              key: ValueKey('brand-suggestion-$brand'),
+              label: Text(brand),
+              onPressed: enabled ? () => onPick(brand) : null,
+            ),
+        ],
       ),
     );
   }

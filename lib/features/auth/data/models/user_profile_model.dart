@@ -15,6 +15,7 @@ class UserProfileModel extends UserProfile {
     super.mustChangePassword,
     super.createdByCompany,
     super.language,
+    super.cityId,
   });
 
   factory UserProfileModel.customer({
@@ -90,6 +91,9 @@ class UserProfileModel extends UserProfile {
         'ar' => 'ar',
         _ => null,
       },
+      // Any saved city id counts: the list of cities can grow, and the
+      // security rules decide which ids may be written.
+      cityId: text('cityId'),
     );
   }
 

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/auth_controller.dart';
+import '../../../cities/domain/sudan_city.dart';
+import '../../../cities/presentation/city_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../location/presentation/location_strings.dart';
 import '../../../location/presentation/widgets/map_widgets.dart';
@@ -27,6 +29,7 @@ class CompanyProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(citiesProvider);
     final companyAsync = ref.watch(companyStreamProvider(companyId));
     final signOutButton = AppButton.destructiveOutlined(
       onPressed: () {
@@ -106,6 +109,15 @@ class CompanyProfileScreen extends ConsumerWidget {
               title: context.l10n.adminLocation,
               children: [
                 AdminInfoRow(label: context.l10n.adminCity, value: _orDash(company.city)),
+                AdminInfoRow(
+                  label: context.l10n.cityServiceAreaTitle,
+                  value: company.serviceCityIds.isEmpty
+                      ? context.l10n.cityServiceAreaAll
+                      : cityNamesText(
+                          company.serviceCityIds,
+                          Localizations.localeOf(context).languageCode,
+                        ),
+                ),
                 AdminInfoRow(label: context.l10n.orderAddress, value: _orDash(company.address)),
                 AdminInfoRow(
                   label: context.l10n.checkoutPickupLocation,

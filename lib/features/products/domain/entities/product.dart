@@ -11,6 +11,7 @@ class Product with OfferPricing {
     this.companyName,
     this.categoryId,
     this.description,
+    this.brand = '',
     this.inStock = true,
     this.stockCount = 10,
     this.specifications = const {},
@@ -42,6 +43,9 @@ class Product with OfferPricing {
   /// existing products are never migrated automatically.
   final String? categoryId;
   final String? description;
+
+  /// The make ("HP"); empty when the company gave none.
+  final String brand;
   final bool inStock;
   final int stockCount;
   final Map<String, String> specifications;
@@ -66,7 +70,6 @@ class Product with OfferPricing {
 
   bool get hasPrice => price != null;
 
-
   /// Units remain. Products with no stock are hidden from customers (they stay
   /// visible to their company so it can restock).
   bool get hasStock => stockCount > 0;
@@ -80,28 +83,29 @@ class Product with OfferPricing {
 
   /// This product as it stands with [stockCount] units left.
   Product withStockCount(int stockCount) => Product(
-        id: id,
-        name: name,
-        price: price,
-        currency: currency,
-        imageUrl: imageUrl,
-        companyId: companyId,
-        companyName: companyName,
-        categoryId: categoryId,
-        description: description,
-        inStock: inStock,
-        stockCount: stockCount,
-        specifications: specifications,
-        isDeliveryAvailable: isDeliveryAvailable,
-        isInstallationAvailable: isInstallationAvailable,
-        installationPrice: installationPrice,
-        offerPrice: offerPrice,
-        offerEndsAt: offerEndsAt,
-        offerBadge: offerBadge,
-        createdAt: createdAt,
-        hidden: hidden,
-        hiddenReason: hiddenReason,
-      );
+    id: id,
+    name: name,
+    price: price,
+    currency: currency,
+    imageUrl: imageUrl,
+    companyId: companyId,
+    companyName: companyName,
+    categoryId: categoryId,
+    description: description,
+    brand: brand,
+    inStock: inStock,
+    stockCount: stockCount,
+    specifications: specifications,
+    isDeliveryAvailable: isDeliveryAvailable,
+    isInstallationAvailable: isInstallationAvailable,
+    installationPrice: installationPrice,
+    offerPrice: offerPrice,
+    offerEndsAt: offerEndsAt,
+    offerBadge: offerBadge,
+    createdAt: createdAt,
+    hidden: hidden,
+    hiddenReason: hiddenReason,
+  );
 
   /// This product with [offerPrice] until [offerEndsAt] under [badge]; a
   /// `null` offer price removes the offer.
@@ -109,28 +113,28 @@ class Product with OfferPricing {
     double? offerPrice,
     DateTime? offerEndsAt, [
     OfferBadge? badge,
-  ]) =>
-      Product(
-        id: id,
-        name: name,
-        price: price,
-        currency: currency,
-        imageUrl: imageUrl,
-        companyId: companyId,
-        companyName: companyName,
-        categoryId: categoryId,
-        description: description,
-        inStock: inStock,
-        stockCount: stockCount,
-        specifications: specifications,
-        isDeliveryAvailable: isDeliveryAvailable,
-        isInstallationAvailable: isInstallationAvailable,
-        installationPrice: installationPrice,
-        offerPrice: offerPrice,
-        offerEndsAt: offerPrice == null ? null : offerEndsAt,
-        offerBadge: offerPrice == null ? null : badge,
-        createdAt: createdAt,
-        hidden: hidden,
-        hiddenReason: hiddenReason,
-      );
+  ]) => Product(
+    id: id,
+    name: name,
+    price: price,
+    currency: currency,
+    imageUrl: imageUrl,
+    companyId: companyId,
+    companyName: companyName,
+    categoryId: categoryId,
+    description: description,
+    brand: brand,
+    inStock: inStock,
+    stockCount: stockCount,
+    specifications: specifications,
+    isDeliveryAvailable: isDeliveryAvailable,
+    isInstallationAvailable: isInstallationAvailable,
+    installationPrice: installationPrice,
+    offerPrice: offerPrice,
+    offerEndsAt: offerPrice == null ? null : offerEndsAt,
+    offerBadge: offerPrice == null ? null : badge,
+    createdAt: createdAt,
+    hidden: hidden,
+    hiddenReason: hiddenReason,
+  );
 }

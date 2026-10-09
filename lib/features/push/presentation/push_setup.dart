@@ -12,18 +12,27 @@ import '../../../core/navigation/app_keys.dart';
 import '../../../core/push/push_relay.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../auth/domain/entities/user_profile.dart';
+import '../../auth/domain/entities/user_role.dart';
+import '../../cities/domain/sudan_city.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/auth_state.dart';
 import '../../chats/presentation/chat_screen.dart';
+import '../../companies/presentation/companies_providers.dart';
+import '../../companies/presentation/company_details_screen.dart';
 import '../../company_admin/presentation/orders/company_order_details_screen.dart';
+import '../../company_admin/presentation/products/company_product_details_screen.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
 import '../../orders/presentation/order_details_screen.dart';
 import '../../orders/presentation/orders_providers.dart';
 import '../../reports/presentation/my_reports_screen.dart';
 import '../../service_requests/presentation/service_request_details_screen.dart';
 import '../data/push_tokens.dart';
+import '../domain/push_categories.dart';
 import 'push_destination.dart';
 import 'push_preference.dart';
+
+/// Where the city topic this phone is subscribed to is remembered.
+const _cityTopicKey = 'push_city_topic';
 
 /// Phone push notifications, watched once from the root widget:
 ///
@@ -44,6 +53,46 @@ final pushSetupProvider = Provider<void>((ref) {
   String? signedInUid;
   StreamSubscription<String>? tokenRefresh;
   var checkedLaunchPush = false;
+  // The topic of this phone's customer city and language, so the relay can say
+  // "a company now serves your city" with one message. Remembered on the phone
+  // so a changed city or language swaps the old topic for the new one.
+  String? cityTopic = ref.read(sharedPreferencesProvider)?.getString(_cityTopicKey);
+
+  Future<void> syncCityTopic() async {
+    final profile = ref.read(profileControllerProvider).asData?.value;
+    final cityId = profile?.cityId;
+    // Switching "new companies in my city" off leaves the topic.
+    final wantsCityPushes = ref
+            .read(pushPrefsProvider)
+            .asData
+            ?.value
+            .isOn(PushCategory.cityAnnouncements) ??
+        true;
+    final wanted = signedInUid != null &&
+            ref.read(pushEnabledProvider) &&
+            wantsCityPushes &&
+            profile?.role == UserRole.customer &&
+            cityId != null
+        ? cityPushTopic(
+            cityId,
+            ref.read(localeControllerProvider).languageCode,
+          )
+        : null;
+    if (wanted == cityTopic) return;
+    try {
+      if (cityTopic != null) await messaging.unsubscribeFromTopic(cityTopic!);
+      if (wanted != null) await messaging.subscribeToTopic(wanted);
+      cityTopic = wanted;
+      final prefs = ref.read(sharedPreferencesProvider);
+      if (wanted == null) {
+        await prefs?.remove(_cityTopicKey);
+      } else {
+        await prefs?.setString(_cityTopicKey, wanted);
+      }
+    } catch (error) {
+      debugLog('Push', 'city topic: $error');
+    }
+  }
 
   Future<void> register(String uid) async {
     if (ref.read(pushEnabledProvider)) {
@@ -96,14 +145,19 @@ final pushSetupProvider = Provider<void>((ref) {
   ref.listen<AsyncValue<UserProfile?>>(profileControllerProvider, (_, next) {
     final profile = next.asData?.value;
     if (profile != null) {
-      if (signedInUid == profile.id) return;
+      if (signedInUid == profile.id) {
+        syncCityTopic();
+        return;
+      }
       signedInUid = profile.id;
       register(profile.id);
+      syncCityTopic();
       return;
     }
     if (signedInUid != null &&
         ref.read(authControllerProvider) is! AuthAuthenticated) {
       signedInUid = null;
+      syncCityTopic();
       // FCM forgets this phone's address; the relay then drops it from the
       // previous user's profile the next time it tries it.
       messaging.deleteToken().catchError(
@@ -112,7 +166,11 @@ final pushSetupProvider = Provider<void>((ref) {
     }
   }, fireImmediately: true);
 
+  ref.listen(localeControllerProvider, (_, _) => syncCityTopic());
+  ref.listen<AsyncValue<PushPrefs>>(pushPrefsProvider, (_, _) => syncCityTopic());
+
   ref.listen<bool>(pushEnabledProvider, (_, enabled) {
+    syncCityTopic();
     final uid = signedInUid;
     if (uid == null) return;
     if (enabled) {
@@ -161,6 +219,9 @@ Widget pushDestinationScreen(PushDestination destination) {
     ServiceRequestDestination(:final requestId, :final asCompany) =>
       ServiceRequestDetailsScreen(requestId: requestId, asCompany: asCompany),
     ReportDestination() => const MyReportsScreen(),
+    CompanyProductDestination(:final companyId, :final productId) =>
+      CompanyProductDetailsScreen(companyId: companyId, productId: productId),
+    CompanyDestination(:final companyId) => _CompanyLoader(companyId: companyId),
   };
 }
 
@@ -213,6 +274,24 @@ void _showBanner(Ref ref, RemoteMessage message) {
 }
 
 /// A customer's order opened from a push (only its id is known).
+/// The company a city announcement is about, opened once it has loaded.
+class _CompanyLoader extends ConsumerWidget {
+  const _CompanyLoader({required this.companyId});
+
+  final String companyId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final company = ref.watch(resolvedCompanyProvider(companyId));
+    if (company != null) return CompanyDetailsScreen(company: company);
+    final loading = ref.watch(companyStreamProvider(companyId)).isLoading;
+    return Scaffold(
+      appBar: AppBar(),
+      body: loading ? const AppLoadingState() : AppErrorState(message: context.l10n.errorGeneric),
+    );
+  }
+}
+
 class _CustomerOrderLoader extends ConsumerWidget {
   const _CustomerOrderLoader({required this.orderId});
 

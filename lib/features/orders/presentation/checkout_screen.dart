@@ -127,6 +127,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (!formValid) {
       return;
     }
+    // Stop here, with a clear reason, instead of letting the server refuse it.
+    if (!ref.read(companyServesMyCityProvider(widget.product.companyId ?? ''))) {
+      showAppSnackBar(context, context.l10n.cityNotServed, tone: AppTone.error);
+      return;
+    }
 
     final productSubtotal = _unitPrice * widget.quantity;
     final installationCharge = (_installationEligible && _includeInstallation)

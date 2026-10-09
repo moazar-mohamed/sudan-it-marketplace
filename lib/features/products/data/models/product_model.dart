@@ -27,6 +27,7 @@ class ProductModel {
       companyName: map['companyName'] as String?,
       categoryId: map['categoryId'] as String?,
       description: map['description'] as String?,
+      brand: (map['brand'] as String? ?? '').trim(),
       inStock: map['inStock'] as bool? ?? true,
       stockCount: (map['stockCount'] as num?)?.toInt() ?? 0,
       specifications: specs,
@@ -34,8 +35,7 @@ class ProductModel {
       isInstallationAvailable: map['isInstallationAvailable'] as bool? ?? false,
       installationPrice: (map['installationPrice'] as num?)?.toDouble(),
       offerPrice: (map['offerPrice'] as num?)?.toDouble(),
-      offerEndsAt:
-          rawOfferEndsAt is Timestamp ? rawOfferEndsAt.toDate() : null,
+      offerEndsAt: rawOfferEndsAt is Timestamp ? rawOfferEndsAt.toDate() : null,
       offerBadge: OfferBadge.parse(map['offerBadge']),
       createdAt: rawCreatedAt is Timestamp ? rawCreatedAt.toDate() : null,
       // Set only by Platform Admin; the app never writes them, so a company's
@@ -63,6 +63,7 @@ class ProductModel {
       'stockCount': product.stockCount,
       'inStock': product.inStock,
       'description': product.description ?? '',
+      'brand': product.brand.trim(),
       'specifications': product.specifications,
       'isDeliveryAvailable': product.isDeliveryAvailable,
       'isInstallationAvailable': product.isInstallationAvailable,
@@ -74,8 +75,9 @@ class ProductModel {
       'offerEndsAt': product.offerPrice == null || product.offerEndsAt == null
           ? null
           : Timestamp.fromDate(product.offerEndsAt!),
-      'offerBadge':
-          product.offerPrice == null ? null : product.offerBadge?.name,
+      'offerBadge': product.offerPrice == null
+          ? null
+          : product.offerBadge?.name,
     };
   }
 }

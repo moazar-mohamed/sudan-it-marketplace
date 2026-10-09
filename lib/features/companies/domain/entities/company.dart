@@ -18,6 +18,7 @@ class Company {
     this.pickupAddress,
     this.status = 'active',
     this.paymentAccounts = const [],
+    this.serviceCityIds = const [],
   });
 
   final String id;
@@ -47,6 +48,17 @@ class Company {
   /// Where customers transfer manual payments for this company's orders.
   final List<PaymentAccount> paymentAccounts;
 
+  /// Ids of the cities this company delivers to and serves. Empty means it
+  /// has not said (companies that predate the setting): such a company is
+  /// shown in every city.
+  final List<String> serviceCityIds;
+
+  /// Whether a customer in [cityId] can order from this company. A customer
+  /// who has not chosen a city, or a company that has not listed any, is not
+  /// restricted.
+  bool servesCity(String? cityId) =>
+      cityId == null || serviceCityIds.isEmpty || serviceCityIds.contains(cityId);
+
   /// Only active companies (and their products) are shown to customers.
   bool get isActive => status == 'active';
 
@@ -74,6 +86,7 @@ class Company {
     String? phone,
     String? email,
     String? pickupAddress,
+    List<String>? serviceCityIds,
   }) {
     return Company(
       id: id,
@@ -91,6 +104,7 @@ class Company {
       pickupAddress: pickupAddress ?? this.pickupAddress,
       status: status,
       paymentAccounts: paymentAccounts,
+      serviceCityIds: serviceCityIds ?? this.serviceCityIds,
     );
   }
 }

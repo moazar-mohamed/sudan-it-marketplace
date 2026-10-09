@@ -1,16 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../cities/presentation/city_providers.dart';
 import '../../companies/domain/entities/company.dart';
 import '../../companies/presentation/companies_providers.dart';
-import '../../customer_dashboard/data/mock_marketplace_data.dart';
 import '../data/datasources/firestore_products_remote_data_source.dart';
 import '../data/datasources/products_remote_data_source.dart';
 import '../data/repositories/products_repository_impl.dart';
 import '../domain/entities/product.dart';
 import '../domain/repositories/products_repository.dart';
 
-final productsRemoteDataSourceProvider =
-    Provider<ProductsRemoteDataSource>((ref) {
+final productsRemoteDataSourceProvider = Provider<ProductsRemoteDataSource>((
+  ref,
+) {
   return FirestoreProductsRemoteDataSource();
 });
 
@@ -28,15 +29,18 @@ final firestoreProductsStreamProvider = StreamProvider<List<Product>>((ref) {
 /// hidden, and reappears as soon as the company is active again. While the
 /// company list has not loaded (`companies == null`) company products stay
 /// hidden rather than flashing. Products with no company are kept.
+///
+/// With a [cityId], only products of companies that serve that city stay.
 List<Product> productsOfActiveCompanies(
   List<Product> products,
-  List<Company>? companies,
-) {
+  List<Company>? companies, {
+  String? cityId,
+}) {
   final activeIds = companies == null
       ? const <String>{}
       : {
           for (final company in companies)
-            if (company.isActive) company.id,
+            if (company.isActive && company.servesCity(cityId)) company.id,
         };
   return products.where((product) {
     final companyId = product.companyId;
@@ -53,39 +57,31 @@ List<Product> productsOfActiveCompanies(
 List<Product> productsWithStock(List<Product> products) =>
     products.where((product) => product.hasStock).toList();
 
-/// Customer-facing catalogue: in-stock products of active companies followed
-/// by the existing demo catalogue. Falls back to the demo catalogue if
-/// Firestore cannot be read so the customer home never breaks.
+/// Customer-facing catalogue: the in-stock products of active companies.
+/// Nothing here is made up: no demo products.
 final marketplaceProductsProvider = Provider<List<Product>>((ref) {
-  final remote = ref.watch(firestoreProductsStreamProvider).asData?.value ??
+  final remote =
+      ref.watch(firestoreProductsStreamProvider).asData?.value ??
       const <Product>[];
   final companies = ref.watch(firestoreCompaniesStreamProvider).asData?.value;
-  return [
-    ...productsWithStock(productsOfActiveCompanies(remote, companies)),
-    ...mockProducts,
-  ];
+  final cityId = ref.watch(cityFilterProvider);
+  return productsWithStock(
+    productsOfActiveCompanies(remote, companies, cityId: cityId),
+  );
 });
-
-/// A product of the built-in demo catalogue: it has no real company behind
-/// it in Firestore, so it cannot be ordered from or asked about for real.
-bool isDemoProduct(Product product) =>
-    mockProducts.any((demo) => demo.id == product.id);
 
 /// The product as the marketplace currently stands, for a screen that was
 /// opened earlier (a stale card or a direct link).
 ///
-/// Once the catalogue has loaded, a real product that is no longer listed
-/// (sold out, or its company went inactive) is treated as out of stock so it
-/// cannot be bought from an old screen; a listed product takes its latest
-/// stock. Demo products, and any state where the catalogue has not loaded,
-/// keep the snapshot. The order transaction still re-checks stock on submit.
+/// Once the catalogue has loaded, a product that is no longer listed (sold
+/// out, or its company went inactive) is treated as out of stock so it cannot
+/// be bought from an old screen; a listed product takes its latest stock. Any
+/// state where the catalogue has not loaded keeps the snapshot. The order
+/// transaction still re-checks stock on submit.
 Product resolveLiveProduct(
   Product snapshot,
   AsyncValue<List<Product>> catalogue,
 ) {
-  if (isDemoProduct(snapshot)) {
-    return snapshot;
-  }
   final listed = catalogue.asData?.value;
   if (listed == null) {
     return snapshot;
@@ -100,8 +96,10 @@ Product resolveLiveProduct(
 
 final companyProductsStreamProvider =
     StreamProvider.family<List<Product>, String>((ref, companyId) {
-  if (companyId.isEmpty) {
-    return Stream.value(const []);
-  }
-  return ref.watch(productsRepositoryProvider).watchCompanyProducts(companyId);
-});
+      if (companyId.isEmpty) {
+        return Stream.value(const []);
+      }
+      return ref
+          .watch(productsRepositoryProvider)
+          .watchCompanyProducts(companyId);
+    });

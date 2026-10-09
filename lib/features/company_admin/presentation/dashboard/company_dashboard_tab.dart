@@ -6,6 +6,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../../../cities/presentation/city_providers.dart';
+import '../../../companies/presentation/companies_providers.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/orders_providers.dart';
 import '../../../products/domain/entities/product.dart';
@@ -15,6 +17,7 @@ import '../../../reviews/presentation/reviews_providers.dart';
 import '../company_admin_format.dart';
 import '../orders/company_order_details_screen.dart';
 import '../orders/company_orders_tab.dart';
+import '../profile/edit_company_profile_screen.dart';
 import '../products/company_product_details_screen.dart';
 import '../reviews/company_reviews_screen.dart';
 import '../widgets/company_order_tile.dart';
@@ -43,6 +46,10 @@ class CompanyDashboardTab extends ConsumerWidget {
     final rating =
         ref.watch(ratingStatsProvider(RatingStats.companyKey(companyId)));
     final ordersAsync = ref.watch(companyOrdersStreamProvider(companyId));
+    // A company that has not said which cities it serves is shown everywhere.
+    final company = ref.watch(companyStreamProvider(companyId)).asData?.value;
+    final needsCities = company != null && company.serviceCityIds.isEmpty;
+    ref.watch(citiesProvider);
 
     final orders = ordersAsync.asData?.value ?? const <OrderEntity>[];
     final products = productsAsync.asData?.value ?? const <Product>[];
@@ -119,6 +126,25 @@ class CompanyDashboardTab extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (needsCities) ...[
+                    AppBanner(
+                      key: const ValueKey('company-needs-cities'),
+                      tone: AppTone.warning,
+                      icon: Icons.map_outlined,
+                      title: context.l10n.cityCompanyNoCitiesTitle,
+                      message: context.l10n.cityCompanyNoCitiesBody,
+                      action: TextButton(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                EditCompanyProfileScreen(company: company),
+                          ),
+                        ),
+                        child: Text(context.l10n.cityServiceAreaChoose),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.s16),
+                  ],
                   LayoutBuilder(
                     builder: (context, constraints) {
                       // Two columns on a phone, four when there is room.

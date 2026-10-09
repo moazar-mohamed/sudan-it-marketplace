@@ -3415,6 +3415,228 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notifOrderCancelledByAdminTitle => 'Your order was cancelled';
+
+  @override
+  String notifOrderCancelledByAdminBody(String product) {
+    return 'The platform cancelled your order \"$product\".';
+  }
+
+  @override
+  String get notifOrderCancelledByAdminCompanyTitle => 'An order was cancelled';
+
+  @override
+  String notifOrderCancelledByAdminCompanyBody(String product) {
+    return 'The platform cancelled the order for \"$product\".';
+  }
+
+  @override
+  String get notifProductHiddenTitle => 'A product was hidden';
+
+  @override
+  String notifProductHiddenBody(String product) {
+    return '\"$product\" was hidden from customers. Open it to see why.';
+  }
+
+  @override
+  String get notifProductShownTitle => 'A product is visible again';
+
+  @override
+  String notifProductShownBody(String product) {
+    return '\"$product\" is visible to customers again.';
+  }
+
+  @override
+  String get settingsPushKindsTitle => 'What to be notified about';
+
+  @override
+  String get settingsPushKindsHint =>
+      'Turning one off stops only its phone notifications. You still see everything inside the app.';
+
+  @override
+  String get pushKindOrders => 'Orders';
+
+  @override
+  String get pushKindOrdersHint => 'New orders, payments, delivery and ratings';
+
+  @override
+  String get pushKindChat => 'Messages';
+
+  @override
+  String get pushKindChatHint => 'New chat messages';
+
+  @override
+  String get pushKindServiceRequests => 'Service requests';
+
+  @override
+  String get pushKindServiceRequestsHint => 'New requests and their progress';
+
+  @override
+  String get pushKindReports => 'Reports';
+
+  @override
+  String get pushKindReportsHint => 'Replies to the reports you sent';
+
+  @override
+  String get pushKindPlatform => 'Platform messages';
+
+  @override
+  String get pushKindPlatformHint =>
+      'Products the platform hid or showed again';
+
+  @override
+  String get pushKindCity => 'New companies in my city';
+
+  @override
+  String get pushKindCityHint => 'When a company starts serving your city';
+
+  @override
   String get reportLimitReached =>
       'You can send 5 reports in 24 hours. Please try again later.';
+
+  @override
+  String get cityPickerTitle => 'Choose your city';
+
+  @override
+  String get cityPickerSubtitle =>
+      'We show you the companies that serve your city, so your orders can be delivered.';
+
+  @override
+  String get cityChangeTooltip => 'Change city';
+
+  @override
+  String get citySaveFailed => 'Could not save your city. Please try again.';
+
+  @override
+  String get cityServiceAreaTitle => 'Cities you serve';
+
+  @override
+  String get cityServiceAreaHint =>
+      'Customers see your company, products and services only in the cities you pick. Leave empty to appear in every city.';
+
+  @override
+  String get cityServiceAreaAll => 'All cities';
+
+  @override
+  String get cityServiceAreaChoose => 'Choose cities';
+
+  @override
+  String cityServiceAreaCount(int count) {
+    return '$count cities';
+  }
+
+  @override
+  String get cityNotServed => 'This company does not serve your city.';
+
+  @override
+  String get citySearchHint => 'Search cities';
+
+  @override
+  String get cityUseMyLocation => 'Use my location';
+
+  @override
+  String get cityLocationFailed =>
+      'Could not find your location. Choose your city from the list.';
+
+  @override
+  String get cityBrowseAll => 'Browse all cities';
+
+  @override
+  String get cityBrowseAllHint =>
+      'You can look at every company, but you can only order from companies that serve your city.';
+
+  @override
+  String cityCompaniesCount(int count) {
+    return '$count companies';
+  }
+
+  @override
+  String get cityNoResults => 'No city matches your search.';
+
+  @override
+  String get cityCompanyNoCitiesTitle => 'Choose the cities you serve';
+
+  @override
+  String get cityCompanyNoCitiesBody =>
+      'Your company has no service cities yet, so every customer in every city sees it and can order. Choose the cities you deliver to.';
+
+  @override
+  String categoryChipAll(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String categoryItemCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get categoryKindAll => 'All';
+
+  @override
+  String get categoryKindProducts => 'Products';
+
+  @override
+  String get categoryKindServices => 'Services';
+
+  @override
+  String get categoryFilterInStock => 'In stock';
+
+  @override
+  String get categoryFilterBrand => 'Brand';
+
+  @override
+  String get categoryFilterPrice => 'Price';
+
+  @override
+  String get categoryFilterCompany => 'Company';
+
+  @override
+  String get categoryFilterAnyBrand => 'All brands';
+
+  @override
+  String get categoryFilterAnyCompany => 'All companies';
+
+  @override
+  String get categoryFilterPriceFrom => 'From';
+
+  @override
+  String get categoryFilterPriceTo => 'To';
+
+  @override
+  String get categoryFilterApply => 'Apply';
+
+  @override
+  String get categoryFilterClear => 'Clear';
+
+  @override
+  String categorySectionProducts(int count) {
+    return 'Products ($count)';
+  }
+
+  @override
+  String categorySectionServices(int count) {
+    return 'Services ($count)';
+  }
+
+  @override
+  String get categoryScreenEmpty => 'Nothing is listed here yet.';
+
+  @override
+  String get categoryNoMatches => 'Nothing matches these filters.';
+
+  @override
+  String get categoryClearFilters => 'Clear filters';
+
+  @override
+  String get formBrandLabel => 'Brand';
+
+  @override
+  String get formBrandHint => 'For example HP, Cisco, Samsung';
+
+  @override
+  String get formCategoryRequired => 'A category is required';
+
+  @override
+  String get productBrand => 'Brand';
 }

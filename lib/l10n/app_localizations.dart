@@ -5964,11 +5964,401 @@ abstract class AppLocalizations {
   /// **'Your report \"{subject}\" was closed. Open My reports to read our reply.'**
   String notifReportClosedBody(String subject);
 
+  /// No description provided for @notifOrderCancelledByAdminTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order was cancelled'**
+  String get notifOrderCancelledByAdminTitle;
+
+  /// No description provided for @notifOrderCancelledByAdminBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform cancelled your order \"{product}\".'**
+  String notifOrderCancelledByAdminBody(String product);
+
+  /// No description provided for @notifOrderCancelledByAdminCompanyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'An order was cancelled'**
+  String get notifOrderCancelledByAdminCompanyTitle;
+
+  /// No description provided for @notifOrderCancelledByAdminCompanyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform cancelled the order for \"{product}\".'**
+  String notifOrderCancelledByAdminCompanyBody(String product);
+
+  /// No description provided for @notifProductHiddenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A product was hidden'**
+  String get notifProductHiddenTitle;
+
+  /// No description provided for @notifProductHiddenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{product}\" was hidden from customers. Open it to see why.'**
+  String notifProductHiddenBody(String product);
+
+  /// No description provided for @notifProductShownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A product is visible again'**
+  String get notifProductShownTitle;
+
+  /// No description provided for @notifProductShownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{product}\" is visible to customers again.'**
+  String notifProductShownBody(String product);
+
+  /// No description provided for @settingsPushKindsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What to be notified about'**
+  String get settingsPushKindsTitle;
+
+  /// No description provided for @settingsPushKindsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Turning one off stops only its phone notifications. You still see everything inside the app.'**
+  String get settingsPushKindsHint;
+
+  /// No description provided for @pushKindOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get pushKindOrders;
+
+  /// No description provided for @pushKindOrdersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'New orders, payments, delivery and ratings'**
+  String get pushKindOrdersHint;
+
+  /// No description provided for @pushKindChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get pushKindChat;
+
+  /// No description provided for @pushKindChatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat messages'**
+  String get pushKindChatHint;
+
+  /// No description provided for @pushKindServiceRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Service requests'**
+  String get pushKindServiceRequests;
+
+  /// No description provided for @pushKindServiceRequestsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'New requests and their progress'**
+  String get pushKindServiceRequestsHint;
+
+  /// No description provided for @pushKindReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get pushKindReports;
+
+  /// No description provided for @pushKindReportsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies to the reports you sent'**
+  String get pushKindReportsHint;
+
+  /// No description provided for @pushKindPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform messages'**
+  String get pushKindPlatform;
+
+  /// No description provided for @pushKindPlatformHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Products the platform hid or showed again'**
+  String get pushKindPlatformHint;
+
+  /// No description provided for @pushKindCity.
+  ///
+  /// In en, this message translates to:
+  /// **'New companies in my city'**
+  String get pushKindCity;
+
+  /// No description provided for @pushKindCityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When a company starts serving your city'**
+  String get pushKindCityHint;
+
   /// No description provided for @reportLimitReached.
   ///
   /// In en, this message translates to:
   /// **'You can send 5 reports in 24 hours. Please try again later.'**
   String get reportLimitReached;
+
+  /// No description provided for @cityPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your city'**
+  String get cityPickerTitle;
+
+  /// No description provided for @cityPickerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We show you the companies that serve your city, so your orders can be delivered.'**
+  String get cityPickerSubtitle;
+
+  /// No description provided for @cityChangeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Change city'**
+  String get cityChangeTooltip;
+
+  /// No description provided for @citySaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save your city. Please try again.'**
+  String get citySaveFailed;
+
+  /// No description provided for @cityServiceAreaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cities you serve'**
+  String get cityServiceAreaTitle;
+
+  /// No description provided for @cityServiceAreaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers see your company, products and services only in the cities you pick. Leave empty to appear in every city.'**
+  String get cityServiceAreaHint;
+
+  /// No description provided for @cityServiceAreaAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All cities'**
+  String get cityServiceAreaAll;
+
+  /// No description provided for @cityServiceAreaChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose cities'**
+  String get cityServiceAreaChoose;
+
+  /// No description provided for @cityServiceAreaCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} cities'**
+  String cityServiceAreaCount(int count);
+
+  /// No description provided for @cityNotServed.
+  ///
+  /// In en, this message translates to:
+  /// **'This company does not serve your city.'**
+  String get cityNotServed;
+
+  /// No description provided for @citySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search cities'**
+  String get citySearchHint;
+
+  /// No description provided for @cityUseMyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my location'**
+  String get cityUseMyLocation;
+
+  /// No description provided for @cityLocationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find your location. Choose your city from the list.'**
+  String get cityLocationFailed;
+
+  /// No description provided for @cityBrowseAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse all cities'**
+  String get cityBrowseAll;
+
+  /// No description provided for @cityBrowseAllHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can look at every company, but you can only order from companies that serve your city.'**
+  String get cityBrowseAllHint;
+
+  /// No description provided for @cityCompaniesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} companies'**
+  String cityCompaniesCount(int count);
+
+  /// No description provided for @cityNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No city matches your search.'**
+  String get cityNoResults;
+
+  /// No description provided for @cityCompanyNoCitiesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the cities you serve'**
+  String get cityCompanyNoCitiesTitle;
+
+  /// No description provided for @cityCompanyNoCitiesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your company has no service cities yet, so every customer in every city sees it and can order. Choose the cities you deliver to.'**
+  String get cityCompanyNoCitiesBody;
+
+  /// No description provided for @categoryChipAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All ({count})'**
+  String categoryChipAll(int count);
+
+  /// No description provided for @categoryItemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String categoryItemCount(int count);
+
+  /// No description provided for @categoryKindAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get categoryKindAll;
+
+  /// No description provided for @categoryKindProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get categoryKindProducts;
+
+  /// No description provided for @categoryKindServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get categoryKindServices;
+
+  /// No description provided for @categoryFilterInStock.
+  ///
+  /// In en, this message translates to:
+  /// **'In stock'**
+  String get categoryFilterInStock;
+
+  /// No description provided for @categoryFilterBrand.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get categoryFilterBrand;
+
+  /// No description provided for @categoryFilterPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get categoryFilterPrice;
+
+  /// No description provided for @categoryFilterCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get categoryFilterCompany;
+
+  /// No description provided for @categoryFilterAnyBrand.
+  ///
+  /// In en, this message translates to:
+  /// **'All brands'**
+  String get categoryFilterAnyBrand;
+
+  /// No description provided for @categoryFilterAnyCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'All companies'**
+  String get categoryFilterAnyCompany;
+
+  /// No description provided for @categoryFilterPriceFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get categoryFilterPriceFrom;
+
+  /// No description provided for @categoryFilterPriceTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get categoryFilterPriceTo;
+
+  /// No description provided for @categoryFilterApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get categoryFilterApply;
+
+  /// No description provided for @categoryFilterClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get categoryFilterClear;
+
+  /// No description provided for @categorySectionProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Products ({count})'**
+  String categorySectionProducts(int count);
+
+  /// No description provided for @categorySectionServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services ({count})'**
+  String categorySectionServices(int count);
+
+  /// No description provided for @categoryScreenEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is listed here yet.'**
+  String get categoryScreenEmpty;
+
+  /// No description provided for @categoryNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches these filters.'**
+  String get categoryNoMatches;
+
+  /// No description provided for @categoryClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get categoryClearFilters;
+
+  /// No description provided for @formBrandLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get formBrandLabel;
+
+  /// No description provided for @formBrandHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For example HP, Cisco, Samsung'**
+  String get formBrandHint;
+
+  /// No description provided for @formCategoryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A category is required'**
+  String get formCategoryRequired;
+
+  /// No description provided for @productBrand.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get productBrand;
 }
 
 class _AppLocalizationsDelegate

@@ -1,36 +1,35 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/localization/l10n_extension.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/theme/app_text_styles.dart';
 import '../../../categories/domain/category_tree.dart';
-import '../../../categories/domain/entities/category.dart';
+import 'category_browse.dart';
 import 'category_grid.dart';
 import 'category_grid_style.dart';
 
-/// The customer's way into a category tree: tiles for the categories at the
-/// current level, a breadcrumb back up, and the whole subtree of the chosen
-/// category as the filter. Works at any depth.
+/// The customer's way into the category tree: tiles for the top-level
+/// categories, each with what it holds. Choosing one calls [onOpen]; the
+/// category then has a screen of its own with its sub-categories and filters.
 ///
 /// Every category customers can see (active, under active parents) is offered
-/// the moment Platform Admin adds it, even before anything is filed in it.
+/// the moment Platform Admin adds it, except that, once the counts are known,
+/// one with nothing in it is left out until something is filed in it.
 class CategoryBrowser extends StatelessWidget {
   const CategoryBrowser({
     super.key,
     required this.tree,
-    required this.currentId,
-    required this.onChanged,
+    required this.onOpen,
+    this.counts,
     this.title,
     this.style = CategoryGridStyle.standard,
     this.horizontalPadding = 0,
   });
 
   final CategoryTree tree;
+  final ValueChanged<String> onOpen;
 
-  /// The category being browsed (its whole subtree is the filter); null = all.
-  final String? currentId;
-  final ValueChanged<String?> onChanged;
+  /// What each category holds. When given, a category with nothing in it is
+  /// not offered and every tile shows its count; null (still loading) offers
+  /// them all.
+  final Map<String, CategoryCount>? counts;
 
   /// The tiles' section title, and how they are drawn ([CategoryGridStyle.homeRow]
   /// on the home screen). [horizontalPadding] is the side space of everything
@@ -39,118 +38,24 @@ class CategoryBrowser extends StatelessWidget {
   final CategoryGridStyle style;
   final double horizontalPadding;
 
-  /// The category to filter by: [currentId] if it is still shown, else none.
-  static String? validCurrent(CategoryTree tree, String? id) =>
-      id != null && tree.isEffectivelyActive(id) ? id : null;
-
   @override
   Widget build(BuildContext context) {
-    final tiles = tree.activeChildrenOf(currentId);
-    final current = currentId;
-    if (tiles.isEmpty && current == null) return const SizedBox.shrink();
-    final language = Localizations.localeOf(context).languageCode;
-    final path = current == null ? const <Category>[] : tree.pathOf(current);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (current != null)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton.icon(
-                key: const ValueKey('browse-back'),
-                // One level up: the parent, or all categories from the top level.
-                onPressed: () => onChanged(
-                  path.length > 1 ? path[path.length - 2].id : null,
-                ),
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  size: AppSize.iconSm,
-                ),
-                label: Text(context.l10n.categoryBack),
-                style: TextButton.styleFrom(
-                  foregroundColor: context.colors.textBrand,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.s8,
-                  ),
-                  minimumSize: const Size(0, 36),
-                ),
-              ),
-            ),
-          ),
-        if (current != null)
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              horizontalPadding,
-              0,
-              horizontalPadding,
-              AppSpacing.s8,
-            ),
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _Crumb(
-                  key: const ValueKey('browse-crumb-root'),
-                  label: context.l10n.homeFilterAllCategories,
-                  onTap: () => onChanged(null),
-                ),
-                for (final category in path) ...[
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: AppSize.iconSm,
-                    color: context.colors.textSecondary,
-                  ),
-                  _Crumb(
-                    key: ValueKey('browse-crumb-${category.id}'),
-                    label: category.nameFor(language),
-                    onTap: category.id == current
-                        ? null
-                        : () => onChanged(category.id),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        if (tiles.isNotEmpty)
-          CategoryGrid(
-            categories: tiles,
-            selectedId: null,
-            // Tapping a tile goes into it: its subtree becomes the filter.
-            onSelected: onChanged,
-            style: style,
-            title: title,
-            horizontalPadding: horizontalPadding,
-          ),
-      ],
-    );
-  }
-}
-
-class _Crumb extends StatelessWidget {
-  const _Crumb({super.key, required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
-        minimumSize: const Size(0, 36),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.labelMedium.copyWith(
-          color: onTap == null
-              ? context.colors.textPrimary
-              : context.colors.textBrand,
-          fontWeight: onTap == null ? FontWeight.w700 : FontWeight.w600,
-        ),
-      ),
+    final known = counts;
+    final tiles = [
+      for (final category in tree.activeChildrenOf(null))
+        if (known == null || !(known[category.id]?.isEmpty ?? true)) category,
+    ];
+    if (tiles.isEmpty) return const SizedBox.shrink();
+    return CategoryGrid(
+      categories: tiles,
+      selectedId: null,
+      counts: counts,
+      onSelected: (id) {
+        if (id != null) onOpen(id);
+      },
+      style: style,
+      title: title,
+      horizontalPadding: horizontalPadding,
     );
   }
 }

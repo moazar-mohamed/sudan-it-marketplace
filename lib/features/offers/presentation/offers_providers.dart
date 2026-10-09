@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../cities/presentation/city_providers.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../company_services/presentation/company_service_providers.dart';
 import '../../products/presentation/products_providers.dart';
@@ -20,7 +21,11 @@ final marketplaceServiceOffersProvider = Provider<List<ServiceOfferItem>>((
   if (companies == null) return const [];
   final servicesById = {for (final service in services) service.id: service};
   final companyNames = {
-    for (final company in activeCompanies(companies)) company.id: company.name,
+    for (final company in companiesServingCity(
+      activeCompanies(companies),
+      ref.watch(cityFilterProvider),
+    ))
+      company.id: company.name,
   };
   return [
     for (final link in links)

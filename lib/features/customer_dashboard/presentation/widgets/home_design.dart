@@ -42,7 +42,7 @@ class CategoryLook {
     final icon = categoryIconFor(category);
     return CategoryLook(
       icon: icon,
-      accent: CategoryGridStyle.standard.colorFor(icon, category.id),
+      accent: CategoryGridStyle.standard.colorOfCategory(category, icon),
     );
   }
 
