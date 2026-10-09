@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { AdminNotes } from '../components/AdminNotes';
 import { CustomerEditModal, useToggleCustomerActive } from '../components/CustomerActions';
 import { ActiveBadge, OrderStatusBadge, PaymentBadge } from '../components/StatusBadges';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
+import { cityNames, useCities } from '../data/cities';
 import { useCustomers } from '../data/hooks';
 import { useOrdersOf } from '../data/orderHooks';
 import { displayPhone } from '../data/phone';
@@ -11,7 +13,8 @@ import { shortId } from '../utils';
 
 export function CustomerDetailsPage() {
   const { id = '' } = useParams();
-  const { t, money, date, dateTime } = useI18n();
+  useCities();
+  const { t, money, date, dateTime, locale } = useI18n();
   const customers = useCustomers();
   // Only this customer's orders are read, not every order there is.
   const orders = useOrdersOf('customerId', id);
@@ -64,6 +67,9 @@ export function CustomerDetailsPage() {
                 </KeyValue>
                 <KeyValue label={t('col.phone')}>
                   <bdi dir="ltr">{displayPhone(customer.phone) || '—'}</bdi>
+                </KeyValue>
+                <KeyValue label={t('customer.city')}>
+                  {customer.cityId ? cityNames([customer.cityId], locale === 'ar' ? 'ar' : 'en') : t('customer.cityNone')}
                 </KeyValue>
                 <KeyValue label={t('col.status')}>
                   <ActiveBadge active={customer.isActive} />
@@ -119,6 +125,8 @@ export function CustomerDetailsPage() {
                 </div>
               )}
             </Card>
+
+            <AdminNotes targetType="customer" targetId={customer.id} />
           </>
         )}
       </DataGate>

@@ -16,6 +16,7 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { setAuditActorName } from '../data/auditLog';
+import { syncOwnEmail } from './ownProfile';
 import { resetStores } from '../data/store';
 import { readStoredLocale, useI18n } from '../i18n/I18nProvider';
 import { reconcileLanguage } from '../i18n/reconcile';
@@ -31,6 +32,8 @@ type AuthState =
 
 interface AuthContextValue {
   state: AuthState;
+  /** Shows a change the admin just saved to their own profile (the name) without signing in again. */
+  patchProfile: (patch: Partial<Pick<AdminProfile, 'fullName' | 'email'>>) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -67,6 +70,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             noticeRef.current = null;
             setAuditActorName(decision.profile.fullName || decision.profile.email);
             setState({ status: 'authorized', profile: decision.profile });
+            // The email may have been changed through the confirmation link since.
+            void syncOwnEmail(user.uid, user.email ?? '', decision.profile.email).then((saved) => {
+              if (saved && run === runRef.current && user.email) {
+                setState((now) =>
+                  now.status === 'authorized' ? { status: 'authorized', profile: { ...now.profile, email: user.email! } } : now,
+                );
+              }
+            });
             // The account's language wins; else this browser's choice is
             // saved to the account. Nothing was read before sign-in.
             const plan = reconcileLanguage(
@@ -102,7 +113,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await firebaseSignOut(auth);
   }, []);
 
-  const value = useMemo(() => ({ state, signIn, signOut }), [state, signIn, signOut]);
+  const patchProfile = useCallback((patch: Partial<Pick<AdminProfile, 'fullName' | 'email'>>) => {
+    if (patch.fullName) setAuditActorName(patch.fullName);
+    setState((now) => (now.status === 'authorized' ? { status: 'authorized', profile: { ...now.profile, ...patch } } : now));
+  }, []);
+
+  const value = useMemo(() => ({ state, signIn, signOut, patchProfile }), [state, signIn, signOut, patchProfile]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

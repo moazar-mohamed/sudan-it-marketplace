@@ -1,4 +1,5 @@
 import type { DocumentData } from 'firebase/firestore';
+import { normalizeCityIds } from './cities';
 import { toGeoPoint } from './location';
 import type {
   AuditEntry,
@@ -70,6 +71,7 @@ export function mapCompany(id: string, d: DocumentData): Company {
     logoUrl: str(d.logoUrl),
     description: str(d.description),
     city: str(d.city),
+    serviceCityIds: normalizeCityIds(d.serviceCityIds),
     address: str(d.address),
     latitude: point?.latitude ?? null,
     longitude: point?.longitude ?? null,
@@ -77,6 +79,8 @@ export function mapCompany(id: string, d: DocumentData): Company {
     email: str(d.email),
     pickupAddress: str(d.pickupAddress),
     status: parseCompanyStatus(d.status),
+    trashedAt: toDate(d.trashedAt),
+    statusBeforeTrash: d.statusBeforeTrash == null ? null : parseCompanyStatus(d.statusBeforeTrash),
     createdAt: toDate(d.createdAt),
   };
 }
@@ -88,6 +92,7 @@ export function mapCustomer(id: string, d: DocumentData): Customer {
     email: str(d.email),
     phone: str(d.phone) || str(d.phoneNumber),
     isActive: typeof d.isActive === 'boolean' ? d.isActive : true,
+    cityId: normalizeCityIds([d.cityId])[0] ?? '',
     createdAt: toDate(d.createdAt),
   };
 }
@@ -239,7 +244,11 @@ export function mapCategory(id: string, d: DocumentData): Category {
     sortOrder: typeof d.sortOrder === 'number' ? d.sortOrder : null,
     description: str(d.description),
     iconName: str(d.iconName),
+    color: str(d.color),
     isActive: d.isActive === true,
+    trashedAt: toDate(d.trashedAt),
+    trashRootId: str(d.trashRootId),
+    activeBeforeTrash: d.activeBeforeTrash === true,
     createdAt: toDate(d.createdAt),
   };
 }

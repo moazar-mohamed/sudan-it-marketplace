@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
-import { deleteCompany, setCompanyStatus } from '../data/actions';
+import { setCompanyStatus, trashCompany } from '../data/actions';
 import type { Company, Product } from '../data/types';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
@@ -31,7 +31,7 @@ vi.mock('../data/hooks', async () => {
   return { useCompanies: live('companies'), useProducts: live('products') };
 });
 
-vi.mock('../data/actions', () => ({ deleteCompany: vi.fn(), setCompanyStatus: vi.fn() }));
+vi.mock('../data/actions', () => ({ trashCompany: vi.fn(), setCompanyStatus: vi.fn() }));
 vi.mock('../components/CompanyCreateModal', () => ({ CompanyCreateModal: () => null }));
 
 const setCompanies = (companies: Company[]) => {
@@ -58,8 +58,6 @@ const company = (id: string, name: string, status: Company['status']): Company =
 });
 
 const product = (id: string, companyId: string) => ({ id, companyId, name: id }) as unknown as Product;
-
-const summary = { companyDeleted: true, admins: 1, technicians: 2, invites: 1, products: 3, other: 4, ordersKept: 5 };
 
 function Details() {
   const { id } = useParams();
@@ -90,7 +88,7 @@ beforeEach(() => {
   localStorage.setItem('platform_admin_locale', 'en');
   store.products = [product('p1', 'A'), product('p2', 'B')];
   setCompanies([company('A', 'Alpha Tech', 'active'), company('B', 'Beta Corp', 'inactive')]);
-  vi.mocked(deleteCompany).mockReset();
+  vi.mocked(trashCompany).mockReset();
   vi.mocked(setCompanyStatus).mockReset();
   vi.mocked(setCompanyStatus).mockResolvedValue(undefined as never);
 });
@@ -125,27 +123,27 @@ describe('company list row', () => {
     expect(screen.queryByText(en['common.view'])).toBeNull();
   });
 
-  it('renders Delete next to Deactivate on an active company (Delete first)', () => {
+  it('renders Move to trash next to Deactivate on an active company (trash first)', () => {
     renderList();
     const names = within(row('Alpha Tech'))
       .getAllByRole('button')
       .map((b) => b.textContent);
-    expect(names).toEqual([en['companies.delete'], en['companies.deactivate']]);
+    expect(names).toEqual([en['companies.trash'], en['companies.deactivate']]);
   });
 
-  it('marks Delete as a destructive action', () => {
+  it('marks Move to trash as a destructive action', () => {
     renderList();
-    expect(within(row('Alpha Tech')).getByRole('button', { name: en['companies.delete'] }).className).toContain(
+    expect(within(row('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }).className).toContain(
       'btn--danger',
     );
   });
 
-  it('keeps Delete next to Activate on an inactive company', () => {
+  it('keeps Move to trash next to Activate on an inactive company', () => {
     renderList();
     const names = within(row('Beta Corp'))
       .getAllByRole('button')
       .map((b) => b.textContent);
-    expect(names).toEqual([en['companies.activate'], en['companies.delete']]);
+    expect(names).toEqual([en['companies.activate'], en['companies.trash']]);
   });
 });
 
@@ -159,7 +157,7 @@ describe('Deactivate', () => {
     fireEvent.click(within(dialog()).getByRole('button', { name: en['companies.deactivate'] }));
 
     await waitFor(() => expect(setCompanyStatus).toHaveBeenCalledWith('A', 'inactive', expect.any(String)));
-    expect(deleteCompany).not.toHaveBeenCalled();
+    expect(trashCompany).not.toHaveBeenCalled();
     expect(screen.queryByTestId('details')).toBeNull();
   });
 
@@ -171,102 +169,80 @@ describe('Deactivate', () => {
   });
 });
 
-describe('Delete', () => {
-  it('shows a confirmation and does not open the details', () => {
+describe('Move to trash', () => {
+  it('asks first, and does not open the details', () => {
     renderList();
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.delete'] }));
+    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
 
     expect(screen.queryByTestId('details')).toBeNull();
-    expect(screen.getByRole('dialog', { name: en['companies.confirmDelete.title'] })).toBeTruthy();
-    expect(deleteCompany).not.toHaveBeenCalled(); // nothing happens until it is confirmed
+    expect(screen.getByRole('dialog', { name: en['companies.confirmTrash.title'] })).toBeTruthy();
+    expect(trashCompany).not.toHaveBeenCalled(); // nothing happens until it is confirmed
   });
 
-  it('the confirmation spells out what is deleted and what is kept', () => {
+  it('says that nothing is deleted and how many products are hidden', () => {
     renderList();
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.delete'] }));
+    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
 
     const text = dialog().textContent ?? '';
     expect(text).toContain('Alpha Tech');
-    expect(text).toContain('the company');
-    expect(text).toContain('its company admin');
-    expect(text).toContain('its employees / technicians');
-    expect(text).toContain('its 1 product(s) and other related company data');
-    expect(text).toContain('Orders and order history will NOT be deleted');
-    // and that an active company is deactivated first
-    expect(text).toContain(en['companies.confirmDelete.activeNote']);
+    expect(text).toContain('1 product(s)');
+    expect(text).toContain('Nothing is deleted');
+    expect(text).toContain('restore it from the trash');
   });
 
-  it('never mentions the retired technician-invite feature, in English or Arabic', () => {
-    // The cascade still cleans up leftover invite documents, but users are not
-    // told about a feature that no longer exists.
+  it('the permanent deletion keeps its promise about orders, in both languages, and never mentions invites', () => {
     const keys = ['companies.confirmDelete.body', 'companies.deletedCascade'] as const;
     for (const key of keys) {
       expect(en[key]).not.toMatch(/invite/i);
       expect(ar[key]).not.toContain('دعو');
-      expect(en[key]).not.toContain('{invites}');
-      expect(ar[key]).not.toContain('{invites}');
     }
-    // the important promise stays in both languages
     expect(en['companies.confirmDelete.body']).toContain('Orders and order history will NOT be deleted');
     expect(ar['companies.confirmDelete.body']).toContain('الطلبات وسجل الطلبات لن تُحذف');
-    expect(ar['companies.confirmDelete.body']).toContain('البيانات المرتبطة بالشركة');
   });
 
-  it('cancelling deletes nothing', () => {
+  it('cancelling moves nothing', () => {
     renderList();
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.delete'] }));
+    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
     fireEvent.click(within(dialog()).getByRole('button', { name: en['common.cancel'] }));
 
-    expect(deleteCompany).not.toHaveBeenCalled();
+    expect(trashCompany).not.toHaveBeenCalled();
     expect(setCompanyStatus).not.toHaveBeenCalled();
     expect(screen.getByText('Alpha Tech')).toBeTruthy();
   });
 
-  it('confirming deactivates an active company first, then runs the cascade, and the row disappears', async () => {
-    vi.mocked(deleteCompany).mockImplementation(async (id: string) => {
-      setCompanies((store.companies as Company[]).filter((c) => c.id !== id)); // the live list drops it
-      return summary as never;
+  it('confirming trashes an active company straight away (no deactivation step) and the row leaves the list', async () => {
+    vi.mocked(trashCompany).mockImplementation(async (c) => {
+      setCompanies((store.companies as Company[]).map((x) => (x.id === c.id ? { ...x, trashedAt: new Date() } : x)));
     });
     renderList();
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.delete'] }));
-    fireEvent.click(within(dialog()).getByRole('button', { name: en['companies.delete'] }));
+    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
+    fireEvent.click(within(dialog()).getByRole('button', { name: en['companies.trash'] }));
 
     await waitFor(() => expect(screen.queryByText('Alpha Tech')).toBeNull());
-    expect(setCompanyStatus).toHaveBeenCalledWith('A', 'inactive', expect.any(String));
-    expect(deleteCompany).toHaveBeenCalledWith('A', 'Alpha Tech'); // the cascade, not a bare document delete
-    expect(vi.mocked(setCompanyStatus).mock.invocationCallOrder[0]).toBeLessThan(
-      vi.mocked(deleteCompany).mock.invocationCallOrder[0],
-    );
+    expect(setCompanyStatus).not.toHaveBeenCalled();
+    expect(trashCompany).toHaveBeenCalledWith(expect.objectContaining({ id: 'A', name: 'Alpha Tech', status: 'active' }));
     expect(screen.getByText('Beta Corp')).toBeTruthy(); // the other company stays
     expect(screen.queryByTestId('details')).toBeNull();
 
-    // success message: what went, and that orders were kept
     const toast = await screen.findByRole('status');
-    expect(toast.textContent).toContain('Company deleted');
-    expect(toast.textContent).toContain('5 order(s) kept');
+    expect(toast.textContent).toContain(en['companies.trashed']);
   });
 
-  it('an inactive company goes straight to the cascade (no deactivation step)', async () => {
-    vi.mocked(deleteCompany).mockImplementation(async (id: string) => {
-      setCompanies((store.companies as Company[]).filter((c) => c.id !== id));
-      return summary as never;
-    });
+  it('a company that is already in the trash is not listed here', () => {
+    setCompanies([
+      company('A', 'Alpha Tech', 'active'),
+      { ...company('B', 'Beta Corp', 'inactive'), trashedAt: new Date('2026-02-01') },
+    ]);
     renderList();
-    fireEvent.click(within(row('Beta Corp')).getByRole('button', { name: en['companies.delete'] }));
-    expect(dialog().textContent).not.toContain(en['companies.confirmDelete.activeNote']);
-    fireEvent.click(within(dialog()).getByRole('button', { name: en['companies.delete'] }));
-
-    await waitFor(() => expect(screen.queryByText('Beta Corp')).toBeNull());
-    expect(setCompanyStatus).not.toHaveBeenCalled();
-    expect(deleteCompany).toHaveBeenCalledWith('B', 'Beta Corp');
     expect(screen.getByText('Alpha Tech')).toBeTruthy();
+    expect(screen.queryByText('Beta Corp')).toBeNull();
   });
 
-  it('a refused deletion keeps the row and reports the problem', async () => {
-    vi.mocked(deleteCompany).mockRejectedValue(Object.assign(new Error('denied'), { code: 'permission-denied' }));
+  it('a refused move keeps the row and reports the problem', async () => {
+    vi.mocked(trashCompany).mockRejectedValue(Object.assign(new Error('denied'), { code: 'permission-denied' }));
     renderList();
-    fireEvent.click(within(row('Beta Corp')).getByRole('button', { name: en['companies.delete'] }));
-    fireEvent.click(within(dialog()).getByRole('button', { name: en['companies.delete'] }));
+    fireEvent.click(within(row('Beta Corp')).getByRole('button', { name: en['companies.trash'] }));
+    fireEvent.click(within(dialog()).getByRole('button', { name: en['companies.trash'] }));
 
     const toast = await screen.findByRole('status');
     await waitFor(() => expect(toast.textContent).toContain(en['error.actionPermission']));
@@ -285,15 +261,12 @@ describe('Arabic', () => {
     const names = within(row('Alpha Tech'))
       .getAllByRole('button')
       .map((b) => b.textContent);
-    expect(names).toEqual([ar['companies.delete'], ar['companies.deactivate']]);
+    expect(names).toEqual([ar['companies.trash'], ar['companies.deactivate']]);
 
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: ar['companies.delete'] }));
+    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: ar['companies.trash'] }));
     const text = dialog().textContent ?? '';
-    expect(text).toContain('مدير الشركة');
-    expect(text).toContain('موظفيها');
-    expect(text).toContain('البيانات المرتبطة بالشركة');
-    expect(text).not.toContain('دعوات');
-    expect(text).toContain('الطلبات وسجل الطلبات لن تُحذف');
+    expect(text).toContain('لا يُحذف شيء');
+    expect(text).toContain('من السلة');
     expect(screen.queryByTestId('details')).toBeNull();
   });
 });

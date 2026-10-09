@@ -1,13 +1,17 @@
 import {
+  collection,
   doc,
   getDoc,
+  deleteField,
   increment,
   serverTimestamp,
+  setDoc,
   Timestamp,
   writeBatch,
 } from 'firebase/firestore';
 import { auth, db, firebaseConfig } from '../firebase';
 import { recordAudit, stageAudit } from './auditLog';
+import { allCities, cityToItem, normalizeCityIds, type SudanCity } from './cities';
 import * as ops from './categoryOps';
 import type { CategoryFields, NewCategoryInput, RunOptions } from './categoryOps';
 import type { ImageSelection } from './imageRules';
@@ -25,11 +29,12 @@ import {
   secondaryAppProvisioner,
   type NewCompanyInput,
 } from './provisionCompany';
+import { orderCancelledNotices, productHiddenNotice } from './adminNotices';
 import { adminCancellationPlan } from './moderation';
 import { cleanUpdate, noticeData, type PlatformSettings } from './platformSettings';
-import { pushToPhone } from './pushRelay';
+import { pushCityAnnouncement, pushToPhone } from './pushRelay';
 import { reportNotificationFor } from './reportNotifications';
-import type { Category, CompanyStatus, Report, ReportStatus, Review } from './types';
+import type { Category, Company, CompanyStatus, Report, ReportStatus, Review } from './types';
 
 /*
  * The only writes Platform Admin can make from this dashboard. Each one
@@ -81,10 +86,127 @@ export async function setCompanyStatus(companyId: string, status: CompanyStatus,
   await batch.commit();
 }
 
+/**
+ * Moves a company to the trash: it becomes inactive (customers stop seeing it
+ * and its products), the time and its status are kept so a restore can bring it
+ * back. Nothing is deleted; orders, products and logins stay as they are.
+ */
+export async function trashCompany(company: Pick<Company, 'id' | 'name' | 'status'>) {
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'companies', company.id), {
+    status: 'inactive',
+    statusBeforeTrash: company.status,
+    trashedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  stageAudit(batch, {
+    action: 'company.trash',
+    targetType: 'company',
+    targetId: company.id,
+    targetName: company.name,
+    detail: company.status,
+  });
+  await batch.commit();
+}
+
+/** Takes a company out of the trash with the status it had before. */
+export async function restoreCompany(company: Pick<Company, 'id' | 'name' | 'statusBeforeTrash'>) {
+  const status = company.statusBeforeTrash ?? 'inactive';
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'companies', company.id), {
+    status,
+    trashedAt: deleteField(),
+    statusBeforeTrash: deleteField(),
+    updatedAt: serverTimestamp(),
+  });
+  stageAudit(batch, {
+    action: 'company.restore',
+    targetType: 'company',
+    targetId: company.id,
+    targetName: company.name,
+    detail: status,
+  });
+  await batch.commit();
+}
+
+/** Most cities announced from one save, so one company cannot flood phones. */
+const MAX_ANNOUNCED_CITIES = 10;
+
+/**
+ * Tells the customers of each city in [after] that [before] did not have that
+ * the company now serves it: one `city_announcements` document per company and
+ * city (the rules allow it once, ever) and a push to that city's phones. Best
+ * effort: it never throws and never holds up what was just saved.
+ */
+export async function announceAddedCities(companyId: string, companyName: string, before: readonly string[], after: readonly string[]) {
+  const had = new Set(before);
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+  for (const cityId of after.filter((id) => !had.has(id)).slice(0, MAX_ANNOUNCED_CITIES)) {
+    try {
+      const id = `${companyId}_${cityId}`;
+      await setDoc(doc(db, 'city_announcements', id), {
+        companyId,
+        companyName,
+        cityId,
+        senderId: uid,
+        createdAt: serverTimestamp(),
+      });
+      await pushCityAnnouncement(id);
+    } catch {
+      // Already announced, or not allowed: nothing to say.
+    }
+  }
+}
+
+/** Platform Admin sets the cities a company serves (empty = every city). */
+export async function setCompanyServiceCities(companyId: string, cityIds: string[], name = '', before: readonly string[] = [], active = true) {
+  const ids = normalizeCityIds(cityIds);
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'companies', companyId), { serviceCityIds: ids, updatedAt: serverTimestamp() });
+  stageAudit(batch, {
+    action: 'company.cities',
+    targetType: 'company',
+    targetId: companyId,
+    targetName: name,
+    detail: ids.join(','),
+  });
+  await batch.commit();
+  if (active) void announceAddedCities(companyId, name, before, ids);
+}
+
+/**
+ * Saves the list of cities (`platform_settings/cities`). A city is added or
+ * hidden, never taken out (the rules refuse a list that drops an id), and every
+ * city needs a name.
+ */
+export async function saveCities(cities: readonly SudanCity[]) {
+  const ids = cities.map((c) => c.id);
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'platform_settings', 'cities'), {
+    ids,
+    items: cities.map(cityToItem),
+    updatedAt: serverTimestamp(),
+  });
+  stageAudit(batch, {
+    action: 'cities.update',
+    targetType: 'settings',
+    targetId: 'cities',
+    targetName: 'cities',
+    detail: `${cities.filter((c) => c.active).length}/${cities.length}`,
+  });
+  await batch.commit();
+}
+
+/** The ids of the cities now saved, for a page that adds to them. */
+export const currentCityIds = () => allCities().map((c) => c.id);
+
 export interface CompanyInput {
   name: string;
   description: string;
   city: string;
+  /** City ids the company serves; empty or absent means every city. */
+  serviceCityIds?: string[];
   /** Written location. Optional if a map point is given. */
   address: string;
   /** Optional exact map point; both set, or both null. */
@@ -114,6 +236,7 @@ export async function createCompany(input: NewCompanyInput) {
     targetId: created.companyId,
     targetName: input.name,
   });
+  void announceAddedCities(created.companyId, input.name.trim(), [], normalizeCityIds(input.serviceCityIds));
   return created;
 }
 
@@ -241,6 +364,8 @@ export async function setCustomerActive(userId: string, isActive: boolean, name 
 export interface CustomerProfileInput {
   fullName: string;
   phone: string;
+  /** Set only when the city is changed; a city id of the fixed list. */
+  cityId?: string;
 }
 
 // The only profile fields Platform Admin may edit on a customer; the rules
@@ -250,6 +375,7 @@ export async function updateCustomerProfile(userId: string, input: CustomerProfi
   batch.update(doc(db, 'users', userId), {
     fullName: input.fullName.trim(),
     phone: input.phone.trim(),
+    ...(input.cityId ? { cityId: input.cityId } : {}),
     updatedAt: serverTimestamp(),
   });
   stageAudit(batch, {
@@ -294,6 +420,32 @@ export async function setCategoryActive(id: string, isActive: boolean, name = ''
     targetName: name,
     detail: isActive ? 'active' : 'inactive',
   });
+}
+
+/** Moves a category and everything below it to the trash; returns how many categories went. */
+export async function trashCategory(all: readonly Category[], id: string, options?: RunOptions) {
+  const count = await ops.trashCategoryTree(db, all, id, options);
+  await recordAudit({
+    action: 'category.trash',
+    targetType: 'category',
+    targetId: id,
+    targetName: categoryNameIn(all, id),
+    detail: String(count),
+  });
+  return count;
+}
+
+/** Brings a trashed category and what went with it back, as active as each was. */
+export async function restoreCategory(all: readonly Category[], id: string, options?: RunOptions) {
+  const count = await ops.restoreCategoryTree(db, all, id, options);
+  await recordAudit({
+    action: 'category.restore',
+    targetType: 'category',
+    targetId: id,
+    targetName: categoryNameIn(all, id),
+    detail: String(count),
+  });
+  return count;
 }
 
 /** Saves the customer-facing order of one set of siblings. */
@@ -402,9 +554,14 @@ export async function savePlatformSettings(next: PlatformSettings, changed: 'mai
 
 /**
  * Hides a product from customers, with the reason its company will see, or
- * shows it again. Nothing else on the product changes.
+ * shows it again. Nothing else on the product changes. The company is told in
+ * the same batch (and by a push to its phones, best effort).
  */
-export async function setProductHidden(product: { id: string; name: string }, hidden: boolean, reason = '') {
+export async function setProductHidden(
+  product: { id: string; name: string; companyId?: string },
+  hidden: boolean,
+  reason = '',
+) {
   const note = reason.trim();
   const batch = writeBatch(db);
   batch.update(doc(db, 'products', product.id), { hidden, hiddenReason: hidden ? note : '' });
@@ -415,7 +572,16 @@ export async function setProductHidden(product: { id: string; name: string }, hi
     targetName: product.name,
     detail: hidden ? note : undefined,
   });
+  const notice = productHiddenNotice({ id: product.id, name: product.name, companyId: product.companyId ?? '' }, hidden);
+  const adminId = auth.currentUser?.uid;
+  let noticeId: string | null = null;
+  if (notice && adminId) {
+    const ref = doc(collection(db, 'notifications'));
+    batch.set(ref, { id: ref.id, ...notice, isRead: false, createdAt: serverTimestamp(), senderId: adminId });
+    noticeId = ref.id;
+  }
   await batch.commit();
+  if (noticeId) void pushToPhone(noticeId);
 }
 
 /** Ends a product's running offer now: the price, the end time and the badge are cleared together. */
@@ -468,7 +634,22 @@ export async function cancelOrderAsAdmin(orderId: string, reason: string) {
     targetName: String(order.productName ?? ''),
     detail: reason.trim(),
   });
+  // The customer and the company are told, in the same batch.
+  const adminId = auth.currentUser?.uid;
+  const notices = adminId
+    ? orderCancelledNotices({
+        id: orderId,
+        customerId: String(order.customerId ?? ''),
+        companyId: String(order.companyId ?? ''),
+        productName: String(order.productName ?? ''),
+      })
+    : [];
+  for (const notice of notices) {
+    const { id, ...fields } = notice;
+    batch.set(doc(db, 'notifications', id), { id, ...fields, isRead: false, createdAt: serverTimestamp(), senderId: adminId });
+  }
   await batch.commit();
+  for (const notice of notices) void pushToPhone(notice.id);
 }
 
 /**

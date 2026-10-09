@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteField,
   doc,
   getCountFromServer,
   getDocs,
@@ -167,6 +168,8 @@ export interface CategoryFields {
   nameEn: string;
   description: string;
   iconName: string;
+  /** A CATEGORY_COLORS key; empty means the app picks one. */
+  color: string;
 }
 
 export interface NewCategoryInput extends CategoryFields {
@@ -202,6 +205,7 @@ export async function createCategory(
     sortOrder: nextSortOrderAmong(index, input.parentId),
     description: input.description.trim(),
     iconName: input.iconName.trim(),
+    color: input.color.trim(),
     isActive: true,
     createdAt: serverTimestamp(),
   });
@@ -221,8 +225,70 @@ export async function updateCategoryFields(
     nameEn: input.nameEn.trim(),
     description: input.description.trim(),
     iconName: input.iconName.trim(),
+    color: input.color.trim(),
   });
   await batch.commit();
+}
+
+/**
+ * Moves a category and everything below it to the trash: each one is switched
+ * off (so customers and companies stop seeing it) and stamped with the time, the
+ * category the trash started from and whether it was active. Nothing filed in
+ * the tree is touched. Returns how many categories were moved.
+ */
+export async function trashCategoryTree(
+  db: Firestore,
+  all: readonly Category[],
+  rootId: string,
+  options: RunOptions = {},
+): Promise<number> {
+  const index = buildIndex(all);
+  if (!index.byId.has(rootId)) throw new CategoryOpError('missing', 'That category no longer exists.');
+  const members = subtreeIds(index, rootId)
+    .map((id) => index.byId.get(id)!)
+    .filter((c) => !c.trashedAt);
+  let done = 0;
+  for (const chunk of chunkOf(members, MAX_BATCH_WRITES)) {
+    const batch = writeBatch(db);
+    for (const c of chunk) {
+      batch.update(doc(db, 'categories', c.id), {
+        isActive: false,
+        trashedAt: serverTimestamp(),
+        trashRootId: rootId,
+        activeBeforeTrash: c.isActive,
+      });
+    }
+    await commitWithRetry(batch, options);
+    done += chunk.length;
+    options.onProgress?.({ phase: 'mark', done, total: members.length });
+  }
+  return members.length;
+}
+
+/** Brings back what [trashCategoryTree] moved with [rootId]: each is as active as it was. */
+export async function restoreCategoryTree(
+  db: Firestore,
+  all: readonly Category[],
+  rootId: string,
+  options: RunOptions = {},
+): Promise<number> {
+  const members = all.filter((c) => c.trashedAt && (c.trashRootId === rootId || c.id === rootId));
+  let done = 0;
+  for (const chunk of chunkOf(members, MAX_BATCH_WRITES)) {
+    const batch = writeBatch(db);
+    for (const c of chunk) {
+      batch.update(doc(db, 'categories', c.id), {
+        isActive: c.activeBeforeTrash === true,
+        trashedAt: deleteField(),
+        trashRootId: deleteField(),
+        activeBeforeTrash: deleteField(),
+      });
+    }
+    await commitWithRetry(batch, options);
+    done += chunk.length;
+    options.onProgress?.({ phase: 'mark', done, total: members.length });
+  }
+  return members.length;
 }
 
 export async function setCategoryActive(db: Firestore, id: string, isActive: boolean): Promise<void> {

@@ -87,9 +87,13 @@ export async function fetchDashboard(db: Firestore, at: number): Promise<Dashboa
   const companies = collection(db, 'companies');
   const users = collection(db, 'users');
 
+  // Companies in the trash are inactive but are not part of the figures.
+  const trashed = () => countOf(query(companies, where('trashedAt', '>', Timestamp.fromMillis(0))));
+
   const counts: Record<CountKey, () => Promise<number>> = {
-    companies: () => countOf(query(companies)),
-    inactiveCompanies: () => countOf(query(companies, where('status', 'in', NON_ACTIVE))),
+    companies: async () => (await countOf(query(companies))) - (await trashed()),
+    inactiveCompanies: async () =>
+      (await countOf(query(companies, where('status', 'in', NON_ACTIVE)))) - (await trashed()),
     customers: () => countOf(query(users, where('role', '==', 'customer'))),
     products: () => countOf(query(collection(db, 'products'))),
     orders: () => countOf(query(orders)),
@@ -110,7 +114,9 @@ export async function fetchDashboard(db: Firestore, at: number): Promise<Dashboa
   ] = await Promise.all([
       Promise.all(COUNT_KEYS.map((key) => piece(counts[key]))),
       piece(() => docsOf(query(orders, orderBy('createdAt', 'desc'), limit(RECENT)), mapOrder)),
-      piece(() => docsOf(query(companies, orderBy('createdAt', 'desc'), limit(RECENT)), mapCompany)),
+      piece(async () =>
+        (await docsOf(query(companies, orderBy('createdAt', 'desc'), limit(RECENT)), mapCompany)).filter((c) => !c.trashedAt),
+      ),
       piece(() => docsOf(query(orders, where('createdAt', '>=', windowStart)), mapOrder)),
       // The rules let Platform Admin list customer profiles only (role == 'customer'), so the
       // query must say so; with the date range that is the users(role, createdAt) index.

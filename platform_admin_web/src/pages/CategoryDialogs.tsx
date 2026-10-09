@@ -10,7 +10,12 @@ import {
   type DeletionSummary,
   type Progress,
 } from '../data/actions';
-import { CATEGORY_ICONS, categoryDisplayName, findCategoryIcon } from '../data/categoryIcons';
+import {
+  CATEGORY_COLORS,
+  CATEGORY_ICONS,
+  categoryDisplayName,
+  findCategoryIcon,
+} from '../data/categoryIcons';
 import { buildIndex, moveProblem, pathLabel } from '../data/categoryTree';
 import type { Category } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
@@ -52,6 +57,7 @@ export function CategoryForm({
   const [nameEn, setNameEn] = useState(initial.en);
   const [description, setDescription] = useState(category?.description ?? '');
   const [iconName, setIconName] = useState(category?.iconName ?? '');
+  const [color, setColor] = useState(category?.color ?? '');
   const [showError, setShowError] = useState(false);
 
   const index = useMemo(() => buildIndex(all), [all]);
@@ -63,7 +69,7 @@ export function CategoryForm({
       setShowError(true);
       return;
     }
-    const fields = { nameAr, nameEn, description, iconName };
+    const fields = { nameAr, nameEn, description, iconName, color };
     const ok = await run(
       'save',
       async () => {
@@ -151,6 +157,33 @@ export function CategoryForm({
             ))}
           </select>
         </label>
+        <div className="field">
+          <span id="category-color-label">{t('categories.colorLabel')}</span>
+          <div className="swatches" role="radiogroup" aria-labelledby="category-color-label">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={color === ''}
+              className={color === '' ? 'swatch swatch--auto swatch--on' : 'swatch swatch--auto'}
+              onClick={() => setColor('')}
+            >
+              {t('categories.colorAuto')}
+            </button>
+            {CATEGORY_COLORS.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                role="radio"
+                aria-checked={color === option.key}
+                aria-label={locale === 'ar' ? option.ar : option.en}
+                title={locale === 'ar' ? option.ar : option.en}
+                className={color === option.key ? 'swatch swatch--on' : 'swatch'}
+                style={{ background: option.hex }}
+                onClick={() => setColor(option.key)}
+              />
+            ))}
+          </div>
+        </div>
         <div className="modal__actions">
           <button type="button" className="btn" onClick={onClose}>
             {t('common.cancel')}

@@ -15,6 +15,7 @@ import {
 } from './companyDocuments';
 import { isValidEmail, normalizeEmail, passwordProblem } from './companyAccount';
 import { NO_IMAGE, type ImageSelection } from './imageRules';
+import { normalizeCityIds } from './cities';
 import { toGeoPoint } from './location';
 
 /*
@@ -140,6 +141,7 @@ function companyDocument(input: CompanyInput, email: string, logoUrl: string) {
     logoUrl,
     description: input.description.trim(),
     city: input.city.trim(),
+    serviceCityIds: normalizeCityIds(input.serviceCityIds),
     address: input.address.trim(),
     ...(point ? { latitude: point.latitude, longitude: point.longitude } : {}),
     phone: input.phone.trim(),

@@ -35,6 +35,8 @@ export interface Company {
   logoUrl: string;
   description: string;
   city: string;
+  /** City ids the company serves; empty or absent means every city. */
+  serviceCityIds?: string[];
   address: string;
   /** Optional exact map point; null for text-only (legacy) companies. */
   latitude: number | null;
@@ -44,10 +46,16 @@ export interface Company {
   pickupAddress: string;
   /** Companies without a stored status are treated as active. */
   status: CompanyStatus;
+  /** When Platform Admin moved it to the trash; absent or null while it is not there. */
+  trashedAt?: Date | null;
+  /** The status it had before the trash, which a restore brings back. */
+  statusBeforeTrash?: CompanyStatus | null;
   createdAt: Date | null;
 }
 
 export interface Customer {
+  /** The city the customer chose; empty until they pick one. */
+  cityId?: string;
   id: string;
   fullName: string;
   email: string;
@@ -178,7 +186,15 @@ export interface Category {
   sortOrder: number | null;
   description: string;
   iconName: string;
+  /** The tile colour Platform Admin picked (a CATEGORY_COLORS key); empty = automatic. */
+  color: string;
   isActive: boolean;
+  /** When it was moved to the trash (with its whole subtree); absent or null while it is not there. */
+  trashedAt?: Date | null;
+  /** The category the subtree was sent to the trash with (itself, for the one that was chosen). */
+  trashRootId?: string;
+  /** Whether it was active before the trash, which a restore brings back. */
+  activeBeforeTrash?: boolean;
   createdAt: Date | null;
 }
 

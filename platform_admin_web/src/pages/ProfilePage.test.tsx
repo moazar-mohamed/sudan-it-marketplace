@@ -2,7 +2,9 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { requestOwnEmailChange } from '../auth/changeEmail';
 import { changeOwnPassword } from '../auth/changePassword';
+import { saveOwnName } from '../auth/ownProfile';
 import { requestPasswordReset } from '../auth/passwordReset';
 import { ToastProvider } from '../components/feedback';
 import { mapPlatformAdmin } from '../data/mappers';
@@ -10,11 +12,12 @@ import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
 import { ProfilePage } from './ProfilePage';
 
-const mock = vi.hoisted(() => ({ admins: [] as unknown[] }));
+const mock = vi.hoisted(() => ({ admins: [] as unknown[], patch: vi.fn() }));
 
 vi.mock('../auth/AuthProvider', () => ({
   useAuth: () => ({
     signOut: vi.fn(),
+    patchProfile: mock.patch,
     state: { status: 'authorized', profile: { uid: 'me', fullName: 'Mona Ali', email: 'mona@x.test', role: 'platform_admin' } },
   }),
 }));
@@ -29,6 +32,11 @@ vi.mock('../auth/changePassword', async (original) => ({
   changeOwnPassword: vi.fn(),
 }));
 vi.mock('../auth/passwordReset', () => ({ requestPasswordReset: vi.fn() }));
+vi.mock('../auth/ownProfile', () => ({ saveOwnName: vi.fn(), syncOwnEmail: vi.fn() }));
+vi.mock('../auth/changeEmail', async (original) => ({
+  ...(await original<typeof import('../auth/changeEmail')>()),
+  requestOwnEmailChange: vi.fn(),
+}));
 
 const show = () =>
   render(
@@ -50,6 +58,9 @@ beforeEach(() => {
   ];
   vi.mocked(changeOwnPassword).mockReset().mockResolvedValue(undefined);
   vi.mocked(requestPasswordReset).mockReset().mockResolvedValue(undefined);
+  vi.mocked(saveOwnName).mockReset().mockResolvedValue(undefined);
+  vi.mocked(requestOwnEmailChange).mockReset().mockResolvedValue(undefined);
+  mock.patch.mockReset();
 });
 afterEach(() => {
   cleanup();
@@ -135,5 +146,83 @@ describe('changing the password', () => {
     });
     expect(requestPasswordReset).toHaveBeenCalledWith('mona@x.test', 'en');
     expect(await screen.findByText(en['profile.password.linkSent'].replace('{email}', 'mona@x.test'))).toBeTruthy();
+  });
+});
+
+describe('account details', () => {
+  const openDetails = () => fireEvent.click(screen.getByRole('button', { name: new RegExp(en['profile.details']) }));
+
+  it('saves a new name and shows it at once', async () => {
+    show();
+    openDetails();
+    const save = screen.getByRole('button', { name: en['profile.name.save'] }) as HTMLButtonElement;
+    expect(save.disabled).toBe(true); // nothing changed yet
+    fireEvent.change(screen.getByLabelText(en['profile.name.label']), { target: { value: '  Mona Hassan ' } });
+    await act(async () => {
+      fireEvent.click(save);
+    });
+    expect(saveOwnName).toHaveBeenCalledWith('me', '  Mona Hassan ');
+    expect(mock.patch).toHaveBeenCalledWith({ fullName: 'Mona Hassan' });
+    expect(await screen.findByText(en['profile.name.saved'])).toBeTruthy();
+  });
+
+  it('will not save an empty name', async () => {
+    show();
+    openDetails();
+    fireEvent.change(screen.getByLabelText(en['profile.name.label']), { target: { value: '   ' } });
+    await act(async () => {
+      fireEvent.submit(screen.getByLabelText(en['profile.name.label']).closest('form')!);
+    });
+    expect(saveOwnName).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert').textContent).toContain(en['profile.name.errRequired']);
+  });
+
+  it('asks for the password and a valid new address before sending a link', async () => {
+    show();
+    openDetails();
+    const send = () =>
+      act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: en['profile.email.send'] }));
+      });
+    await send();
+    expect(screen.getByRole('alert').textContent).toContain(en['profile.password.errRequired']);
+    fireEvent.change(screen.getByLabelText(en['profile.email.confirmPassword']), { target: { value: 'secret1' } });
+    fireEvent.change(screen.getByLabelText(en['profile.email.new']), { target: { value: 'not-an-email' } });
+    await send();
+    expect(screen.getByRole('alert').textContent).toContain(en['profile.email.errInvalid']);
+    fireEvent.change(screen.getByLabelText(en['profile.email.new']), { target: { value: 'MONA@x.test' } });
+    await send();
+    expect(screen.getByRole('alert').textContent).toContain(en['profile.email.errSame']);
+    expect(requestOwnEmailChange).not.toHaveBeenCalled();
+  });
+
+  it('sends the confirmation link to the new address and says the email changes after it is opened', async () => {
+    show();
+    openDetails();
+    fireEvent.change(screen.getByLabelText(en['profile.email.confirmPassword']), { target: { value: 'secret1' } });
+    fireEvent.change(screen.getByLabelText(en['profile.email.new']), { target: { value: ' new@x.test ' } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: en['profile.email.send'] }));
+    });
+    expect(requestOwnEmailChange).toHaveBeenCalledWith('secret1', 'new@x.test');
+    expect(await screen.findByText(en['profile.email.sent'].replace('{email}', 'new@x.test'))).toBeTruthy();
+    expect((screen.getByLabelText(en['profile.email.new']) as HTMLInputElement).value).toBe('');
+  });
+
+  it('says so when the address belongs to another account or the password is wrong', async () => {
+    vi.mocked(requestOwnEmailChange).mockRejectedValueOnce(Object.assign(new Error('x'), { code: 'auth/email-already-in-use' }));
+    show();
+    openDetails();
+    fireEvent.change(screen.getByLabelText(en['profile.email.confirmPassword']), { target: { value: 'secret1' } });
+    fireEvent.change(screen.getByLabelText(en['profile.email.new']), { target: { value: 'taken@x.test' } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: en['profile.email.send'] }));
+    });
+    expect(screen.getByRole('alert').textContent).toContain(en['profile.email.errInUse']);
+    vi.mocked(requestOwnEmailChange).mockRejectedValueOnce(Object.assign(new Error('x'), { code: 'auth/invalid-credential' }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: en['profile.email.send'] }));
+    });
+    expect(screen.getByRole('alert').textContent).toContain(en['profile.password.errCurrent']);
   });
 });

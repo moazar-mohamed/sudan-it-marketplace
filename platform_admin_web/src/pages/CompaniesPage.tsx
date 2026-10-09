@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react';
+import { useMemo, useState, type MouseEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AttentionBanner } from '../components/AttentionBanner';
 import { CompanyCreateModal } from '../components/CompanyCreateModal';
@@ -15,12 +15,16 @@ import {
   Thumb,
 } from '../components/ui';
 import { companiesToCsv, csvFilename, downloadCsv } from '../data/csv';
+import { cityChoices, useCities } from '../data/cities';
 import { useCompanies, useProducts } from '../data/hooks';
 import { isStalledCompany, NO_PRODUCTS_GRACE_DAYS } from '../data/stats';
 import { COMPANY_FILTER_STATUSES, type Company, type CompanyFilterStatus } from '../data/types';
 import { useNow } from '../data/useNow';
 import { useI18n } from '../i18n/I18nProvider';
 import { joinLocation, matchesQuery } from '../utils';
+
+/** The city select's value for companies that have not set their cities. */
+const NO_CITIES = '__none';
 
 const SORTS = {
   name: (c: Company) => c.name,
@@ -32,7 +36,7 @@ const SORTS = {
 };
 
 export function CompaniesPage() {
-  const { t, number, date } = useI18n();
+  const { t, number, date, locale } = useI18n();
   const companies = useCompanies();
   const navigate = useNavigate();
   // The filter lives in the URL (?status=active) so a dashboard card can link
@@ -52,6 +56,9 @@ export function CompaniesPage() {
     );
   const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
+  // A company serves a city when it lists it, or lists none (every city).
+  const cities = useCities();
+  const [cityId, setCityId] = useState(params.get('cities') === 'none' ? NO_CITIES : '');
 
   // The whole row opens the company. Clicks that belong to a link or a button
   // inside it (the name link, Deactivate, Delete...) are theirs, not the row's.
@@ -60,13 +67,15 @@ export function CompaniesPage() {
     navigate(`/companies/${id}`);
   };
 
+  // The ones in the trash live on the Trash page.
+  const live = useMemo(() => companies.data.filter((c) => !c.trashedAt), [companies.data]);
   const withProducts = new Set(products.data.map((p) => p.companyId));
-  const inScope = noProducts
-    ? companies.data.filter((c) => isStalledCompany(c, withProducts.has(c.id), now))
-    : companies.data;
+  const inScope = noProducts ? live.filter((c) => isStalledCompany(c, withProducts.has(c.id), now)) : live;
   const visible = inScope.filter(
     (c) =>
       (status === 'all' || c.status === status) &&
+      (!cityId ||
+        (cityId === NO_CITIES ? !c.serviceCityIds?.length : !c.serviceCityIds?.length || c.serviceCityIds.includes(cityId))) &&
       matchesQuery(query, c.name, c.city, c.address, c.email),
   );
   const { rows: sortedRows, sort, toggle } = useSortedRows(visible, SORTS);
@@ -113,11 +122,26 @@ export function CompaniesPage() {
               })),
             ]}
           />
+          <select
+            aria-label={t('companies.cityFilter')}
+            value={cityId}
+            onChange={(e) => setCityId(e.target.value)}
+          >
+            <option value="">
+              {t('companies.cityFilter')}: {t('company.allCities')}
+            </option>
+            <option value={NO_CITIES}>{t('companies.cityNone')}</option>
+            {cityChoices(cities, cityId ? [cityId] : []).map((city) => (
+              <option key={city.id} value={city.id}>
+                {locale === 'ar' ? city.ar : city.en}
+              </option>
+            ))}
+          </select>
           <SearchInput value={query} onChange={setQuery} placeholder={t('companies.search')} />
         </div>
         <p className="note">{t('companies.statusNote')}</p>
 
-        {companies.data.length === 0 ? (
+        {live.length === 0 ? (
           <EmptyState message={t('companies.empty')} />
         ) : visible.length === 0 ? (
           <EmptyState message={t('common.noResults')} />

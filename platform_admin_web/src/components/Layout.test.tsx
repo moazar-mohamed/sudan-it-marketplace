@@ -107,7 +107,7 @@ describe('the grouped menu', () => {
       { title: 'Operations', links: ['Dashboard', 'Orders', 'Service Requests', 'Reports'] },
       { title: 'Catalogue', links: ['Companies', 'Products', 'Services', 'Categories', 'Offers'] },
       { title: 'Community', links: ['Customers', 'Reviews'] },
-      { title: 'System', links: ['Analytics', 'Activity log', 'Admins', 'Profile', 'Settings'] },
+      { title: 'System', links: ['Cities', 'Analytics', 'Activity log', 'Admins', 'Trash', 'Profile', 'Settings'] },
     ]);
   });
 
@@ -115,7 +115,7 @@ describe('the grouped menu', () => {
     show(null);
     const hrefs = [...sidebar().querySelectorAll('a')].map((a) => a.getAttribute('href'));
     expect(new Set(hrefs).size).toBe(hrefs.length);
-    expect(hrefs).toHaveLength(16);
+    expect(hrefs).toHaveLength(18);
   });
 });
 

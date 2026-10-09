@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Chips, DataGate, EmptyState, PageHeader, StatCard, Text } from '../components/ui';
 import { RowMenu } from '../components/RowMenu';
+import { CitiesSection } from '../components/CitiesSection';
 import { UsageSection } from '../components/UsageSection';
 import {
   CANCEL_BUCKETS,
@@ -315,6 +316,8 @@ export function AnalyticsPage() {
             <BarList format={number} bars={monthBars((m) => m.newCustomers, 'info')} />
           </Card>
         </div>
+
+        <CitiesSection />
 
         <UsageSection />
 

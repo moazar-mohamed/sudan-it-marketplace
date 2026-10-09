@@ -36,6 +36,30 @@ export const CATEGORY_ICONS = [
 
 export type CategoryIconKey = (typeof CATEGORY_ICONS)[number]['key'];
 
+/**
+ * Colours a category's tile can take in the customer app. `key` is what is
+ * stored in the category's `color`; the hex values are the app's own palette
+ * (category_grid_style.dart), so the dashboard shows the colour customers see.
+ * An empty `color` means "automatic": the app picks one from the icon.
+ */
+export const CATEGORY_COLORS = [
+  { key: 'blue', hex: '#1E6FD9', en: 'Blue', ar: 'أزرق' },
+  { key: 'green', hex: '#16A34A', en: 'Green', ar: 'أخضر' },
+  { key: 'purple', hex: '#9333EA', en: 'Purple', ar: 'بنفسجي' },
+  { key: 'red', hex: '#E11D48', en: 'Red', ar: 'أحمر' },
+  { key: 'indigo', hex: '#4F46E5', en: 'Indigo', ar: 'نيلي' },
+  { key: 'amber', hex: '#F59E0B', en: 'Amber', ar: 'كهرماني' },
+  { key: 'teal', hex: '#0D9488', en: 'Teal', ar: 'تركوازي' },
+  { key: 'sky', hex: '#0284C7', en: 'Sky', ar: 'سماوي' },
+  { key: 'orange', hex: '#F97316', en: 'Orange', ar: 'برتقالي' },
+  { key: 'pink', hex: '#DB2777', en: 'Pink', ar: 'وردي' },
+] as const;
+
+export type CategoryColorKey = (typeof CATEGORY_COLORS)[number]['key'];
+
+export const findCategoryColor = (key: string) =>
+  CATEGORY_COLORS.find((color) => color.key === key.trim().toLowerCase());
+
 export const findCategoryIcon = (key: string) =>
   CATEGORY_ICONS.find((icon) => icon.key === key.trim().toLowerCase());
 

@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import { emailChangeProblem, requestOwnEmailChange, type EmailChangeProblem } from '../auth/changeEmail';
 import { changeOwnPassword, passwordChangeProblem, type PasswordChangeProblem } from '../auth/changePassword';
+import { saveOwnName } from '../auth/ownProfile';
 import { requestPasswordReset } from '../auth/passwordReset';
 import { useToast } from '../components/feedback';
 import { Disclosure, PageHeader, Text } from '../components/ui';
@@ -17,8 +19,18 @@ const PROBLEM_KEYS: Record<PasswordChangeProblem, TranslationKey> = {
   same: 'profile.password.errSame',
 };
 
+const EMAIL_PROBLEM_KEYS: Record<EmailChangeProblem, TranslationKey> = {
+  'password-required': 'profile.password.errRequired',
+  invalid: 'profile.email.errInvalid',
+  same: 'profile.email.errSame',
+};
+
 function failureKey(error: unknown): TranslationKey {
   switch ((error as { code?: string } | null)?.code) {
+    case 'auth/email-already-in-use':
+      return 'profile.email.errInUse';
+    case 'auth/invalid-email':
+      return 'profile.email.errInvalid';
     case 'auth/wrong-password':
     case 'auth/invalid-credential':
       return 'profile.password.errCurrent';
@@ -34,6 +46,120 @@ function failureKey(error: unknown): TranslationKey {
     default:
       return 'profile.password.errGeneric';
   }
+}
+
+/** The name shown in the panel and the email the admin signs in with. */
+function DetailsCard({ uid, name, email }: { uid: string; name: string; email: string }) {
+  const { t } = useI18n();
+  const toast = useToast();
+  const { patchProfile } = useAuth();
+  const [fullName, setFullName] = useState(name);
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState<TranslationKey | null>(null);
+  const [newEmail, setNewEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [sending, setSending] = useState(false);
+  const [emailError, setEmailError] = useState<TranslationKey | null>(null);
+
+  const saveName = async (e: FormEvent) => {
+    e.preventDefault();
+    if (savingName) return;
+    if (!fullName.trim()) {
+      setNameError('profile.name.errRequired');
+      return;
+    }
+    setSavingName(true);
+    setNameError(null);
+    try {
+      await saveOwnName(uid, fullName);
+      patchProfile({ fullName: fullName.trim() });
+      toast(t('profile.name.saved'), 'success');
+    } catch (err) {
+      setNameError(failureKey(err));
+    } finally {
+      setSavingName(false);
+    }
+  };
+
+  const sendLink = async (e: FormEvent) => {
+    e.preventDefault();
+    if (sending) return;
+    const problem = emailChangeProblem(password, newEmail, email);
+    if (problem) {
+      setEmailError(EMAIL_PROBLEM_KEYS[problem]);
+      return;
+    }
+    setSending(true);
+    setEmailError(null);
+    try {
+      await requestOwnEmailChange(password, newEmail);
+      toast(t('profile.email.sent', { email: newEmail.trim() }), 'success');
+      setNewEmail('');
+      setPassword('');
+    } catch (err) {
+      setEmailError(failureKey(err));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Disclosure title={t('profile.details')} icon="profile">
+      <p className="muted profile__hint">{t('profile.details.hint')}</p>
+      <form onSubmit={saveName} noValidate>
+        {nameError && (
+          <div className="alert alert--error" role="alert">
+            {t(nameError)}
+          </div>
+        )}
+        <label className="field">
+          <span>{t('profile.name.label')}</span>
+          <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
+        </label>
+        <div className="profile__row">
+          <button type="submit" className="btn btn--primary" disabled={savingName || fullName.trim() === name}>
+            {t('profile.name.save')}
+          </button>
+        </div>
+      </form>
+      <hr className="profile__rule" />
+      <form onSubmit={sendLink} noValidate>
+        <p className="muted profile__hint">{t('profile.email.hint')}</p>
+        {emailError && (
+          <div className="alert alert--error" role="alert">
+            {t(emailError)}
+          </div>
+        )}
+        <div className="field-row">
+          <label className="field">
+            <span>{t('profile.email.new')}</span>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              autoComplete="email"
+              dir="ltr"
+            />
+          </label>
+          <label className="field">
+            <span>{t('profile.email.confirmPassword')}</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              dir="ltr"
+            />
+          </label>
+        </div>
+        <div className="profile__row">
+          <button type="submit" className="btn btn--primary" disabled={sending}>
+            {sending ? t('profile.email.sending') : t('profile.email.send')}
+          </button>
+        </div>
+      </form>
+    </Disclosure>
+  );
 }
 
 function PasswordCard({ email }: { email: string }) {
@@ -197,6 +323,7 @@ export function ProfilePage() {
             </div>
           </section>
           <div className="profile__grid">
+            <DetailsCard uid={profile.uid} name={profile.fullName} email={profile.email} />
             <PasswordCard email={profile.email} />
           </div>
         </>

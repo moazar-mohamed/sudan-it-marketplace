@@ -74,7 +74,7 @@ describe('the search window', () => {
     show();
     expect(screen.getByRole('dialog', { name: en['search.title'] })).toBeTruthy();
     expect(document.activeElement).toBe(input());
-    expect(options()).toHaveLength(16);
+    expect(options()).toHaveLength(18);
     expect(options()[0]).toBe('Dashboard');
   });
 

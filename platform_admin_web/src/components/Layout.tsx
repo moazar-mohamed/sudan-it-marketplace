@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { attentionCounts, sumCounts } from '../data/attention';
 import { useNewReports } from '../data/hooks';
+import { useCitiesSync } from '../data/useCitiesSync';
 import { DashboardProvider } from '../data/DashboardProvider';
 import { useDashboard } from '../data/useDashboard';
 import { useI18n } from '../i18n/I18nProvider';
@@ -56,6 +57,7 @@ function Shell() {
   const { t, number } = useI18n();
   const { snapshot } = useDashboard();
   const newReportsNow = useNewReports();
+  useCitiesSync();
   useAttentionAlerts(snapshot, newReportsNow.status === 'ready' ? newReportsNow.data.length : null);
   const { state, signOut } = useAuth();
   const { pathname } = useLocation();

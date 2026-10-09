@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
@@ -11,6 +11,7 @@ import {
   saveSiblingOrder,
   setCategoryActive,
   summarizeCategoryDeletion,
+  trashCategory,
   updateCategory,
 } from '../data/actions';
 import type { CatalogService, Category, Product } from '../data/types';
@@ -48,6 +49,7 @@ vi.mock('../data/actions', () => {
     repairCategoryChains: vi.fn(),
     summarizeCategoryDeletion: vi.fn(),
     deleteCategoryTree: vi.fn(),
+    trashCategory: vi.fn(),
   };
 });
 
@@ -76,6 +78,7 @@ function category(
     sortOrder: null,
     description: '',
     iconName: '',
+    color: '',
     isActive: true,
     createdAt: new Date('2026-01-01'),
     ...extra,
@@ -130,7 +133,7 @@ beforeEach(() => {
   store.services = [service('s1', 'lap')];
   for (const fn of [
     createCategory, updateCategory, setCategoryActive, saveSiblingOrder, moveCategory,
-    repairCategoryChains, deleteCategoryTree,
+    repairCategoryChains, deleteCategoryTree, trashCategory,
   ]) {
     vi.mocked(fn as (...args: unknown[]) => unknown).mockReset().mockResolvedValue(undefined);
   }
@@ -198,8 +201,8 @@ describe('showing the tree', () => {
     expect(rowFor('Networking').textContent).toContain('2 sub-categories');
     expand('Networking');
     expand('Routers');
-    expect(rowFor('Wi-Fi 6').textContent).toContain('2 products/services here'); // two products filed directly in it
-    expect(rowFor('Laptops').textContent).toContain('2 products/services here'); // a product and a service
+    expect(rowFor('Wi-Fi 6').textContent).toContain('2 products and services'); // two products filed directly in it
+    expect(rowFor('Laptops').textContent).toContain('2 products and services'); // a product and a service
   });
 
   it('finds a category by its Arabic or English name and opens the way to it', () => {
@@ -316,6 +319,7 @@ describe('editing', () => {
       nameEn: 'Notebooks',
       description: '',
       iconName: '',
+      color: '',
     });
   });
 });
@@ -398,8 +402,54 @@ describe('ordering, activating', () => {
   });
 });
 
+describe('moving a category to the trash', () => {
+  const idOf = (name: string) => (store.categories as Category[]).find((c) => c.nameEn === name)!.id;
+
+  it('asks first and says nothing below it is deleted', () => {
+    renderPage();
+    choose(rowFor('Networking'), en['categories.trash']);
+    const dialog = screen.getByRole('dialog', { name: en['categories.confirmTrash.title'] });
+    expect(dialog.textContent).toContain('Networking');
+    expect(dialog.textContent).toContain('not changed');
+    expect(trashCategory).not.toHaveBeenCalled();
+  });
+
+  it('cancelling moves nothing', () => {
+    renderPage();
+    choose(rowFor('Networking'), en['categories.trash']);
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: en['common.cancel'] }));
+    expect(trashCategory).not.toHaveBeenCalled();
+  });
+
+  it('confirming sends the whole tree and says how many categories went', async () => {
+    vi.mocked(trashCategory).mockResolvedValue(4);
+    renderPage();
+    choose(rowFor('Networking'), en['categories.trash']);
+    await act(async () => {
+      fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: en['categories.trash'] }));
+    });
+    expect(trashCategory).toHaveBeenCalledWith(store.categories, idOf('Networking'));
+    expect(await screen.findByText('Moved 4 categories to the trash.')).toBeTruthy();
+  });
+
+  it('is the only way out of the list: there is no direct Delete item any more', () => {
+    renderPage();
+    fireEvent.click(within(rowFor('Networking')).getByRole('button', { name: /^(More actions for|المزيد من الإجراءات)/ }));
+    expect(screen.queryByRole('menuitem', { name: 'Delete' })).toBeNull();
+  });
+});
+
 describe('deleting a category tree', () => {
-  const openDelete = (name: string) => choose(rowFor(name), en['categories.delete']);
+  // Deleting for good now lives on the Trash page; this page offers the same
+  // dialog only to finish a deletion that stopped part-way.
+  const openDelete = (name: string) => {
+    cleanup();
+    store.categories = (store.categories as Category[]).map((c) =>
+      c.nameEn === name ? { ...c, deletionPending: true, isActive: false } : c,
+    );
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: en['categories.resume'] }));
+  };
   const confirmButton = () => screen.getByRole('button', { name: en['categories.deleteEverything'] }) as HTMLButtonElement;
 
   it('first says exactly what will be deleted and what is kept', async () => {
@@ -523,7 +573,74 @@ describe('Arabic', () => {
     expect(document.documentElement.dir).toBe('rtl');
     expect(names()[0]).toContain('شبكات');
     expect(screen.getByRole('button', { name: ar['categories.expand'].replace('{name}', 'شبكات') })).toBeTruthy();
-    choose(rowFor('لابتوبات'), ar['categories.delete']);
-    return waitFor(() => expect(screen.getByRole('dialog').textContent).toContain('حذف'));
+    choose(rowFor('لابتوبات'), ar['categories.trash']);
+    return waitFor(() => expect(screen.getByRole('dialog').textContent).toContain('السلة'));
+  });
+});
+
+describe('dragging a category', () => {
+  const transfer = { setData: vi.fn(), effectAllowed: '' };
+  const handleOf = (row: HTMLElement) => row.querySelector('.cat-handle') as HTMLElement;
+  /** Drags [from] onto [to], pointing [at] (0 = top edge, 0.5 = middle, 1 = bottom edge) of it. */
+  const dragOnto = async (from: HTMLElement, to: HTMLElement, at: number) => {
+    to.getBoundingClientRect = () => ({ top: 0, height: 100 }) as DOMRect;
+    await act(async () => {
+      fireEvent.dragStart(handleOf(from), { dataTransfer: transfer });
+    });
+    // jsdom has no drag events with coordinates, so the height is set on the event itself.
+    const pointed = (make: typeof createEvent.dragOver) => {
+      const event = make(to, { dataTransfer: transfer });
+      Object.defineProperty(event, 'clientY', { value: at * 100 });
+      return event;
+    };
+    await act(async () => {
+      fireEvent(to, pointed(createEvent.dragOver));
+    });
+    await act(async () => {
+      fireEvent(to, pointed(createEvent.drop));
+    });
+  };
+
+  it('gives every row a handle to hold', () => {
+    renderPage();
+    expect(rows().every((r) => r.querySelector('.cat-handle[draggable="true"]'))).toBe(true);
+  });
+
+  it('marks a category with nothing under it as empty, and one with something as not', () => {
+    renderPage();
+    expand('Networking');
+    expect(rowFor('Switches').textContent).toContain(en['categories.emptyBadge']);
+    expect(rowFor('Routers').textContent).not.toContain(en['categories.emptyBadge']);
+    expect(rowFor('Networking').textContent).not.toContain(en['categories.emptyBadge']);
+  });
+
+  it('reorders siblings when dropped on the top edge of one of them', async () => {
+    renderPage();
+    expand('Networking');
+    await dragOnto(rowFor('Switches'), rowFor('Routers'), 0.05);
+    expect(saveSiblingOrder).toHaveBeenCalledWith(['swi', 'rou']);
+    expect(moveCategory).not.toHaveBeenCalled();
+  });
+
+  it('moves a category under another when dropped in the middle of it, last among its children', async () => {
+    renderPage();
+    expand('Networking');
+    await dragOnto(rowFor('Laptops'), rowFor('Networking'), 0.5);
+    expect(moveCategory).toHaveBeenCalledWith(store.categories, 'lap', 'net');
+    expect(saveSiblingOrder).toHaveBeenCalledWith(['rou', 'swi', 'lap']);
+  });
+
+  it('ignores a drop that would put a category under one of its own children', async () => {
+    renderPage();
+    expand('Networking');
+    await dragOnto(rowFor('Networking'), rowFor('Routers'), 0.5);
+    expect(moveCategory).not.toHaveBeenCalled();
+    expect(saveSiblingOrder).not.toHaveBeenCalled();
+  });
+
+  it('turns the handles off while the list is searched', () => {
+    renderPage();
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'lap' } });
+    expect(rows().every((r) => r.querySelector('.cat-handle[draggable="false"]'))).toBe(true);
   });
 });

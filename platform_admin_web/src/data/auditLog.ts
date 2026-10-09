@@ -53,7 +53,7 @@ export function setAuditActorName(name: string) {
   actorName = name;
 }
 
-function currentActor(): AuditActor {
+export function currentActor(): AuditActor {
   const user = auth.currentUser;
   if (!user) throw new Error('Not signed in.');
   return { id: user.uid, name: actorName || user.email || user.uid };

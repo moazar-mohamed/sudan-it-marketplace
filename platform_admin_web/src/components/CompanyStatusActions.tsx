@@ -1,5 +1,4 @@
-import { deleteCompany, setCompanyStatus } from '../data/actions';
-import type { CompanyDeletionSummary } from '../data/deleteCompany';
+import { setCompanyStatus, trashCompany } from '../data/actions';
 import { useProducts } from '../data/hooks';
 import type { Company, CompanyStatus } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
@@ -7,8 +6,8 @@ import { useConfirm, useRunner } from './feedback';
 
 /**
  * Approve / reject a pending company, activate / deactivate a decided one, and
- * delete one that is not active. Reject, deactivate and delete ask for
- * confirmation first; an active company must be deactivated before deletion.
+ * move any of them to the trash (nothing is deleted; the Trash page restores it
+ * or deletes it for good). Reject, deactivate and trash ask for confirmation.
  */
 export function CompanyStatusActions({
   company,
@@ -46,40 +45,21 @@ export function CompanyStatusActions({
 
   const remove = async () => {
     const count = products.data.filter((p) => p.companyId === company.id).length;
-    const isActive = company.status === 'active';
     const ok = await confirm({
-      title: t('companies.confirmDelete.title'),
-      body:
-        t('companies.confirmDelete.body', { name: company.name, count }) +
-        (isActive ? '\n\n' + t('companies.confirmDelete.activeNote') : ''),
-      confirmLabel: t('companies.delete'),
+      title: t('companies.confirmTrash.title'),
+      body: t('companies.confirmTrash.body', { name: company.name, count }),
+      confirmLabel: t('companies.trash'),
       danger: true,
     });
     if (!ok) return;
-    // Only an inactive company can be deleted, so an active one is deactivated
-    // first (a step the rules already allow); the cascade then removes it and
-    // everything it owns. Orders are never part of it.
-    const cascade = async () => {
-      if (isActive) await setCompanyStatus(company.id, 'inactive', company.name);
-      return deleteCompany(company.id, company.name);
-    };
-    const done = await run(company.id, cascade, (r: CompanyDeletionSummary) =>
-      t('companies.deletedCascade', {
-        admins: r.admins,
-        technicians: r.technicians,
-        products: r.products,
-        // Leftover legacy records are cleaned up silently and counted as related.
-        other: r.other + r.invites,
-        orders: r.ordersKept === null ? t('companies.ordersKeptUnknown') : t('companies.ordersKept', { count: r.ordersKept }),
-      }),
-    );
+    const done = await run(company.id, () => trashCompany(company), t('companies.trashed'));
     if (done) onDeleted?.();
   };
 
   const disabled = busy === company.id;
   const deleteButton = (
     <button className="btn btn--danger btn--sm" disabled={disabled} onClick={() => void remove()}>
-      {t('companies.delete')}
+      {t('companies.trash')}
     </button>
   );
 

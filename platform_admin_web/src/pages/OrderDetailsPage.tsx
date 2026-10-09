@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { AdminOrderCancel } from '../components/AdminOrderCancel';
 import { OrderStatusBadge, PaymentBadge } from '../components/StatusBadges';
 import { ReceiptViewer } from '../components/ReceiptViewer';
+import { AdminNotes } from '../components/AdminNotes';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
 import { useCompanies, useProducts } from '../data/hooks';
 import { useOrder } from '../data/orderHooks';
@@ -202,6 +203,8 @@ export function OrderDetailsPage() {
                 </dl>
               </Card>
             </div>
+
+            <AdminNotes targetType="order" targetId={order.id} />
           </>
         )}
       </DataGate>

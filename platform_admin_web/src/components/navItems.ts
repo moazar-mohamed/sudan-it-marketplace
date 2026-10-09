@@ -39,9 +39,11 @@ export const NAV_GROUPS: { key: TranslationKey; items: NavItem[] }[] = [
   {
     key: 'nav.group.system',
     items: [
+      { to: '/cities', key: 'nav.cities', icon: 'globe' },
       { to: '/analytics', key: 'nav.analytics', icon: 'analytics' },
       { to: '/activity', key: 'nav.activity', icon: 'activity' },
       { to: '/admins', key: 'nav.admins', icon: 'shield' },
+      { to: '/trash', key: 'nav.trash', icon: 'trash' },
       { to: '/profile', key: 'nav.profile', icon: 'profile' },
       { to: '/settings', key: 'nav.settings', icon: 'settings' },
     ],

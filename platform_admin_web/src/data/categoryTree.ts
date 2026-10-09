@@ -169,6 +169,73 @@ export function nextSortOrderAmong(
   );
 }
 
+/**
+ * How many products and services sit in each category's whole subtree (itself
+ * and everything below it). [direct] counts the ones filed straight in a
+ * category; a category missing from the map holds none.
+ */
+export function subtreeTotals(
+  index: CategoryIndex,
+  direct: ReadonlyMap<string, number>,
+): Map<string, number> {
+  const totals = new Map<string, number>();
+  for (const id of index.byId.keys()) {
+    let total = 0;
+    for (const member of subtreeIds(index, id)) total += direct.get(member) ?? 0;
+    totals.set(id, total);
+  }
+  return totals;
+}
+
+export type DropZone = 'before' | 'after' | 'inside';
+
+export interface DropPlan {
+  /** Where the dragged category ends up: null = the top level. */
+  parentId: string | null;
+  /** The dragged category's new siblings (itself included) in their new order. */
+  orderedIds: string[];
+  /** True when the category also changes parent (a move, not only a reorder). */
+  changesParent: boolean;
+}
+
+/**
+ * What dropping [dragId] on [targetId] does: next to it (before or after, under
+ * the target's own parent) or inside it (as its last child). Null when nothing
+ * would change or the drop is not allowed (onto itself or one of its own
+ * descendants, or into a category awaiting deletion).
+ */
+export function planDrop(
+  index: CategoryIndex,
+  dragId: string,
+  targetId: string,
+  zone: DropZone,
+): DropPlan | null {
+  const dragged = index.byId.get(dragId);
+  const target = index.byId.get(targetId);
+  if (!dragged || !target || dragId === targetId) return null;
+  const parentOf = (c: Category) => (c.parentId && index.byId.has(c.parentId) ? c.parentId : null);
+  const parentId = zone === 'inside' ? target.id : parentOf(target);
+  const changesParent = parentId !== parentOf(dragged);
+  if (changesParent && moveProblem(index, dragId, parentId) !== null) return null;
+  if (!changesParent && zone === 'inside') return null;
+  const siblings = childrenOf(index, parentId)
+    .map((c) => c.id)
+    .filter((id) => id !== dragId);
+  let at = siblings.length;
+  if (zone !== 'inside') {
+    const targetAt = siblings.indexOf(targetId);
+    at = zone === 'before' ? targetAt : targetAt + 1;
+  }
+  const orderedIds = [...siblings.slice(0, at), dragId, ...siblings.slice(at)];
+  if (!changesParent) {
+    const before = childrenOf(index, parentId).map((c) => c.id);
+    if (before.length === orderedIds.length && before.every((id, i) => id === orderedIds[i])) {
+      return null;
+    }
+  }
+  return { parentId, orderedIds, changesParent };
+}
+
 export interface TreeRow {
   category: Category;
   depth: number;

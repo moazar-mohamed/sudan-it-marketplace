@@ -5,6 +5,7 @@ import { registrationProblems } from '../data/companyDocuments';
 import { NO_IMAGE } from '../data/imageRules';
 import type { NewCompanyInput } from '../data/provisionCompany';
 import { useI18n } from '../i18n/I18nProvider';
+import { CityChips } from './CityChips';
 import { useRunner } from './feedback';
 import { Icon } from './Icon';
 import { ImagePickerField } from './ImagePickerField';
@@ -18,6 +19,7 @@ const EMPTY: NewCompanyInput = {
   name: '',
   description: '',
   city: '',
+  serviceCityIds: [],
   address: '',
   latitude: null,
   longitude: null,
@@ -134,6 +136,15 @@ export function CompanyCreateModal({ onClose }: { onClose: () => void }) {
                 dir="auto"
               />
             </label>
+          </div>
+          <div className="field">
+            <span>{t('company.serviceCities')}</span>
+            <CityChips
+              value={form.serviceCityIds ?? []}
+              onChange={(next) => setForm((prev) => ({ ...prev, serviceCityIds: next }))}
+              label={t('company.serviceCities')}
+            />
+            <small>{t('company.serviceCitiesHint')}</small>
           </div>
           <LocationField
             address={form.address}

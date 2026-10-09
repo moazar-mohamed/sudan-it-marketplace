@@ -1614,6 +1614,97 @@ table.data tbody tr:last-child td {
   gap: 6px;
 }
 
+/* The two-bar handle: hold it and drag a category to reorder it or move it under another. */
+.cat-handle {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 22px;
+  height: 28px;
+  padding-inline: 4px;
+  border-radius: 6px;
+  cursor: grab;
+}
+
+.cat-handle > span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--muted);
+}
+
+.cat-handle:hover {
+  background: var(--info-soft);
+}
+
+.cat-handle--off {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.cat-row--dragging {
+  opacity: 0.45;
+}
+
+/* Where the dragged category would land: above, below, or inside this row. */
+.cat-row--drop-before {
+  box-shadow: inset 0 3px 0 var(--primary);
+}
+
+.cat-row--drop-after {
+  box-shadow: inset 0 -3px 0 var(--primary);
+}
+
+.cat-row--drop-inside {
+  background: var(--primary-soft);
+  outline: 2px dashed var(--primary);
+  outline-offset: -3px;
+}
+
+/* A category with nothing filed under it: customers do not see it yet. */
+.cat-empty {
+  flex: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  color: var(--warning);
+  background: var(--warning-soft);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.swatch--auto {
+  width: auto;
+  padding: 0 12px;
+  border-radius: 999px;
+  border-color: var(--border);
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+}
+
+.swatch--on {
+  border-color: var(--text, currentColor);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
 /* A sub-category's "add" button shows when the row is pointed at or focused. */
 @media (hover: hover) {
   .cat-row--kid:not(:hover):not(:focus-within) .cat-add {
@@ -3352,4 +3443,50 @@ kbd {
 .usage__note {
   margin: 0;
   font-size: 13px;
+}
+
+/* Internal notes on a record */
+.note-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.note {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface-alt, var(--surface));
+}
+.note__text {
+  margin: 0 0 4px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.note__meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.trash-was {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile__rule {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
+}
+
+/* The map tiles are a light picture: in the dark theme they are inverted so the map does not glare. */
+:root[data-theme='dark'] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.92);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.92);
+  }
 }

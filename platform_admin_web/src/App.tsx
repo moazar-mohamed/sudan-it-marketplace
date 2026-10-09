@@ -12,6 +12,7 @@ const page = <K extends string>(load: () => Promise<Record<K, React.ComponentTyp
 const AdminsPage = page(() => import('./pages/AdminsPage'), 'AdminsPage');
 const ActivityPage = page(() => import('./pages/ActivityPage'), 'ActivityPage');
 const AnalyticsPage = page(() => import('./pages/AnalyticsPage'), 'AnalyticsPage');
+const CitiesPage = page(() => import('./pages/CitiesPage'), 'CitiesPage');
 const CategoriesPage = page(() => import('./pages/CategoriesPage'), 'CategoriesPage');
 const ServicesPage = page(() => import('./pages/ServicesPage'), 'ServicesPage');
 const ServiceRequestDetailsPage = page(() => import('./pages/ServiceRequestDetailsPage'), 'ServiceRequestDetailsPage');
@@ -29,6 +30,7 @@ const ProductsPage = page(() => import('./pages/ProductsPage'), 'ProductsPage');
 const ProfilePage = page(() => import('./pages/ProfilePage'), 'ProfilePage');
 const ReportsPage = page(() => import('./pages/ReportsPage'), 'ReportsPage');
 const ReviewsPage = page(() => import('./pages/ReviewsPage'), 'ReviewsPage');
+const TrashPage = page(() => import('./pages/TrashPage'), 'TrashPage');
 const SettingsPage = page(() => import('./pages/SettingsPage'), 'SettingsPage');
 
 export function App() {
@@ -68,10 +70,12 @@ export function App() {
         <Route path="offers" element={<OffersPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
+        <Route path="cities" element={<CitiesPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="activity" element={<ActivityPage />} />
         <Route path="admins" element={<AdminsPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="trash" element={<TrashPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<EmptyState message={t('common.notFound')} />} />
       </Route>

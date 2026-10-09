@@ -13,7 +13,9 @@ import {
   nextSortOrderAmong,
   pathLabel,
   pathOf,
+  planDrop,
   subtreeIds,
+  subtreeTotals,
   visibleRows,
 } from './categoryTree';
 import type { Category } from './types';
@@ -29,6 +31,7 @@ const category = (id: string, parentId: string | null, extra: Partial<Category> 
   sortOrder: null,
   description: '',
   iconName: '',
+  color: '',
   isActive: true,
   createdAt: null,
   ...extra,
@@ -254,5 +257,78 @@ describe('the rows of the tree page', () => {
     const withOld = [...list, category('old', null)];
     expect(visibleRows(withOld, new Set(), '').map((r) => r.category.id)).toEqual(['old', 'r']);
     expect(findChainMismatches(withOld)).toEqual([]);
+  });
+});
+
+describe('counting what sits under each category', () => {
+  const index = buildIndex(sample);
+
+  it('adds up everything in a category and below it', () => {
+    const totals = subtreeTotals(
+      index,
+      new Map([
+        ['a1a', 2],
+        ['a2', 1],
+        ['z', 4],
+      ]),
+    );
+    expect(totals.get('a1a')).toBe(2);
+    expect(totals.get('a1')).toBe(2);
+    expect(totals.get('a')).toBe(3);
+    expect(totals.get('r')).toBe(3);
+    expect(totals.get('b')).toBe(0);
+    expect(totals.get('z')).toBe(4);
+  });
+});
+
+describe('planning a drop', () => {
+  const ordered = tree([
+    ['r', null], ['a', 'r'], ['b', 'r'], ['c', 'r'], ['a1', 'a'], ['z', null],
+  ]).map((c, i) => ({ ...c, sortOrder: i }));
+  const index = buildIndex(ordered);
+
+  it('puts a category before or after a sibling', () => {
+    expect(planDrop(index, 'c', 'a', 'before')).toEqual({
+      parentId: 'r',
+      orderedIds: ['c', 'a', 'b'],
+      changesParent: false,
+    });
+    expect(planDrop(index, 'a', 'b', 'after')?.orderedIds).toEqual(['b', 'a', 'c']);
+  });
+
+  it('does nothing when the category would stay where it is', () => {
+    expect(planDrop(index, 'b', 'c', 'before')).toBeNull();
+    expect(planDrop(index, 'a', 'a', 'before')).toBeNull();
+  });
+
+  it('drops inside a category as its last child', () => {
+    expect(planDrop(index, 'z', 'a', 'inside')).toEqual({
+      parentId: 'a',
+      orderedIds: ['a1', 'z'],
+      changesParent: true,
+    });
+  });
+
+  it('moves next to a category of another parent, under that parent', () => {
+    expect(planDrop(index, 'z', 'a1', 'before')).toEqual({
+      parentId: 'a',
+      orderedIds: ['z', 'a1'],
+      changesParent: true,
+    });
+    expect(planDrop(index, 'a1', 'z', 'after')).toEqual({
+      parentId: null,
+      orderedIds: ['r', 'z', 'a1'],
+      changesParent: true,
+    });
+  });
+
+  it('refuses to put a category under itself or one of its own descendants', () => {
+    expect(planDrop(index, 'r', 'a1', 'inside')).toBeNull();
+    expect(planDrop(index, 'a', 'a1', 'before')).toBeNull();
+  });
+
+  it('refuses to put a category under one awaiting deletion', () => {
+    const pending = buildIndex(ordered.map((c) => (c.id === 'z' ? { ...c, deletionPending: true } : c)));
+    expect(planDrop(pending, 'a', 'z', 'inside')).toBeNull();
   });
 });

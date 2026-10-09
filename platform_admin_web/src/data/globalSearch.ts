@@ -139,6 +139,8 @@ export async function searchRecords(db: Firestore, raw: string): Promise<SearchR
         for (const d of s.value.docs) {
           if (seen.has(d.id)) continue;
           seen.add(d.id);
+          // A company in the trash is not a result (the Trash page is where it lives).
+          if (kind === 'company' && d.data().trashedAt) continue;
           hits.push(toHit(kind, d.id, d.data()));
         }
       }

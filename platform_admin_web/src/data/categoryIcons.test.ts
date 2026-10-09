@@ -20,6 +20,7 @@ const category = (id: string, extra: Partial<Category> = {}): Category => ({
   sortOrder: null,
   description: '',
   iconName: '',
+  color: '',
   isActive: true,
   createdAt: null,
   ...extra,

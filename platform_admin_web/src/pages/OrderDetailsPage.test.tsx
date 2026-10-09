@@ -27,6 +27,7 @@ vi.mock('../data/orderHooks', () => ({
   useOrder: () => ({ status: 'ready' as const, error: null, order: (store.orders[0] as Order | undefined) ?? null, retry: () => undefined }),
 }));
 vi.mock('../firebase', () => ({ db: {} }));
+vi.mock('../components/AdminNotes', () => ({ AdminNotes: () => null }));
 vi.mock('../data/receipts', () => ({ fetchOrderReceipt: vi.fn() }));
 
 const cancelled = (fields: Record<string, unknown>): Order =>

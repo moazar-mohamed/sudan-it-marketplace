@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CompanyRegistrationCard } from '../components/CompanyRegistrationCard';
 import { CompanyStatusActions } from '../components/CompanyStatusActions';
@@ -11,6 +12,9 @@ import {
   Text,
   Thumb,
 } from '../components/ui';
+import { AdminNotes } from '../components/AdminNotes';
+import { CompanyCitiesModal } from '../components/CompanyCitiesModal';
+import { cityNames, useCities } from '../data/cities';
 import { loadCompanyDocument, saveCompanyRegistration } from '../data/actions';
 import { useCompanies, useProducts } from '../data/hooks';
 import { useOrderCountOf } from '../data/orderHooks';
@@ -21,8 +25,10 @@ import { useI18n } from '../i18n/I18nProvider';
 export function CompanyDetailsPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
-  const { t, number, date } = useI18n();
+  useCities();
+  const { t, number, date, locale } = useI18n();
   const companies = useCompanies();
+  const [editingCities, setEditingCities] = useState(false);
   const products = useProducts();
   // A server count, so a company with many orders does not pull them all in.
   const orderTotal = useOrderCountOf('companyId', id);
@@ -53,6 +59,9 @@ export function CompanyDetailsPage() {
           <EmptyState message={t('common.notFound')} />
         ) : (
           <>
+            {editingCities && (
+              <CompanyCitiesModal company={company} onClose={() => setEditingCities(false)} />
+            )}
             <div className="hero">
               <Thumb src={company.logoUrl} size={72} />
               <div>
@@ -68,6 +77,14 @@ export function CompanyDetailsPage() {
                 <dl className="kv-list">
                   <KeyValue label={t('company.description')}>{dash(company.description)}</KeyValue>
                   <KeyValue label={t('company.city')}>{dash(company.city)}</KeyValue>
+                  <KeyValue label={t('company.serviceCities')}>
+                    {company.serviceCityIds && company.serviceCityIds.length > 0
+                      ? cityNames(company.serviceCityIds, locale === 'ar' ? 'ar' : 'en')
+                      : t('company.allCities')}{' '}
+                    <button type="button" className="btn btn--sm" onClick={() => setEditingCities(true)}>
+                      {t('company.editCities')}
+                    </button>
+                  </KeyValue>
                   <KeyValue label={t('company.address')}>{dash(company.address)}</KeyValue>
                   <KeyValue label={t('location.mapPoint')}>
                     {point ? (
@@ -129,6 +146,8 @@ export function CompanyDetailsPage() {
                 <KeyValue label={t('col.created')}>{date(company.createdAt)}</KeyValue>
               </dl>
             </Card>
+
+            <AdminNotes targetType="company" targetId={company.id} />
           </>
         )}
       </DataGate>

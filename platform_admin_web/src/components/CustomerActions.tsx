@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { cityChoices, useCities } from '../data/cities';
 import { createCustomer, setCustomerActive, updateCustomerProfile } from '../data/actions';
 import type { Customer } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
@@ -41,8 +42,10 @@ export function CustomerEditModal({
   customer: Customer;
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { busy, run } = useRunner();
+  const cities = useCities();
+  const [cityId, setCityId] = useState(customer.cityId ?? '');
   const [fullName, setFullName] = useState(customer.fullName);
   const [phone, setPhone] = useState(customer.phone);
   const [showError, setShowError] = useState(false);
@@ -57,7 +60,12 @@ export function CustomerEditModal({
     }
     const ok = await run(
       'edit',
-      () => updateCustomerProfile(customer.id, { fullName, phone }),
+      () =>
+        updateCustomerProfile(customer.id, {
+          fullName,
+          phone,
+          ...(cityId && cityId !== (customer.cityId ?? '') ? { cityId } : {}),
+        }),
       t('customer.profileUpdated'),
     );
     if (ok) onClose();
@@ -81,6 +89,19 @@ export function CustomerEditModal({
           )}
         </label>
         <PhoneField label={t('col.phone')} value={phone} onChange={setPhone} showError={showError} />
+        <label className="field">
+          <span>{t('customer.city')}</span>
+          <select value={cityId} onChange={(e) => setCityId(e.target.value)}>
+            <option value="" disabled={Boolean(customer.cityId)}>
+              {t('customer.cityNone')}
+            </option>
+            {cityChoices(cities, [customer.cityId ?? '']).map((city) => (
+              <option key={city.id} value={city.id}>
+                {locale === 'ar' ? city.ar : city.en}
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="field">
           <span>{t('col.email')}</span>
           <input value={customer.email} disabled dir="ltr" />

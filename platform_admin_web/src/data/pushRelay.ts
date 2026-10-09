@@ -13,6 +13,22 @@ import { auth } from '../firebase';
 export const PUSH_RELAY_URL: string =
   (import.meta.env.VITE_PUSH_RELAY_URL as string | undefined) ?? 'https://sudan-it-push.moazermohamed528.workers.dev';
 
+/** Asks the relay to tell the customers of a city that a company now serves it. Never throws. */
+export async function pushCityAnnouncement(announcementId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> {
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) return false;
+    const response = await fetchImpl(`${PUSH_RELAY_URL}/push`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cityAnnouncementId: announcementId }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Asks the relay to push [notificationId] to the recipient's phones. Never throws. */
 export async function pushToPhone(notificationId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> {
   try {

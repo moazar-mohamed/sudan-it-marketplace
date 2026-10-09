@@ -1,15 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type DragEvent } from 'react';
 import { useConfirm, useRunner } from '../components/feedback';
 import { RowMenu } from '../components/RowMenu';
 import { Chips, DataGate, EmptyState, PageHeader, SearchInput, Text } from '../components/ui';
-import { repairCategoryChains, saveSiblingOrder, setCategoryActive } from '../data/actions';
-import { categoryDisplayName, findCategoryIcon, moveId } from '../data/categoryIcons';
+import { moveCategory, repairCategoryChains, saveSiblingOrder, setCategoryActive, trashCategory } from '../data/actions';
+import { categoryDisplayName, findCategoryColor, findCategoryIcon, moveId } from '../data/categoryIcons';
 import {
   buildIndex,
   childrenOf,
   findChainMismatches,
   interruptedDeletions,
+  planDrop,
+  subtreeTotals,
   visibleRows,
+  type DropZone,
   type StatusFilter,
 } from '../data/categoryTree';
 import { useCategories, useProducts, useServices } from '../data/hooks';
@@ -49,6 +52,9 @@ export function CategoriesPage() {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [dialog, setDialog] = useState<Dialog | null>(null);
+  // The category being dragged and where it would land, for the drop marker.
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [hint, setHint] = useState<{ id: string; zone: DropZone } | null>(null);
 
   const all = categories.data;
   const index = useMemo(() => buildIndex(all), [all]);
@@ -65,6 +71,9 @@ export function CategoriesPage() {
     }
     return map;
   }, [products.data, services.data]);
+
+  // Everything below each category too: an empty one is hidden from customers.
+  const totals = useMemo(() => subtreeTotals(index, itemsIn), [index, itemsIn]);
 
   const toggleOpen = (id: string) =>
     setExpanded((prev) => {
@@ -94,6 +103,34 @@ export function CategoriesPage() {
       t('categories.updated'),
     );
 
+  const zoneAt = (e: DragEvent<HTMLElement>): DropZone => {
+    const box = e.currentTarget.getBoundingClientRect();
+    const ratio = box.height > 0 ? (e.clientY - box.top) / box.height : 0.5;
+    return ratio < 0.28 ? 'before' : ratio > 0.72 ? 'after' : 'inside';
+  };
+
+  const clearDrag = () => {
+    setDragId(null);
+    setHint(null);
+  };
+
+  const drop = async (targetId: string, zone: DropZone) => {
+    const dragged = dragId;
+    clearDrag();
+    if (!dragged) return;
+    const plan = planDrop(index, dragged, targetId, zone);
+    if (!plan) return;
+    await run(
+      'order',
+      async () => {
+        if (plan.changesParent) await moveCategory(all, dragged, plan.parentId);
+        await saveSiblingOrder(plan.orderedIds);
+      },
+      t(plan.changesParent ? 'categories.moved' : 'categories.updated'),
+    );
+    open(plan.parentId);
+  };
+
   const toggleActive = async (c: Category) => {
     if (c.isActive) {
       const ok = await confirm({
@@ -105,6 +142,18 @@ export function CategoriesPage() {
       if (!ok) return;
     }
     await run(c.id, () => setCategoryActive(c.id, !c.isActive, c.nameEn || c.nameAr || c.name), t('categories.updated'));
+  };
+
+  // Out of the lists, with everything below it, but nothing is deleted: the Trash page brings it back.
+  const trashIt = async (c: Category) => {
+    const ok = await confirm({
+      title: t('categories.confirmTrash.title'),
+      body: t('categories.confirmTrash.body', { name: categoryDisplayName(c, locale) }),
+      confirmLabel: t('categories.trash'),
+      danger: true,
+    });
+    if (!ok) return;
+    await run(c.id, () => trashCategory(all, c.id), (n) => t('categories.trashed', { n }));
   };
 
   const repair = () =>
@@ -130,24 +179,67 @@ export function CategoriesPage() {
     const position = siblings.findIndex((s) => s.id === c.id);
     const icon = findCategoryIcon(c.iconName);
     const name = categoryDisplayName(c, locale) || '—';
-    const own = itemsIn.get(c.id) ?? 0;
+    const total = totals.get(c.id) ?? 0;
     const subCount = childrenOf(index, c.id).length;
     const meta = [
       subCount > 0 ? t('categories.subCount', { n: subCount }) : null,
-      own > 0 ? t('categories.inThisOne', { n: own }) : null,
+      total > 0 ? t('categories.itemsTotal', { n: total }) : null,
     ].filter(Boolean);
     const ordering = busy === 'order' || query.trim() !== '' || status !== 'all';
+    const color = findCategoryColor(c.color);
+    const marker = hint?.id === c.id && dragId !== c.id ? `cat-row--drop-${hint.zone}` : '';
+    const canDropHere = (zone: DropZone) =>
+      dragId !== null && dragId !== c.id && planDrop(index, dragId, c.id, zone) !== null;
     const statusLabel = c.isActive ? t('user.active') : t('user.inactive');
     const classes = [
       'cat-row',
       isRoot ? 'cat-row--root' : 'cat-row--kid',
       matched ? 'row--match' : '',
       c.isActive ? '' : 'cat-row--off',
+      dragId === c.id ? 'cat-row--dragging' : '',
+      marker,
     ]
       .filter(Boolean)
       .join(' ');
     return (
-      <div key={c.id} className={classes} style={isRoot ? undefined : { paddingInlineStart: 14 + (depth - 1) * 22 }}>
+      <div
+        key={c.id}
+        className={classes}
+        style={isRoot ? undefined : { paddingInlineStart: 14 + (depth - 1) * 22 }}
+        onDragOver={(e) => {
+          if (!dragId) return;
+          const zone = zoneAt(e);
+          if (!canDropHere(zone)) {
+            if (hint) setHint(null);
+            return;
+          }
+          e.preventDefault();
+          if (hint?.id !== c.id || hint.zone !== zone) setHint({ id: c.id, zone });
+        }}
+        onDrop={(e) => {
+          if (!dragId) return;
+          e.preventDefault();
+          const zone = zoneAt(e);
+          if (canDropHere(zone)) void drop(c.id, zone);
+          else clearDrag();
+        }}
+      >
+        <span
+          className={ordering ? 'cat-handle cat-handle--off' : 'cat-handle'}
+          draggable={!ordering}
+          role="img"
+          aria-label={t('categories.dragHandle', { name })}
+          title={t('categories.dragHandle', { name })}
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', c.id);
+            setDragId(c.id);
+          }}
+          onDragEnd={clearDrag}
+        >
+          <span />
+          <span />
+        </span>
         {hasChildren ? (
           <button
             type="button"
@@ -162,7 +254,11 @@ export function CategoriesPage() {
           <span className="tree-toggle tree-toggle--leaf" aria-hidden="true" />
         )}
         {isRoot ? (
-          <span className={`cat-tile cat-tile--${tone}`} aria-hidden="true">
+          <span
+            className={`cat-tile cat-tile--${tone}`}
+            style={color ? { color: color.hex, background: `${color.hex}26` } : undefined}
+            aria-hidden="true"
+          >
             {icon ? icon.emoji : (name.trim().charAt(0) || '•').toUpperCase()}
           </span>
         ) : (
@@ -179,6 +275,11 @@ export function CategoriesPage() {
           </div>
           {meta.length > 0 && <div className="muted cat-meta">{meta.join(' · ')}</div>}
         </div>
+        {total === 0 && (
+          <span className="cat-empty" title={t('categories.emptyHint')}>
+            {t('categories.emptyBadge')}
+          </span>
+        )}
         {isRoot && (
           <span className={c.isActive ? 'cat-status cat-status--on' : 'cat-status'}>
             <span className={c.isActive ? 'status-dot status-dot--on' : 'status-dot'} aria-hidden="true" />
@@ -223,10 +324,11 @@ export function CategoriesPage() {
                 separated: true,
               },
               {
-                key: 'delete',
-                label: t('categories.delete'),
+                key: 'trash',
+                label: t('categories.trash'),
                 danger: true,
-                onSelect: () => setDialog({ kind: 'delete', category: c }),
+                disabled: busy === c.id,
+                onSelect: () => void trashIt(c),
               },
             ]}
           />
