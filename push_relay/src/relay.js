@@ -8,7 +8,16 @@
 // never from text stored with it; a chat message is the message itself.
 
 import { createFirestore, createTokenSource } from './google.js';
-import { chatMessageText, languageOf, orderNotificationText } from './texts.js';
+import {
+  chatMessageText,
+  cityAnnouncementText,
+  cityName,
+  cityTopic,
+  languageOf,
+  orderNotificationText,
+  pushCategoryOf,
+  wantsPush,
+} from './texts.js';
 
 /** How long after it was written something may still be pushed. */
 const MAX_AGE_MS = 10 * 60 * 1000;
@@ -152,6 +161,31 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
     return { sent, failed };
   }
 
+  /** Sends one message to every phone subscribed to [topic]. */
+  async function sendToTopic(topic, { title, body, data }) {
+    const response = await fetch(
+      `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${await accessToken()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: {
+            topic,
+            notification: { title, body },
+            data,
+            android: { priority: 'HIGH', notification: { channel_id: ANDROID_CHANNEL } },
+            apns: { payload: { aps: { sound: 'default' } } },
+          },
+        }),
+      },
+    );
+    if (!response.ok) log(`fcm topic ${response.status} for ${topic}`);
+    return response.ok;
+  }
+
   function isFresh(createdAt) {
     return createdAt instanceof Date && now() - createdAt.getTime() <= MAX_AGE_MS;
   }
@@ -170,21 +204,67 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
     if (!(await db.createOnce(logPath, { kind: 'notification', by: uid, at: new Date(now()) }))) {
       return reply(200, { skipped: 'already_sent' });
     }
-    const recipients = await recipientsOf(notification);
+    // Anyone who switched this kind of push off in their Settings is left out.
+    const category = pushCategoryOf(notification.type);
+    const recipients = (await recipientsOf(notification)).filter((r) => wantsPush(r, category));
     const result = await sendTo(recipients, (recipient) => ({
       ...orderNotificationText(notification, languageOf(recipient)),
       data: {
         type: String(notification.type ?? ''),
         notificationId,
-        // About a report, a service request or an order, as the app opens it.
+        // About a report, a product, a service request or an order, as the app opens it.
         ...(notification.reportId
           ? { reportId: String(notification.reportId) }
-          : notification.serviceRequestId
-            ? { serviceRequestId: String(notification.serviceRequestId) }
-            : { orderId: String(notification.orderId ?? '') }),
+          : notification.productId
+            ? { productId: String(notification.productId) }
+            : notification.serviceRequestId
+              ? { serviceRequestId: String(notification.serviceRequestId) }
+              : { orderId: String(notification.orderId ?? '') }),
         recipientType: String(notification.recipientType ?? ''),
       },
     }));
+    await db.merge(logPath, result);
+    return reply(200, result);
+  }
+
+  /**
+   * "A company now serves your city": one message to the customers of that
+   * city, in each language. The announcement (written under the security
+   * rules by the company's admin or Platform Admin) names the company and the
+   * city; the words are the relay's own, and the company must still be active
+   * and still serve the city.
+   */
+  async function pushCityAnnouncement(uid, announcementId) {
+    const announcement = await db.get(`city_announcements/${announcementId}`);
+    if (!announcement) return reply(404, { error: 'not_found' });
+    if (announcement.senderId !== uid) return reply(403, { error: 'not_sender' });
+    if (!isFresh(announcement.createdAt)) return reply(409, { error: 'too_old' });
+    const cityId = typeof announcement.cityId === 'string' ? announcement.cityId : '';
+    const company = await db.get(`companies/${announcement.companyId}`);
+    const stillServes =
+      company &&
+      (company.status ?? 'active') === 'active' &&
+      Array.isArray(company.serviceCityIds) &&
+      company.serviceCityIds.includes(cityId);
+    if (!cityId || !stillServes) return reply(422, { error: 'not_serving' });
+    const logPath = `push_log/a_${announcementId}`;
+    if (!(await db.createOnce(logPath, { kind: 'city', by: uid, at: new Date(now()) }))) {
+      return reply(200, { skipped: 'already_sent' });
+    }
+    const saved = (await db.get('platform_settings/cities'))?.items;
+    let sent = 0;
+    let failed = 0;
+    for (const language of ['ar', 'en']) {
+      const text = cityAnnouncementText(company.name, cityName(cityId, language, saved), language);
+      if (!text) continue;
+      const ok = await sendToTopic(cityTopic(cityId, language), {
+        ...text,
+        data: { type: 'city_announcement', companyId: String(announcement.companyId) },
+      });
+      if (ok) sent++;
+      else failed++;
+    }
+    const result = { sent, failed };
     await db.merge(logPath, result);
     return reply(200, result);
   }
@@ -202,9 +282,9 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
       return reply(200, { skipped: 'already_sent' });
     }
     const toCompany = message.senderRole === 'customer';
-    const recipients = toCompany
-      ? await companyAdmins(chat.companyId)
-      : await usersByIds([chat.customerId]);
+    const recipients = (
+      toCompany ? await companyAdmins(chat.companyId) : await usersByIds([chat.customerId])
+    ).filter((r) => wantsPush(r, 'chat'));
     const result = await sendTo(recipients, (recipient) => ({
       ...chatMessageText(chat, message, languageOf(recipient)),
       data: {
@@ -236,11 +316,15 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
     const isId = (value) => typeof value === 'string' && /^[A-Za-z0-9_-]{1,200}$/.test(value);
     const wantsNotification = isId(body?.notificationId);
     const wantsChat = isId(body?.chatId) && isId(body?.messageId);
-    if (wantsNotification === wantsChat) return reply(400, { error: 'bad_request' });
+    const wantsCity = isId(body?.cityAnnouncementId);
+    if ([wantsNotification, wantsChat, wantsCity].filter(Boolean).length !== 1) {
+      return reply(400, { error: 'bad_request' });
+    }
 
     try {
       const uid = await verifiedUid(idToken);
       if (!uid) return reply(401, { error: 'unauthenticated' });
+      if (wantsCity) return await pushCityAnnouncement(uid, body.cityAnnouncementId);
       return wantsNotification
         ? await pushNotification(uid, body.notificationId)
         : await pushChatMessage(uid, body.chatId, body.messageId);

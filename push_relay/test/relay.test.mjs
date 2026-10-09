@@ -48,7 +48,8 @@ const fromValue = (v) =>
       : 'booleanValue' in v ? v.booleanValue
         : 'timestampValue' in v ? new Date(v.timestampValue)
           : 'arrayValue' in v ? (v.arrayValue.values ?? []).map(fromValue)
-            : null;
+            : 'mapValue' in v ? Object.fromEntries(Object.entries(v.mapValue.fields ?? {}).map(([k, x]) => [k, fromValue(x)]))
+              : null;
 
 function fakeGoogle() {
   const docs = new Map(); // "collection/id" -> fields (plain values)
@@ -400,6 +401,98 @@ describe('report notifications', () => {
   });
 });
 
+describe('what the platform did', () => {
+  beforeEach(() => {
+    google.idTokens.set('token-admin1', 'admin1');
+    google.docs.set('notifications/ac1', {
+      recipientType: 'customer', recipientId: 'cust1', orderId: 'o1', type: 'order_cancelled_by_admin',
+      productName: 'Router', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+    google.docs.set('notifications/ac2', {
+      recipientType: 'company_admin', recipientId: 'c1', orderId: 'o1', type: 'order_cancelled_by_admin_company',
+      productName: 'Router', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+    google.docs.set('notifications/ph1', {
+      recipientType: 'company_admin', recipientId: 'c1', productId: 'p1', type: 'product_hidden',
+      productName: 'Router', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+  });
+
+  it('tells the customer their order was cancelled, in their language', async () => {
+    const result = await call({ notificationId: 'ac1' }, 'token-admin1');
+    assert.equal(result.body.sent, 1);
+    const [message] = google.sent;
+    assert.equal(message.notification.title, 'تم إلغاء طلبك');
+    assert.match(message.notification.body, /Router/);
+    assert.equal(message.data.orderId, 'o1');
+    assert.equal(message.data.type, 'order_cancelled_by_admin');
+  });
+
+  it('tells the company, and opens the order', async () => {
+    const result = await call({ notificationId: 'ac2' }, 'token-admin1');
+    assert.equal(result.body.sent, 3);
+    assert.ok(google.sent.every((m) => m.data.orderId === 'o1' && m.data.recipientType === 'company_admin'));
+  });
+
+  it('tells the company a product was hidden, and opens the product', async () => {
+    const result = await call({ notificationId: 'ph1' }, 'token-admin1');
+    assert.equal(result.body.sent, 3);
+    const [message] = google.sent;
+    assert.ok(google.sent.every((m) => m.data.productId === 'p1' && m.data.orderId === undefined));
+    assert.match(message.notification.body, /Router/);
+  });
+
+  it('only for the admin who wrote it, and only once', async () => {
+    assert.equal((await call({ notificationId: 'ph1' }, 'token-ca1')).status, 403);
+    assert.equal((await call({ notificationId: 'ph1' }, 'token-admin1')).body.sent, 3);
+    assert.deepEqual((await call({ notificationId: 'ph1' }, 'token-admin1')).body, { skipped: 'already_sent' });
+  });
+
+  it('every one has words in both languages that name the product', () => {
+    for (const type of ['order_cancelled_by_admin', 'order_cancelled_by_admin_company', 'product_hidden', 'product_shown']) {
+      for (const language of ['en', 'ar']) {
+        const text = orderNotificationText({ type, productName: 'Router', title: 'stored' }, language);
+        assert.ok(text.title && text.title !== 'stored', `${type}/${language}`);
+        assert.match(text.body, /Router/, `${type}/${language}`);
+      }
+    }
+  });
+});
+
+describe('the kinds of phone notification a person switched off', () => {
+  it('leaves out only the people who turned that kind off', async () => {
+    google.docs.get('users/ca1').pushPrefs = { orders: false };
+    const result = await call({ notificationId: 'n1' });
+    // ca1 (one phone) is out; ca1b keeps both of its phones.
+    assert.equal(result.body.sent, 2);
+    assert.ok(!google.sent.some((m) => m.token === 'phone-ca1'));
+  });
+
+  it('another kind switched off does not matter', async () => {
+    google.docs.get('users/ca1').pushPrefs = { chat: false, reports: false };
+    assert.equal((await call({ notificationId: 'n1' })).body.sent, 3);
+  });
+
+  it('chat messages follow the chat switch', async () => {
+    google.docs.get('users/ca1').pushPrefs = { chat: false };
+    google.docs.get('users/ca1b').pushPrefs = { orders: false }; // not about chat
+    const result = await call({ chatId: 'chat1', messageId: 'm1' });
+    assert.equal(result.body.sent, 2);
+    assert.ok(!google.sent.some((m) => m.token === 'phone-ca1'));
+  });
+
+  it('a person with no preferences gets everything', async () => {
+    assert.equal((await call({ notificationId: 'n1' })).body.sent, 3);
+  });
+
+  it('is claimed even when nobody wants it, so it is never sent later', async () => {
+    for (const uid of ['ca1', 'ca1b']) google.docs.get(`users/${uid}`).pushPrefs = { orders: false };
+    const result = await call({ notificationId: 'n1' });
+    assert.deepEqual(result.body, { sent: 0, failed: 0 });
+    assert.ok(google.docs.has('push_log/n_n1'));
+  });
+});
+
 describe('chat messages', () => {
   it("a customer's message reaches the company's admins, tagged per conversation", async () => {
     const result = await call({ chatId: 'chat1', messageId: 'm1' });
@@ -458,5 +551,68 @@ describe('texts', () => {
     );
     assert.equal(text.title, 'Customer · Router');
     assert.equal(text.body.length, 180);
+  });
+});
+
+describe('a company now serves a city', () => {
+  beforeEach(() => {
+    const put = (key, data) => google.docs.set(key, data);
+    put('companies/c1', { name: 'Nile Tech', status: 'active', serviceCityIds: ['khartoum', 'atlantis'] });
+    put('city_announcements/c1_khartoum', {
+      companyId: 'c1', companyName: 'Nile Tech', cityId: 'khartoum', senderId: 'ca1', createdAt: minutesAgo(1),
+    });
+    put('city_announcements/c1_atlantis', {
+      companyId: 'c1', companyName: 'Nile Tech', cityId: 'atlantis', senderId: 'ca1', createdAt: minutesAgo(1),
+    });
+  });
+
+  it('is sent once to the customers of that city, in Arabic and in English', async () => {
+    const first = await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-ca1');
+    assert.equal(first.status, 200);
+    assert.deepEqual(first.body, { sent: 2, failed: 0 });
+    assert.deepEqual(google.sent.map((m) => m.topic), ['city_khartoum_ar', 'city_khartoum_en']);
+    const [ar, en] = google.sent;
+    assert.equal(ar.notification.title, 'شركة جديدة في مدينتك');
+    assert.equal(ar.notification.body, 'أصبحت «Nile Tech» تخدم الخرطوم.');
+    assert.equal(en.notification.title, 'A new company in your city');
+    assert.equal(en.notification.body, '"Nile Tech" now serves Khartoum.');
+    assert.equal(en.data.type, 'city_announcement');
+    assert.equal(en.data.companyId, 'c1');
+
+    const again = await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-ca1');
+    assert.deepEqual(again.body, { skipped: 'already_sent' });
+    assert.equal(google.sent.length, 2);
+  });
+
+  it('uses the names Platform Admin saved, for a city of its own', async () => {
+    google.docs.set('platform_settings/cities', {
+      ids: ['atlantis'],
+      items: [{ id: 'atlantis', nameAr: 'أطلنطس', nameEn: 'Atlantis' }],
+    });
+    await call({ cityAnnouncementId: 'c1_atlantis' }, 'token-ca1');
+    assert.equal(google.sent[0].notification.body, 'أصبحت «Nile Tech» تخدم أطلنطس.');
+    assert.equal(google.sent[1].notification.body, '"Nile Tech" now serves Atlantis.');
+  });
+
+  it('only for the person who wrote it, and only while it is fresh', async () => {
+    assert.equal((await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-cust1')).status, 403);
+    google.docs.get('city_announcements/c1_khartoum').createdAt = minutesAgo(30);
+    assert.equal((await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-ca1')).status, 409);
+    assert.equal((await call({ cityAnnouncementId: 'nope' }, 'token-ca1')).status, 404);
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('not when the company is no longer active or no longer serves the city', async () => {
+    google.docs.get('companies/c1').status = 'inactive';
+    assert.equal((await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-ca1')).status, 422);
+    google.docs.get('companies/c1').status = 'active';
+    google.docs.get('companies/c1').serviceCityIds = ['bahri'];
+    assert.equal((await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-ca1')).status, 422);
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('asks for exactly one thing', async () => {
+    const both = await call({ cityAnnouncementId: 'c1_khartoum', notificationId: 'n1' }, 'token-ca1');
+    assert.equal(both.status, 400);
   });
 });
