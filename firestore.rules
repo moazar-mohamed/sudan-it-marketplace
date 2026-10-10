@@ -31,7 +31,9 @@ service cloud.firestore {
         && request.resource.data.role == 'customer'
         && request.resource.data.isActive == true
         && request.resource.data.createdAt is timestamp
-        && request.resource.data.createdAt == request.time;
+        && request.resource.data.createdAt == request.time
+        // An account Platform Admin deleted does not make a new profile.
+        && !exists(/databases/$(database)/documents/deleted_accounts/$(request.auth.uid));
     }
 
     function isSafeCustomerProfileUpdate() {
@@ -94,6 +96,53 @@ service cloud.firestore {
         && (!changed.hasAny(['fullName', 'phone', 'cityId'])
           || data.updatedAt == request.time)
         && (!changed.hasAny(['updatedAt']) || data.updatedAt == request.time);
+    }
+
+    // Platform Admin turns a customer account into the admin of a company, in
+    // the same batch that creates that company (and its registration
+    // document). The person keeps the same login and password; only their
+    // role and the link to the new company change. The company must be brand
+    // new in this batch, active, and carry the account's own email, so a
+    // customer can never be attached to an existing company or to a company
+    // that belongs to someone else. Nothing else on the profile may move,
+    // except that the account comes out active.
+    function isPlatformAdminCustomerToCompanyAdmin(uid) {
+      let data = request.resource.data;
+      let changed = data.diff(resource.data).affectedKeys();
+      let email = resource.data.get('email', '');
+      return isPlatformAdmin()
+        && uid != request.auth.uid
+        && resource.data.get('role', '') == 'customer'
+        && email is string
+        && email.size() > 0
+        && changed.hasOnly(['role', 'companyId', 'isActive', 'updatedAt'])
+        && changed.hasAll(['role', 'companyId'])
+        && data.role == 'company_admin'
+        // A deactivated customer can be converted; the account comes out
+        // active, since a company admin that is switched off can write nothing.
+        && data.get('isActive', true) == true
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.companyId.size() <= 128
+        && (!changed.hasAny(['updatedAt']) || data.updatedAt == request.time)
+        && !exists(/databases/$(database)/documents/companies/$(data.companyId))
+        && existsAfter(/databases/$(database)/documents/companies/$(data.companyId))
+        && getAfter(/databases/$(database)/documents/companies/$(data.companyId))
+          .data.get('status', '') == 'active'
+        && getAfter(/databases/$(database)/documents/companies/$(data.companyId))
+          .data.get('email', '').lower() == email.lower()
+        && existsAfter(/databases/$(database)/documents/company_documents/$(data.companyId));
+    }
+
+    // Platform Admin deletes a customer's profile, in the batch that records
+    // the deletion (deleted_accounts/{uid}, created there and not before).
+    // Never an admin's own, never any other kind of account.
+    function isPlatformAdminCustomerDelete(uid) {
+      return isPlatformAdmin()
+        && uid != request.auth.uid
+        && resource.data.get('role', '') == 'customer'
+        && !exists(/databases/$(database)/documents/deleted_accounts/$(uid))
+        && existsAfter(/databases/$(database)/documents/deleted_accounts/$(uid));
     }
 
     // True when the company no longer exists once this write (or batch) has
@@ -788,13 +837,44 @@ service cloud.firestore {
         || (isOwner(uid) && isOwnPushPrefsUpdate())
         || (isOwner(uid) && isOwnAdminEmailSync())
         || isPlatformAdminCustomerUpdate()
+        || isPlatformAdminCustomerToCompanyAdmin(uid)
         || isPlatformAdminAdminUpdate(uid);
 
-      // Only the company_admin / technician profile of a company that is gone.
-      // Customers, Platform Admins and every profile of a live company stay.
-      allow delete: if isPlatformAdmin()
-        && resource.data.get('role', '') in ['company_admin', 'technician']
-        && companyIsGoneAfter(resource.data.get('companyId', ''));
+      // The company_admin / technician profile of a company that is gone, or a
+      // customer's profile in the batch that records its deletion
+      // (deleted_accounts). Platform Admins and every profile of a live
+      // company stay.
+      allow delete: if (isPlatformAdmin()
+          && resource.data.get('role', '') in ['company_admin', 'technician']
+          && companyIsGoneAfter(resource.data.get('companyId', '')))
+        || isPlatformAdminCustomerDelete(uid);
+    }
+
+    // The record that Platform Admin deleted a customer account. The login
+    // itself cannot be removed from here (no Admin SDK on this plan), so this
+    // is what keeps the person out: they can no longer make a profile, and the
+    // app tells them the account was deleted. Written once, in the same batch
+    // that deletes the profile; it holds no personal data; nobody changes or
+    // removes it. The person reads their own, Platform Admin any.
+    function isValidDeletedAccountCreate(uid) {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && uid != request.auth.uid
+        && data.keys().hasOnly(['id', 'deletedAt', 'deletedBy'])
+        && data.keys().hasAll(['id', 'deletedAt', 'deletedBy'])
+        && data.id == uid
+        && data.deletedBy == request.auth.uid
+        && data.deletedAt == request.time
+        && exists(/databases/$(database)/documents/users/$(uid))
+        && get(/databases/$(database)/documents/users/$(uid)).data.get('role', '') == 'customer'
+        && !existsAfter(/databases/$(database)/documents/users/$(uid));
+    }
+
+    match /deleted_accounts/{uid} {
+      allow get: if isOwner(uid) || isPlatformAdmin();
+      allow list: if false;
+      allow create: if isValidDeletedAccountCreate(uid);
+      allow update, delete: if false;
     }
 
     match /categories/{categoryId} {
@@ -1794,6 +1874,46 @@ service cloud.firestore {
         && product.get('hidden', false) == (data.type == 'product_hidden');
     }
 
+    // Platform Admin tells a person their account became a company's: written
+    // in the batch that does it, addressed to the new company's admins (they
+    // read it once they sign in again). It names the person and the company,
+    // and the batch must really have turned that customer into that company's
+    // admin. One per company: the id is fixed.
+    function isValidAdminAccountNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && data.keys().hasAny(['userId'])
+        && isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'userId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'userId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.id == notificationId
+        && data.senderId == request.auth.uid
+        && data.type == 'account_converted_to_company'
+        && data.recipientType == 'company_admin'
+        && data.recipientId is string
+        && data.recipientId.size() > 0
+        && data.recipientId.size() <= 128
+        && data.userId is string
+        && data.userId.size() > 0
+        && data.userId.size() <= 128
+        && notificationId == data.recipientId + '_' + data.type
+        && data.isRead == false
+        && data.createdAt == request.time
+        && adminAccountNotificationMatchesConversion();
+    }
+
+    function adminAccountNotificationMatchesConversion() {
+      let data = request.resource.data;
+      let before = /databases/$(database)/documents/users/$(data.userId);
+      let company = /databases/$(database)/documents/companies/$(data.recipientId);
+      return exists(before)
+        && get(before).data.get('role', '') == 'customer'
+        && getAfter(before).data.get('role', '') == 'company_admin'
+        && getAfter(before).data.get('companyId', '') == data.recipientId
+        && existsAfter(company)
+        && data.productName == getAfter(company).data.get('name', '');
+    }
+
     // What the notification says must be true of the report as the batch leaves it.
     function reportNotificationMatchesReport() {
       let data = request.resource.data;
@@ -2224,6 +2344,7 @@ service cloud.firestore {
       allow create: if isValidReportNotificationCreate(notificationId)
         || isValidAdminOrderNotificationCreate(notificationId)
         || isValidAdminProductNotificationCreate(notificationId)
+        || isValidAdminAccountNotificationCreate(notificationId)
         || isSignedIn()
         && callerIsNotDeactivated()
         && isValidNotificationCreate(notificationId)
@@ -2244,12 +2365,19 @@ service cloud.firestore {
 
       // Whoever it was addressed to may delete it (never its sender, never
       // anyone else). Platform Admin may delete only what was addressed to a
-      // deleted company's admin, or to one of its technicians once that
-      // technician is gone.
+      // deleted company's admin, to one of its technicians once that
+      // technician is gone, or to a customer whose account it deleted.
       allow delete: if isSignedIn()
         && (isNotificationRecipient()
           || (isPlatformAdmin()
-            && ((resource.data.recipientType == 'company_admin'
+            && ((resource.data.recipientType == 'customer'
+                && resource.data.recipientId is string
+                && resource.data.recipientId.size() > 0
+                && existsAfter(
+                  /databases/$(database)/documents/deleted_accounts/$(resource.data.recipientId))
+                && !existsAfter(
+                  /databases/$(database)/documents/users/$(resource.data.recipientId)))
+              || (resource.data.recipientType == 'company_admin'
                 && companyIsGoneAfter(resource.data.recipientId))
               || (resource.data.recipientType == 'technician'
                 && resource.data.recipientId is string
@@ -2288,6 +2416,36 @@ service cloud.firestore {
         && (accounts.size() < 5 || isValidPaymentAccount(accounts[4]));
     }
 
+    // A place customers can collect orders from. Mirrors PickupPoint in the
+    // app: a name, an optional written address and an optional map point.
+    //
+    // Written to stay cheap: a rule may evaluate at most 1000 expressions, and
+    // five of these sit beside up to five payment accounts in one company
+    // update. A point that is not a map, or has no name, makes keys() / .name
+    // fail, which refuses the write all the same.
+    function isValidPickupPoint(point) {
+      let address = point.get('address', '');
+      return point.keys().hasOnly(['name', 'address', 'latitude', 'longitude'])
+        && point.name is string
+        && point.name.size() > 0
+        && point.name.size() <= 60
+        && address is string
+        && address.size() <= 200
+        && isValidCoordinatePair(
+          point.get('latitude', null),
+          point.get('longitude', null));
+    }
+
+    function isValidPickupPoints(points) {
+      return points is list
+        && points.size() <= 5
+        && (points.size() < 1 || isValidPickupPoint(points[0]))
+        && (points.size() < 2 || isValidPickupPoint(points[1]))
+        && (points.size() < 3 || isValidPickupPoint(points[2]))
+        && (points.size() < 4 || isValidPickupPoint(points[3]))
+        && (points.size() < 5 || isValidPickupPoint(points[4]));
+    }
+
     function isCompanyProfileUpdate() {
       let data = request.resource.data;
       return data.diff(resource.data).affectedKeys().hasOnly([
@@ -2301,10 +2459,16 @@ service cloud.firestore {
           'phone',
           'email',
           'pickupAddress',
+          'pickupPoints',
           'paymentAccounts',
           'serviceCityIds',
           'updatedAt'
         ])
+        // The lists are checked only when they are being changed (what is
+        // stored was checked when it was written), which keeps an update that
+        // touches one of them under the 1000-expression limit.
+        && (!data.diff(resource.data).affectedKeys().hasAny(['pickupPoints'])
+          || isValidPickupPoints(data.get('pickupPoints', [])))
         && isValidServiceCityIds(data.get('serviceCityIds', []))
         && data.name is string
         && data.name.size() > 0
@@ -2315,7 +2479,8 @@ service cloud.firestore {
         && data.phone is string
         && data.email is string
         && data.pickupAddress is string
-        && isValidPaymentAccounts(data.get('paymentAccounts', []))
+        && (!data.diff(resource.data).affectedKeys().hasAny(['paymentAccounts'])
+          || isValidPaymentAccounts(data.get('paymentAccounts', [])))
         && isValidCoordinatePair(
           data.get('latitude', null),
           data.get('longitude', null))
@@ -2394,6 +2559,7 @@ service cloud.firestore {
           'phone',
           'email',
           'pickupAddress',
+          'pickupPoints',
           'serviceCityIds',
           'rating',
           'reviewCount',
@@ -2412,6 +2578,7 @@ service cloud.firestore {
         && optionalString(data, 'phone')
         && optionalString(data, 'email')
         && optionalString(data, 'pickupAddress')
+        && isValidPickupPoints(data.get('pickupPoints', []))
         && isValidServiceCityIds(data.get('serviceCityIds', []))
         && isValidCoordinatePair(
           data.get('latitude', null),

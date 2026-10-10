@@ -14,6 +14,7 @@ import {
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import { doc, getDoc, increment, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import assert from 'node:assert/strict';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 
 let env: RulesTestEnvironment;
@@ -240,6 +241,17 @@ describe('the kinds of phone notification a person wants', () => {
       await assertSucceeds(prefs(uid, { orders: false, chat: true, serviceRequests: true, reports: false }));
     }
     await assertSucceeds(prefs('cust1', { cityAnnouncements: false, platform: true }));
+  });
+
+  it('the apps own write (one kind at a time, by field path) merges into what is there', async () => {
+    const ref = doc(as('ca1'), 'users', 'ca1');
+    await assertSucceeds(updateDoc(ref, { 'pushPrefs.orders': false }));
+    await assertSucceeds(updateDoc(ref, { 'pushPrefs.chat': false }));
+    await assertSucceeds(updateDoc(ref, { 'pushPrefs.orders': true }));
+    const stored = (await getDoc(ref)).data()?.pushPrefs;
+    assert.deepEqual(stored, { orders: true, chat: false });
+    await assertFails(updateDoc(ref, { 'pushPrefs.everything': false }));
+    await assertFails(updateDoc(ref, { 'pushPrefs.orders': 'no' }));
   });
 
   it('nothing but yes/no for the known kinds', async () => {
