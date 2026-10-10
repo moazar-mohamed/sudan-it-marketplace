@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, type MouseEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   CustomerCreateModal,
   CustomerEditModal,
@@ -30,6 +30,7 @@ const SORTS = {
 export function CustomersPage() {
   const { t, number, date } = useI18n();
   const customers = useCustomers();
+  const navigate = useNavigate();
   const { toggle, busyId } = useToggleCustomerActive();
   const [filter, setFilter] = useState<'active' | 'inactive' | 'all'>('all');
   const [query, setQuery] = useState('');
@@ -50,6 +51,13 @@ export function CustomersPage() {
   const shown = sortedRows.slice(current * CUSTOMERS_PER_PAGE, (current + 1) * CUSTOMERS_PER_PAGE);
   const orderCounts = useCustomerOrderCounts(shown.map((c) => c.id));
   const first = current * CUSTOMERS_PER_PAGE + 1;
+
+  // The whole row opens the customer. Clicks that belong to a link or a button
+  // inside it (the name link, View, Edit, Deactivate) are theirs, not the row's.
+  const openCustomer = (id: string) => (e: MouseEvent<HTMLTableRowElement>) => {
+    if ((e.target as HTMLElement).closest('a, button')) return;
+    navigate(`/customers/${id}`);
+  };
 
   return (
     <>
@@ -128,7 +136,7 @@ export function CustomersPage() {
                 </thead>
                 <tbody>
                   {shown.map((c) => (
-                    <tr key={c.id}>
+                    <tr key={c.id} className="row--clickable" onClick={openCustomer(c.id)}>
                       <td>
                         <Link to={`/customers/${c.id}`} className="strong">
                           <Text>{c.fullName || '—'}</Text>

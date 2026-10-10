@@ -44,12 +44,29 @@ describe('the add-company form', () => {
 
   it('keeps every field it always had', () => {
     show();
-    for (const label of ['company.name', 'company.description', 'company.city', 'company.pickup', 'company.email'] as const) {
+    for (const label of ['company.name', 'company.description', 'company.city', 'company.email'] as const) {
       expect(screen.getByLabelText(en[label])).toBeTruthy();
     }
+    expect(screen.getByLabelText(en['pickup.modeCompany'])).toBeTruthy();
+    expect(screen.getByLabelText(en['pickup.modeCustom'])).toBeTruthy();
     expect(screen.getByLabelText(en['companies.password'])).toBeTruthy();
     expect(screen.getByPlaceholderText(en['location.enterAddress'])).toBeTruthy();
     expect(screen.getByLabelText(en['registration.number'])).toBeTruthy();
+  });
+
+  it('offers pickup points: none by default, add and remove when custom', () => {
+    show();
+    expect((screen.getByLabelText(en['pickup.modeCompany']) as HTMLInputElement).checked).toBe(true);
+    expect(screen.queryByText(en['pickup.addPoint'])).toBeNull();
+
+    fireEvent.click(screen.getByLabelText(en['pickup.modeCustom']));
+    expect(screen.getByLabelText('Point 1 name')).toBeTruthy();
+    fireEvent.click(screen.getByText(en['pickup.addPoint']));
+    expect(screen.getByLabelText('Point 2 name')).toBeTruthy();
+
+    fireEvent.click(screen.getAllByText(en['pickup.removePoint'])[0]);
+    fireEvent.click(screen.getAllByText(en['pickup.removePoint'])[0]);
+    expect((screen.getByLabelText(en['pickup.modeCompany']) as HTMLInputElement).checked).toBe(true);
   });
 
   it('shows and hides the password with the eye inside the field', () => {

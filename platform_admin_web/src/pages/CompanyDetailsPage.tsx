@@ -105,7 +105,11 @@ export function CompanyDetailsPage() {
                       '—'
                     )}
                   </KeyValue>
-                  <KeyValue label={t('company.pickup')}>{dash(company.pickupAddress)}</KeyValue>
+                  <KeyValue label={t('company.pickup')}>
+                    {company.pickupPoints && company.pickupPoints.length > 0
+                      ? company.pickupPoints.map((line) => <div key={line}>{line}</div>)
+                      : dash(company.pickupAddress)}
+                  </KeyValue>
                 </dl>
               </Card>
               <Card title={t('company.section.contact')}>

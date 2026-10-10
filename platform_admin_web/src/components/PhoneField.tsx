@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo, useState, type ReactNode } from 'react';
 import {
   cleanNational,
   countryByIso,
@@ -27,6 +27,7 @@ export function phoneValueProblem(value: string, required = false): PhoneProblem
  */
 export function PhoneField({
   label,
+  mark,
   value,
   onChange,
   required = false,
@@ -34,6 +35,8 @@ export function PhoneField({
   disabled = false,
 }: {
   label: string;
+  /** Beside the label: what the field asks (components/FieldMark.tsx). */
+  mark?: ReactNode;
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
@@ -88,7 +91,10 @@ export function PhoneField({
 
   return (
     <div className="field">
-      <span id={labelId}>{label}</span>
+      <span id={labelId}>
+        {label}
+        {mark}
+      </span>
       <div className="phone-input" dir="ltr">
         <div className="phone-input__code">
           <span aria-hidden="true">

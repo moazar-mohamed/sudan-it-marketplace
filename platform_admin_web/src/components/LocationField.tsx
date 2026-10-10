@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { formatCoordinate, type GeoPoint } from '../data/location';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -13,6 +14,7 @@ export function LocationField({
   onSelectOnMap,
   onRemovePoint,
   disabled,
+  mark,
 }: {
   address: string;
   onAddressChange: (value: string) => void;
@@ -20,11 +22,16 @@ export function LocationField({
   onSelectOnMap: () => void;
   onRemovePoint: () => void;
   disabled?: boolean;
+  /** Beside the title: what the field asks (components/FieldMark.tsx). */
+  mark?: ReactNode;
 }) {
   const { t } = useI18n();
   return (
     <div className="location-field">
-      <span className="location-field__title">{t('location.title')}</span>
+      <span className="location-field__title">
+        {t('location.title')}
+        {mark}
+      </span>
       <label className="field">
         <input
           value={address}

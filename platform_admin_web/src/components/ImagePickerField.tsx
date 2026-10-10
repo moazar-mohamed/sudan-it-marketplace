@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
   IMAGE_ACCEPT,
@@ -257,10 +257,13 @@ export function ImagePickerField({
   onChange,
   disabled,
   uploading,
+  mark,
 }: {
   value: ImageSelection;
   onChange: (next: ImageSelection) => void;
   disabled?: boolean;
+  /** Beside the label: what the field asks (components/FieldMark.tsx). */
+  mark?: ReactNode;
   /** Shows the "Uploading image" overlay while the form is being saved. */
   uploading?: boolean;
 }) {
@@ -291,7 +294,10 @@ export function ImagePickerField({
 
   return (
     <div className="image-field">
-      <span className="image-field__label">{t('image.label')}</span>
+      <span className="image-field__label">
+        {t('image.label')}
+        {mark}
+      </span>
 
       {value.kind === 'none' ? (
         <button

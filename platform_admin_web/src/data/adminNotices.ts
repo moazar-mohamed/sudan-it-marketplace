@@ -29,6 +29,35 @@ export interface AdminProductNotice {
   productName: string;
 }
 
+export interface AdminAccountNotice {
+  /** `{companyId}_account_converted_to_company`: one per company, as the rules require. */
+  id: string;
+  recipientType: 'company_admin';
+  /** The new company: its admins (the converted person is now one) read it. */
+  recipientId: string;
+  /** The account that was turned into the company's admin. */
+  userId: string;
+  type: 'account_converted_to_company';
+  /** The company's name: the only text, and the rules check it is the company's own. */
+  productName: string;
+}
+
+/** The notice for a customer whose account the admin turned into a company's. */
+export function accountConvertedNotice(account: {
+  userId: string;
+  companyId: string;
+  companyName: string;
+}): AdminAccountNotice {
+  return {
+    id: `${account.companyId}_account_converted_to_company`,
+    recipientType: 'company_admin',
+    recipientId: account.companyId,
+    userId: account.userId,
+    type: 'account_converted_to_company',
+    productName: account.companyName,
+  };
+}
+
 /** The two notices for an order the admin cancelled: its customer, and its company. */
 export function orderCancelledNotices(order: {
   id: string;

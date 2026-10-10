@@ -44,6 +44,8 @@ export interface Company {
   phone: string;
   email: string;
   pickupAddress: string;
+  /** Where orders are collected: one line per pickup point (empty: the company's own location). */
+  pickupPoints?: string[];
   /** Companies without a stored status are treated as active. */
   status: CompanyStatus;
   /** When Platform Admin moved it to the trash; absent or null while it is not there. */

@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AdminNotes } from '../components/AdminNotes';
 import { CustomerEditModal, useToggleCustomerActive } from '../components/CustomerActions';
+import { CustomerConvertModal } from '../components/CustomerConvertModal';
+import { CustomerDeleteModal } from '../components/CustomerDeleteModal';
 import { ActiveBadge, OrderStatusBadge, PaymentBadge } from '../components/StatusBadges';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
 import { cityNames, useCities } from '../data/cities';
-import { useCustomers } from '../data/hooks';
+import { isOpenOrderStatus, isOpenRequestStatus } from '../data/convertCustomer';
+import { useCustomers, useServiceRequests } from '../data/hooks';
 import { useOrdersOf } from '../data/orderHooks';
 import { displayPhone } from '../data/phone';
 import { useI18n } from '../i18n/I18nProvider';
@@ -16,13 +19,22 @@ export function CustomerDetailsPage() {
   useCities();
   const { t, money, date, dateTime, locale } = useI18n();
   const customers = useCustomers();
+  const serviceRequests = useServiceRequests();
   // Only this customer's orders are read, not every order there is.
   const orders = useOrdersOf('customerId', id);
   const { toggle, busyId } = useToggleCustomerActive();
   const [editing, setEditing] = useState(false);
+  const [converting, setConverting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
 
   const customer = customers.data.find((c) => c.id === id);
   const history = orders.orders;
+  // What still keeps the account a customer's: it is converted once these end.
+  const openOrders = history.filter((o) => isOpenOrderStatus(o.orderStatus));
+  const openRequests = serviceRequests.data.filter(
+    (r) => r.customerId === id && isOpenRequestStatus(r.status),
+  );
 
   return (
     <>
@@ -38,6 +50,12 @@ export function CustomerDetailsPage() {
               <button className="btn" onClick={() => setEditing(true)}>
                 {t('common.edit')}
               </button>
+              <button className="btn" onClick={() => setConverting(true)}>
+                {t('customer.convert')}
+              </button>
+              <button className="btn btn--danger-ghost" onClick={() => setDeleting(true)}>
+                {t('customer.delete')}
+              </button>
               <button
                 className={customer.isActive ? 'btn btn--danger-ghost' : 'btn btn--primary'}
                 disabled={busyId === customer.id}
@@ -51,6 +69,23 @@ export function CustomerDetailsPage() {
       />
       {editing && customer && (
         <CustomerEditModal customer={customer} onClose={() => setEditing(false)} />
+      )}
+      {converting && customer && (
+        <CustomerConvertModal
+          customer={customer}
+          openOrders={openOrders}
+          openRequests={openRequests}
+          onClose={() => setConverting(false)}
+        />
+      )}
+      {deleting && customer && (
+        <CustomerDeleteModal
+          customer={customer}
+          openOrders={openOrders}
+          openRequests={openRequests}
+          onClose={() => setDeleting(false)}
+          onDeleted={() => navigate('/customers')}
+        />
       )}
       <DataGate gates={[customers, orders]}>
         {!customer ? (

@@ -140,7 +140,13 @@ export function useRunner() {
                       ? t('registration.required')
                       : code === 'order/not-processing'
                         ? t('order.cancelAdmin.notProcessing')
-                        : t('error.action'),
+                        : code === 'convert/open-work' || code === 'delete/open-work'
+                          ? t('customer.convert.error.openWork')
+                          : code === 'convert/registration-required'
+                            ? t('registration.required')
+                            : code === 'convert/invalid-email'
+                              ? t('customer.convert.error.email')
+                              : t('error.action'),
           'error',
         );
         return false;

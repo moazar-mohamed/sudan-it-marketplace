@@ -9,6 +9,7 @@ import {
   type RegistrationInput,
 } from '../data/companyDocuments';
 import { useI18n } from '../i18n/I18nProvider';
+import { RequiredMark } from './FieldMark';
 
 const KB = 1024;
 const formatKB = (bytes: number) => `${Math.max(1, Math.round(bytes / KB))} KB`;
@@ -25,12 +26,15 @@ export function RegistrationFields({
   onChange,
   showErrors,
   disabled = false,
+  requiredMarks = false,
   prepare = prepareDocumentFile,
 }: {
   value: RegistrationInput;
   onChange: (value: RegistrationInput) => void;
   showErrors: boolean;
   disabled?: boolean;
+  /** Marks the number and the document as required, beside their labels. */
+  requiredMarks?: boolean;
   /** Replaceable in tests, where there is no canvas. */
   prepare?: (file: File) => Promise<PreparedDocumentFile>;
 }) {
@@ -84,7 +88,10 @@ export function RegistrationFields({
     <fieldset className="fieldset" disabled={disabled}>
       <legend>{t('registration.section')}</legend>
       <label className="field">
-        <span>{t('registration.number')}</span>
+        <span>
+          {t('registration.number')}
+          {requiredMarks && <RequiredMark />}
+        </span>
         <input
           value={value.registrationNumber}
           onChange={(e) => onChange({ ...value, registrationNumber: e.target.value })}
@@ -100,7 +107,10 @@ export function RegistrationFields({
         )}
       </label>
       <div className="field">
-        <span>{t('registration.document')}</span>
+        <span>
+          {t('registration.document')}
+          {requiredMarks && <RequiredMark />}
+        </span>
         {document && (
           <div className="document-preview">
             {preview ? (

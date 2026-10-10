@@ -21,7 +21,13 @@ import {
   saveCompanyDocument,
   type PreparedDocumentFile,
 } from './companyDocuments';
+import {
+  convertCustomerToCompany as convertCustomer,
+  type ConvertCompanyInput,
+  type ConvertibleCustomer,
+} from './convertCustomer';
 import { deleteCompanyCascade } from './deleteCompany';
+import { deleteCustomerAccount, type DeletableCustomer } from './deleteCustomer';
 import { createAdminAccount, type NewAdminInput } from './provisionAdmin';
 import { createCustomerAccount, type NewCustomerInput } from './provisionCustomer';
 import {
@@ -201,6 +207,12 @@ export async function saveCities(cities: readonly SudanCity[]) {
 /** The ids of the cities now saved, for a page that adds to them. */
 export const currentCityIds = () => allCities().map((c) => c.id);
 
+/** A place customers can collect an order from (name and written address). */
+export interface PickupPointInput {
+  name: string;
+  address: string;
+}
+
 export interface CompanyInput {
   name: string;
   description: string;
@@ -215,6 +227,8 @@ export interface CompanyInput {
   phone: string;
   email: string;
   pickupAddress: string;
+  /** Chosen pickup points (up to 5); empty or absent means the company's own location. */
+  pickupPoints?: PickupPointInput[];
   /** Optional logo: a picked file (uploaded to Storage), a URL, or none. */
   logo?: ImageSelection;
 }
@@ -238,6 +252,35 @@ export async function createCompany(input: NewCompanyInput) {
   });
   void announceAddedCities(created.companyId, input.name.trim(), [], normalizeCityIds(input.serviceCityIds));
   return created;
+}
+
+/**
+ * Turns a customer's account into the admin of a new company (see
+ * convertCustomer.ts): same login, new company, registration document, a notice
+ * for the person and the activity entry, all in one batch.
+ */
+export async function convertCustomerToCompany(customer: ConvertibleCustomer, input: ConvertCompanyInput) {
+  const adminId = auth.currentUser?.uid;
+  if (!adminId) throw new Error('Not signed in.');
+  const converted = await convertCustomer(customer, input, {
+    db,
+    adminId,
+    resolveLogo: resolveImageSelection,
+    stageAudit,
+  });
+  void announceAddedCities(converted.companyId, input.name.trim(), [], normalizeCityIds(input.serviceCityIds));
+  void pushToPhone(converted.noticeId);
+  return converted;
+}
+
+/**
+ * Deletes a customer's account (see deleteCustomer.ts): profile and
+ * notifications go, a record keeps the person out, history stays.
+ */
+export async function deleteCustomer(customer: DeletableCustomer) {
+  const adminId = auth.currentUser?.uid;
+  if (!adminId) throw new Error('Not signed in.');
+  return deleteCustomerAccount(customer, { db, adminId, stageAudit });
 }
 
 /** Adds a real customer account (see provisionCustomer.ts) and records it. */

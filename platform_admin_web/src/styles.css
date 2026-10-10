@@ -3490,3 +3490,26 @@ kbd {
     filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.92);
   }
 }
+
+/* ---- What a form field asks of the person (components/FieldMark.tsx) ---- */
+.field-mark {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 6px;
+  vertical-align: middle;
+  line-height: 1;
+  font-weight: 500;
+}
+
+.field-mark--required {
+  color: var(--danger);
+}
+
+.field-mark--optional {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--neutral-soft);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+}

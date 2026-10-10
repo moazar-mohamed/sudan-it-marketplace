@@ -151,6 +151,8 @@ export const en = {
   'activity.action.company.registration': 'Saved a company\'s registration',
   'activity.action.customer.create': 'Added a customer',
   'activity.action.customer.edit': 'Edited a customer',
+  'activity.action.customer.convert': 'Converted a customer to a company',
+  'activity.action.customer.delete': 'Deleted a customer account',
   'activity.action.customer.active': 'Changed a customer\'s access',
   'activity.action.review.hide': 'Hid a review',
   'activity.action.review.show': 'Showed a review again',
@@ -443,6 +445,16 @@ export const en = {
   'activity.action.company.cities': 'Changed the cities a company serves',
   'company.address': 'Address',
   'company.pickup': 'Pickup location',
+  'pickup.modeCompany': 'Collect from the company location',
+  'pickup.modeCompanyHint': 'Customers collect from the company address above.',
+  'pickup.modeCustom': 'Custom pickup points',
+  'pickup.pointName': 'Point {n} name',
+  'pickup.pointNameHint': 'e.g. Khartoum branch',
+  'pickup.pointAddress': 'Address',
+  'pickup.pointIncomplete': 'Enter a name and an address for this point.',
+  'pickup.addPoint': 'Add a pickup point',
+  'pickup.removePoint': 'Remove',
+  'pickup.pointsHint': 'Customers pick one of these at checkout. Up to {max} points. The company can add map pins from its app.',
 
   'image.label': 'Image',
   'image.add': 'Add Image',
@@ -517,7 +529,7 @@ export const en = {
     'The account could not be set up, so it was not created. Firestore security rules refused the profile.',
   'customers.error.generic': 'Could not create the customer account. Please try again.',
   'customers.deleteNote':
-    'Customers cannot be deleted from here: a real deletion must also remove their sign-in account, which cannot be done safely from the browser. Deactivate a customer instead; their data and orders are kept.',
+    'Open a customer (View) to convert the account to a company or to delete it. Deleting removes the profile and notifications and keeps orders as history; the sign-in account itself stays in Firebase Authentication. To block access and keep everything, deactivate the customer instead.',
   'customer.details': 'Customer details',
   'customer.section.profile': 'Profile',
   'customer.orderHistory': 'Order history',
@@ -536,7 +548,43 @@ export const en = {
   'customer.emailLocked': 'The email is tied to the sign-in account and cannot be changed here.',
   'customer.profileUpdated': 'Customer profile updated.',
   'customer.note':
-    'You can edit the name and phone and activate or deactivate the account. Email, role, company and sign-in details cannot be changed here. A deactivated customer cannot use the app; their data and orders are kept.',
+    'You can edit the name, phone and city, activate or deactivate the account, or turn it into a company account. The email and sign-in details cannot be changed here. A deactivated customer cannot use the app; their data and orders are kept.',
+  'field.required': 'Required',
+  'field.optional': 'Optional',
+  'customer.convert': 'Convert to company',
+  'customer.convert.title': 'Convert to a company account',
+  'customer.convert.intro':
+    'This account keeps its email and password. It becomes the admin of a new company and opens the company app the next time it signs in.',
+  'customer.convert.signInEmail': 'Company login email',
+  'customer.convert.hint':
+    'The company is created active, with this email, and a deactivated account comes out active. The person is told in the app and must sign in again.',
+  'customer.convert.confirm.title': 'Convert this account to a company?',
+  'customer.convert.confirm.body':
+    '{name} will sign in with the same email and password but open the company app instead of the customer app, and will no longer see their orders as a customer. This cannot be undone from this panel.',
+  'customer.convert.confirm.action': 'Convert',
+  'customer.convert.done': '{name} is now a company account. They must sign in again.',
+  'customer.convert.blocked.title': 'Work still in progress',
+  'customer.convert.blocked.body':
+    'This customer still has orders or service requests in progress. Convert the account when they are completed or cancelled.',
+  'customer.convert.blocked.orders': 'Orders in progress',
+  'customer.convert.blocked.requests': 'Service requests in progress',
+  'customer.convert.error.openWork': 'The customer still has work in progress, so the account was not converted.',
+  'customer.convert.error.email': 'This account has no valid email, so it cannot be converted.',
+  'customer.delete': 'Delete account',
+  'customer.delete.title': 'Delete this account?',
+  'customer.delete.removed':
+    'Removed: the profile (name, email, phone, city) and the notifications. The person can no longer use the app with this account.',
+  'customer.delete.kept':
+    'Kept as history: orders, ratings, chats, service requests and reports, with the name that was on them.',
+  'customer.delete.limit':
+    'The sign-in account itself stays in Firebase Authentication (it cannot be removed from here), so this email cannot register again until it is deleted there.',
+  'customer.delete.typeEmail': 'Type {email} to confirm',
+  'customer.delete.final': 'This cannot be undone.',
+  'customer.delete.confirm': 'Delete account',
+  'customer.delete.done': 'The account was deleted.',
+  'customer.delete.doneLeft': 'The account was deleted, but some of its notifications could not be removed.',
+  'customer.delete.blocked.body':
+    'This customer still has orders or service requests in progress. Delete the account when they are completed or cancelled.',
 
   'products.title': 'Products',
   'products.subtitle': 'Products from all companies',
@@ -1168,6 +1216,8 @@ export const ar: Record<TranslationKey, string> = {
   'activity.action.company.registration': 'حفظ مستند تسجيل شركة',
   'activity.action.customer.create': 'أضاف عميلاً',
   'activity.action.customer.edit': 'عدّل بيانات عميل',
+  'activity.action.customer.convert': 'حوّل عميلاً إلى شركة',
+  'activity.action.customer.delete': 'حذف حساب عميل',
   'activity.action.customer.active': 'غيّر إمكانية دخول عميل',
   'activity.action.review.hide': 'أخفى تقييماً',
   'activity.action.review.show': 'أعاد إظهار تقييم',
@@ -1459,6 +1509,16 @@ export const ar: Record<TranslationKey, string> = {
   'activity.action.company.cities': 'غيّر المدن التي تخدمها شركة',
   'company.address': 'العنوان',
   'company.pickup': 'موقع الاستلام',
+  'pickup.modeCompany': 'الاستلام من موقع الشركة',
+  'pickup.modeCompanyHint': 'يستلم العملاء من عنوان الشركة أعلاه.',
+  'pickup.modeCustom': 'نقاط استلام مخصّصة',
+  'pickup.pointName': 'اسم النقطة {n}',
+  'pickup.pointNameHint': 'مثلاً: فرع الخرطوم',
+  'pickup.pointAddress': 'العنوان',
+  'pickup.pointIncomplete': 'أدخل اسماً وعنواناً لهذه النقطة.',
+  'pickup.addPoint': 'إضافة نقطة استلام',
+  'pickup.removePoint': 'حذف',
+  'pickup.pointsHint': 'يختار العميل إحداها عند الطلب. حتى {max} نقاط. تستطيع الشركة إضافة الموقع على الخريطة من تطبيقها.',
 
   'image.label': 'الصورة',
   'image.add': 'إضافة صورة',
@@ -1532,7 +1592,7 @@ export const ar: Record<TranslationKey, string> = {
     'تعذر إعداد الحساب فلم يتم إنشاؤه. رفضت قواعد أمان Firestore الملف الشخصي.',
   'customers.error.generic': 'تعذر إنشاء حساب العميل. يرجى المحاولة مرة أخرى.',
   'customers.deleteNote':
-    'لا يمكن حذف العملاء من هنا: الحذف الحقيقي يتطلب إزالة حساب الدخول أيضاً وهذا لا يمكن تنفيذه بأمان من المتصفح. ألغِ تفعيل العميل بدلاً من ذلك؛ تبقى بياناته وطلباته.',
+    'افتح العميل (عرض) لتحويل حسابه إلى شركة أو لحذفه. الحذف يزيل الملف الشخصي والإشعارات ويُبقي الطلبات كسجل، أما حساب الدخول نفسه فيبقى في Firebase Authentication. ولمنع الدخول مع إبقاء كل شيء، ألغِ تفعيل العميل بدلاً من ذلك.',
   'customer.details': 'تفاصيل العميل',
   'customer.section.profile': 'الملف الشخصي',
   'customer.orderHistory': 'سجل الطلبات',
@@ -1551,7 +1611,43 @@ export const ar: Record<TranslationKey, string> = {
   'customer.emailLocked': 'البريد مرتبط بحساب الدخول ولا يمكن تغييره من هنا.',
   'customer.profileUpdated': 'تم تحديث بيانات العميل.',
   'customer.note':
-    'يمكنك تعديل الاسم والهاتف وتفعيل الحساب أو إلغاء تفعيله. لا يمكن تغيير البريد أو الدور أو الشركة أو بيانات الدخول من هنا. العميل الذي أُلغي تفعيله لا يستطيع استخدام التطبيق، وتبقى بياناته وطلباته.',
+    'يمكنك تعديل الاسم والهاتف والمدينة، وتفعيل الحساب أو إلغاء تفعيله، أو تحويله إلى حساب شركة. لا يمكن تغيير البريد وبيانات الدخول من هنا. العميل الذي أُلغي تفعيله لا يستطيع استخدام التطبيق، وتبقى بياناته وطلباته.',
+  'field.required': 'مطلوب',
+  'field.optional': 'اختياري',
+  'customer.convert': 'تحويل إلى شركة',
+  'customer.convert.title': 'تحويل إلى حساب شركة',
+  'customer.convert.intro':
+    'يحتفظ الحساب ببريده وكلمة سره. ويصبح مشرفاً على شركة جديدة ويفتح تطبيق الشركة عند دخوله في المرة القادمة.',
+  'customer.convert.signInEmail': 'بريد دخول الشركة',
+  'customer.convert.hint':
+    'تُنشأ الشركة مفعّلة بهذا البريد، والحساب الموقوف يصبح مفعّلاً. يصل الشخص إشعار في التطبيق وعليه تسجيل الدخول من جديد.',
+  'customer.convert.confirm.title': 'تحويل هذا الحساب إلى شركة؟',
+  'customer.convert.confirm.body':
+    'سيدخل {name} بنفس البريد وكلمة السر لكنه سيفتح تطبيق الشركة بدل تطبيق العميل، ولن يرى طلباته السابقة كعميل. لا يمكن التراجع عن هذا من اللوحة.',
+  'customer.convert.confirm.action': 'تحويل',
+  'customer.convert.done': 'أصبح {name} حساب شركة. عليه تسجيل الدخول من جديد.',
+  'customer.convert.blocked.title': 'يوجد عمل جارٍ',
+  'customer.convert.blocked.body':
+    'لدى هذا العميل طلبات أو طلبات خدمة ما زالت جارية. حوّل الحساب بعد أن تكتمل أو تُلغى.',
+  'customer.convert.blocked.orders': 'طلبات جارية',
+  'customer.convert.blocked.requests': 'طلبات خدمة جارية',
+  'customer.convert.error.openWork': 'لدى العميل عمل جارٍ، فلم يُحوَّل الحساب.',
+  'customer.convert.error.email': 'لا يوجد بريد صالح لهذا الحساب، فلا يمكن تحويله.',
+  'customer.delete': 'حذف الحساب',
+  'customer.delete.title': 'حذف هذا الحساب؟',
+  'customer.delete.removed':
+    'يُحذف: الملف الشخصي (الاسم والبريد والهاتف والمدينة) والإشعارات. ولا يستطيع الشخص استخدام التطبيق بهذا الحساب بعد ذلك.',
+  'customer.delete.kept':
+    'يبقى كسجل: الطلبات والتقييمات والمحادثات وطلبات الخدمة والبلاغات، بالاسم الذي كان عليها.',
+  'customer.delete.limit':
+    'حساب الدخول نفسه يبقى في Firebase Authentication (لا يمكن حذفه من هنا)، فلا يمكن التسجيل بهذا البريد مجدداً إلا بعد حذفه من هناك.',
+  'customer.delete.typeEmail': 'اكتب {email} للتأكيد',
+  'customer.delete.final': 'لا يمكن التراجع عن هذا.',
+  'customer.delete.confirm': 'حذف الحساب',
+  'customer.delete.done': 'تم حذف الحساب.',
+  'customer.delete.doneLeft': 'تم حذف الحساب، لكن تعذّر حذف بعض إشعاراته.',
+  'customer.delete.blocked.body':
+    'لدى هذا العميل طلبات أو طلبات خدمة ما زالت جارية. احذف الحساب بعد أن تكتمل أو تُلغى.',
 
   'products.title': 'المنتجات',
   'products.subtitle': 'منتجات جميع الشركات',

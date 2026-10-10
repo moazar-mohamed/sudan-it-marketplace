@@ -24,6 +24,21 @@ import type {
 } from './types';
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+
+/** One readable line per pickup point: "name — address" (or just the name). */
+function pickupPointLines(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const lines: string[] = [];
+  for (const entry of value) {
+    if (typeof entry !== 'object' || entry === null) continue;
+    const { name, address } = entry as { name?: unknown; address?: unknown };
+    const title = str(name).trim();
+    const place = str(address).trim();
+    if (!title) continue;
+    lines.push(place ? `${title} — ${place}` : title);
+  }
+  return lines;
+}
 const num = (v: unknown): number => (typeof v === 'number' && isFinite(v) ? v : 0);
 
 export function toDate(v: unknown): Date | null {
@@ -78,6 +93,7 @@ export function mapCompany(id: string, d: DocumentData): Company {
     phone: str(d.phone),
     email: str(d.email),
     pickupAddress: str(d.pickupAddress),
+    pickupPoints: pickupPointLines(d.pickupPoints),
     status: parseCompanyStatus(d.status),
     trashedAt: toDate(d.trashedAt),
     statusBeforeTrash: d.statusBeforeTrash == null ? null : parseCompanyStatus(d.statusBeforeTrash),

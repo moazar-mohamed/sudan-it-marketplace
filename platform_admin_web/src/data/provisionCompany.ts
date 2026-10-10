@@ -131,11 +131,20 @@ export function secondaryAppProvisioner(
   };
 }
 
+/** Up to five usable points, trimmed; the first also becomes the written address. */
+function pickupPointsOf(input: CompanyInput) {
+  return (input.pickupPoints ?? [])
+    .map((point) => ({ name: point.name.trim(), address: point.address.trim() }))
+    .filter((point) => point.name !== '')
+    .slice(0, 5);
+}
+
 /** The company document exactly as before; the email is stored in login form. */
-function companyDocument(input: CompanyInput, email: string, logoUrl: string) {
+export function companyDocument(input: CompanyInput, email: string, logoUrl: string) {
   // Coordinates are saved as numbers and only when a real point was picked;
   // a text-only company simply has no latitude/longitude fields.
   const point = toGeoPoint(input.latitude, input.longitude);
+  const pickupPoints = pickupPointsOf(input);
   return {
     name: input.name.trim(),
     logoUrl,
@@ -146,7 +155,11 @@ function companyDocument(input: CompanyInput, email: string, logoUrl: string) {
     ...(point ? { latitude: point.latitude, longitude: point.longitude } : {}),
     phone: input.phone.trim(),
     email,
-    pickupAddress: input.pickupAddress.trim(),
+    pickupAddress:
+      pickupPoints.length > 0
+        ? `${pickupPoints[0].name}${pickupPoints[0].address ? ` — ${pickupPoints[0].address}` : ''}`
+        : input.pickupAddress.trim(),
+    ...(pickupPoints.length > 0 ? { pickupPoints } : {}),
     rating: 0,
     reviewCount: 0,
     status: 'active',
