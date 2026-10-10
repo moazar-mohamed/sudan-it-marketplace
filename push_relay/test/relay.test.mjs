@@ -416,6 +416,21 @@ describe('what the platform did', () => {
       recipientType: 'company_admin', recipientId: 'c1', productId: 'p1', type: 'product_hidden',
       productName: 'Router', senderId: 'admin1', createdAt: minutesAgo(0),
     });
+    google.docs.set('notifications/cv1', {
+      recipientType: 'company_admin', recipientId: 'c1', userId: 'cust1', type: 'account_converted_to_company',
+      productName: 'Nile Systems', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+  });
+
+  it('tells a customer their account became a company, with no screen to open', async () => {
+    const result = await call({ notificationId: 'cv1' }, 'token-admin1');
+    assert.equal(result.body.sent, 3);
+    const [message] = google.sent;
+    assert.match(message.notification.body, /Nile Systems/);
+    assert.equal(message.data.type, 'account_converted_to_company');
+    // No order, product, report or request: the app opens on its home screen.
+    assert.equal(message.data.orderId, '');
+    assert.equal(message.data.productId, undefined);
   });
 
   it('tells the customer their order was cancelled, in their language', async () => {
@@ -449,7 +464,7 @@ describe('what the platform did', () => {
   });
 
   it('every one has words in both languages that name the product', () => {
-    for (const type of ['order_cancelled_by_admin', 'order_cancelled_by_admin_company', 'product_hidden', 'product_shown']) {
+    for (const type of ['order_cancelled_by_admin', 'order_cancelled_by_admin_company', 'product_hidden', 'product_shown', 'account_converted_to_company']) {
       for (const language of ['en', 'ar']) {
         const text = orderNotificationText({ type, productName: 'Router', title: 'stored' }, language);
         assert.ok(text.title && text.title !== 'stored', `${type}/${language}`);

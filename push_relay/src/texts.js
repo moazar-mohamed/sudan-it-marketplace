@@ -85,6 +85,11 @@ const ORDER_TEXTS = {
     en: ['A product is visible again', (p) => `"${p}" is visible to customers again.`],
     ar: ['المنتج ظاهر من جديد', (p) => `أصبح «${p}» ظاهراً للعملاء من جديد.`],
   },
+  // A customer's account turned into a company's: the quoted name is the company.
+  account_converted_to_company: {
+    en: ['Your account is now a company account', (p) => `"${p}" is ready. Sign in again to manage your company.`],
+    ar: ['أصبح حسابك حساب شركة', (p) => `شركة «${p}» جاهزة. سجّل الدخول من جديد لإدارتها.`],
+  },
 };
 
 // The kinds of phone notification a person can switch off (users/{uid}.pushPrefs,
@@ -109,6 +114,7 @@ const CATEGORY_OF_TYPE = {
   report_closed: 'reports',
   product_hidden: 'platform',
   product_shown: 'platform',
+  account_converted_to_company: 'platform',
 };
 
 /** The switchable kind a notification type belongs to, or null. */
