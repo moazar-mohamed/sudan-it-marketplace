@@ -245,6 +245,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم إلغاء تفعيل حسابك. يرجى التواصل مع الدعم لإعادة تفعيله.';
 
   @override
+  String get authAccountDeletedTitle => 'تم حذف الحساب';
+
+  @override
+  String get authAccountDeletedMessage =>
+      'حذف فريق المنصة هذا الحساب ولا يمكن استخدامه بعد الآن. إن كنت ترى أن هذا خطأ فيرجى التواصل مع الدعم.';
+
+  @override
   String get authCompanyNotLinkedTitle => 'الحساب غير مرتبط بشركة';
 
   @override
@@ -2070,6 +2077,48 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminPickupAddress => 'موقع الاستلام / العنوان';
 
   @override
+  String get pickupModeCompany => 'الاستلام من موقع الشركة';
+
+  @override
+  String get pickupModeCompanyHint =>
+      'يستلم العملاء من عنوان الشركة ونقطتها على الخريطة أعلاه.';
+
+  @override
+  String get pickupModeCustom => 'نقاط استلام مخصّصة';
+
+  @override
+  String pickupPointsHint(int max) {
+    return 'يختار العميل إحداها عند الطلب. حتى $max نقاط.';
+  }
+
+  @override
+  String pickupPointTitle(int n) {
+    return 'نقطة الاستلام $n';
+  }
+
+  @override
+  String get pickupPointName => 'اسم النقطة';
+
+  @override
+  String get pickupPointNameHint => 'مثلاً: فرع الخرطوم';
+
+  @override
+  String get pickupPointNameRequired => 'أدخل اسماً لهذه النقطة.';
+
+  @override
+  String get pickupPointPlaceRequired =>
+      'أدخل عنواناً أو حدّد نقطة على الخريطة.';
+
+  @override
+  String get pickupAddPoint => 'إضافة نقطة استلام';
+
+  @override
+  String get pickupRemovePoint => 'حذف هذه النقطة';
+
+  @override
+  String get checkoutChoosePickupPoint => 'اختر مكان استلام طلبك';
+
+  @override
   String get adminShortDescription => 'وصف مختصر';
 
   @override
@@ -3440,6 +3489,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String notifProductShownBody(String product) {
     return 'أصبح «$product» ظاهراً للعملاء من جديد.';
+  }
+
+  @override
+  String get notifAccountConvertedTitle => 'أصبح حسابك حساب شركة';
+
+  @override
+  String notifAccountConvertedBody(String product) {
+    return 'شركة «$product» جاهزة. سجّل الدخول من جديد لإدارتها.';
   }
 
   @override

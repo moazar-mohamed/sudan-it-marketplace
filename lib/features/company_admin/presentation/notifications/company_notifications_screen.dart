@@ -87,6 +87,9 @@ class CompanyNotificationsScreen extends ConsumerWidget {
                     );
                     return;
                   }
+                  // A notification about no order (the account became a
+                  // company's) has nothing to open.
+                  if (notification.orderId.isEmpty) return;
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => CompanyOrderDetailsScreen(

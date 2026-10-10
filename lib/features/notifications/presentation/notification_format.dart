@@ -41,6 +41,8 @@ class NotificationFormat {
         l10n.notifOrderCancelledByAdminCompanyTitle,
       NotificationTypes.productHidden => l10n.notifProductHiddenTitle,
       NotificationTypes.productShown => l10n.notifProductShownTitle,
+      NotificationTypes.accountConvertedToCompany =>
+        l10n.notifAccountConvertedTitle,
       _ => l10n.notifGenericTitle,
     };
   }
@@ -87,6 +89,8 @@ class NotificationFormat {
         l10n.notifProductHiddenBody(product),
       NotificationTypes.productShown when named =>
         l10n.notifProductShownBody(product),
+      NotificationTypes.accountConvertedToCompany when named =>
+        l10n.notifAccountConvertedBody(product),
       _ => l10n.notifGenericBody,
     };
   }
@@ -171,6 +175,10 @@ class NotificationFormat {
         ),
       NotificationTypes.productShown => (
           icon: Icons.visibility_outlined,
+          tone: AppTone.success,
+        ),
+      NotificationTypes.accountConvertedToCompany => (
+          icon: Icons.storefront_outlined,
           tone: AppTone.success,
         ),
       _ => (icon: Icons.notifications_outlined, tone: AppTone.brand),

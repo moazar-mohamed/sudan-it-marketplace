@@ -16,6 +16,7 @@ import '../../technicians/presentation/technicians_providers.dart';
 import '../domain/entities/user_role.dart';
 import 'auth_controller.dart';
 import 'auth_state.dart';
+import 'deleted_account.dart';
 import 'force_password_change_screen.dart';
 import 'login_screen.dart';
 
@@ -73,11 +74,18 @@ class _RoleRouter extends ConsumerWidget {
       skipLoadingOnReload: true,
       loading: () => const _SessionLoadingScreen(),
       // Keep the existing behaviour for customers: the customer dashboard
-      // surfaces its own profile error and retry.
-      error: (_, _) => customerEntry(),
+      // surfaces its own profile error and retry. An account Platform Admin
+      // deleted has no profile and cannot make one, so it lands here too.
+      error: (_, _) => _DeletedAccountCheck(
+        uid: authUser?.id,
+        otherwise: customerEntry,
+      ),
       data: (profile) {
         if (profile == null) {
-          return customerEntry();
+          return _DeletedAccountCheck(
+            uid: authUser?.id,
+            otherwise: customerEntry,
+          );
         }
         return switch (profile.role) {
           // A customer deactivated by the platform admin keeps their account
@@ -130,6 +138,34 @@ class _RoleRouter extends ConsumerWidget {
         };
       },
     );
+  }
+}
+
+/// Shown instead of the customer app when there is no profile: says so when
+/// Platform Admin deleted the account, and otherwise lets [otherwise] build
+/// the screen it always did.
+class _DeletedAccountCheck extends ConsumerWidget {
+  const _DeletedAccountCheck({required this.uid, required this.otherwise});
+
+  final String? uid;
+  final Widget Function() otherwise;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final id = uid;
+    if (id == null || id.isEmpty) return otherwise();
+    return ref
+        .watch(accountDeletedProvider(id))
+        .when(
+          loading: () => const _SessionLoadingScreen(),
+          error: (_, _) => otherwise(),
+          data: (deleted) => deleted
+              ? _AccessMessageScreen(
+                  title: context.l10n.authAccountDeletedTitle,
+                  message: context.l10n.authAccountDeletedMessage,
+                )
+              : otherwise(),
+        );
   }
 }
 

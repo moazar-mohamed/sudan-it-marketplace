@@ -121,7 +121,11 @@ class CompanyProfileScreen extends ConsumerWidget {
                 AdminInfoRow(label: context.l10n.orderAddress, value: _orDash(company.address)),
                 AdminInfoRow(
                   label: context.l10n.checkoutPickupLocation,
-                  value: _orDash(company.pickupAddress),
+                  value: company.effectivePickupPoints.isEmpty
+                      ? context.l10n.pickupModeCompany
+                      : company.effectivePickupPoints
+                          .map((point) => point.label)
+                          .join('\n'),
                 ),
                 if (company.coordinates != null) ...[
                   const SizedBox(height: AppSpacing.s6),

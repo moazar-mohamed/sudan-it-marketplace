@@ -4,6 +4,7 @@ import '../../../cities/domain/sudan_city.dart';
 import '../../../location/domain/geo_location.dart';
 import '../../domain/entities/company.dart';
 import '../../domain/entities/payment_account.dart';
+import '../../domain/entities/pickup_point.dart';
 
 class CompanyModel {
   CompanyModel._();
@@ -30,6 +31,7 @@ class CompanyModel {
       phone: map['phone'] as String?,
       email: map['email'] as String?,
       pickupAddress: map['pickupAddress'] as String?,
+      pickupPoints: _parsePickupPoints(map['pickupPoints']),
       status: _parseStatus(map['status']),
       paymentAccounts: _parsePaymentAccounts(map['paymentAccounts']),
       serviceCityIds: normalizeCityIds(
@@ -45,6 +47,16 @@ class CompanyModel {
       return const [];
     }
     return [for (final entry in value) ?PaymentAccount.tryFromMap(entry)];
+  }
+
+  static List<PickupPoint> _parsePickupPoints(Object? value) {
+    if (value is! List) {
+      return const [];
+    }
+    return [
+      for (final entry in value.take(PickupPoint.maxPerCompany))
+        ?PickupPoint.tryFromMap(entry),
+    ];
   }
 
   static String _parseStatus(Object? value) {
@@ -76,7 +88,13 @@ class CompanyModel {
       'longitude': coordinates?.longitude ?? FieldValue.delete(),
       'phone': company.phone ?? '',
       'email': company.email ?? '',
-      'pickupAddress': company.pickupAddress ?? '',
+      // The first point is mirrored into the single written address, so the
+      // admin panel and older app versions still show where orders are
+      // collected.
+      'pickupAddress': company.pickupPoints.isNotEmpty
+          ? company.pickupPoints.first.label
+          : (company.pickupAddress ?? ''),
+      'pickupPoints': [for (final point in company.pickupPoints) point.toMap()],
       'serviceCityIds': company.serviceCityIds,
     };
   }

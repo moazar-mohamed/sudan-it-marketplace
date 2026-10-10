@@ -302,6 +302,7 @@ void main() {
         NotificationTypes.orderCancelledByAdminCompany,
         NotificationTypes.productHidden,
         NotificationTypes.productShown,
+        NotificationTypes.accountConvertedToCompany,
       ]) {
         final n = note(type);
         expect(NotificationFormat.title(en, n), isNot(en.notifGenericTitle), reason: type);
@@ -336,6 +337,17 @@ void main() {
           'recipientType': 'customer',
         }, _profileOf(UserRole.customer)),
         isA<CustomerOrderDestination>(),
+      );
+    });
+
+    test('the push for an account turned into a company opens only the app', () {
+      expect(
+        pushDestination({
+          'type': 'account_converted_to_company',
+          'orderId': '',
+          'recipientType': 'company_admin',
+        }, _profileOf(UserRole.companyAdmin)),
+        isNull,
       );
     });
 

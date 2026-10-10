@@ -245,6 +245,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your account has been deactivated. Please contact support to have it reactivated.';
 
   @override
+  String get authAccountDeletedTitle => 'Account deleted';
+
+  @override
+  String get authAccountDeletedMessage =>
+      'This account was deleted by the platform team and can no longer be used. If you think this is a mistake, please contact support.';
+
+  @override
   String get authCompanyNotLinkedTitle => 'Company not linked';
 
   @override
@@ -2077,6 +2084,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminPickupAddress => 'Pickup Location / Address';
 
   @override
+  String get pickupModeCompany => 'Collect from the company location';
+
+  @override
+  String get pickupModeCompanyHint =>
+      'Customers collect from the company address and map point above.';
+
+  @override
+  String get pickupModeCustom => 'Custom pickup points';
+
+  @override
+  String pickupPointsHint(int max) {
+    return 'Customers pick one of these at checkout. Up to $max points.';
+  }
+
+  @override
+  String pickupPointTitle(int n) {
+    return 'Pickup point $n';
+  }
+
+  @override
+  String get pickupPointName => 'Point name';
+
+  @override
+  String get pickupPointNameHint => 'e.g. Khartoum branch';
+
+  @override
+  String get pickupPointNameRequired => 'Enter a name for this point.';
+
+  @override
+  String get pickupPointPlaceRequired =>
+      'Enter an address or select a point on the map.';
+
+  @override
+  String get pickupAddPoint => 'Add a pickup point';
+
+  @override
+  String get pickupRemovePoint => 'Remove this point';
+
+  @override
+  String get checkoutChoosePickupPoint => 'Choose where to collect your order';
+
+  @override
   String get adminShortDescription => 'Short Description';
 
   @override
@@ -3444,6 +3493,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String notifProductShownBody(String product) {
     return '\"$product\" is visible to customers again.';
+  }
+
+  @override
+  String get notifAccountConvertedTitle =>
+      'Your account is now a company account';
+
+  @override
+  String notifAccountConvertedBody(String product) {
+    return '\"$product\" is ready. Sign in again to manage your company.';
   }
 
   @override

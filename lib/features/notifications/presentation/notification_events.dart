@@ -33,6 +33,11 @@ abstract final class NotificationTypes {
   static const productHidden = 'product_hidden';
   static const productShown = 'product_shown';
 
+  /// Written by Platform Admin in the batch that turns a customer's account
+  /// into the admin of a new company. It is for the new company's admins and
+  /// opens no screen.
+  static const accountConvertedToCompany = 'account_converted_to_company';
+
   static const all = {
     newOrder,
     paymentConfirmed,

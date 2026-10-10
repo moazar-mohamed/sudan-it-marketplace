@@ -548,6 +548,18 @@ abstract class AppLocalizations {
   /// **'Your account has been deactivated. Please contact support to have it reactivated.'**
   String get authAccountDeactivatedMessage;
 
+  /// No description provided for @authAccountDeletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get authAccountDeletedTitle;
+
+  /// No description provided for @authAccountDeletedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This account was deleted by the platform team and can no longer be used. If you think this is a mistake, please contact support.'**
+  String get authAccountDeletedMessage;
+
   /// No description provided for @authCompanyNotLinkedTitle.
   ///
   /// In en, this message translates to:
@@ -3672,6 +3684,78 @@ abstract class AppLocalizations {
   /// **'Pickup Location / Address'**
   String get adminPickupAddress;
 
+  /// No description provided for @pickupModeCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect from the company location'**
+  String get pickupModeCompany;
+
+  /// No description provided for @pickupModeCompanyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers collect from the company address and map point above.'**
+  String get pickupModeCompanyHint;
+
+  /// No description provided for @pickupModeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom pickup points'**
+  String get pickupModeCustom;
+
+  /// No description provided for @pickupPointsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers pick one of these at checkout. Up to {max} points.'**
+  String pickupPointsHint(int max);
+
+  /// No description provided for @pickupPointTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup point {n}'**
+  String pickupPointTitle(int n);
+
+  /// No description provided for @pickupPointName.
+  ///
+  /// In en, this message translates to:
+  /// **'Point name'**
+  String get pickupPointName;
+
+  /// No description provided for @pickupPointNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Khartoum branch'**
+  String get pickupPointNameHint;
+
+  /// No description provided for @pickupPointNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name for this point.'**
+  String get pickupPointNameRequired;
+
+  /// No description provided for @pickupPointPlaceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an address or select a point on the map.'**
+  String get pickupPointPlaceRequired;
+
+  /// No description provided for @pickupAddPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a pickup point'**
+  String get pickupAddPoint;
+
+  /// No description provided for @pickupRemovePoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this point'**
+  String get pickupRemovePoint;
+
+  /// No description provided for @checkoutChoosePickupPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where to collect your order'**
+  String get checkoutChoosePickupPoint;
+
   /// No description provided for @adminShortDescription.
   ///
   /// In en, this message translates to:
@@ -6011,6 +6095,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\"{product}\" is visible to customers again.'**
   String notifProductShownBody(String product);
+
+  /// No description provided for @notifAccountConvertedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is now a company account'**
+  String get notifAccountConvertedTitle;
+
+  /// No description provided for @notifAccountConvertedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{product}\" is ready. Sign in again to manage your company.'**
+  String notifAccountConvertedBody(String product);
 
   /// No description provided for @settingsPushKindsTitle.
   ///

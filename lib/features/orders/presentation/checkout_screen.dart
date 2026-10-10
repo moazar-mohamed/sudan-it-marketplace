@@ -9,6 +9,7 @@ import '../../../core/utils/text_clip.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/auth_state.dart';
+import '../../companies/domain/entities/pickup_point.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
 import '../../location/domain/geo_location.dart';
@@ -73,9 +74,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final companyId = widget.product.companyId;
     final company =
         companyId == null ? null : ref.read(resolvedCompanyProvider(companyId));
-    final pickup = company?.pickupAddress?.trim() ?? '';
-    if (pickup.isNotEmpty) {
-      return pickup;
+    final point = _selectedPickupPoint();
+    if (point != null && point.label.isNotEmpty) {
+      return point.label;
     }
     final address = company?.address?.trim() ?? '';
     if (address.isNotEmpty) {
@@ -96,11 +97,40 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     });
   }
 
-  GeoLocation? _pickupCoordinates() {
+  /// The places the company hands orders over at (empty: its own location).
+  List<PickupPoint> _pickupPoints() {
     final companyId = widget.product.companyId;
     return companyId == null
-        ? null
-        : ref.read(resolvedCompanyProvider(companyId))?.coordinates;
+        ? const []
+        : ref.read(resolvedCompanyProvider(companyId))?.effectivePickupPoints ??
+            const [];
+  }
+
+  /// Which of [_pickupPoints] the customer picked. Kept in range, because the
+  /// company may edit its points while checkout is open.
+  int _pickupIndex = 0;
+
+  int get _pickupIndexInRange {
+    final count = _pickupPoints().length;
+    return count == 0 ? 0 : _pickupIndex.clamp(0, count - 1);
+  }
+
+  PickupPoint? _selectedPickupPoint() {
+    final points = _pickupPoints();
+    return points.isEmpty ? null : points[_pickupIndexInRange];
+  }
+
+  GeoLocation? _pickupCoordinates() {
+    final companyId = widget.product.companyId;
+    final company =
+        companyId == null ? null : ref.read(resolvedCompanyProvider(companyId));
+    final point = _selectedPickupPoint();
+    if (point == null) {
+      return company?.coordinates;
+    }
+    // A company that only ever wrote one address has no point of its own to
+    // show; its map point (if any) is the best the customer can be given.
+    return point.coordinates ?? (point.name.isEmpty ? company?.coordinates : null);
   }
 
   @override
@@ -323,6 +353,21 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           const SizedBox(height: AppSpacing.s16),
                         ],
                         if (!_useDelivery) ...[
+                          if (_pickupPoints().length > 1) ...[
+                            Text(
+                              l10n.checkoutChoosePickupPoint,
+                              style: AppTextStyles.bodyStrong,
+                            ),
+                            const SizedBox(height: AppSpacing.s8),
+                            for (var i = 0; i < _pickupPoints().length; i++)
+                              _PickupPointTile(
+                                key: ValueKey('checkout-pickup-point-$i'),
+                                point: _pickupPoints()[i],
+                                selected: i == _pickupIndexInRange,
+                                onTap: () => setState(() => _pickupIndex = i),
+                              ),
+                            const SizedBox(height: AppSpacing.s12),
+                          ],
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -523,6 +568,46 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One of the company's pickup points, as a radio row.
+class _PickupPointTile extends StatelessWidget {
+  const _PickupPointTile({
+    super.key,
+    required this.point,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final PickupPoint point;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: AppRadius.mdAll,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.s8),
+        child: Row(
+          children: [
+            Icon(
+              selected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: context.colors.brandPrimary,
+            ),
+            const SizedBox(width: AppSpacing.s12),
+            Expanded(
+              child: Text(
+                point.name.isEmpty ? point.address : point.name,
+                style: AppTextStyles.body,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -89,6 +89,8 @@
   "authPasswordsMismatch": "Passwords do not match.",
   "authAccountDeactivatedTitle": "Account deactivated",
   "authAccountDeactivatedMessage": "Your account has been deactivated. Please contact support to have it reactivated.",
+  "authAccountDeletedTitle": "Account deleted",
+  "authAccountDeletedMessage": "This account was deleted by the platform team and can no longer be used. If you think this is a mistake, please contact support.",
   "authCompanyNotLinkedTitle": "Company not linked",
   "authCompanyAdminNotLinked": "Your company admin account is not linked to a company yet. Please contact the platform administrator.",
   "authTechnicianNotLinked": "Your technician account is not linked to a company yet. Please contact your company administrator.",
@@ -1052,6 +1054,32 @@
   "adminCompanyName": "Company Name",
   "adminCompanyNameRequired": "Company name is required.",
   "adminPickupAddress": "Pickup Location / Address",
+  "pickupModeCompany": "Collect from the company location",
+  "pickupModeCompanyHint": "Customers collect from the company address and map point above.",
+  "pickupModeCustom": "Custom pickup points",
+  "pickupPointsHint": "Customers pick one of these at checkout. Up to {max} points.",
+  "@pickupPointsHint": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "pickupPointTitle": "Pickup point {n}",
+  "@pickupPointTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "pickupPointName": "Point name",
+  "pickupPointNameHint": "e.g. Khartoum branch",
+  "pickupPointNameRequired": "Enter a name for this point.",
+  "pickupPointPlaceRequired": "Enter an address or select a point on the map.",
+  "pickupAddPoint": "Add a pickup point",
+  "pickupRemovePoint": "Remove this point",
+  "checkoutChoosePickupPoint": "Choose where to collect your order",
   "adminShortDescription": "Short Description",
   "adminAddTechnician": "Add Technician",
   "adminEditTechnician": "Edit Technician",
@@ -1788,6 +1816,9 @@
   "notifProductShownTitle": "A product is visible again",
   "notifProductShownBody": "\"{product}\" is visible to customers again.",
   "@notifProductShownBody": {"placeholders": {"product": {"type": "String"}}},
+  "notifAccountConvertedTitle": "Your account is now a company account",
+  "notifAccountConvertedBody": "\"{product}\" is ready. Sign in again to manage your company.",
+  "@notifAccountConvertedBody": {"placeholders": {"product": {"type": "String"}}},
   "settingsPushKindsTitle": "What to be notified about",
   "settingsPushKindsHint": "Turning one off stops only its phone notifications. You still see everything inside the app.",
   "pushKindOrders": "Orders",

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/text_clip.dart';
+import '../../../companies/domain/entities/pickup_point.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../location/presentation/location_strings.dart';
 import '../../../location/presentation/widgets/open_location_button.dart';
 import '../../domain/entities/order_entity.dart';
+import '../../domain/order_limits.dart';
 
 /// What to print for an order's delivery address: the written address, or a
 /// "pinned on map" note for map-only orders (no typed address).
@@ -65,7 +68,22 @@ class PickupCompanyLocationButton extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     final company = ref.watch(resolvedCompanyProvider(order.companyId));
-    final coordinates = company?.coordinates;
+    // The order only keeps the text of the point the customer picked, so the
+    // point is found again by that text. An order placed before the company
+    // had points (or whose point was since removed) uses the company's own
+    // location.
+    final picked = order.deliveryText;
+    PickupPoint? point;
+    for (final candidate in company?.effectivePickupPoints ?? const []) {
+      if (picked == clipToLength(
+            'Pickup: ${candidate.label}',
+            OrderLimits.deliveryAddress,
+          )) {
+        point = candidate;
+        break;
+      }
+    }
+    final coordinates = point?.coordinates ?? company?.coordinates;
     if (coordinates == null) {
       return const SizedBox.shrink();
     }
@@ -74,7 +92,7 @@ class PickupCompanyLocationButton extends ConsumerWidget {
       label: label,
       viewerTitle: label,
       coordinates: coordinates,
-      text: company?.locationText,
+      text: point?.label ?? company?.locationText,
     );
   }
 }

@@ -18,6 +18,7 @@ import '../../../companies/domain/entities/company.dart';
 import '../../../location/domain/geo_location.dart';
 import '../../../location/presentation/widgets/location_field.dart';
 import '../company_admin_actions.dart';
+import 'pickup_points_editor.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
 class EditCompanyProfileScreen extends ConsumerStatefulWidget {
@@ -39,7 +40,7 @@ class _EditCompanyProfileScreenState
   late final TextEditingController _emailController;
   late final TextEditingController _cityController;
   late final TextEditingController _addressController;
-  late final TextEditingController _pickupController;
+  final _pickupKey = GlobalKey<PickupPointsEditorState>();
   late final TextEditingController _descriptionController;
   GeoLocation? _coordinates;
   List<String> _serviceCityIds = const [];
@@ -57,7 +58,6 @@ class _EditCompanyProfileScreenState
     _emailController = TextEditingController(text: c.email ?? '');
     _cityController = TextEditingController(text: c.city ?? '');
     _addressController = TextEditingController(text: c.address ?? '');
-    _pickupController = TextEditingController(text: c.pickupAddress ?? '');
     _descriptionController = TextEditingController(text: c.description ?? '');
   }
 
@@ -70,7 +70,6 @@ class _EditCompanyProfileScreenState
       _emailController,
       _cityController,
       _addressController,
-      _pickupController,
       _descriptionController,
     ]) {
       controller.dispose();
@@ -79,7 +78,9 @@ class _EditCompanyProfileScreenState
   }
 
   Future<void> _save() async {
-    if (_isSaving || !(_formKey.currentState?.validate() ?? false)) {
+    final formValid = _formKey.currentState?.validate() ?? false;
+    final pointsValid = _pickupKey.currentState?.validate() ?? true;
+    if (_isSaving || !formValid || !pointsValid) {
       return;
     }
     FocusScope.of(context).unfocus();
@@ -104,6 +105,7 @@ class _EditCompanyProfileScreenState
       return;
     }
 
+    final pickupPoints = _pickupKey.currentState?.value ?? const [];
     final updated = widget.company.copyWith(
       logoUrl: logoUrl,
       name: _nameController.text.trim(),
@@ -113,7 +115,10 @@ class _EditCompanyProfileScreenState
       address: _addressController.text.trim(),
       coordinates: _coordinates,
       clearCoordinates: _coordinates == null,
-      pickupAddress: _pickupController.text.trim(),
+      // The written address follows the first point; none means the company's
+      // own location, so the old single address must be cleared too.
+      pickupAddress: pickupPoints.isEmpty ? '' : pickupPoints.first.label,
+      pickupPoints: pickupPoints,
       description: _descriptionController.text.trim(),
       serviceCityIds: _serviceCityIds,
     );
@@ -270,11 +275,10 @@ class _EditCompanyProfileScreenState
                     setState(() => _coordinates = value),
               ),
             ),
-            _field(
-              _pickupController,
-              context.l10n.adminPickupAddress,
-              Icons.storefront_outlined,
-              maxLines: 2,
+            PickupPointsEditor(
+              key: _pickupKey,
+              initial: widget.company.effectivePickupPoints,
+              enabled: !_isSaving,
             ),
             _field(
               _descriptionController,

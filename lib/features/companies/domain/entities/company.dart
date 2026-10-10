@@ -1,5 +1,6 @@
 import '../../../location/domain/geo_location.dart';
 import 'payment_account.dart';
+import 'pickup_point.dart';
 
 class Company {
   const Company({
@@ -16,6 +17,7 @@ class Company {
     this.phone,
     this.email,
     this.pickupAddress,
+    this.pickupPoints = const [],
     this.status = 'active',
     this.paymentAccounts = const [],
     this.serviceCityIds = const [],
@@ -40,6 +42,21 @@ class Company {
 
   /// Where customers collect orders when delivery is not available.
   final String? pickupAddress;
+
+  /// The places the company chose to hand orders over (up to
+  /// [PickupPoint.maxPerCompany]). Empty means the company's own location.
+  final List<PickupPoint> pickupPoints;
+
+  /// What a customer can pick from at checkout: the chosen points, or, for a
+  /// company that predates them, its single written pickup address. Empty
+  /// means "collect from the company's own location".
+  List<PickupPoint> get effectivePickupPoints {
+    if (pickupPoints.isNotEmpty) {
+      return pickupPoints;
+    }
+    final legacy = pickupAddress?.trim() ?? '';
+    return legacy.isEmpty ? const [] : [PickupPoint(name: '', address: legacy)];
+  }
 
   /// pending | active | rejected | inactive, set by the platform admin.
   /// Companies without a stored status are treated as active.
@@ -86,6 +103,7 @@ class Company {
     String? phone,
     String? email,
     String? pickupAddress,
+    List<PickupPoint>? pickupPoints,
     List<String>? serviceCityIds,
   }) {
     return Company(
@@ -102,6 +120,7 @@ class Company {
       phone: phone ?? this.phone,
       email: email ?? this.email,
       pickupAddress: pickupAddress ?? this.pickupAddress,
+      pickupPoints: pickupPoints ?? this.pickupPoints,
       status: status,
       paymentAccounts: paymentAccounts,
       serviceCityIds: serviceCityIds ?? this.serviceCityIds,
