@@ -202,8 +202,44 @@ service cloud.firestore {
       return isPlatformAdmin()
         && resource.data.get('role', '') == 'platform_admin'
         && uid != request.auth.uid
+        && resource.data.get('trashedAt', null) == null
         && data.diff(resource.data).affectedKeys().hasOnly(['isActive'])
         && data.isActive is bool;
+    }
+
+    // Platform Admin moves ANOTHER Platform Admin to the trash (switched off,
+    // with the time and whether they were active) and brings one back. Nothing
+    // is deleted by either; only these markers and the access flag change.
+    function isPlatformAdminAdminTrashUpdate(uid) {
+      let before = resource.data;
+      let after = request.resource.data;
+      return isPlatformAdmin()
+        && uid != request.auth.uid
+        && before.get('role', '') == 'platform_admin'
+        && after.diff(before).affectedKeys()
+            .hasOnly(['isActive', 'trashedAt', 'activeBeforeTrash', 'updatedAt'])
+        && after.updatedAt == request.time
+        && ((before.get('trashedAt', null) == null
+            && after.trashedAt == request.time
+            && after.isActive == false
+            && after.activeBeforeTrash == before.get('isActive', false))
+          || (before.get('trashedAt', null) != null
+            && after.get('trashedAt', null) == null
+            && !after.keys().hasAny(['activeBeforeTrash'])
+            && after.isActive == before.get('activeBeforeTrash', false)));
+    }
+
+    // Platform Admin deletes a Platform Admin's profile: their own (the panel
+    // then deletes the login too), or another's that is already in the trash.
+    // Always in the batch that records it in deleted_accounts. The rules cannot
+    // count admins, so the panel keeps the last active admin from deleting
+    // themselves.
+    function isPlatformAdminAdminDelete(uid) {
+      return isPlatformAdmin()
+        && resource.data.get('role', '') == 'platform_admin'
+        && (uid == request.auth.uid || resource.data.get('trashedAt', null) != null)
+        && !exists(/databases/$(database)/documents/deleted_accounts/$(uid))
+        && existsAfter(/databases/$(database)/documents/deleted_accounts/$(uid));
     }
 
     // A Platform Admin whose sign-in email was changed (through the confirmation
@@ -399,11 +435,26 @@ service cloud.firestore {
     // serves all cities, or the customer's city is one of the cities it
     // serves. A customer who has chosen no city is served only by a company
     // that serves all cities.
-    function companyServesCustomer(companyId) {
+    //
+    // The city an order or a service request is for is the one it names
+    // (`deliveryCityId` on an order, `cityId` on a request: a customer can
+    // order for someone in another city), and the customer's own city when it
+    // names none (older app versions). A pickup order is collected by the
+    // customer in person, so it is not tied to a city.
+    function companyServesCity(companyId, cityId) {
+      let cities = get(/databases/$(database)/documents/companies/$(companyId))
+        .data.get('serviceCityIds', []);
+      return cities.size() == 0 || cityId in cities;
+    }
+
+    function companyServesOrder(companyId, data) {
       let cities = get(/databases/$(database)/documents/companies/$(companyId))
         .data.get('serviceCityIds', []);
       return cities.size() == 0
-        || signedInUser().get('cityId', '') in cities;
+        || data.get('deliveryMethod', 'delivery') == 'pickup'
+        || ('deliveryCityId' in data
+          ? data.deliveryCityId in cities
+          : signedInUser().get('cityId', '') in cities);
     }
 
     // Every signed-in user registers the phones that should receive their
@@ -838,16 +889,18 @@ service cloud.firestore {
         || (isOwner(uid) && isOwnAdminEmailSync())
         || isPlatformAdminCustomerUpdate()
         || isPlatformAdminCustomerToCompanyAdmin(uid)
-        || isPlatformAdminAdminUpdate(uid);
+        || isPlatformAdminAdminUpdate(uid)
+        || isPlatformAdminAdminTrashUpdate(uid);
 
-      // The company_admin / technician profile of a company that is gone, or a
-      // customer's profile in the batch that records its deletion
-      // (deleted_accounts). Platform Admins and every profile of a live
-      // company stay.
+      // The company_admin / technician profile of a company that is gone, a
+      // customer's profile, or a Platform Admin's own or one in the trash:
+      // the last three only in the batch that records the deletion
+      // (deleted_accounts). Every profile of a live company stays.
       allow delete: if (isPlatformAdmin()
           && resource.data.get('role', '') in ['company_admin', 'technician']
           && companyIsGoneAfter(resource.data.get('companyId', '')))
-        || isPlatformAdminCustomerDelete(uid);
+        || isPlatformAdminCustomerDelete(uid)
+        || isPlatformAdminAdminDelete(uid);
     }
 
     // The record that Platform Admin deleted a customer account. The login
@@ -858,16 +911,22 @@ service cloud.firestore {
     // removes it. The person reads their own, Platform Admin any.
     function isValidDeletedAccountCreate(uid) {
       let data = request.resource.data;
+      let target = /databases/$(database)/documents/users/$(uid);
       return isPlatformAdmin()
-        && uid != request.auth.uid
         && data.keys().hasOnly(['id', 'deletedAt', 'deletedBy'])
         && data.keys().hasAll(['id', 'deletedAt', 'deletedBy'])
         && data.id == uid
         && data.deletedBy == request.auth.uid
         && data.deletedAt == request.time
-        && exists(/databases/$(database)/documents/users/$(uid))
-        && get(/databases/$(database)/documents/users/$(uid)).data.get('role', '') == 'customer'
-        && !existsAfter(/databases/$(database)/documents/users/$(uid));
+        && exists(target)
+        && !existsAfter(target)
+        // A customer (never the caller's own profile), or a Platform Admin:
+        // the caller's own, or another's that is in the trash.
+        && ((get(target).data.get('role', '') == 'customer'
+            && uid != request.auth.uid)
+          || (get(target).data.get('role', '') == 'platform_admin'
+            && (uid == request.auth.uid
+              || get(target).data.get('trashedAt', null) != null)));
     }
 
     match /deleted_accounts/{uid} {
@@ -950,6 +1009,7 @@ service cloud.firestore {
         'deliveryAddress',
         'contactPhone',
         'deliveryMethod',
+        'deliveryCityId',
         'customerName',
         'paymentStatus',
         'orderStatus',
@@ -1013,6 +1073,15 @@ service cloud.firestore {
           || request.resource.data.deliveryMethod in ['delivery', 'pickup'])
         && (request.resource.data.get('deliveryMethod', 'delivery') != 'pickup'
           || request.resource.data.deliveryFee == 0)
+        // The city the order is delivered to: a short text. Whether it is one
+        // the company serves is checked by companyServesOrder (a company that
+        // lists cities only accepts those). It is not checked against the
+        // city list here: that list costs too many of the 1000 expressions an
+        // order's rules may evaluate.
+        && (!('deliveryCityId' in request.resource.data)
+          || (request.resource.data.deliveryCityId is string
+            && request.resource.data.deliveryCityId.size() > 0
+            && request.resource.data.deliveryCityId.size() <= 40))
         && (!request.resource.data.keys().hasAny(['customerName'])
           || (request.resource.data.customerName is string
             && request.resource.data.customerName.size() <= 120))
@@ -1611,6 +1680,7 @@ service cloud.firestore {
         'phone',
         'email',
         'isActive',
+        'isAvailable',
         'createdAt',
         'updatedAt'
       ]);
@@ -1627,7 +1697,22 @@ service cloud.firestore {
         && (data.email == null || data.email is string)
         && (!data.keys().hasAny(['uid']) || data.uid is string)
         && data.isActive is bool
+        && (!data.keys().hasAny(['isAvailable']) || data.isAvailable is bool)
         && data.updatedAt == request.time;
+    }
+
+    // The one edit a technician may make to their own record: whether they
+    // are taking new jobs ("available") or not.
+    function isOwnTechnicianAvailabilityUpdate() {
+      return isTechnician()
+        && callerIsNotDeactivated()
+        && resource.data.isActive == true
+        && (resource.data.get('uid', '') == request.auth.uid
+          || isSelfTechnicianRecord(resource.data.companyId, resource.data.email))
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['isAvailable', 'updatedAt'])
+        && request.resource.data.isAvailable is bool
+        && request.resource.data.updatedAt == request.time;
     }
 
     match /technicians/{technicianId} {
@@ -1647,6 +1732,8 @@ service cloud.firestore {
         && request.resource.data.companyId == resource.data.companyId
         && request.resource.data.createdAt == resource.data.createdAt
         && isValidTechnicianData();
+
+      allow update: if isOwnTechnicianAvailabilityUpdate();
 
       // Removed together with a deleted company (never on their own).
       allow delete: if isPlatformAdmin()
@@ -1682,15 +1769,20 @@ service cloud.firestore {
     //                                review_reply
     //   the assigned technician   -> its customer:   out_for_delivery,
     //                                order_completed
-    //   the order's company admin -> its technician: technician_assigned
+    //   the order's company admin -> its technician: technician_assigned,
+    //                                job_ready (payment confirmed),
+    //                                job_cancelled
+    //   the assigned technician   -> its company:    job_completed
 
     // The company_admin notification may only be created by the customer who
     // owns that order, targeting the order's own company.
     function isValidCompanyAdminNotificationCreate() {
       let order = notificationOrder(request.resource.data.orderId);
       return order.companyId == request.resource.data.recipientId
-        && order.customerId == request.auth.uid
-        && request.resource.data.type in ['new_order', 'new_review'];
+        && ((order.customerId == request.auth.uid
+            && request.resource.data.type in ['new_order', 'new_review'])
+          || (isTechnicianOfOrder(order)
+            && request.resource.data.type == 'job_completed'));
     }
 
     // A customer notification may only be created by the company admin of
@@ -1715,7 +1807,8 @@ service cloud.firestore {
       let order = notificationOrder(request.resource.data.orderId);
       return order.technicianId == request.resource.data.recipientId
         && isCompanyAdminOf(order.companyId)
-        && request.resource.data.type == 'technician_assigned';
+        && request.resource.data.type in
+          ['technician_assigned', 'job_ready', 'job_cancelled'];
     }
 
     // No `title` or `body`: free text is not stored at all. A notification is
@@ -2670,6 +2763,7 @@ service cloud.firestore {
           'address',
           'latitude',
           'longitude',
+          'cityId',
           'contactPhone',
           'status',
           'createdAt',
@@ -2742,7 +2836,12 @@ service cloud.firestore {
           || linkOfferPriceIs(get(linkPath).data, data.get('price', null)))
         && exists(companyPath)
         && get(companyPath).data.get('status', 'active') == 'active'
-        && companyServesCustomer(data.companyId)
+        // The city the service is wanted in, one of the cities in the list.
+        && (!data.keys().hasAny(['cityId'])
+          || (data.cityId is string && data.cityId in validCityIds()))
+        && companyServesCity(
+          data.companyId,
+          data.get('cityId', signedInUser().get('cityId', '')))
         && catalogServiceExists(data.serviceId)
         && existsAfter(/databases/$(database)/documents/chats/$(requestId));
     }
@@ -3044,6 +3143,189 @@ service cloud.firestore {
       }
     }
 
+    // True when [order] is assigned to the signed-in technician's own
+    // technician record (the same test as isMyAssignedOrder, for an order
+    // read with get() instead of being the document being written).
+    function isTechnicianOfOrder(order) {
+      return isTechnician()
+        && order.technicianId is string
+        && order.technicianId.size() > 0
+        && assignedTechnician(order.technicianId).companyId == signedInUser().companyId
+        && assignedTechnician(order.technicianId).email == signedInUser().email
+        && assignedTechnician(order.technicianId).isActive == true;
+    }
+
+    function jobOrder(orderId) {
+      return get(/databases/$(database)/documents/orders/$(orderId)).data;
+    }
+
+    // What the technician writes down about a job (a note, or the remark
+    // left when finishing it). Only the order's company, the technician
+    // assigned to it and Platform Admin can read it: the customer cannot,
+    // which is why it is not a field of the order they can read.
+    match /orders/{orderId}/technicianNotes/{noteId} {
+      allow get, list: if isSignedIn()
+        && (isPlatformAdmin()
+          || isCompanyAdminOf(jobOrder(orderId).companyId)
+          || isTechnicianOfOrder(jobOrder(orderId)));
+
+      allow create: if isSignedIn()
+        && callerIsNotDeactivated()
+        && isTechnicianOfOrder(jobOrder(orderId))
+        && request.resource.data.keys().hasOnly([
+          'id',
+          'orderId',
+          'companyId',
+          'technicianId',
+          'authorId',
+          'authorName',
+          'kind',
+          'text',
+          'createdAt'
+        ])
+        && request.resource.data.id == noteId
+        && request.resource.data.orderId == orderId
+        && request.resource.data.companyId == jobOrder(orderId).companyId
+        && request.resource.data.technicianId == jobOrder(orderId).technicianId
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.authorName is string
+        && request.resource.data.authorName.size() <= 120
+        && request.resource.data.kind in ['note', 'completion']
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.createdAt == request.time;
+
+      // A technician may take back their own note.
+      allow delete: if isSignedIn()
+        && resource.data.authorId == request.auth.uid
+        && isTechnicianOfOrder(jobOrder(orderId));
+
+      allow update: if false;
+    }
+
+    // The conversation between a job's technician and its company: one per
+    // order, with the order's id. The customer, other technicians and
+    // Platform Admin have no access to it (the customer's own conversation
+    // with the company is `chats/{orderId}`, a different document).
+    function isJobChatParticipant(orderId) {
+      let order = jobOrder(orderId);
+      return isCompanyAdminOf(order.companyId) || isTechnicianOfOrder(order);
+    }
+
+    function jobChatRoleOf(orderId) {
+      return isCompanyAdminOf(jobOrder(orderId).companyId) ? 'company' : 'technician';
+    }
+
+    function jobChatReadKey(orderId) {
+      return jobChatRoleOf(orderId) == 'company'
+        ? 'companyLastReadAt'
+        : 'technicianLastReadAt';
+    }
+
+    function isJobChatPublish(chatId, data) {
+      let messagePath = /databases/$(database)/documents/jobChats/$(chatId)/messages/$(data.lastMessageId);
+      return data.lastMessageId is string
+        && data.lastMessageId.size() > 0
+        && data.lastMessageAt == request.time
+        && data.updatedAt == request.time
+        && data.lastMessageSenderRole == jobChatRoleOf(chatId)
+        && !exists(messagePath)
+        && existsAfter(messagePath)
+        && getAfter(messagePath).data.senderId == request.auth.uid
+        && getAfter(messagePath).data.text == data.lastMessageText;
+    }
+
+    match /jobChats/{chatId} {
+      allow get: if isSignedIn() && isJobChatParticipant(chatId);
+
+      // Written together with its first message.
+      allow create: if isSignedIn()
+        && callerIsNotDeactivated()
+        && isJobChatParticipant(chatId)
+        && request.resource.data.keys().hasOnly([
+          'id',
+          'orderId',
+          'companyId',
+          'technicianId',
+          'technicianName',
+          'productName',
+          'createdAt',
+          'updatedAt',
+          'lastMessageId',
+          'lastMessageText',
+          'lastMessageAt',
+          'lastMessageSenderRole',
+          'companyLastReadAt',
+          'technicianLastReadAt'
+        ])
+        && request.resource.data.id == chatId
+        && request.resource.data.orderId == chatId
+        && request.resource.data.companyId == jobOrder(chatId).companyId
+        && request.resource.data.technicianId == jobOrder(chatId).technicianId
+        && request.resource.data.technicianName is string
+        && request.resource.data.technicianName.size() <= 120
+        && request.resource.data.productName is string
+        && request.resource.data.productName.size() <= 200
+        && request.resource.data.createdAt == request.time
+        && isJobChatPublish(chatId, request.resource.data)
+        && request.resource.data[jobChatReadKey(chatId)] == request.time;
+
+      allow update: if isSignedIn()
+        && callerIsNotDeactivated()
+        && isJobChatParticipant(chatId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'lastMessageId',
+          'lastMessageText',
+          'lastMessageAt',
+          'lastMessageSenderRole',
+          'updatedAt',
+          'companyLastReadAt',
+          'technicianLastReadAt'
+        ])
+        // Only the signed-in side's own read marker moves, and only to now.
+        && (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['companyLastReadAt', 'technicianLastReadAt'])
+          || (request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny([jobChatReadKey(chatId)])
+            && request.resource.data[jobChatReadKey(chatId)] == request.time))
+        && (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['lastMessageId', 'lastMessageText', 'lastMessageAt',
+                'lastMessageSenderRole', 'updatedAt'])
+          || isJobChatPublish(chatId, request.resource.data));
+
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow get, list: if isSignedIn() && isJobChatParticipant(chatId);
+
+        allow create: if isSignedIn()
+          && callerIsNotDeactivated()
+          && isJobChatParticipant(chatId)
+          && request.resource.data.keys().hasOnly([
+            'id',
+            'senderId',
+            'senderRole',
+            'senderName',
+            'text',
+            'createdAt'
+          ])
+          && request.resource.data.id == messageId
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.senderRole == jobChatRoleOf(chatId)
+          && request.resource.data.senderName is string
+          && request.resource.data.senderName.size() <= 200
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.createdAt == request.time
+          && getAfter(/databases/$(database)/documents/jobChats/$(chatId))
+            .data.get('lastMessageId', '') == messageId;
+
+        allow update, delete: if false;
+      }
+    }
+
     match /orders/{orderId} {
       allow get: if isSignedIn()
         && (resource.data.customerId == request.auth.uid
@@ -3073,7 +3355,8 @@ service cloud.firestore {
         && request.resource.data.id == orderId
         && isValidOrderCreate(orderId)
         && companyAcceptsOrders(request.resource.data.companyId)
-        && companyServesCustomer(request.resource.data.companyId)
+        && companyServesOrder(
+          request.resource.data.companyId, request.resource.data)
         && orderProductBelongsToCompany(request.resource.data)
         && orderNamesMatchProduct(request.resource.data)
         && orderPriceIsTrusted(request.resource.data)

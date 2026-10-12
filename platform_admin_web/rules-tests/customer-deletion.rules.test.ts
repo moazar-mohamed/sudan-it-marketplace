@@ -186,10 +186,12 @@ describe('the profile and the record', () => {
     await assertFails(raw({ tombstone: { email: 'cust1@x.test' } }));
   });
 
-  it('are only for a customer: not a company admin, a technician or an admin', async () => {
+  it('are only for a customer: not a company admin, a technician or another active admin', async () => {
+    await put('users/pa2', { id: 'pa2', fullName: 'Name pa2', email: 'pa2@x.test', role: 'platform_admin', isActive: true, createdAt: now });
     await assertFails(raw({ uid: 'ca1' }));
     await assertFails(raw({ uid: 'tech1' }));
-    await assertFails(raw({ uid: 'pa' }));
+    await assertFails(raw({ uid: 'pa2' }));
+    // An admin deleting their own account is covered by admin-trash.rules.test.ts.
   });
 
   it('are not open to the customer themselves or to a company', async () => {

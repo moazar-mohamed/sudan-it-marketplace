@@ -297,6 +297,89 @@ describe('orders and service requests follow the city', () => {
   });
 });
 
+describe('ordering for a city other than the customer own', () => {
+  const placeFor = (uid: string, companyId: string, productId: string, extra: Data) =>
+    placeOrder(as(uid), uid, { ...order(`o_${uid}_${companyId}`, uid, companyId, productId), ...extra });
+
+  it('an order names the city it is delivered to, and the company must serve that city', async () => {
+    // A Port Sudan customer orders for someone in Khartoum.
+    await assertSucceeds(placeFor('portCust', 'cKhartoum', 'pK', { deliveryCityId: 'khartoum' }));
+  });
+
+  it('the named city, not the customer own, is the one checked', async () => {
+    // Khartoum customer, but delivered to Port Sudan, which cKhartoum does not serve.
+    await assertFails(placeFor('khartoumCust', 'cKhartoum', 'pK', { deliveryCityId: 'port_sudan' }));
+  });
+
+  it('a customer with no city can order for a city the company serves', async () => {
+    await assertSucceeds(placeFor('noCityCust', 'cKhartoum', 'pK', { deliveryCityId: 'omdurman' }));
+  });
+
+  it('rejects a city that is not in the list, or not a text', async () => {
+    for (const bad of ['mars', '', 7, null, ['khartoum']]) {
+      await assertFails(placeFor('khartoumCust', 'cKhartoum', 'pK', { deliveryCityId: bad }));
+    }
+  });
+
+  it('a pickup is collected in person and is not tied to a city', async () => {
+    await assertSucceeds(
+      placeFor('portCust', 'cKhartoum', 'pK', {
+        deliveryMethod: 'pickup',
+        deliveryFee: 0,
+        totalAmount: 100,
+        deliveryAddress: 'Pickup: Company address',
+      }),
+    );
+  });
+
+  it('a company serving every city takes an order for any listed city', async () => {
+    await assertSucceeds(placeFor('khartoumCust', 'cEverywhere', 'pE', { deliveryCityId: 'nyala' }));
+  });
+
+  const requestFor = (uid: string, id: string, companyId: string, extra: Data) => {
+    const db = as(uid);
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'service_requests', id), {
+      id,
+      customerId: uid,
+      customerName: uid,
+      companyId,
+      companyName: `Company ${companyId}`,
+      companyServiceId: `${companyId}_svc1`,
+      serviceId: 'svc1',
+      serviceName: 'Service',
+      price: null,
+      details: 'Please help',
+      address: 'Street 1',
+      latitude: null,
+      longitude: null,
+      contactPhone: '+249912345678',
+      status: 'pending',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      ...extra,
+    });
+    batch.set(doc(db, 'chats', id), {
+      id,
+      serviceRequestId: id,
+      customerId: uid,
+      companyId,
+      customerName: uid,
+      companyName: `Company ${companyId}`,
+      serviceName: 'Service',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    return batch.commit();
+  };
+
+  it('a service request names its city, and the company must serve it', async () => {
+    await assertSucceeds(requestFor('portCust', 'r1', 'cKhartoum', { cityId: 'khartoum' }));
+    await assertFails(requestFor('khartoumCust', 'r2', 'cKhartoum', { cityId: 'port_sudan' }));
+    await assertFails(requestFor('khartoumCust', 'r3', 'cKhartoum', { cityId: 'mars' }));
+  });
+});
+
 describe('Platform Admin and the city of a customer', () => {
   it('can set it, together with the profile fields', async () => {
     const ref = doc(as('pa'), 'users', 'noCityCust');

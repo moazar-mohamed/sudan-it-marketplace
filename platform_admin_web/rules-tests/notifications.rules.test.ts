@@ -158,6 +158,9 @@ const APP_NOTIFICATIONS: [string, string, Recipient][] = [
   ['tech1', 'out_for_delivery', 'customer'],
   ['tech1', 'order_completed', 'customer'],
   ['ca1', 'technician_assigned', 'technician'],
+  ['ca1', 'job_ready', 'technician'],
+  ['ca1', 'job_cancelled', 'technician'],
+  ['tech1', 'job_completed', 'company_admin'],
 ];
 
 describe('every notification the app sends today is accepted', () => {
@@ -191,15 +194,22 @@ describe('the type comes from a fixed list', () => {
 
   it('each kind of sender has only its own types', async () => {
     // The customer cannot speak for the company.
-    for (const type of ['payment_confirmed', 'out_for_delivery', 'order_completed', 'review_reply', 'technician_assigned']) {
+    for (const type of ['payment_confirmed', 'out_for_delivery', 'order_completed', 'review_reply', 'technician_assigned', 'job_completed', 'job_ready', 'job_cancelled']) {
       await assertFails(send('cust1', type, 'company_admin'));
     }
+    // Only the technician reports a finished job, and only to the company.
+    await assertFails(send('ca1', 'job_completed', 'company_admin'));
+    await assertFails(send('ca1', 'job_completed', 'customer'));
+    await assertFails(send('tech1', 'job_completed', 'customer'));
+    await assertFails(send('tech1', 'job_ready', 'technician'));
+    await assertFails(send('tech1', 'job_cancelled', 'company_admin'));
+    await assertFails(send('cust1', 'job_ready', 'technician'));
     // The company cannot send the customer's types to the customer, nor an assignment.
     for (const type of ['new_order', 'new_review', 'technician_assigned']) {
       await assertFails(send('ca1', type, 'customer'));
     }
     // The technician only reports delivery and completion.
-    for (const type of ['payment_confirmed', 'review_reply', 'new_order', 'new_review', 'technician_assigned']) {
+    for (const type of ['payment_confirmed', 'review_reply', 'new_order', 'new_review', 'technician_assigned', 'job_ready', 'job_cancelled']) {
       await assertFails(send('tech1', type, 'customer'));
     }
     // A technician is only ever told about an assignment.
