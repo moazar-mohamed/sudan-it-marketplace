@@ -121,6 +121,8 @@ export function mapPlatformAdmin(id: string, d: DocumentData): PlatformAdmin {
     // A missing flag is NOT active: the rules treat such an admin as having no access.
     isActive: d.isActive === true,
     createdAt: toDate(d.createdAt),
+    trashedAt: toDate(d.trashedAt),
+    activeBeforeTrash: typeof d.activeBeforeTrash === 'boolean' ? d.activeBeforeTrash : null,
   };
 }
 

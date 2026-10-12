@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../auth/AuthProvider';
+import { DeleteMyAccountModal } from '../components/DeleteMyAccountModal';
 import { useConfirm, useRunner, useToast } from '../components/feedback';
 import { ActiveBadge } from '../components/StatusBadges';
 import { DataGate, EmptyState, Modal, PageHeader, Text } from '../components/ui';
-import { createAdmin, setAdminActive } from '../data/actions';
+import { createAdmin, resendAdminPasswordLink, setAdminActive, trashAdmin } from '../data/actions';
 import { useAdmins } from '../data/hooks';
 import type { PlatformAdmin } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
@@ -100,7 +101,7 @@ function AdminCreateModal({ onClose }: { onClose: () => void }) {
             <small className="field__error">{t('customers.error.invalidEmail')}</small>
           )}
         </label>
-        <p className="note">{t('admins.addHint')}</p>
+        <p className="note note--spaced">{t('admins.addHint')}</p>
         <div className="modal__actions">
           <button type="button" className="btn" onClick={onClose}>
             {t('common.cancel')}
@@ -119,13 +120,38 @@ function AdminCreateModal({ onClose }: { onClose: () => void }) {
  * switch another off or on (never themselves, so nobody locks themselves out).
  */
 export function AdminsPage() {
-  const { t, date } = useI18n();
+  const { t, date, locale } = useI18n();
+  const toast = useToast();
   const { state } = useAuth();
   const myId = state.status === 'authorized' ? state.profile.uid : '';
   const admins = useAdmins();
   const confirm = useConfirm();
   const { busy, run } = useRunner();
   const [adding, setAdding] = useState(false);
+  const [sending, setSending] = useState<string | null>(null);
+  const [deletingMine, setDeletingMine] = useState(false);
+
+  // Sends the admin a password link again. Firebase limits how often one
+  // address can be sent to, so that case says so instead of a generic failure.
+  const resend = async (admin: PlatformAdmin) => {
+    setSending(admin.id);
+    try {
+      await resendAdminPasswordLink(admin, locale === 'ar' ? 'ar' : 'en');
+      toast(t('admins.resent', { email: admin.email }), 'success');
+    } catch (error) {
+      const code = (error as { code?: string } | null)?.code;
+      toast(
+        code === 'auth/too-many-requests'
+          ? t('login.error.tooMany')
+          : code === 'auth/network-request-failed'
+            ? t('login.error.network')
+            : t('admins.resend.failed'),
+        'error',
+      );
+    } finally {
+      setSending(null);
+    }
+  };
 
   const toggle = async (admin: PlatformAdmin) => {
     const name = admin.fullName || admin.email;
@@ -145,6 +171,21 @@ export function AdminsPage() {
     );
   };
 
+  // Another admin goes to the trash (switched off, restorable from the Trash page).
+  const moveToTrash = async (admin: PlatformAdmin) => {
+    const name = admin.fullName || admin.email;
+    const ok = await confirm({
+      title: t('admins.confirmTrash.title'),
+      body: t('admins.confirmTrash.body', { name }),
+      confirmLabel: t('admins.trash'),
+      danger: true,
+    });
+    if (!ok) return;
+    await run(admin.id, () => trashAdmin(admin), t('admins.trashed'));
+  };
+
+  const me = admins.data.find((a) => a.id === myId);
+
   return (
     <>
       <PageHeader
@@ -158,6 +199,7 @@ export function AdminsPage() {
         }
       />
       {adding && <AdminCreateModal onClose={() => setAdding(false)} />}
+      {deletingMine && me && <DeleteMyAccountModal me={me} onClose={() => setDeletingMine(false)} />}
       <DataGate gates={[admins]}>
         {admins.data.length === 0 ? (
           <EmptyState message={t('admins.empty')} />
@@ -191,14 +233,39 @@ export function AdminsPage() {
                         </td>
                         <td className="nowrap">{date(a.createdAt)}</td>
                         <td>
-                          <button
-                            className={a.isActive ? 'btn btn--danger-ghost btn--sm' : 'btn btn--sm'}
-                            disabled={mine || busy === a.id}
-                            title={mine ? t('admins.cannotSelf') : undefined}
-                            onClick={() => void toggle(a)}
-                          >
-                            {a.isActive ? t('admins.deactivate') : t('admins.activate')}
-                          </button>
+                          <div className="btn-group">
+                            {a.isActive && (
+                              <button
+                                className="btn btn--sm"
+                                disabled={sending === a.id}
+                                title={t('admins.resend.hint')}
+                                onClick={() => void resend(a)}
+                              >
+                                {t('admins.resend')}
+                              </button>
+                            )}
+                            <button
+                              className={a.isActive ? 'btn btn--danger-ghost btn--sm' : 'btn btn--sm'}
+                              disabled={mine || busy === a.id}
+                              title={mine ? t('admins.cannotSelf') : undefined}
+                              onClick={() => void toggle(a)}
+                            >
+                              {a.isActive ? t('admins.deactivate') : t('admins.activate')}
+                            </button>
+                            {mine ? (
+                              <button className="btn btn--danger btn--sm" onClick={() => setDeletingMine(true)}>
+                                {t('admins.deleteMine')}
+                              </button>
+                            ) : (
+                              <button
+                                className="btn btn--danger-ghost btn--sm"
+                                disabled={busy === a.id}
+                                onClick={() => void moveToTrash(a)}
+                              >
+                                {t('admins.trash')}
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );

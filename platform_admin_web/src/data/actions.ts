@@ -9,7 +9,10 @@ import {
   Timestamp,
   writeBatch,
 } from 'firebase/firestore';
+import { requestPasswordReset } from '../auth/passwordReset';
+import { deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { auth, db, firebaseConfig } from '../firebase';
+import type { Locale } from '../i18n/I18nProvider';
 import { recordAudit, stageAudit } from './auditLog';
 import { allCities, cityToItem, normalizeCityIds, type SudanCity } from './cities';
 import * as ops from './categoryOps';
@@ -28,6 +31,13 @@ import {
 } from './convertCustomer';
 import { deleteCompanyCascade } from './deleteCompany';
 import { deleteCustomerAccount, type DeletableCustomer } from './deleteCustomer';
+import {
+  deleteOwnAccount as deleteOwnAdminAccount,
+  deleteTrashedAdmin,
+  restoreAdmin as restoreAdminAccount,
+  trashAdmin as trashAdminAccount,
+  type AdminRef,
+} from './adminAccounts';
 import { createAdminAccount, type NewAdminInput } from './provisionAdmin';
 import { createCustomerAccount, type NewCustomerInput } from './provisionCustomer';
 import {
@@ -351,6 +361,56 @@ export async function createAdmin(input: NewAdminInput) {
     targetName: input.fullName,
   });
   return created;
+}
+
+/**
+ * E-mails another admin a password link again (the first one may not have
+ * arrived or may have expired). Firebase sends it; nothing is stored but the
+ * activity entry.
+ */
+export async function resendAdminPasswordLink(
+  admin: { id: string; fullName: string; email: string },
+  locale: Locale,
+) {
+  await requestPasswordReset(admin.email, locale);
+  await recordAudit({
+    action: 'admin.resend',
+    targetType: 'admin',
+    targetId: admin.id,
+    targetName: admin.fullName || admin.email,
+  });
+}
+
+function adminDeps() {
+  const adminId = auth.currentUser?.uid;
+  if (!adminId) throw new Error('Not signed in.');
+  return { db, adminId, stageAudit };
+}
+
+/** Moves another admin to the trash (switched off, restorable). */
+export const trashAdmin = (admin: AdminRef) => trashAdminAccount(admin, adminDeps());
+
+/** Brings an admin back from the trash with the access they had. */
+export const restoreAdmin = (admin: AdminRef & { activeBeforeTrash: boolean | null }) =>
+  restoreAdminAccount(admin, adminDeps());
+
+/** Deletes an admin in the trash for good. */
+export const deleteAdminForever = (admin: AdminRef) => deleteTrashedAdmin(admin, adminDeps());
+
+/**
+ * Deletes the signed-in admin's own account: the password is asked again, the
+ * profile and a record are written, then the login itself is deleted.
+ */
+export async function deleteMyAccount(me: AdminRef, password: string) {
+  const user = auth.currentUser;
+  if (!user || !user.email) throw new Error('Not signed in.');
+  return deleteOwnAdminAccount(me, {
+    ...adminDeps(),
+    reauthenticate: async () => {
+      await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email!, password));
+    },
+    deleteLogin: () => deleteUser(user),
+  });
 }
 
 /** Switches another admin's access off or on; only isActive changes (never your own). */

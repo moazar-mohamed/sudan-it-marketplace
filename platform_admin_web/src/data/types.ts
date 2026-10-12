@@ -107,6 +107,10 @@ export interface PlatformAdmin {
   email: string;
   isActive: boolean;
   createdAt: Date | null;
+  /** When another admin moved them to the trash (they are switched off until restored). */
+  trashedAt: Date | null;
+  /** Whether they were active when trashed: what a restore gives back. */
+  activeBeforeTrash: boolean | null;
 }
 
 export interface Product {

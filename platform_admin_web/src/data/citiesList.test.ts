@@ -18,7 +18,7 @@ describe('the list of cities Platform Admin keeps', () => {
   it('is read from the saved document, hidden cities and all', () => {
     const cities = citiesFromDocument({
       items: [
-        { id: 'atlantis', nameAr: 'أطلنطس', nameEn: 'Atlantis', latitude: 10, longitude: 20 },
+        { id: 'atlantis', nameAr: 'أطلنطس', nameEn: 'Atlantis' },
         { id: 'camelot', nameAr: '', nameEn: 'Camelot', active: false },
         { id: '', nameEn: 'No id' },
         { id: 'nameless' },
@@ -27,9 +27,8 @@ describe('the list of cities Platform Admin keeps', () => {
       ],
     });
     expect(cities.map((c) => c.id)).toEqual(['atlantis', 'camelot']);
-    expect(cities[0]).toMatchObject({ ar: 'أطلنطس', latitude: 10, longitude: 20, active: true });
+    expect(cities[0]).toMatchObject({ ar: 'أطلنطس', active: true });
     expect(cities[1]).toMatchObject({ ar: 'Camelot', active: false });
-    expect(cities[1].latitude).toBeUndefined();
   });
 
   it('is the built-in list when nothing usable is saved', () => {
@@ -38,9 +37,13 @@ describe('the list of cities Platform Admin keeps', () => {
     expect(citiesFromDocument({ items: 'x' })).toBe(BUILT_IN_CITIES);
   });
 
-  it('a position needs both numbers', () => {
-    expect(parseCity({ id: 'a', nameEn: 'A', latitude: 1 })?.latitude).toBeUndefined();
-    expect(parseCity({ id: 'a', nameEn: 'A', latitude: 1, longitude: 2 })).toMatchObject({ latitude: 1, longitude: 2 });
+  it('a position saved by an older version is dropped when read', () => {
+    expect(parseCity({ id: 'a', nameEn: 'A', latitude: 1, longitude: 2 })).toEqual({
+      id: 'a',
+      ar: 'A',
+      en: 'A',
+      active: true,
+    });
   });
 
   it('round-trips through the stored item', () => {
@@ -76,7 +79,7 @@ describe('the list of cities Platform Admin keeps', () => {
 
 describe('editing the list', () => {
   const row = (extra: Record<string, unknown> = {}) => ({
-    id: 'x', ar: 'س', en: 'X', lat: '', lng: '', active: true, added: false, ...extra,
+    id: 'x', ar: 'س', en: 'X', active: true, added: false, ...extra,
   });
 
   it('every city needs both names', () => {
@@ -85,16 +88,9 @@ describe('editing the list', () => {
     expect(rowsProblem([row({ en: '' })])).toBe('cities.problem.names');
   });
 
-  it('the position is both numbers in range, or neither', () => {
-    expect(rowsProblem([row({ lat: '15.5', lng: '32.5' })])).toBeNull();
-    expect(rowsProblem([row({ lat: '15.5' })])).toBe('cities.problem.point');
-    expect(rowsProblem([row({ lat: 'abc', lng: '1' })])).toBe('cities.problem.point');
-    expect(rowsProblem([row({ lat: '95', lng: '1' })])).toBe('cities.problem.point');
-  });
-
-  it('becomes the cities to save, trimmed, with a position only when given', () => {
-    expect(rowsToCities([row({ ar: ' س ', lat: '1', lng: '2' }), row({ id: 'y' })])).toEqual([
-      { id: 'x', ar: 'س', en: 'X', active: true, latitude: 1, longitude: 2 },
+  it('becomes the cities to save, trimmed', () => {
+    expect(rowsToCities([row({ ar: ' س ' }), row({ id: 'y' })])).toEqual([
+      { id: 'x', ar: 'س', en: 'X', active: true },
       { id: 'y', ar: 'س', en: 'X', active: true },
     ]);
   });

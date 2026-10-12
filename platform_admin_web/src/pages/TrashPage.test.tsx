@@ -3,7 +3,14 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
-import { deleteCompany, restoreCategory, restoreCompany, summarizeCategoryDeletion } from '../data/actions';
+import {
+  deleteAdminForever,
+  deleteCompany,
+  restoreAdmin,
+  restoreCategory,
+  restoreCompany,
+  summarizeCategoryDeletion,
+} from '../data/actions';
 import type { Category, Company, Product } from '../data/types';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
@@ -13,16 +20,22 @@ const store = vi.hoisted(() => ({
   companies: [] as unknown[],
   categories: [] as unknown[],
   products: [] as unknown[],
+  admins: [] as unknown[],
 }));
 
 vi.mock('../data/hooks', () => {
-  const ready = (key: 'companies' | 'categories' | 'products') => () => ({
+  const ready = (key: 'companies' | 'categories' | 'products' | 'admins') => () => ({
     status: 'ready' as const,
     error: null,
     retry: () => undefined,
     data: store[key] as never[],
   });
-  return { useCompanies: ready('companies'), useAllCategories: ready('categories'), useProducts: ready('products') };
+  return {
+    useCompanies: ready('companies'),
+    useAllCategories: ready('categories'),
+    useProducts: ready('products'),
+    useTrashedAdmins: ready('admins'),
+  };
 });
 
 vi.mock('../data/actions', () => ({
@@ -31,6 +44,8 @@ vi.mock('../data/actions', () => ({
   restoreCategory: vi.fn(),
   summarizeCategoryDeletion: vi.fn(),
   deleteCategoryTree: vi.fn(),
+  restoreAdmin: vi.fn(),
+  deleteAdminForever: vi.fn(),
 }));
 
 const company = (id: string, name: string, extra: Partial<Company> = {}): Company => ({
@@ -98,7 +113,8 @@ beforeEach(() => {
     category('lap', null, 'Laptops', { isActive: true }), // not in the trash
   ];
   store.products = [{ id: 'p1', companyId: 'A' } as unknown as Product];
-  for (const fn of [deleteCompany, restoreCompany, restoreCategory]) {
+  store.admins = [];
+  for (const fn of [deleteCompany, restoreCompany, restoreCategory, restoreAdmin, deleteAdminForever]) {
     vi.mocked(fn as (...args: unknown[]) => unknown).mockReset().mockResolvedValue(undefined);
   }
   vi.mocked(summarizeCategoryDeletion).mockReset().mockResolvedValue({ categories: 2, products: 0, services: 0, serviceLinks: 0 });
@@ -210,5 +226,51 @@ describe('Arabic', () => {
     expect(document.documentElement.dir).toBe('rtl');
     expect(screen.getByText(ar['trash.title'])).toBeTruthy();
     expect(screen.getAllByRole('button', { name: ar['trash.restore'] }).length).toBe(2);
+  });
+});
+
+describe('admins in the trash', () => {
+  const trashedAdmin = {
+    id: 'a9',
+    fullName: 'Omar Admin',
+    email: 'omar@x.test',
+    isActive: false,
+    createdAt: new Date('2026-01-01'),
+    trashedAt: new Date('2026-05-01'),
+    activeBeforeTrash: true,
+  };
+
+  it('are listed with the access they had, newest first, and can be filtered', () => {
+    store.admins = [trashedAdmin];
+    renderPage();
+    expect(names()).toEqual(['Omar Admin', 'Networking', 'Alpha Tech']);
+    expect(within(row('Omar Admin')).getByText(en['trash.type.admin'])).toBeTruthy();
+    expect(within(row('Omar Admin')).getByText(en['user.active'])).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(en['trash.type.admin']) }));
+    expect(names()).toEqual(['Omar Admin']);
+  });
+
+  it('are restored with what they were', async () => {
+    store.admins = [trashedAdmin];
+    renderPage();
+    await act(async () => {
+      fireEvent.click(within(row('Omar Admin')).getByRole('button', { name: en['trash.restore'] }));
+    });
+    expect(restoreAdmin).toHaveBeenCalledWith(trashedAdmin);
+    expect(await screen.findByText(en['trash.restored'])).toBeTruthy();
+  });
+
+  it('are deleted for good only after being asked, naming who and that the login stays', async () => {
+    store.admins = [trashedAdmin];
+    renderPage();
+    fireEvent.click(within(row('Omar Admin')).getByRole('button', { name: en['trash.deleteForever'] }));
+    const dialog = screen.getByRole('dialog', { name: en['admins.confirmDelete.title'] });
+    expect(dialog.textContent).toContain('Omar Admin');
+    expect(deleteAdminForever).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: en['trash.deleteForever'] }));
+    });
+    expect(deleteAdminForever).toHaveBeenCalledWith(trashedAdmin);
+    expect(await screen.findByText(en['admins.deleted'])).toBeTruthy();
   });
 });

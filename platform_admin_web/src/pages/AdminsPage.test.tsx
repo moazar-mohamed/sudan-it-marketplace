@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
-import { createAdmin, setAdminActive } from '../data/actions';
+import { createAdmin, resendAdminPasswordLink, setAdminActive, trashAdmin } from '../data/actions';
 import { mapPlatformAdmin } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
@@ -17,7 +17,13 @@ vi.mock('../auth/AuthProvider', () => ({
 vi.mock('../data/hooks', () => ({
   useAdmins: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.admins as never[] }),
 }));
-vi.mock('../data/actions', () => ({ createAdmin: vi.fn(), setAdminActive: vi.fn() }));
+vi.mock('../data/actions', () => ({
+  createAdmin: vi.fn(),
+  setAdminActive: vi.fn(),
+  resendAdminPasswordLink: vi.fn(),
+  trashAdmin: vi.fn(),
+  deleteMyAccount: vi.fn(),
+}));
 
 const show = () =>
   render(
@@ -42,6 +48,8 @@ beforeEach(() => {
   ];
   vi.mocked(createAdmin).mockReset().mockResolvedValue({ uid: 'n1', passwordEmailSent: true });
   vi.mocked(setAdminActive).mockReset().mockResolvedValue(undefined);
+  vi.mocked(resendAdminPasswordLink).mockReset().mockResolvedValue(undefined);
+  vi.mocked(trashAdmin).mockReset().mockResolvedValue(undefined);
 });
 afterEach(() => {
   cleanup();
@@ -65,6 +73,76 @@ describe('the admins page', () => {
     show();
     const button = within(rowFor('Mona')).getByRole('button', { name: en['admins.deactivate'] }) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
+  });
+
+  it('sends an admin the password link again, in the panel language, and says so', async () => {
+    show();
+    await act(async () => {
+      fireEvent.click(within(rowFor('Omar')).getByRole('button', { name: en['admins.resend'] }));
+    });
+    expect(resendAdminPasswordLink).toHaveBeenCalledTimes(1);
+    const [who, language] = vi.mocked(resendAdminPasswordLink).mock.calls[0];
+    expect(who).toMatchObject({ id: 'a2', email: 'o@x.test' });
+    expect(language).toBe('en');
+    expect(screen.getByText(en['admins.resent'].replace('{email}', 'o@x.test'))).toBeTruthy();
+  });
+
+  it('says when the link could not be sent, or was asked for too often', async () => {
+    show();
+    vi.mocked(resendAdminPasswordLink).mockRejectedValueOnce({ code: 'auth/too-many-requests' });
+    await act(async () => {
+      fireEvent.click(within(rowFor('Omar')).getByRole('button', { name: en['admins.resend'] }));
+    });
+    expect(screen.getByText(en['login.error.tooMany'])).toBeTruthy();
+    vi.mocked(resendAdminPasswordLink).mockRejectedValueOnce(new Error('boom'));
+    await act(async () => {
+      fireEvent.click(within(rowFor('Omar')).getByRole('button', { name: en['admins.resend'] }));
+    });
+    expect(screen.getByText(en['admins.resend.failed'])).toBeTruthy();
+  });
+
+  it('has nothing to resend for an admin who is switched off', () => {
+    show();
+    expect(within(rowFor('Hana')).queryByRole('button', { name: en['admins.resend'] })).toBeNull();
+  });
+
+  it('moves another admin to the trash only after asking, and says it can be restored', async () => {
+    show();
+    fireEvent.click(within(rowFor('Omar')).getByRole('button', { name: en['admins.trash'] }));
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog.textContent).toContain('Omar');
+    expect(trashAdmin).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: en['admins.trash'] }));
+    });
+    expect(trashAdmin).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(trashAdmin).mock.calls[0][0]).toMatchObject({ id: 'a2', email: 'o@x.test' });
+    expect(await screen.findByText(en['admins.trashed'])).toBeTruthy();
+  });
+
+  it('cancelling the trash question moves nobody', async () => {
+    show();
+    fireEvent.click(within(rowFor('Omar')).getByRole('button', { name: en['admins.trash'] }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: en['common.cancel'] }));
+    expect(trashAdmin).not.toHaveBeenCalled();
+  });
+
+  it('offers you deleting your own account, not moving yourself to the trash', () => {
+    show();
+    const mine = within(rowFor('Mona'));
+    expect(mine.queryByRole('button', { name: en['admins.trash'] })).toBeNull();
+    fireEvent.click(mine.getByRole('button', { name: en['admins.deleteMine'] }));
+    expect(screen.getByRole('dialog', { name: en['admins.deleteMine.title'] })).toBeTruthy();
+    // Others have no such button.
+    expect(within(rowFor('Omar')).queryByRole('button', { name: en['admins.deleteMine'] })).toBeNull();
+  });
+
+  it('leaves room between the Add admin note and its buttons', () => {
+    show();
+    fireEvent.click(screen.getAllByRole('button', { name: new RegExp(en['admins.add']) })[0]);
+    const note = screen.getByText(en['admins.addHint']);
+    expect(note.classList.contains('note--spaced')).toBe(true);
   });
 
   it('asks before deactivating another admin, then does it', async () => {

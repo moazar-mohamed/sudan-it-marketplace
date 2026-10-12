@@ -5,6 +5,7 @@ import { emailChangeProblem, requestOwnEmailChange, type EmailChangeProblem } fr
 import { changeOwnPassword, passwordChangeProblem, type PasswordChangeProblem } from '../auth/changePassword';
 import { saveOwnName } from '../auth/ownProfile';
 import { requestPasswordReset } from '../auth/passwordReset';
+import { DeleteMyAccountModal } from '../components/DeleteMyAccountModal';
 import { useToast } from '../components/feedback';
 import { Disclosure, PageHeader, Text } from '../components/ui';
 import { useAdmins } from '../data/hooks';
@@ -264,6 +265,7 @@ export function ProfilePage() {
   const { t, number, date } = useI18n();
   const { state, signOut } = useAuth();
   const admins = useAdmins();
+  const [deleting, setDeleting] = useState(false);
   const profile = state.status === 'authorized' ? state.profile : null;
   const meta = auth.currentUser?.metadata;
   const since = meta?.creationTime ? new Date(meta.creationTime) : null;
@@ -326,6 +328,17 @@ export function ProfilePage() {
             <DetailsCard uid={profile.uid} name={profile.fullName} email={profile.email} />
             <PasswordCard email={profile.email} />
           </div>
+          <div className="profile__danger">
+            <button className="btn btn--sm btn--danger-ghost" onClick={() => setDeleting(true)}>
+              {t('admins.deleteMine')}
+            </button>
+          </div>
+          {deleting && (
+            <DeleteMyAccountModal
+              me={{ id: profile.uid, fullName: profile.fullName, email: profile.email, isActive: true }}
+              onClose={() => setDeleting(false)}
+            />
+          )}
         </>
       )}
     </>

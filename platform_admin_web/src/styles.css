@@ -3513,3 +3513,15 @@ kbd {
   font-size: 11px;
   letter-spacing: 0.01em;
 }
+
+/* The one destructive action on the profile page, kept apart from the cards. */
+.profile__danger {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* Room between a note and the buttons under it (the Add admin form). */
+.note.note--spaced {
+  margin-bottom: 16px;
+}

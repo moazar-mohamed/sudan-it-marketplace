@@ -1,20 +1,21 @@
 import { useMemo, useState } from 'react';
 import { useConfirm, useRunner } from '../components/feedback';
-import { CompanyStatusBadge } from '../components/StatusBadges';
+import { ActiveBadge, CompanyStatusBadge } from '../components/StatusBadges';
 import { Badge, Chips, DataGate, EmptyState, PageHeader, SearchInput, Text } from '../components/ui';
-import { deleteCompany, restoreCategory, restoreCompany } from '../data/actions';
+import { deleteAdminForever, deleteCompany, restoreAdmin, restoreCategory, restoreCompany } from '../data/actions';
 import { categoryDisplayName } from '../data/categoryIcons';
 import type { CompanyDeletionSummary } from '../data/deleteCompany';
-import { useAllCategories, useCompanies, useProducts } from '../data/hooks';
-import type { Category, Company } from '../data/types';
+import { useAllCategories, useCompanies, useProducts, useTrashedAdmins } from '../data/hooks';
+import type { Category, Company, PlatformAdmin } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
 import { matchesQuery } from '../utils';
 import { DeleteDialog } from './CategoryDialogs';
 
-type Kind = 'company' | 'category';
+type Kind = 'company' | 'category' | 'admin';
 
 type Entry =
   | { key: string; kind: 'company'; at: number; company: Company }
+  | { key: string; kind: 'admin'; at: number; admin: PlatformAdmin }
   | { key: string; kind: 'category'; at: number; category: Category; subCount: number; parentTrashed: boolean };
 
 const time = (d: Date | null | undefined) => (d ? d.getTime() : 0);
@@ -29,6 +30,7 @@ export function TrashPage() {
   const companies = useCompanies();
   const categories = useAllCategories();
   const products = useProducts();
+  const trashedAdmins = useTrashedAdmins();
   const confirm = useConfirm();
   const { busy, run } = useRunner();
   const [kind, setKind] = useState<Kind | 'all'>('all');
@@ -55,10 +57,18 @@ export function TrashPage() {
         parentTrashed: !!parent?.trashedAt,
       });
     }
+    for (const admin of trashedAdmins.data) {
+      list.push({ key: `admin:${admin.id}`, kind: 'admin', at: time(admin.trashedAt), admin });
+    }
     return list.sort((a, b) => b.at - a.at);
-  }, [companies.data, categories.data]);
+  }, [companies.data, categories.data, trashedAdmins.data]);
 
-  const nameOf = (e: Entry) => (e.kind === 'company' ? e.company.name : categoryDisplayName(e.category, locale));
+  const nameOf = (e: Entry) =>
+    e.kind === 'company'
+      ? e.company.name
+      : e.kind === 'admin'
+        ? e.admin.fullName || e.admin.email
+        : categoryDisplayName(e.category, locale);
   const visible = entries.filter((e) => (kind === 'all' || e.kind === kind) && matchesQuery(query, nameOf(e)));
 
   const restore = (e: Entry) =>
@@ -66,6 +76,7 @@ export function TrashPage() {
       e.key,
       async () => {
         if (e.kind === 'company') await restoreCompany(e.company);
+        else if (e.kind === 'admin') await restoreAdmin(e.admin);
         else await restoreCategory(categories.data, e.category.id);
       },
       t('trash.restored'),
@@ -91,11 +102,23 @@ export function TrashPage() {
     );
   };
 
+  const purgeAdmin = async (admin: PlatformAdmin, key: string) => {
+    const name = admin.fullName || admin.email;
+    const ok = await confirm({
+      title: t('admins.confirmDelete.title'),
+      body: t('admins.confirmDelete.body', { name }),
+      confirmLabel: t('trash.deleteForever'),
+      danger: true,
+    });
+    if (!ok) return;
+    await run(key, () => deleteAdminForever(admin), t('admins.deleted'));
+  };
+
   return (
     <>
       <PageHeader title={t('trash.title')} subtitle={t('trash.subtitle')} back={{ to: '/', label: t('nav.dashboard') }} />
       {purging && <DeleteDialog category={purging} all={categories.data} onClose={() => setPurging(null)} />}
-      <DataGate gates={[companies, categories]}>
+      <DataGate gates={[companies, categories, trashedAdmins]}>
         <div className="toolbar">
           <Chips
             value={kind}
@@ -104,6 +127,7 @@ export function TrashPage() {
               { value: 'all', label: t('common.all'), count: entries.length },
               { value: 'company', label: t('trash.type.company'), count: entries.filter((e) => e.kind === 'company').length },
               { value: 'category', label: t('trash.type.category'), count: entries.filter((e) => e.kind === 'category').length },
+              { value: 'admin', label: t('trash.type.admin'), count: entries.filter((e) => e.kind === 'admin').length },
             ]}
           />
           <SearchInput value={query} onChange={setQuery} placeholder={t('trash.search')} />
@@ -132,13 +156,20 @@ export function TrashPage() {
                         <Text>{nameOf(e) || '—'}</Text>
                       </td>
                       <td>
-                        <Badge tone={e.kind === 'company' ? 'info' : 'progress'}>{t(`trash.type.${e.kind}`)}</Badge>
+                        <Badge tone={e.kind === 'company' ? 'info' : e.kind === 'admin' ? 'warning' : 'progress'}>
+                          {t(`trash.type.${e.kind}`)}
+                        </Badge>
                       </td>
                       <td>
                         {e.kind === 'company' ? (
                           <span className="trash-was">
                             {t('trash.wasStatus', { status: '' })}
                             <CompanyStatusBadge status={e.company.statusBeforeTrash ?? 'inactive'} />
+                          </span>
+                        ) : e.kind === 'admin' ? (
+                          <span className="trash-was">
+                            {t('trash.wasStatus', { status: '' })}
+                            <ActiveBadge active={e.admin.activeBeforeTrash === true} />
                           </span>
                         ) : e.subCount > 0 ? (
                           t('trash.subCategories', { n: e.subCount })
@@ -147,7 +178,13 @@ export function TrashPage() {
                         )}
                       </td>
                       <td className="nowrap">
-                        {date(e.kind === 'company' ? (e.company.trashedAt ?? null) : (e.category.trashedAt ?? null))}
+                        {date(
+                          e.kind === 'company'
+                            ? (e.company.trashedAt ?? null)
+                            : e.kind === 'admin'
+                              ? e.admin.trashedAt
+                              : (e.category.trashedAt ?? null),
+                        )}
                       </td>
                       <td>
                         <div className="btn-group">
@@ -162,7 +199,13 @@ export function TrashPage() {
                           <button
                             className="btn btn--danger btn--sm"
                             disabled={busy === e.key}
-                            onClick={() => (e.kind === 'company' ? void purgeCompany(e.company, e.key) : setPurging(e.category))}
+                            onClick={() =>
+                              e.kind === 'company'
+                                ? void purgeCompany(e.company, e.key)
+                                : e.kind === 'admin'
+                                  ? void purgeAdmin(e.admin, e.key)
+                                  : setPurging(e.category)
+                            }
                           >
                             {t('trash.deleteForever')}
                           </button>

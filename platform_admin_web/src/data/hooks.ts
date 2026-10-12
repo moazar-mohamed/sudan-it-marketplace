@@ -5,7 +5,18 @@ export const useCompanies = () => useStore(stores.companies);
 export const useCustomers = () => useStore(stores.customers);
 export const useReports = () => useStore(stores.reports);
 export const useNewReports = () => useStore(stores.newReports);
-export const useAdmins = () => useStore(stores.admins);
+/** The admins who are in use: the ones in the trash are left out. */
+export function useAdmins() {
+  const state = useStore(stores.admins);
+  const data = useMemo(() => state.data.filter((a) => !a.trashedAt), [state.data]);
+  return { ...state, data };
+}
+/** Only the admins in the trash. */
+export function useTrashedAdmins() {
+  const state = useStore(stores.admins);
+  const data = useMemo(() => state.data.filter((a) => !!a.trashedAt), [state.data]);
+  return { ...state, data };
+}
 export const useProducts = (enabled = true) => useStore(stores.products, enabled);
 /** Every category, the ones in the trash too (for names, and for deleting for good). */
 export const useAllCategories = () => useStore(stores.categories);

@@ -6,13 +6,11 @@ import { newCityId, useCities, type SudanCity } from '../data/cities';
 import { useI18n } from '../i18n/I18nProvider';
 import type { TranslationKey } from '../i18n/dictionary';
 
-/** A city while it is being edited: the position is text until it is saved. */
+/** A city while it is being edited. */
 interface Row {
   id: string;
   ar: string;
   en: string;
-  lat: string;
-  lng: string;
   active: boolean;
   /** Added in this edit (its id is still free to be taken out again). */
   added: boolean;
@@ -22,8 +20,6 @@ const toRow = (c: SudanCity): Row => ({
   id: c.id,
   ar: c.ar,
   en: c.en,
-  lat: c.latitude === undefined ? '' : String(c.latitude),
-  lng: c.longitude === undefined ? '' : String(c.longitude),
   active: c.active,
   added: false,
 });
@@ -32,16 +28,6 @@ const toRow = (c: SudanCity): Row => ({
 export function rowsProblem(rows: readonly Row[]): TranslationKey | null {
   for (const r of rows) {
     if (!r.ar.trim() || !r.en.trim()) return 'cities.problem.names';
-    const hasLat = r.lat.trim() !== '';
-    const hasLng = r.lng.trim() !== '';
-    if (hasLat !== hasLng) return 'cities.problem.point';
-    if (hasLat) {
-      const lat = Number(r.lat);
-      const lng = Number(r.lng);
-      if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
-        return 'cities.problem.point';
-      }
-    }
   }
   return null;
 }
@@ -53,12 +39,11 @@ export function rowsToCities(rows: readonly Row[]): SudanCity[] {
     ar: r.ar.trim(),
     en: r.en.trim(),
     active: r.active,
-    ...(r.lat.trim() !== '' ? { latitude: Number(r.lat), longitude: Number(r.lng) } : {}),
   }));
 }
 
 /**
- * Platform Admin's list of cities: names, position and whether a city is shown.
+ * Platform Admin's list of cities: names and whether a city is shown.
  * A city is added or hidden, never deleted: companies and customers already
  * point at it.
  */
@@ -78,7 +63,7 @@ export function CitiesPage() {
   const add = () => {
     if (!newAr.trim() || !newEn.trim()) return;
     const id = newCityId(newEn, rows.map((r) => r.id));
-    setDraft([...rows, { id, ar: newAr.trim(), en: newEn.trim(), lat: '', lng: '', active: true, added: true }]);
+    setDraft([...rows, { id, ar: newAr.trim(), en: newEn.trim(), active: true, added: true }]);
     setNewAr('');
     setNewEn('');
   };
@@ -130,8 +115,6 @@ export function CitiesPage() {
               <tr>
                 <th>{t('cities.col.nameAr')}</th>
                 <th>{t('cities.col.nameEn')}</th>
-                <th>{t('cities.col.lat')}</th>
-                <th>{t('cities.col.lng')}</th>
                 <th>{t('cities.col.shown')}</th>
               </tr>
             </thead>
@@ -143,12 +126,6 @@ export function CitiesPage() {
                   </td>
                   <td>
                     <input aria-label={t('cities.col.nameEn')} value={r.en} dir="ltr" maxLength={60} onChange={(e) => change(r.id, { en: e.target.value })} />
-                  </td>
-                  <td>
-                    <input aria-label={t('cities.col.lat')} value={r.lat} dir="ltr" inputMode="decimal" onChange={(e) => change(r.id, { lat: e.target.value })} />
-                  </td>
-                  <td>
-                    <input aria-label={t('cities.col.lng')} value={r.lng} dir="ltr" inputMode="decimal" onChange={(e) => change(r.id, { lng: e.target.value })} />
                   </td>
                   <td>
                     <input type="checkbox" aria-label={t('cities.col.shown')} checked={r.active} onChange={(e) => change(r.id, { active: e.target.checked })} />
