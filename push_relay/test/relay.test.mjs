@@ -150,6 +150,7 @@ beforeEach(async () => {
   google.idTokens.set('token-cust1', 'cust1');
   google.idTokens.set('token-cust2', 'cust2');
   google.idTokens.set('token-ca1', 'ca1');
+  google.idTokens.set('token-tech1', 'tech1u');
   const put = (key, data) => google.docs.set(key, data);
   put('users/cust1', { role: 'customer', language: 'ar', fcmTokens: ['phone-cust1'] });
   put('users/cust2', { role: 'customer', fcmTokens: ['phone-cust2'] });
@@ -167,6 +168,10 @@ beforeEach(async () => {
     productId: 'p1', productName: 'Router', serviceName: '',
   });
   put('chats/chat1/messages/m1', { senderId: 'cust1', senderRole: 'customer', text: 'Is it available?', createdAt: minutesAgo(0) });
+  put('orders/o1', { companyId: 'c1', customerId: 'cust1', technicianId: 't1' });
+  put('jobChats/o1', { companyId: 'c1', technicianId: 't1', technicianName: 'Ali', productName: 'Router' });
+  put('jobChats/o1/messages/jt1', { senderId: 'tech1u', senderRole: 'technician', senderName: 'Ali', text: 'Customer is not home', createdAt: minutesAgo(0) });
+  put('jobChats/o1/messages/jc1', { senderId: 'ca1', senderRole: 'company', senderName: '', text: 'We will call them', createdAt: minutesAgo(0) });
   put('chats/chat1/messages/m2', { senderId: 'ca1', senderRole: 'company', text: 'Yes!', createdAt: minutesAgo(0) });
 });
 
@@ -629,5 +634,69 @@ describe('a company now serves a city', () => {
   it('asks for exactly one thing', async () => {
     const both = await call({ cityAnnouncementId: 'c1_khartoum', notificationId: 'n1' }, 'token-ca1');
     assert.equal(both.status, 400);
+  });
+});
+
+describe('a job conversation between the technician and the company', () => {
+  it('reaches the company admins when the technician wrote it', async () => {
+    const r = await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-tech1');
+    assert.equal(r.status, 200);
+    const phones = google.sent.map((m) => m.token).sort();
+    assert.deepEqual(phones, ['old-phone', 'phone-ca1', 'phone-ca1b']);
+    const toCa1 = google.sent.find((m) => m.token === 'phone-ca1');
+    assert.equal(toCa1.notification.title, 'Ali · Router');
+    assert.equal(toCa1.notification.body, 'Customer is not home');
+    assert.equal(toCa1.data.type, 'job_chat_message');
+    assert.equal(toCa1.data.orderId, 'o1');
+    assert.equal(toCa1.data.role, 'company');
+  });
+
+  it('reaches the technician when the company wrote it, never the customer', async () => {
+    const r = await call({ jobChatId: 'o1', messageId: 'jc1' }, 'token-ca1');
+    assert.equal(r.status, 200);
+    assert.deepEqual(google.sent.map((m) => m.token), ['phone-tech1']);
+    assert.equal(google.sent[0].notification.title, 'Company · Router');
+    assert.equal(google.sent[0].data.role, 'technician');
+  });
+
+  it('follows a reassignment to the technician the job has now', async () => {
+    google.docs.set('users/tech2u', { role: 'technician', companyId: 'c1', fcmTokens: ['phone-tech2'] });
+    google.docs.set('technicians/t2', { companyId: 'c1', uid: 'tech2u', email: 't2@x.test' });
+    google.docs.get('orders/o1').technicianId = 't2';
+    await call({ jobChatId: 'o1', messageId: 'jc1' }, 'token-ca1');
+    assert.deepEqual(google.sent.map((m) => m.token), ['phone-tech2']);
+  });
+
+  it('is sent once, only for its writer, and only while fresh', async () => {
+    assert.equal((await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-ca1')).status, 403);
+    assert.equal((await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-cust1')).status, 403);
+    google.docs.get('jobChats/o1/messages/jt1').createdAt = minutesAgo(11);
+    assert.equal((await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-tech1')).status, 409);
+    google.docs.get('jobChats/o1/messages/jt1').createdAt = minutesAgo(0);
+    assert.equal((await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-tech1')).status, 200);
+    const again = await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-tech1');
+    assert.equal(again.body.skipped, 'already_sent');
+  });
+
+  it('respects a switched-off chat kind', async () => {
+    google.docs.get('users/tech1u').pushPrefs = { chat: false };
+    await call({ jobChatId: 'o1', messageId: 'jc1' }, 'token-ca1');
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('asks for one thing only', async () => {
+    assert.equal((await call({ jobChatId: 'o1', messageId: 'jt1', chatId: 'chat1' }, 'token-tech1')).status, 400);
+    assert.equal((await call({ jobChatId: 'o1' }, 'token-tech1')).status, 400);
+  });
+});
+
+describe('the technician job notifications', () => {
+  it('say what happened, from the type and the product only', () => {
+    const ready = orderNotificationText({ type: 'job_ready', productName: 'Router' }, 'en');
+    assert.equal(ready.title, 'Job ready to start');
+    assert.match(ready.body, /Router/);
+    assert.equal(orderNotificationText({ type: 'job_cancelled', productName: 'Router' }, 'ar').title, 'تم إلغاء المهمة');
+    assert.equal(orderNotificationText({ type: 'job_completed', productName: 'Router' }, 'en').title, 'Installation completed');
+    assert.equal(orderNotificationText({ type: 'job_completed' }, 'en'), null);
   });
 });

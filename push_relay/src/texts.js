@@ -23,6 +23,21 @@ const ORDER_TEXTS = {
     en: ['New installation job assigned', (p) => `You have been assigned to install "${p}".`],
     ar: ['تم تعيين مهمة تركيب جديدة', (p) => `تم تعيينك لتركيب "${p}".`],
   },
+  // A technician's job: the company confirmed the payment (the job can be
+  // started), the company cancelled it, or the technician finished it (to the
+  // company). The quoted name is the order's product.
+  job_ready: {
+    en: ['Job ready to start', (p) => `The payment for "${p}" was confirmed. You can start the job.`],
+    ar: ['المهمة جاهزة للبدء', (p) => `تم تأكيد دفع «${p}». يمكنك بدء المهمة.`],
+  },
+  job_cancelled: {
+    en: ['Job cancelled', (p) => `The company cancelled the job for "${p}".`],
+    ar: ['تم إلغاء المهمة', (p) => `ألغت الشركة مهمة «${p}».`],
+  },
+  job_completed: {
+    en: ['Installation completed', (p) => `The technician finished the job for "${p}".`],
+    ar: ['اكتمل التركيب', (p) => `أنهى الفني مهمة «${p}».`],
+  },
   new_review: {
     en: ['New rating', (p) => `A customer rated "${p}".`],
     ar: ['تقييم جديد', (p) => `قيّم عميل «${p}».`],
@@ -100,6 +115,9 @@ const CATEGORY_OF_TYPE = {
   out_for_delivery: 'orders',
   order_completed: 'orders',
   technician_assigned: 'orders',
+  job_ready: 'orders',
+  job_cancelled: 'orders',
+  job_completed: 'orders',
   new_review: 'orders',
   review_reply: 'orders',
   order_cancelled_by_admin: 'orders',
@@ -130,8 +148,8 @@ export function wantsPush(user, category) {
 }
 
 const CHAT_TEXTS = {
-  en: { customer: 'Customer', question: (s) => `Question: ${s}` },
-  ar: { customer: 'عميل', question: (s) => `استفسار: ${s}` },
+  en: { customer: 'Customer', question: (s) => `Question: ${s}`, technician: 'Technician', company: 'Company' },
+  ar: { customer: 'عميل', question: (s) => `استفسار: ${s}`, technician: 'الفني', company: 'الشركة' },
 };
 
 // The cities the app ships with, for a city whose name is not in
@@ -223,6 +241,24 @@ export function orderNotificationText(notification, language) {
 }
 
 const MAX_BODY = 180;
+
+/**
+ * A message in a job's technician-company conversation as seen by the other
+ * side: "<who> · <product>" and the message itself (shortened).
+ */
+export function jobChatMessageText(chat, message, language) {
+  const words = CHAT_TEXTS[language];
+  const fromTechnician = message.senderRole === 'technician';
+  const sender = fromTechnician
+    ? (message.senderName || chat.technicianName || '').trim() || words.technician
+    : words.company;
+  const about = (chat.productName || '').trim();
+  const text = (message.text ?? '').trim();
+  return {
+    title: about ? `${sender} · ${about}` : sender,
+    body: text.length > MAX_BODY ? `${text.slice(0, MAX_BODY - 1)}…` : text,
+  };
+}
 
 /**
  * A chat message as seen by the other side: "<who> · <what about>" and the

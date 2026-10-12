@@ -11,6 +11,7 @@ import { createFirestore, createTokenSource } from './google.js';
 import {
   chatMessageText,
   cityAnnouncementText,
+  jobChatMessageText,
   cityName,
   cityTopic,
   languageOf,
@@ -299,6 +300,49 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
     return reply(200, result);
   }
 
+  /**
+   * A message in a job's technician-company conversation (`jobChats/{orderId}`):
+   * to the company's admins when the technician wrote it, to the job's
+   * technician when the company did. The customer is never a recipient.
+   */
+  async function pushJobChatMessage(uid, orderId, messageId) {
+    const [chat, message] = await Promise.all([
+      db.get(`jobChats/${orderId}`),
+      db.get(`jobChats/${orderId}/messages/${messageId}`),
+    ]);
+    if (!chat || !message) return reply(404, { error: 'not_found' });
+    if (message.senderId !== uid) return reply(403, { error: 'not_sender' });
+    if (!isFresh(message.createdAt)) return reply(409, { error: 'too_old' });
+    const logPath = `push_log/j_${orderId}_${messageId}`;
+    if (!(await db.createOnce(logPath, { kind: 'job_chat', by: uid, at: new Date(now()) }))) {
+      return reply(200, { skipped: 'already_sent' });
+    }
+    const toCompany = message.senderRole === 'technician';
+    let recipients;
+    if (toCompany) {
+      recipients = await companyAdmins(chat.companyId);
+    } else {
+      // The technician the job has now (it may have been reassigned).
+      const order = await db.get(`orders/${orderId}`);
+      const technicianId = order?.technicianId || chat.technicianId;
+      recipients = technicianId
+        ? await recipientsOf({ recipientType: 'technician', recipientId: technicianId })
+        : [];
+    }
+    recipients = recipients.filter((r) => wantsPush(r, 'chat'));
+    const result = await sendTo(recipients, (recipient) => ({
+      ...jobChatMessageText(chat, message, languageOf(recipient)),
+      data: {
+        type: 'job_chat_message',
+        orderId,
+        role: toCompany ? 'company' : 'technician',
+      },
+      tag: `job_chat_${orderId}`,
+    }));
+    await db.merge(logPath, result);
+    return reply(200, result);
+  }
+
   return async function handle(request) {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
     const url = new URL(request.url);
@@ -317,7 +361,8 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
     const wantsNotification = isId(body?.notificationId);
     const wantsChat = isId(body?.chatId) && isId(body?.messageId);
     const wantsCity = isId(body?.cityAnnouncementId);
-    if ([wantsNotification, wantsChat, wantsCity].filter(Boolean).length !== 1) {
+    const wantsJobChat = isId(body?.jobChatId) && isId(body?.messageId);
+    if ([wantsNotification, wantsChat, wantsCity, wantsJobChat].filter(Boolean).length !== 1) {
       return reply(400, { error: 'bad_request' });
     }
 
@@ -325,6 +370,7 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
       const uid = await verifiedUid(idToken);
       if (!uid) return reply(401, { error: 'unauthenticated' });
       if (wantsCity) return await pushCityAnnouncement(uid, body.cityAnnouncementId);
+      if (wantsJobChat) return await pushJobChatMessage(uid, body.jobChatId, body.messageId);
       return wantsNotification
         ? await pushNotification(uid, body.notificationId)
         : await pushChatMessage(uid, body.chatId, body.messageId);
