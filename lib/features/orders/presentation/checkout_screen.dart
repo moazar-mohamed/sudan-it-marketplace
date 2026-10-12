@@ -9,6 +9,8 @@ import '../../../core/utils/text_clip.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/auth_state.dart';
+import '../../cities/presentation/city_providers.dart';
+import '../../cities/presentation/city_tags.dart';
 import '../../companies/domain/entities/pickup_point.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
@@ -158,8 +160,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       return;
     }
     // Stop here, with a clear reason, instead of letting the server refuse it.
-    if (!ref.read(companyServesMyCityProvider(widget.product.companyId ?? ''))) {
-      showAppSnackBar(context, context.l10n.cityNotServed, tone: AppTone.error);
+    // A pickup is collected in person, so it is not tied to a city.
+    if (_useDelivery &&
+        !ref.read(companyServesMyCityProvider(widget.product.companyId ?? ''))) {
+      showAppSnackBar(
+        context,
+        context.l10n.cityDeliveryNeedsCity,
+        tone: AppTone.error,
+      );
       return;
     }
 
@@ -206,6 +214,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       contactPhone: _phoneController.value,
       deliveryMethod:
           _useDelivery ? DeliveryMethod.delivery : DeliveryMethod.pickup,
+      // The city the order is delivered to; a pickup has none.
+      deliveryCityId: _useDelivery ? ref.read(deliveryCityIdProvider) : null,
       // A profile name has no length limit of its own; the order's copy does.
       customerName: clipToLength(
         ref.read(profileControllerProvider).asData?.value?.fullName ?? '',
@@ -408,6 +418,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           const SizedBox(height: AppSpacing.s16),
                         ],
                         if (_useDelivery) ...[
+                          DeliveryCityRow(
+                            companyId: widget.product.companyId ?? '',
+                          ),
+                          const SizedBox(height: AppSpacing.s16),
                           LocationField(
                             textController: _addressController,
                             location: _deliveryLocation,

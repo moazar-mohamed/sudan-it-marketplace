@@ -25,6 +25,8 @@ import '../../customer_dashboard/presentation/profile_controller.dart';
 import '../../orders/presentation/order_details_screen.dart';
 import '../../orders/presentation/orders_providers.dart';
 import '../../reports/presentation/my_reports_screen.dart';
+import '../../technician/presentation/jobs/technician_job_details_screen.dart';
+import '../../technicians/presentation/technicians_providers.dart';
 import '../../service_requests/presentation/service_request_details_screen.dart';
 import '../data/push_tokens.dart';
 import '../domain/push_categories.dart';
@@ -222,6 +224,8 @@ Widget pushDestinationScreen(PushDestination destination) {
     CompanyProductDestination(:final companyId, :final productId) =>
       CompanyProductDetailsScreen(companyId: companyId, productId: productId),
     CompanyDestination(:final companyId) => _CompanyLoader(companyId: companyId),
+    TechnicianJobDestination(:final orderId) =>
+      _TechnicianJobLoader(orderId: orderId),
   };
 }
 
@@ -271,6 +275,36 @@ void _showBanner(Ref ref, RemoteMessage message) {
             ),
     ),
   );
+}
+
+/// A technician's job opened from a push. The technician's record is found
+/// by their account (the record id is their uid, except for old accounts, which
+/// are matched by company and email).
+class _TechnicianJobLoader extends ConsumerWidget {
+  const _TechnicianJobLoader({required this.orderId});
+
+  final String orderId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileControllerProvider).asData?.value;
+    final uid = profile?.id ?? '';
+    final byUid = ref.watch(technicianByUidProvider(uid)).asData?.value;
+    final bySelf = ref
+        .watch(
+          technicianSelfProvider((
+            companyId: profile?.companyId ?? '',
+            email: profile?.email ?? '',
+          )),
+        )
+        .asData
+        ?.value;
+    final technicianId = byUid?.id ?? bySelf?.id ?? uid;
+    return TechnicianJobDetailsScreen(
+      technicianId: technicianId,
+      orderId: orderId,
+    );
+  }
 }
 
 /// A customer's order opened from a push (only its id is known).

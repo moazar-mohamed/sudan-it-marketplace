@@ -6207,7 +6207,7 @@ abstract class AppLocalizations {
   /// No description provided for @cityPickerSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'We show you the companies that serve your city, so your orders can be delivered.'**
+  /// **'Companies that serve your city come first, so your orders can be delivered.'**
   String get cityPickerSubtitle;
 
   /// No description provided for @cityChangeTooltip.
@@ -6264,29 +6264,113 @@ abstract class AppLocalizations {
   /// **'Search cities'**
   String get citySearchHint;
 
-  /// No description provided for @cityUseMyLocation.
+  /// No description provided for @cityDeliveryPickerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Use my location'**
-  String get cityUseMyLocation;
+  /// **'Delivery city'**
+  String get cityDeliveryPickerTitle;
 
-  /// No description provided for @cityLocationFailed.
+  /// No description provided for @cityDeliveryPickerHint.
   ///
   /// In en, this message translates to:
-  /// **'Could not find your location. Choose your city from the list.'**
-  String get cityLocationFailed;
+  /// **'You can choose the cities this company serves. This does not change your own city.'**
+  String get cityDeliveryPickerHint;
 
-  /// No description provided for @cityBrowseAll.
+  /// No description provided for @cityCompanyDoesNotServe.
   ///
   /// In en, this message translates to:
-  /// **'Browse all cities'**
-  String get cityBrowseAll;
+  /// **'This company does not serve it'**
+  String get cityCompanyDoesNotServe;
 
-  /// No description provided for @cityBrowseAllHint.
+  /// No description provided for @cityDeliveryLabel.
   ///
   /// In en, this message translates to:
-  /// **'You can look at every company, but you can only order from companies that serve your city.'**
-  String get cityBrowseAllHint;
+  /// **'Delivery city'**
+  String get cityDeliveryLabel;
+
+  /// No description provided for @cityDeliveryChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get cityDeliveryChange;
+
+  /// No description provided for @cityDeliveryChangeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Change delivery city'**
+  String get cityDeliveryChangeButton;
+
+  /// No description provided for @cityDeliveryForOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordering for someone else? Choose their city. Your own city stays the same.'**
+  String get cityDeliveryForOther;
+
+  /// No description provided for @cityDeliveryServed.
+  ///
+  /// In en, this message translates to:
+  /// **'{company} serves this city'**
+  String cityDeliveryServed(String company);
+
+  /// No description provided for @cityServesCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Serves {city}'**
+  String cityServesCity(String city);
+
+  /// No description provided for @cityServesList.
+  ///
+  /// In en, this message translates to:
+  /// **'Serves: {cities}'**
+  String cityServesList(String cities);
+
+  /// No description provided for @cityOtherCompaniesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Other companies'**
+  String get cityOtherCompaniesTitle;
+
+  /// No description provided for @cityOtherCompaniesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'They do not serve {city}, but you can order from them for delivery to another city.'**
+  String cityOtherCompaniesHint(String city);
+
+  /// No description provided for @cityNotServedOnlyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Serves {cities} only'**
+  String cityNotServedOnlyTitle(String cities);
+
+  /// No description provided for @cityNotServedOnlyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your delivery city is {city}. To order, change the delivery city to one this company serves.'**
+  String cityNotServedOnlyBody(String city);
+
+  /// No description provided for @cityDeliveringTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery to {city}'**
+  String cityDeliveringTo(String city);
+
+  /// No description provided for @cityDeliveryChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a city'**
+  String get cityDeliveryChoose;
+
+  /// No description provided for @cityDeliveryNeedsCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a delivery city this company serves.'**
+  String get cityDeliveryNeedsCity;
+
+  /// No description provided for @orderDeliveryCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery city'**
+  String get orderDeliveryCity;
 
   /// No description provided for @cityCompaniesCount.
   ///
@@ -6455,6 +6539,462 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Brand'**
   String get productBrand;
+
+  /// No description provided for @tjAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get tjAvailable;
+
+  /// No description provided for @tjBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Busy'**
+  String get tjBusy;
+
+  /// No description provided for @tjOpenJobsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {count} open jobs'**
+  String tjOpenJobsCount(int count);
+
+  /// No description provided for @tjNoOpenJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'No open jobs right now'**
+  String get tjNoOpenJobs;
+
+  /// No description provided for @tjNextJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Next job'**
+  String get tjNextJob;
+
+  /// No description provided for @tjNavigate.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions'**
+  String get tjNavigate;
+
+  /// No description provided for @tjCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get tjCall;
+
+  /// No description provided for @tjStatOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get tjStatOpen;
+
+  /// No description provided for @tjMonthFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation fees this month'**
+  String get tjMonthFees;
+
+  /// No description provided for @tjMonthFeesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'From completed jobs'**
+  String get tjMonthFeesHint;
+
+  /// No description provided for @tjDistanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String tjDistanceKm(String km);
+
+  /// No description provided for @tjSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by customer or product'**
+  String get tjSearchHint;
+
+  /// No description provided for @tjSortNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get tjSortNewest;
+
+  /// No description provided for @tjSortNearest.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest'**
+  String get tjSortNearest;
+
+  /// No description provided for @tjFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count}'**
+  String tjFilterAll(int count);
+
+  /// No description provided for @tjFilterOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {count}'**
+  String tjFilterOpen(int count);
+
+  /// No description provided for @tjFilterDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done {count}'**
+  String tjFilterDone(int count);
+
+  /// No description provided for @tjFilterCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled {count}'**
+  String tjFilterCancelled(int count);
+
+  /// No description provided for @tjSectionOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get tjSectionOpen;
+
+  /// No description provided for @tjSectionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get tjSectionDone;
+
+  /// No description provided for @tjSectionCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get tjSectionCancelled;
+
+  /// No description provided for @tjNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No jobs match your search.'**
+  String get tjNoMatches;
+
+  /// No description provided for @tjAwaitingPaymentTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for payment confirmation'**
+  String get tjAwaitingPaymentTag;
+
+  /// No description provided for @tjCancelledTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled by the company'**
+  String get tjCancelledTag;
+
+  /// No description provided for @tjProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Job progress'**
+  String get tjProgressTitle;
+
+  /// No description provided for @tjStepPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment confirmed'**
+  String get tjStepPaid;
+
+  /// No description provided for @tjStepPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get tjStepPreparing;
+
+  /// No description provided for @tjStepOnTheWay.
+  ///
+  /// In en, this message translates to:
+  /// **'On the way'**
+  String get tjStepOnTheWay;
+
+  /// No description provided for @tjStepDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tjStepDone;
+
+  /// No description provided for @tjCopyAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy address'**
+  String get tjCopyAddress;
+
+  /// No description provided for @tjAddressCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Address copied'**
+  String get tjAddressCopied;
+
+  /// No description provided for @tjNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My notes'**
+  String get tjNotesTitle;
+
+  /// No description provided for @tjNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a note about the job'**
+  String get tjNotesHint;
+
+  /// No description provided for @tjNotesAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get tjNotesAdd;
+
+  /// No description provided for @tjNotesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet.'**
+  String get tjNotesEmpty;
+
+  /// No description provided for @tjNotesVisibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Only your company sees these, not the customer.'**
+  String get tjNotesVisibility;
+
+  /// No description provided for @tjNoteDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete note'**
+  String get tjNoteDelete;
+
+  /// No description provided for @tjTechnicianNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician notes'**
+  String get tjTechnicianNotesTitle;
+
+  /// No description provided for @tjNoteCompletion.
+  ///
+  /// In en, this message translates to:
+  /// **'On completion'**
+  String get tjNoteCompletion;
+
+  /// No description provided for @tjChatWithCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with the company'**
+  String get tjChatWithCompany;
+
+  /// No description provided for @tjChatWithTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with the technician'**
+  String get tjChatWithTechnician;
+
+  /// No description provided for @tjChatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Write the first one.'**
+  String get tjChatEmpty;
+
+  /// No description provided for @tjChatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message'**
+  String get tjChatHint;
+
+  /// No description provided for @tjChatPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'This conversation is between the technician and the company only.'**
+  String get tjChatPrivate;
+
+  /// No description provided for @tjChatCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get tjChatCompany;
+
+  /// No description provided for @tjChatYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get tjChatYou;
+
+  /// No description provided for @tjNoTechnicianAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No technician is assigned to this order yet.'**
+  String get tjNoTechnicianAssigned;
+
+  /// No description provided for @tjFinishTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish job {id}'**
+  String tjFinishTitle(String id);
+
+  /// No description provided for @tjCheckInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'I installed the product and checked it works'**
+  String get tjCheckInstalled;
+
+  /// No description provided for @tjCheckExplained.
+  ///
+  /// In en, this message translates to:
+  /// **'I showed the customer how to use it'**
+  String get tjCheckExplained;
+
+  /// No description provided for @tjCheckHandedOver.
+  ///
+  /// In en, this message translates to:
+  /// **'I handed over the invoice or warranty'**
+  String get tjCheckHandedOver;
+
+  /// No description provided for @tjFinishNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for the company (optional)'**
+  String get tjFinishNoteHint;
+
+  /// No description provided for @tjFinishConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm completion'**
+  String get tjFinishConfirm;
+
+  /// No description provided for @tjFinishChecklistRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick all three steps before confirming.'**
+  String get tjFinishChecklistRequired;
+
+  /// No description provided for @tjNotifToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get tjNotifToday;
+
+  /// No description provided for @tjNotifEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get tjNotifEarlier;
+
+  /// No description provided for @tjMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all read'**
+  String get tjMarkAllRead;
+
+  /// No description provided for @tjCompletedJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Jobs done'**
+  String get tjCompletedJobs;
+
+  /// No description provided for @tjAvailabilityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'I am available for jobs'**
+  String get tjAvailabilityTitle;
+
+  /// No description provided for @tjAvailabilityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When off, your company sees you as unavailable when assigning jobs.'**
+  String get tjAvailabilityHint;
+
+  /// No description provided for @tjAvailabilityFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not change your status. Try again.'**
+  String get tjAvailabilityFailed;
+
+  /// No description provided for @tjJobNotificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Job notifications'**
+  String get tjJobNotificationsTitle;
+
+  /// No description provided for @tjUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get tjUnavailable;
+
+  /// No description provided for @notifJobReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Job ready to start'**
+  String get notifJobReadyTitle;
+
+  /// No description provided for @notifJobReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment for \"{product}\" was confirmed. You can start the job.'**
+  String notifJobReadyBody(String product);
+
+  /// No description provided for @notifJobCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Job cancelled'**
+  String get notifJobCancelledTitle;
+
+  /// No description provided for @notifJobCancelledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The company cancelled the job for \"{product}\".'**
+  String notifJobCancelledBody(String product);
+
+  /// No description provided for @notifJobCompletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation completed'**
+  String get notifJobCompletedTitle;
+
+  /// No description provided for @notifJobCompletedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The technician finished the job for \"{product}\".'**
+  String notifJobCompletedBody(String product);
+
+  /// No description provided for @searchDidYouMean.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you mean “{term}”?'**
+  String searchDidYouMean(String term);
+
+  /// No description provided for @searchSortRelevance.
+  ///
+  /// In en, this message translates to:
+  /// **'Best match'**
+  String get searchSortRelevance;
+
+  /// No description provided for @searchSortPriceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Price: low to high'**
+  String get searchSortPriceLow;
+
+  /// No description provided for @searchSortPriceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Price: high to low'**
+  String get searchSortPriceHigh;
+
+  /// No description provided for @searchInStockOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'In stock only'**
+  String get searchInStockOnly;
+
+  /// No description provided for @searchTypeCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get searchTypeCategory;
+
+  /// No description provided for @tjSearchResults.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} results'**
+  String tjSearchResults(int count);
 }
 
 class _AppLocalizationsDelegate

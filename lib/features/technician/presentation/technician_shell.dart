@@ -46,6 +46,7 @@ class _TechnicianShellState extends ConsumerState<TechnicianShell> {
       TechnicianJobsTab(technicianId: widget.technicianId),
       TechnicianProfileScreen(
         companyId: widget.companyId,
+        technicianId: widget.technicianId,
         technicianPhone: widget.technicianPhone,
       ),
     ];

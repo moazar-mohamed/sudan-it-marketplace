@@ -8,6 +8,8 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../categories/domain/entities/category.dart';
 import '../../../categories/presentation/category_label.dart';
+import '../../../cities/presentation/city_providers.dart';
+import '../../../cities/presentation/city_tags.dart';
 import '../../../companies/domain/entities/company.dart';
 import '../../../companies/presentation/company_details_screen.dart';
 import '../../../reviews/domain/review.dart';
@@ -52,12 +54,14 @@ class HomeCompaniesTab extends ConsumerWidget {
     final ratings =
         ref.watch(ratingsProvider).asData?.value ??
         const <String, RatingStats>{};
+    final cityId = ref.watch(cityFilterProvider);
     final shown = viewCompanies(
       companies,
       sort: sort,
       ratings: ratings,
       categoriesOf: topCategories,
       categoryId: categoryId,
+      cityId: cityId,
     );
     // The chips: the top-level categories some company works in.
     final chipIds = <String>[];
@@ -81,6 +85,11 @@ class HomeCompaniesTab extends ConsumerWidget {
         ? shown.first
         : null;
     final rest = feature == null ? shown : shown.skip(1).toList();
+    // Where the companies that do not serve the customer's city start. The
+    // list is already in that order, so it is the first one that does not.
+    final firstOther = cityId == null
+        ? -1
+        : rest.indexWhere((company) => !company.servesCity(cityId));
 
     return Column(
       key: const ValueKey('home-companies-tab'),
@@ -148,6 +157,10 @@ class HomeCompaniesTab extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.s12),
                     ],
                     for (var i = 0; i < rest.length; i++) ...[
+                      if (i == firstOther) ...[
+                        OtherCompaniesHeader(cityId: cityId!),
+                        const SizedBox(height: AppSpacing.s12),
+                      ],
                       _CompanyRow(
                         company: rest[i],
                         ratings: ratings,
@@ -604,6 +617,10 @@ class _CompanyRow extends StatelessWidget {
                       const SizedBox(height: AppSpacing.s6),
                       _Tags(tags: tags),
                     ],
+                    CompanyCityTag(
+                      companyId: company.id,
+                      spaceAbove: AppSpacing.s6,
+                    ),
                   ],
                 ),
               ),

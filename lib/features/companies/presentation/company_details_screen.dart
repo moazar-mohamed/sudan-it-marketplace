@@ -7,6 +7,8 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/phone_number.dart';
 import '../../../core/widgets/app_widgets.dart';
 import 'companies_providers.dart';
+import '../../cities/presentation/city_providers.dart';
+import '../../cities/presentation/city_tags.dart';
 import '../../location/presentation/location_strings.dart';
 import '../../location/presentation/widgets/open_location_button.dart';
 import '../../products/domain/entities/product.dart';
@@ -60,12 +62,9 @@ class CompanyDetailsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (!ref.watch(companyServesMyCityProvider(company.id))) ...[
-                  AppBanner(
-                    tone: AppTone.warning,
-                    icon: Icons.location_off_outlined,
-                    message: l10n.cityNotServed,
-                  ),
+                if (!ref.watch(companyServesMyCityProvider(company.id)) ||
+                    ref.watch(deliveryCityOverrideProvider) != null) ...[
+                  DeliveryCityBanner(companyId: company.id),
                   const SizedBox(height: AppSpacing.s12),
                 ],
                 AppCard(

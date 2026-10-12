@@ -173,10 +173,14 @@ class _TechnicianTile extends StatelessWidget {
             ),
           const SizedBox(height: AppSpacing.s6),
           StatusBadge(
-            label: technician.isActive
-                ? context.l10n.adminActive
-                : context.l10n.adminInactive,
-            tone: technician.isActive ? AppTone.success : AppTone.neutral,
+            label: !technician.isActive
+                ? context.l10n.adminInactive
+                : (technician.isAvailable
+                    ? context.l10n.adminActive
+                    : context.l10n.tjUnavailable),
+            tone: !technician.isActive
+                ? AppTone.neutral
+                : (technician.isAvailable ? AppTone.success : AppTone.warning),
           ),
         ],
       ),

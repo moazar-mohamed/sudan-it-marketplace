@@ -95,6 +95,21 @@ class FirestoreTechniciansRemoteDataSource
     }
   }
 
+  @override
+  Future<void> setAvailability(
+    String technicianId, {
+    required bool available,
+  }) async {
+    try {
+      await _technicians.doc(technicianId).update({
+        'isAvailable': available,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (error) {
+      throw _failure(error, AppErrorCode.technicianUpdateDenied, AppErrorCode.technicianUpdateFailed);
+    }
+  }
+
   /// Name of the throw-away Firebase app that creates technician accounts.
   static const _provisioningAppName = 'technician-provisioning';
 

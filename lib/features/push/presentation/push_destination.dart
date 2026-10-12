@@ -21,6 +21,13 @@ class CompanyOrderDestination extends PushDestination {
   final String orderId;
 }
 
+/// A job opened from a push, as the technician it belongs to sees it.
+class TechnicianJobDestination extends PushDestination {
+  const TechnicianJobDestination(this.orderId);
+
+  final String orderId;
+}
+
 class CustomerOrderDestination extends PushDestination {
   const CustomerOrderDestination(this.orderId);
 
@@ -57,7 +64,7 @@ class CompanyDestination extends PushDestination {
 
 /// Where a push with [data] (as the push relay sends it) leads for the
 /// signed-in [profile], or null when it has no screen for them (it was meant
-/// for another kind of account, or a technician's job, which opens the app).
+/// for another kind of account).
 PushDestination? pushDestination(Map<String, dynamic> data, UserProfile profile) {
   String text(String key) => (data[key] as String?)?.trim() ?? '';
 
@@ -69,6 +76,20 @@ PushDestination? pushDestination(Map<String, dynamic> data, UserProfile profile)
         ChatDestination(chatId, ChatParticipantRole.company),
       ('customer', UserRole.customer) =>
         ChatDestination(chatId, ChatParticipantRole.customer),
+      _ => null,
+    };
+  }
+
+  // A message in the technician-company conversation of a job: the company
+  // opens the order (its conversation button is there), the technician the job.
+  if (text('type') == 'job_chat_message') {
+    final orderId = text('orderId');
+    final companyId = profile.companyId?.trim() ?? '';
+    if (orderId.isEmpty) return null;
+    return switch ((text('role'), profile.role)) {
+      ('company', UserRole.companyAdmin) when companyId.isNotEmpty =>
+        CompanyOrderDestination(companyId, orderId),
+      ('technician', UserRole.technician) => TechnicianJobDestination(orderId),
       _ => null,
     };
   }
@@ -115,6 +136,7 @@ PushDestination? pushDestination(Map<String, dynamic> data, UserProfile profile)
     ('company_admin', UserRole.companyAdmin) when companyId.isNotEmpty =>
       CompanyOrderDestination(companyId, orderId),
     ('customer', UserRole.customer) => CustomerOrderDestination(orderId),
+    ('technician', UserRole.technician) => TechnicianJobDestination(orderId),
     _ => null,
   };
 }

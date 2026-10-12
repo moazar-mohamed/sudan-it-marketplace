@@ -19,24 +19,36 @@ class SearchField {
 ///   and common Arabic/English pairs count as the same word, so "لابتوب" finds
 ///   "Laptop".
 /// - An empty query keeps every item in its original order.
+/// - Among equally good matches, the item with the higher [tieBreak] comes
+///   first (for example the ones that are in stock), then the original order.
 List<T> searchRanked<T>(
   Iterable<T> items,
   String query,
-  List<SearchField> Function(T item) fieldsOf,
-) {
+  List<SearchField> Function(T item) fieldsOf, {
+  int Function(T item)? tieBreak,
+}) {
   final list = items.toList();
   final tokens = _tokens(query);
   if (tokens.isEmpty) return list;
 
   final wholeQuery = tokens.join(' ');
-  final scored = <({T item, int index, int score})>[];
+  final scored = <({T item, int index, int score, int tie})>[];
   for (var i = 0; i < list.length; i++) {
     final score = _score(tokens, wholeQuery, fieldsOf(list[i]));
-    if (score > 0) scored.add((item: list[i], index: i, score: score));
+    if (score > 0) {
+      scored.add((
+        item: list[i],
+        index: i,
+        score: score,
+        tie: tieBreak?.call(list[i]) ?? 0,
+      ));
+    }
   }
   scored.sort((a, b) {
     final byScore = b.score.compareTo(a.score);
-    return byScore != 0 ? byScore : a.index.compareTo(b.index);
+    if (byScore != 0) return byScore;
+    final byTie = b.tie.compareTo(a.tie);
+    return byTie != 0 ? byTie : a.index.compareTo(b.index);
   });
   return [for (final entry in scored) entry.item];
 }
@@ -61,6 +73,60 @@ bool searchWordHit(String word, List<String> queryTokens) {
     }
   }
   return false;
+}
+
+/// "Did you mean ...": a corrected form of [query] built from the words of
+/// [vocabulary] (the names people can find), or null when every word of the
+/// query is already a word of it, or when no word is close enough to guess.
+///
+/// Only words that match nothing in the vocabulary are changed, to the closest
+/// word within a couple of letters, so a correct query is never rewritten.
+String? suggestCorrection(String query, Iterable<String> vocabulary) {
+  final tokens = _tokens(query);
+  if (tokens.isEmpty) return null;
+  final words = <String>{};
+  for (final text in vocabulary) {
+    words.addAll(_tokens(text));
+  }
+  if (words.isEmpty) return null;
+
+  var changed = false;
+  final corrected = <String>[];
+  for (final token in tokens) {
+    // Known as it is, or the start or inside of a longer word.
+    final known = words.any(
+      (word) =>
+          word == token ||
+          word.startsWith(token) ||
+          (token.length >= 3 && word.contains(token)),
+    );
+    if (known || token.length < 3) {
+      corrected.add(token);
+      continue;
+    }
+    // More forgiving than the search itself (which a longer word needs
+    // seven letters for two typos): this only runs when nothing was found.
+    final allowed = token.length >= 5 ? 2 : 1;
+    String? best;
+    var bestDistance = allowed + 1;
+    for (final word in words) {
+      if ((word.length - token.length).abs() > allowed) continue;
+      for (var max = 1; max <= allowed && max < bestDistance; max++) {
+        if (_withinEdits(token, word, max)) {
+          best = word;
+          bestDistance = max;
+          break;
+        }
+      }
+    }
+    if (best == null) {
+      corrected.add(token);
+    } else {
+      corrected.add(best);
+      changed = true;
+    }
+  }
+  return changed ? corrected.join(' ') : null;
 }
 
 // ── scoring ────────────────────────────────────────────────────────────────
@@ -239,6 +305,45 @@ const _synonymGroups = <List<String>>[
   ['headset', 'سماعه', 'سماعات', 'headphones'],
   ['charger', 'شاحن', 'شواحن', 'adapter'],
   ['battery', 'بطاريه', 'بطاريات'],
+  ['internet', 'انترنت', 'الانترنت'],
+  ['fiber', 'فايبر', 'الياف', 'fibre', 'فيبر'],
+  ['modem', 'مودم'],
+  ['repeater', 'مقوي', 'مقوي شبكه', 'مكرر', 'extender', 'ريبيتر'],
+  ['antenna', 'انتينا', 'هوائي', 'اريال'],
+  ['intercom', 'انتركم', 'جرس مرئي'],
+  ['alarm', 'انذار', 'جهاز انذار'],
+  ['accesscontrol', 'تحكم دخول', 'بصمه', 'جهاز بصمه', 'attendance', 'حضور وانصراف'],
+  ['solar', 'طاقه شمسيه', 'سولار', 'الواح شمسيه'],
+  ['inverter', 'انفرتر', 'محول طاقه'],
+  ['generator', 'مولد', 'مولد كهرباء', 'جنريتور'],
+  ['stabilizer', 'استابلايزر', 'منظم جهد', 'ستابلايزر', 'avr'],
+  ['rack', 'راك', 'خزانه شبكه'],
+  ['patchpanel', 'باتش بانل', 'patch panel'],
+  ['connector', 'كونكتر', 'موصل', 'rj45', 'rj 45'],
+  ['flashdisk', 'فلاش', 'فلاش ديسك', 'فلاشه', 'usb flash', 'ذاكره فلاش'],
+  ['memorycard', 'كارت ذاكره', 'ميموري كارد', 'sd card'],
+  ['powerbank', 'باور بانك', 'شاحن متنقل', 'بنك طاقه'],
+  ['hp', 'اتش بي', 'هيولت باكارد'],
+  ['dell', 'ديل'],
+  ['lenovo', 'لينوفو', 'لينوفا'],
+  ['asus', 'اسوس', 'ايسوس'],
+  ['acer', 'ايسر', 'اسر'],
+  ['samsung', 'سامسونج', 'سامسونغ'],
+  ['huawei', 'هواوي', 'هواوى'],
+  ['tplink', 'تي بي لينك', 'tp link', 'tp-link'],
+  ['dlink', 'دي لينك', 'd link', 'd-link'],
+  ['cisco', 'سيسكو'],
+  ['mikrotik', 'ميكروتك', 'ميكروتيك'],
+  ['ubiquiti', 'يوبيكويتي', 'ubnt'],
+  ['hikvision', 'هيكفيجن', 'هيك فيجن', 'هايك فيجن'],
+  ['dahua', 'داهوا', 'داها'],
+  ['canon', 'كانون', 'كانن'],
+  ['epson', 'ابسون', 'ايبسون'],
+  ['brother', 'برذر', 'براذر'],
+  ['apc', 'ايه بي سي'],
+  ['kaspersky', 'كاسبرسكي'],
+  ['windows', 'ويندوز'],
+  ['office', 'اوفيس', 'مايكروسوفت اوفيس'],
 ];
 
 final List<_SynonymRule> _synonymRules = _buildSynonymRules();

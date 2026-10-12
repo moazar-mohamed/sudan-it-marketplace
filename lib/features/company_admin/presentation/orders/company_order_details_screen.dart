@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_widgets.dart';
 import '../../../chats/domain/entities/chat_conversation.dart';
 import '../../../chats/presentation/chat_providers.dart';
 import '../../../chats/presentation/chat_screen.dart';
+import '../../../cities/domain/sudan_city.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../location/presentation/location_strings.dart';
 import '../../../orders/presentation/order_chat_actions.dart';
@@ -20,6 +21,7 @@ import '../widgets/admin_section_card.dart';
 import '../widgets/order_status_actions.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/technician_assignment_card.dart';
+import '../widgets/technician_job_extras.dart';
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../orders/presentation/order_labels.dart';
 import '../../../orders/presentation/widgets/receipt_viewer.dart';
@@ -121,6 +123,16 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                           : context.l10n.pendingDeliveryAddress,
                       value: orderDeliveryLabel(context, order),
                     ),
+                    // The city the customer chose for this delivery (an order
+                    // for someone elsewhere), when it was recorded.
+                    if (order.deliveryMethod == DeliveryMethod.delivery &&
+                        cityById(order.deliveryCityId) != null)
+                      AdminInfoRow(
+                        label: context.l10n.orderDeliveryCity,
+                        value: cityById(order.deliveryCityId)!.name(
+                          Localizations.localeOf(context).languageCode,
+                        ),
+                      ),
                     if (order.deliveryMethod == DeliveryMethod.delivery)
                       AdminInfoRow(
                         label: context.l10n.orderDeliveryFee,
@@ -163,6 +175,7 @@ class CompanyOrderDetailsScreen extends ConsumerWidget {
                 if (order.installationSelected) ...[
                   const SizedBox(height: 12),
                   TechnicianAssignmentCard(companyId: companyId, order: order),
+                  TechnicianJobExtras(order: order),
                 ],
                 const SizedBox(height: 12),
                 AdminSectionCard(

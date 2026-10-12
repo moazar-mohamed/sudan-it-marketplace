@@ -3557,7 +3557,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cityPickerSubtitle =>
-      'We show you the companies that serve your city, so your orders can be delivered.';
+      'Companies that serve your city come first, so your orders can be delivered.';
 
   @override
   String get cityChangeTooltip => 'Change city';
@@ -3590,18 +3590,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get citySearchHint => 'Search cities';
 
   @override
-  String get cityUseMyLocation => 'Use my location';
+  String get cityDeliveryPickerTitle => 'Delivery city';
 
   @override
-  String get cityLocationFailed =>
-      'Could not find your location. Choose your city from the list.';
+  String get cityDeliveryPickerHint =>
+      'You can choose the cities this company serves. This does not change your own city.';
 
   @override
-  String get cityBrowseAll => 'Browse all cities';
+  String get cityCompanyDoesNotServe => 'This company does not serve it';
 
   @override
-  String get cityBrowseAllHint =>
-      'You can look at every company, but you can only order from companies that serve your city.';
+  String get cityDeliveryLabel => 'Delivery city';
+
+  @override
+  String get cityDeliveryChange => 'Change';
+
+  @override
+  String get cityDeliveryChangeButton => 'Change delivery city';
+
+  @override
+  String get cityDeliveryForOther =>
+      'Ordering for someone else? Choose their city. Your own city stays the same.';
+
+  @override
+  String cityDeliveryServed(String company) {
+    return '$company serves this city';
+  }
+
+  @override
+  String cityServesCity(String city) {
+    return 'Serves $city';
+  }
+
+  @override
+  String cityServesList(String cities) {
+    return 'Serves: $cities';
+  }
+
+  @override
+  String get cityOtherCompaniesTitle => 'Other companies';
+
+  @override
+  String cityOtherCompaniesHint(String city) {
+    return 'They do not serve $city, but you can order from them for delivery to another city.';
+  }
+
+  @override
+  String cityNotServedOnlyTitle(String cities) {
+    return 'Serves $cities only';
+  }
+
+  @override
+  String cityNotServedOnlyBody(String city) {
+    return 'Your delivery city is $city. To order, change the delivery city to one this company serves.';
+  }
+
+  @override
+  String cityDeliveringTo(String city) {
+    return 'Delivery to $city';
+  }
+
+  @override
+  String get cityDeliveryChoose => 'Choose a city';
+
+  @override
+  String get cityDeliveryNeedsCity =>
+      'Choose a delivery city this company serves.';
+
+  @override
+  String get orderDeliveryCity => 'Delivery city';
 
   @override
   String cityCompaniesCount(int count) {
@@ -3697,4 +3754,261 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get productBrand => 'Brand';
+
+  @override
+  String get tjAvailable => 'Available';
+
+  @override
+  String get tjBusy => 'Busy';
+
+  @override
+  String tjOpenJobsCount(int count) {
+    return 'You have $count open jobs';
+  }
+
+  @override
+  String get tjNoOpenJobs => 'No open jobs right now';
+
+  @override
+  String get tjNextJob => 'Next job';
+
+  @override
+  String get tjNavigate => 'Directions';
+
+  @override
+  String get tjCall => 'Call';
+
+  @override
+  String get tjStatOpen => 'Open';
+
+  @override
+  String get tjMonthFees => 'Installation fees this month';
+
+  @override
+  String get tjMonthFeesHint => 'From completed jobs';
+
+  @override
+  String tjDistanceKm(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get tjSearchHint => 'Search by customer or product';
+
+  @override
+  String get tjSortNewest => 'Newest';
+
+  @override
+  String get tjSortNearest => 'Nearest';
+
+  @override
+  String tjFilterAll(int count) {
+    return 'All $count';
+  }
+
+  @override
+  String tjFilterOpen(int count) {
+    return 'Open $count';
+  }
+
+  @override
+  String tjFilterDone(int count) {
+    return 'Done $count';
+  }
+
+  @override
+  String tjFilterCancelled(int count) {
+    return 'Cancelled $count';
+  }
+
+  @override
+  String get tjSectionOpen => 'Open';
+
+  @override
+  String get tjSectionDone => 'Completed';
+
+  @override
+  String get tjSectionCancelled => 'Cancelled';
+
+  @override
+  String get tjNoMatches => 'No jobs match your search.';
+
+  @override
+  String get tjAwaitingPaymentTag => 'Waiting for payment confirmation';
+
+  @override
+  String get tjCancelledTag => 'Cancelled by the company';
+
+  @override
+  String get tjProgressTitle => 'Job progress';
+
+  @override
+  String get tjStepPaid => 'Payment confirmed';
+
+  @override
+  String get tjStepPreparing => 'Preparing';
+
+  @override
+  String get tjStepOnTheWay => 'On the way';
+
+  @override
+  String get tjStepDone => 'Done';
+
+  @override
+  String get tjCopyAddress => 'Copy address';
+
+  @override
+  String get tjAddressCopied => 'Address copied';
+
+  @override
+  String get tjNotesTitle => 'My notes';
+
+  @override
+  String get tjNotesHint => 'Write a note about the job';
+
+  @override
+  String get tjNotesAdd => 'Add';
+
+  @override
+  String get tjNotesEmpty => 'No notes yet.';
+
+  @override
+  String get tjNotesVisibility =>
+      'Only your company sees these, not the customer.';
+
+  @override
+  String get tjNoteDelete => 'Delete note';
+
+  @override
+  String get tjTechnicianNotesTitle => 'Technician notes';
+
+  @override
+  String get tjNoteCompletion => 'On completion';
+
+  @override
+  String get tjChatWithCompany => 'Chat with the company';
+
+  @override
+  String get tjChatWithTechnician => 'Chat with the technician';
+
+  @override
+  String get tjChatEmpty => 'No messages yet. Write the first one.';
+
+  @override
+  String get tjChatHint => 'Write a message';
+
+  @override
+  String get tjChatPrivate =>
+      'This conversation is between the technician and the company only.';
+
+  @override
+  String get tjChatCompany => 'Company';
+
+  @override
+  String get tjChatYou => 'You';
+
+  @override
+  String get tjNoTechnicianAssigned =>
+      'No technician is assigned to this order yet.';
+
+  @override
+  String tjFinishTitle(String id) {
+    return 'Finish job $id';
+  }
+
+  @override
+  String get tjCheckInstalled => 'I installed the product and checked it works';
+
+  @override
+  String get tjCheckExplained => 'I showed the customer how to use it';
+
+  @override
+  String get tjCheckHandedOver => 'I handed over the invoice or warranty';
+
+  @override
+  String get tjFinishNoteHint => 'Note for the company (optional)';
+
+  @override
+  String get tjFinishConfirm => 'Confirm completion';
+
+  @override
+  String get tjFinishChecklistRequired =>
+      'Tick all three steps before confirming.';
+
+  @override
+  String get tjNotifToday => 'Today';
+
+  @override
+  String get tjNotifEarlier => 'Earlier';
+
+  @override
+  String get tjMarkAllRead => 'Mark all read';
+
+  @override
+  String get tjCompletedJobs => 'Jobs done';
+
+  @override
+  String get tjAvailabilityTitle => 'I am available for jobs';
+
+  @override
+  String get tjAvailabilityHint =>
+      'When off, your company sees you as unavailable when assigning jobs.';
+
+  @override
+  String get tjAvailabilityFailed => 'Could not change your status. Try again.';
+
+  @override
+  String get tjJobNotificationsTitle => 'Job notifications';
+
+  @override
+  String get tjUnavailable => 'Unavailable';
+
+  @override
+  String get notifJobReadyTitle => 'Job ready to start';
+
+  @override
+  String notifJobReadyBody(String product) {
+    return 'The payment for \"$product\" was confirmed. You can start the job.';
+  }
+
+  @override
+  String get notifJobCancelledTitle => 'Job cancelled';
+
+  @override
+  String notifJobCancelledBody(String product) {
+    return 'The company cancelled the job for \"$product\".';
+  }
+
+  @override
+  String get notifJobCompletedTitle => 'Installation completed';
+
+  @override
+  String notifJobCompletedBody(String product) {
+    return 'The technician finished the job for \"$product\".';
+  }
+
+  @override
+  String searchDidYouMean(String term) {
+    return 'Did you mean “$term”?';
+  }
+
+  @override
+  String get searchSortRelevance => 'Best match';
+
+  @override
+  String get searchSortPriceLow => 'Price: low to high';
+
+  @override
+  String get searchSortPriceHigh => 'Price: high to low';
+
+  @override
+  String get searchInStockOnly => 'In stock only';
+
+  @override
+  String get searchTypeCategory => 'Category';
+
+  @override
+  String tjSearchResults(int count) {
+    return '$count results';
+  }
 }

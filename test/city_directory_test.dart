@@ -13,7 +13,7 @@ void main() {
       final cities = citiesFromDocument({
         'ids': ['atlantis', 'camelot'],
         'items': [
-          {'id': 'atlantis', 'nameAr': 'أطلنطس', 'nameEn': 'Atlantis', 'latitude': 10, 'longitude': 20},
+          {'id': 'atlantis', 'nameAr': 'أطلنطس', 'nameEn': 'Atlantis'},
           {'id': 'camelot', 'nameAr': '', 'nameEn': 'Camelot', 'active': false},
           {'id': '', 'nameEn': 'No id'},
           {'id': 'nameless'},
@@ -22,10 +22,9 @@ void main() {
         ],
       });
       expect(cities.map((c) => c.id), ['atlantis', 'camelot']);
-      expect(cities[0].latitude, 10);
+      expect(cities[0].nameAr, 'أطلنطس');
       expect(cities[1].nameAr, 'Camelot');
       expect(cities[1].active, isFalse);
-      expect(cities[1].latitude, isNull);
     });
 
     test('a missing or empty document means the built-in list', () {
@@ -37,7 +36,7 @@ void main() {
     test('once set, it is the list the app works with', () {
       setCityDirectory(citiesFromDocument({
         'items': [
-          {'id': 'atlantis', 'nameAr': 'أطلنطس', 'nameEn': 'Atlantis', 'latitude': 15.5, 'longitude': 32.5},
+          {'id': 'atlantis', 'nameAr': 'أطلنطس', 'nameEn': 'Atlantis'},
           {'id': 'camelot', 'nameEn': 'Camelot', 'active': false},
         ],
       }));
@@ -45,7 +44,6 @@ void main() {
       expect(cityById('khartoum'), isNull);
       expect(sudanCities, hasLength(2));
       expect(activeCities.map((c) => c.id), ['atlantis']);
-      expect(nearestCity(15.5, 32.5)?.id, 'atlantis');
       resetCityDirectory();
       expect(cityById('khartoum'), isNotNull);
     });
@@ -57,14 +55,13 @@ void main() {
       ]);
     });
 
-    test('a city without a position or a hidden one is never suggested', () {
-      setCityDirectory(const [
-        SudanCity('hidden', 'مخفية', 'Hidden', 15.5, 32.5, false),
-        SudanCity('nowhere', 'بلا موقع', 'Nowhere'),
-        SudanCity('far', 'بعيدة', 'Far', 20, 37),
-      ]);
-      expect(nearestCity(15.5, 32.5), isNull);
-      expect(nearestCity(20, 37)?.id, 'far');
+    test('a position saved by an older admin panel is ignored', () {
+      final cities = citiesFromDocument({
+        'items': [
+          {'id': 'old', 'nameEn': 'Old', 'latitude': 10, 'longitude': 20},
+        ],
+      });
+      expect(cities.single.id, 'old');
     });
   });
 

@@ -16,6 +16,7 @@ class TechnicianModel {
       email: data['email'] as String?,
       uid: data['uid'] as String?,
       isActive: data['isActive'] as bool? ?? true,
+      isAvailable: data['isAvailable'] as bool? ?? true,
       createdAt: createdAt is Timestamp ? createdAt.toDate() : null,
     );
   }

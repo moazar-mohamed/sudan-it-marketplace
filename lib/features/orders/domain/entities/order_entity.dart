@@ -103,6 +103,7 @@ class OrderEntity {
     required this.deliveryAddress,
     required this.contactPhone,
     this.deliveryMethod = DeliveryMethod.delivery,
+    this.deliveryCityId,
     this.customerName = '',
     this.paymentStatus = PaymentStatus.pendingVerification,
     this.orderStatus = OrderStatus.processing,
@@ -141,6 +142,11 @@ class OrderEntity {
   final String deliveryAddress;
   final String contactPhone;
   final DeliveryMethod deliveryMethod;
+
+  /// The city a delivery order goes to (a customer can order for someone in
+  /// another city). Null on a pickup order and on orders placed before the
+  /// city was recorded, which went to the customer's own city.
+  final String? deliveryCityId;
   final String customerName;
   final PaymentStatus paymentStatus;
   final OrderStatus orderStatus;
@@ -226,6 +232,7 @@ class OrderEntity {
     String? deliveryAddress,
     String? contactPhone,
     DeliveryMethod? deliveryMethod,
+    String? deliveryCityId,
     String? customerName,
     PaymentStatus? paymentStatus,
     OrderStatus? orderStatus,
@@ -258,6 +265,7 @@ class OrderEntity {
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
       contactPhone: contactPhone ?? this.contactPhone,
       deliveryMethod: deliveryMethod ?? this.deliveryMethod,
+      deliveryCityId: deliveryCityId ?? this.deliveryCityId,
       customerName: customerName ?? this.customerName,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       orderStatus: orderStatus ?? this.orderStatus,

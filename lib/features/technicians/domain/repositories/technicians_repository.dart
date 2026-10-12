@@ -21,6 +21,9 @@ abstract interface class TechniciansRepository {
   /// record, matching this app's existing delete-by-deactivation pattern.
   Future<void> deactivateTechnician(String technicianId);
 
+  /// The technician's own "taking new jobs" switch (only they can change it).
+  Future<void> setAvailability(String technicianId, {required bool available});
+
   /// Creates the technician's Firebase Auth account with [password] (a
   /// temporary one) together with their `users/{uid}` profile
   /// (`mustChangePassword: true`) and `technicians/{uid}` record, so the

@@ -3552,7 +3552,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cityPickerSubtitle =>
-      'نعرض لك الشركات التي تخدم مدينتك فقط، حتى تصلك طلباتك.';
+      'تظهر لك أولاً الشركات التي تخدم مدينتك، حتى تصلك طلباتك.';
 
   @override
   String get cityChangeTooltip => 'تغيير المدينة';
@@ -3585,17 +3585,74 @@ class AppLocalizationsAr extends AppLocalizations {
   String get citySearchHint => 'ابحث عن مدينة';
 
   @override
-  String get cityUseMyLocation => 'استخدم موقعي';
+  String get cityDeliveryPickerTitle => 'مدينة التوصيل';
 
   @override
-  String get cityLocationFailed => 'تعذّر تحديد موقعك. اختر مدينتك من القائمة.';
+  String get cityDeliveryPickerHint =>
+      'يمكنك اختيار المدن التي تخدمها هذه الشركة. هذا لا يغيّر مدينة حسابك.';
 
   @override
-  String get cityBrowseAll => 'تصفح كل المدن';
+  String get cityCompanyDoesNotServe => 'الشركة لا تخدمها';
 
   @override
-  String get cityBrowseAllHint =>
-      'يمكنك تصفح كل الشركات، لكن الطلب يكون فقط من شركات تخدم مدينتك.';
+  String get cityDeliveryLabel => 'مدينة التوصيل';
+
+  @override
+  String get cityDeliveryChange => 'تغيير';
+
+  @override
+  String get cityDeliveryChangeButton => 'غيّر مدينة التوصيل';
+
+  @override
+  String get cityDeliveryForOther =>
+      'الطلب لشخص آخر؟ اختر مدينته. مدينة حسابك لا تتغير.';
+
+  @override
+  String cityDeliveryServed(String company) {
+    return '$company تخدم هذه المدينة';
+  }
+
+  @override
+  String cityServesCity(String city) {
+    return 'تخدم $city';
+  }
+
+  @override
+  String cityServesList(String cities) {
+    return 'تخدم: $cities';
+  }
+
+  @override
+  String get cityOtherCompaniesTitle => 'شركات أخرى';
+
+  @override
+  String cityOtherCompaniesHint(String city) {
+    return 'لا تخدم $city، لكن يمكنك الطلب منها لتوصيل إلى مدينة أخرى.';
+  }
+
+  @override
+  String cityNotServedOnlyTitle(String cities) {
+    return 'تخدم $cities فقط';
+  }
+
+  @override
+  String cityNotServedOnlyBody(String city) {
+    return 'مدينة التوصيل الحالية هي $city. لإتمام الطلب غيّر مدينة التوصيل إلى مدينة تخدمها الشركة.';
+  }
+
+  @override
+  String cityDeliveringTo(String city) {
+    return 'التوصيل إلى $city';
+  }
+
+  @override
+  String get cityDeliveryChoose => 'اختر مدينة';
+
+  @override
+  String get cityDeliveryNeedsCity => 'اختر مدينة توصيل تخدمها الشركة.';
+
+  @override
+  String get orderDeliveryCity => 'مدينة التوصيل';
 
   @override
   String cityCompaniesCount(int count) {
@@ -3691,4 +3748,257 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get productBrand => 'الماركة';
+
+  @override
+  String get tjAvailable => 'متاح';
+
+  @override
+  String get tjBusy => 'مشغول';
+
+  @override
+  String tjOpenJobsCount(int count) {
+    return 'لديك $count مهام جارية';
+  }
+
+  @override
+  String get tjNoOpenJobs => 'لا توجد مهام جارية الآن';
+
+  @override
+  String get tjNextJob => 'المهمة التالية';
+
+  @override
+  String get tjNavigate => 'الموقع';
+
+  @override
+  String get tjCall => 'اتصال';
+
+  @override
+  String get tjStatOpen => 'جارية';
+
+  @override
+  String get tjMonthFees => 'رسوم التركيب هذا الشهر';
+
+  @override
+  String get tjMonthFeesHint => 'من المهام المكتملة';
+
+  @override
+  String tjDistanceKm(String km) {
+    return '$km كم';
+  }
+
+  @override
+  String get tjSearchHint => 'ابحث بالعميل أو المنتج';
+
+  @override
+  String get tjSortNewest => 'الأحدث';
+
+  @override
+  String get tjSortNearest => 'الأقرب';
+
+  @override
+  String tjFilterAll(int count) {
+    return 'الكل $count';
+  }
+
+  @override
+  String tjFilterOpen(int count) {
+    return 'جارية $count';
+  }
+
+  @override
+  String tjFilterDone(int count) {
+    return 'مكتملة $count';
+  }
+
+  @override
+  String tjFilterCancelled(int count) {
+    return 'ملغاة $count';
+  }
+
+  @override
+  String get tjSectionOpen => 'جارية';
+
+  @override
+  String get tjSectionDone => 'مكتملة';
+
+  @override
+  String get tjSectionCancelled => 'ملغاة';
+
+  @override
+  String get tjNoMatches => 'لا توجد مهام تطابق بحثك.';
+
+  @override
+  String get tjAwaitingPaymentTag => 'بانتظار تأكيد الدفع';
+
+  @override
+  String get tjCancelledTag => 'ملغاة من الشركة';
+
+  @override
+  String get tjProgressTitle => 'تقدّم المهمة';
+
+  @override
+  String get tjStepPaid => 'تأكيد الدفع';
+
+  @override
+  String get tjStepPreparing => 'قيد التجهيز';
+
+  @override
+  String get tjStepOnTheWay => 'في الطريق';
+
+  @override
+  String get tjStepDone => 'اكتملت';
+
+  @override
+  String get tjCopyAddress => 'نسخ العنوان';
+
+  @override
+  String get tjAddressCopied => 'تم نسخ العنوان';
+
+  @override
+  String get tjNotesTitle => 'ملاحظاتي';
+
+  @override
+  String get tjNotesHint => 'اكتب ملاحظة عن المهمة';
+
+  @override
+  String get tjNotesAdd => 'إضافة';
+
+  @override
+  String get tjNotesEmpty => 'لا توجد ملاحظات بعد.';
+
+  @override
+  String get tjNotesVisibility => 'تظهر للشركة فقط، ولا يراها العميل.';
+
+  @override
+  String get tjNoteDelete => 'حذف الملاحظة';
+
+  @override
+  String get tjTechnicianNotesTitle => 'ملاحظات الفني';
+
+  @override
+  String get tjNoteCompletion => 'عند الإنجاز';
+
+  @override
+  String get tjChatWithCompany => 'محادثة مع الشركة';
+
+  @override
+  String get tjChatWithTechnician => 'محادثة مع الفني';
+
+  @override
+  String get tjChatEmpty => 'لا توجد رسائل بعد. اكتب أول رسالة.';
+
+  @override
+  String get tjChatHint => 'اكتب رسالة';
+
+  @override
+  String get tjChatPrivate => 'هذه المحادثة بين الفني والشركة فقط.';
+
+  @override
+  String get tjChatCompany => 'الشركة';
+
+  @override
+  String get tjChatYou => 'أنت';
+
+  @override
+  String get tjNoTechnicianAssigned => 'لم يُسند فني لهذا الطلب بعد.';
+
+  @override
+  String tjFinishTitle(String id) {
+    return 'إنهاء المهمة $id';
+  }
+
+  @override
+  String get tjCheckInstalled => 'ركّبت المنتج وتأكدت من عمله';
+
+  @override
+  String get tjCheckExplained => 'شرحت للعميل طريقة الاستخدام';
+
+  @override
+  String get tjCheckHandedOver => 'سلّمت العميل ما يلزم من فاتورة أو ضمان';
+
+  @override
+  String get tjFinishNoteHint => 'ملاحظة للشركة (اختيارية)';
+
+  @override
+  String get tjFinishConfirm => 'تأكيد الإنجاز';
+
+  @override
+  String get tjFinishChecklistRequired => 'علّم الخطوات الثلاث قبل التأكيد.';
+
+  @override
+  String get tjNotifToday => 'اليوم';
+
+  @override
+  String get tjNotifEarlier => 'أقدم';
+
+  @override
+  String get tjMarkAllRead => 'قراءة الكل';
+
+  @override
+  String get tjCompletedJobs => 'مهمة منجزة';
+
+  @override
+  String get tjAvailabilityTitle => 'أنا متاح للمهام';
+
+  @override
+  String get tjAvailabilityHint =>
+      'عند إيقافه تراك الشركة غير متاح عند إسناد المهام.';
+
+  @override
+  String get tjAvailabilityFailed => 'تعذّر تغيير حالتك. حاول مرة أخرى.';
+
+  @override
+  String get tjJobNotificationsTitle => 'إشعارات المهام';
+
+  @override
+  String get tjUnavailable => 'غير متاح';
+
+  @override
+  String get notifJobReadyTitle => 'المهمة جاهزة للبدء';
+
+  @override
+  String notifJobReadyBody(String product) {
+    return 'تم تأكيد دفع «$product». يمكنك بدء المهمة.';
+  }
+
+  @override
+  String get notifJobCancelledTitle => 'تم إلغاء المهمة';
+
+  @override
+  String notifJobCancelledBody(String product) {
+    return 'ألغت الشركة مهمة «$product».';
+  }
+
+  @override
+  String get notifJobCompletedTitle => 'اكتمل التركيب';
+
+  @override
+  String notifJobCompletedBody(String product) {
+    return 'أنهى الفني مهمة «$product».';
+  }
+
+  @override
+  String searchDidYouMean(String term) {
+    return 'هل تقصد «$term»؟';
+  }
+
+  @override
+  String get searchSortRelevance => 'الأنسب';
+
+  @override
+  String get searchSortPriceLow => 'الأقل سعراً';
+
+  @override
+  String get searchSortPriceHigh => 'الأعلى سعراً';
+
+  @override
+  String get searchInStockOnly => 'المتوفر فقط';
+
+  @override
+  String get searchTypeCategory => 'قسم';
+
+  @override
+  String tjSearchResults(int count) {
+    return '$count نتيجة';
+  }
 }

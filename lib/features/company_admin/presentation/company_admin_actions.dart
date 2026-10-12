@@ -76,6 +76,22 @@ class CompanyAdminActions {
           productName: order.productName,
         ),
       );
+      // A technician who already has the job learns it can start. Best
+      // effort: the payment is confirmed whatever happens to this.
+      final technicianId = order.technicianId?.trim() ?? '';
+      if (technicianId.isNotEmpty) {
+        try {
+          await notifications.createNotification(
+            NotificationEvents.jobReady(
+              orderId: order.id,
+              technicianId: technicianId,
+              productName: order.productName,
+            ),
+          );
+        } catch (error) {
+          debugLog('CompanyAdminActions', 'job_ready not sent: $error');
+        }
+      }
     });
   }
 
@@ -88,12 +104,27 @@ class CompanyAdminActions {
     OrderEntity order, {
     OrderCancelReason reason = OrderCancelReason.company,
   }) {
-    return _guardOrder(
-      () => _ref.read(ordersRepositoryProvider).cancelOrder(
+    return _guardOrder(() async {
+      await _ref.read(ordersRepositoryProvider).cancelOrder(
             orderId: order.id,
             reason: reason,
-          ),
-    );
+          );
+      // The technician of the job is told it is off. Best effort.
+      final technicianId = order.technicianId?.trim() ?? '';
+      if (technicianId.isNotEmpty) {
+        try {
+          await _ref.read(notificationsRepositoryProvider).createNotification(
+                NotificationEvents.jobCancelled(
+                  orderId: order.id,
+                  technicianId: technicianId,
+                  productName: order.productName,
+                ),
+              );
+        } catch (error) {
+          debugLog('CompanyAdminActions', 'job_cancelled not sent: $error');
+        }
+      }
+    });
   }
 
   /// Cancels as expired the company's orders whose payment was not verified

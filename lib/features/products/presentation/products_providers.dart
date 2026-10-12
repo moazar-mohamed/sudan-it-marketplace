@@ -30,7 +30,9 @@ final firestoreProductsStreamProvider = StreamProvider<List<Product>>((ref) {
 /// company list has not loaded (`companies == null`) company products stay
 /// hidden rather than flashing. Products with no company are kept.
 ///
-/// With a [cityId], only products of companies that serve that city stay.
+/// With a [cityId], the products of companies that serve that city come first;
+/// the others stay, after them (a customer may be ordering for someone in
+/// another city). Each group keeps the order it had.
 List<Product> productsOfActiveCompanies(
   List<Product> products,
   List<Company>? companies, {
@@ -40,15 +42,35 @@ List<Product> productsOfActiveCompanies(
       ? const <String>{}
       : {
           for (final company in companies)
+            if (company.isActive) company.id,
+        };
+  final servingIds = companies == null
+      ? const <String>{}
+      : {
+          for (final company in companies)
             if (company.isActive && company.servesCity(cityId)) company.id,
         };
-  return products.where((product) {
+  final visible = products.where((product) {
     final companyId = product.companyId;
     if (companyId == null || companyId.isEmpty) {
       return true;
     }
     return activeIds.contains(companyId);
   }).toList();
+  if (cityId == null) {
+    return visible;
+  }
+  bool serves(Product product) {
+    final companyId = product.companyId;
+    return companyId == null ||
+        companyId.isEmpty ||
+        servingIds.contains(companyId);
+  }
+
+  return [
+    ...visible.where(serves),
+    ...visible.where((product) => !serves(product)),
+  ];
 }
 
 /// Drops products with no units left. The marketplace query already filters

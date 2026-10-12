@@ -38,6 +38,12 @@ class _Relay implements PushRelay {
     required String chatId,
     required String messageId,
   }) async {}
+
+  @override
+  Future<void> jobChatMessage({
+    required String orderId,
+    required String messageId,
+  }) async {}
 }
 
 class _Profile extends ProfileController {
@@ -145,7 +151,7 @@ void main() {
       ]);
       expect(PushCategory.forRole(UserRole.companyAdmin), contains(PushCategory.platform));
       expect(PushCategory.forRole(UserRole.companyAdmin), isNot(contains(PushCategory.cityAnnouncements)));
-      expect(PushCategory.forRole(UserRole.technician), [PushCategory.orders]);
+      expect(PushCategory.forRole(UserRole.technician), [PushCategory.orders, PushCategory.chat]);
       expect(PushCategory.forRole(UserRole.platformAdmin), isEmpty);
     });
 
@@ -206,12 +212,13 @@ void main() {
       expect(_kind(PushCategory.cityAnnouncements), findsNothing);
     });
 
-    testWidgets('a technician sees orders only', (tester) async {
+    testWidgets('a technician sees job and chat notifications only', (tester) async {
       _tall(tester);
       await tester.pumpWidget(await _settings(UserRole.technician, _Store()));
       await tester.pumpAndSettle();
       expect(_kind(PushCategory.orders), findsOneWidget);
-      expect(_kind(PushCategory.chat), findsNothing);
+      expect(_kind(PushCategory.chat), findsOneWidget);
+      expect(_kind(PushCategory.serviceRequests), findsNothing);
     });
 
     testWidgets('turning one off saves that one kind, and shows it off', (tester) async {

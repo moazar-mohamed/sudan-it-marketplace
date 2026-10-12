@@ -19,6 +19,9 @@ class NotificationFormat {
       NotificationTypes.orderCompleted => l10n.notifOrderCompletedTitle,
       NotificationTypes.technicianAssigned =>
         l10n.notifTechnicianAssignedTitle,
+      NotificationTypes.jobReady => l10n.notifJobReadyTitle,
+      NotificationTypes.jobCancelled => l10n.notifJobCancelledTitle,
+      NotificationTypes.jobCompleted => l10n.notifJobCompletedTitle,
       NotificationTypes.newReview => l10n.notifNewReviewTitle,
       NotificationTypes.reviewReply => l10n.notifReviewReplyTitle,
       NotificationTypes.newServiceRequest =>
@@ -61,6 +64,11 @@ class NotificationFormat {
       NotificationTypes.orderCompleted => l10n.notifOrderCompletedBody,
       NotificationTypes.technicianAssigned when named =>
         l10n.notifTechnicianAssignedBody(product),
+      NotificationTypes.jobReady when named => l10n.notifJobReadyBody(product),
+      NotificationTypes.jobCancelled when named =>
+        l10n.notifJobCancelledBody(product),
+      NotificationTypes.jobCompleted when named =>
+        l10n.notifJobCompletedBody(product),
       NotificationTypes.newReview when named =>
         l10n.notifNewReviewBody(product),
       NotificationTypes.reviewReply when named =>
@@ -123,6 +131,18 @@ class NotificationFormat {
       NotificationTypes.technicianAssigned => (
           icon: Icons.engineering_outlined,
           tone: AppTone.brand,
+        ),
+      NotificationTypes.jobReady => (
+          icon: Icons.play_circle_outline,
+          tone: AppTone.success,
+        ),
+      NotificationTypes.jobCancelled => (
+          icon: Icons.cancel_outlined,
+          tone: AppTone.error,
+        ),
+      NotificationTypes.jobCompleted => (
+          icon: Icons.task_alt_outlined,
+          tone: AppTone.success,
         ),
       NotificationTypes.newReview => (
           icon: Icons.star_outline_rounded,

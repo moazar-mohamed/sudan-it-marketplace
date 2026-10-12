@@ -11,6 +11,13 @@ abstract final class NotificationTypes {
   static const outForDelivery = 'out_for_delivery';
   static const orderCompleted = 'order_completed';
   static const technicianAssigned = 'technician_assigned';
+
+  /// To a job's technician: the company confirmed the payment (the job can be
+  /// started) or cancelled the order. To the company: the technician
+  /// finished the job.
+  static const jobReady = 'job_ready';
+  static const jobCancelled = 'job_cancelled';
+  static const jobCompleted = 'job_completed';
   static const newReview = 'new_review';
   static const reviewReply = 'review_reply';
   static const newServiceRequest = 'new_service_request';
@@ -44,6 +51,9 @@ abstract final class NotificationTypes {
     outForDelivery,
     orderCompleted,
     technicianAssigned,
+    jobReady,
+    jobCancelled,
+    jobCompleted,
     newReview,
     reviewReply,
     newServiceRequest,
@@ -194,6 +204,48 @@ class NotificationEvents {
         recipientId: technicianId,
         orderId: orderId,
         type: NotificationTypes.technicianAssigned,
+        productName: productName,
+      );
+
+  /// To the job's technician: the payment was confirmed, so the job can start.
+  static AppNotification jobReady({
+    required String orderId,
+    required String technicianId,
+    required String productName,
+  }) =>
+      _build(
+        recipientType: NotificationRecipientType.technician,
+        recipientId: technicianId,
+        orderId: orderId,
+        type: NotificationTypes.jobReady,
+        productName: productName,
+      );
+
+  /// To the job's technician: the company cancelled the order.
+  static AppNotification jobCancelled({
+    required String orderId,
+    required String technicianId,
+    required String productName,
+  }) =>
+      _build(
+        recipientType: NotificationRecipientType.technician,
+        recipientId: technicianId,
+        orderId: orderId,
+        type: NotificationTypes.jobCancelled,
+        productName: productName,
+      );
+
+  /// To the company: the technician finished the job.
+  static AppNotification jobCompleted({
+    required String orderId,
+    required String companyId,
+    required String productName,
+  }) =>
+      _build(
+        recipientType: NotificationRecipientType.companyAdmin,
+        recipientId: companyId,
+        orderId: orderId,
+        type: NotificationTypes.jobCompleted,
         productName: productName,
       );
 

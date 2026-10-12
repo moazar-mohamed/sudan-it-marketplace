@@ -7,6 +7,9 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../companies/domain/entities/company.dart';
 import '../../categories/presentation/category_providers.dart';
+import '../../cities/presentation/city_button.dart';
+import '../../cities/presentation/city_providers.dart';
+import '../../cities/presentation/city_tags.dart';
 import '../../chats/presentation/widgets/contact_company_button.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../companies/presentation/company_details_screen.dart';
@@ -111,11 +114,22 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     }
   }
 
-  void _onBuyNow(BuildContext context) {
+  Future<void> _onBuyNow(BuildContext context) async {
     final product = _liveProduct;
-    if (!ref.read(companyServesMyCityProvider(product.companyId ?? ''))) {
-      showAppSnackBar(context, context.l10n.cityNotServed, tone: AppTone.error);
-      return;
+    final companyId = product.companyId ?? '';
+    if (!ref.read(companyServesMyCityProvider(companyId))) {
+      // The company does not deliver to the city this order is for: let the
+      // customer choose another one now, and go on if they did.
+      final company = ref.read(resolvedCompanyProvider(companyId));
+      await chooseDeliveryCity(
+        context,
+        ref,
+        servedIds: company?.serviceCityIds ?? const [],
+      );
+      if (!context.mounted ||
+          !ref.read(companyServesMyCityProvider(companyId))) {
+        return;
+      }
     }
     if (!product.hasPrice) {
       return;
@@ -152,7 +166,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     final servesMyCity = ref.watch(
       companyServesMyCityProvider(widget.product.companyId ?? ''),
     );
-    final canBuy = stock.isAvailable && stock.hasPrice && servesMyCity;
+    // A company that does not deliver to the chosen city can still be bought
+    // from: the button asks for another delivery city first.
+    final canBuy = stock.isAvailable && stock.hasPrice;
     final contactCompanyId = widget.product.companyId ?? '';
     final canContact = contactCompanyId.isNotEmpty;
     final categoryName =
@@ -257,13 +273,12 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   ),
                 ],
                 const SizedBox(height: AppSpacing.s16),
-                if (!servesMyCity) ...[
-                  AppBanner(
-                    tone: AppTone.warning,
-                    icon: Icons.location_off_outlined,
-                    message: context.l10n.cityNotServed,
-                  ),
-                  const SizedBox(height: AppSpacing.s16),
+                if (widget.product.companyId != null &&
+                    widget.product.companyId!.isNotEmpty) ...[
+                  DeliveryCityBanner(companyId: widget.product.companyId!),
+                  if (!servesMyCity ||
+                      ref.watch(deliveryCityOverrideProvider) != null)
+                    const SizedBox(height: AppSpacing.s16),
                 ],
                 if (matchedCompany != null || companyName.isNotEmpty) ...[
                   AppListCard(

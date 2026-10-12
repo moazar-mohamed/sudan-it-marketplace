@@ -27,6 +27,7 @@ class ServiceRequestModel {
       address: data['address'] as String? ?? '',
       latitude: rawLatitude is num ? rawLatitude.toDouble() : null,
       longitude: rawLongitude is num ? rawLongitude.toDouble() : null,
+      cityId: data['cityId'] as String?,
       contactPhone: data['contactPhone'] as String? ?? '',
       status: ServiceRequestStatus.fromValue(data['status'] as String?),
       // A just-written server timestamp is null until the server confirms it.
@@ -53,6 +54,9 @@ class ServiceRequestModel {
       'address': request.address.trim(),
       'latitude': coordinates?.latitude,
       'longitude': coordinates?.longitude,
+      // Left out (not null) when there is none: the rules read an absent city
+      // as the customer's own.
+      if (request.cityId != null) 'cityId': request.cityId,
       'contactPhone': request.contactPhone.trim(),
       'status': ServiceRequestStatus.pending.value,
       'createdAt': FieldValue.serverTimestamp(),

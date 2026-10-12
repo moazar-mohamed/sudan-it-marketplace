@@ -24,6 +24,12 @@ class _Relay implements PushRelay {
     required String chatId,
     required String messageId,
   }) async {}
+
+  @override
+  Future<void> jobChatMessage({
+    required String orderId,
+    required String messageId,
+  }) async {}
 }
 
 Future<SharedPreferences> _prefs([Map<String, Object> values = const {}]) {

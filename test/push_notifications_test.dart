@@ -37,6 +37,15 @@ class _RecordingRelay implements PushRelay {
     required String messageId,
   }) async =>
       messages.add((chatId, messageId));
+
+  final jobMessages = <(String, String)>[];
+
+  @override
+  Future<void> jobChatMessage({
+    required String orderId,
+    required String messageId,
+  }) async =>
+      jobMessages.add((orderId, messageId));
 }
 
 class _FakeNotificationsRemote extends Fake
@@ -244,11 +253,41 @@ void main() {
       );
     });
 
-    test('a technician job, or a push without ids, just opens the app', () {
+    test('a technician job opens that job; a push without ids just opens the app', () {
+      final job = pushDestination(
+        {'type': 'technician_assigned', 'orderId': 'o1', 'recipientType': 'technician'},
+        _profile(UserRole.technician, companyId: 'c1'),
+      );
+      expect(job, isA<TechnicianJobDestination>());
+      expect((job as TechnicianJobDestination).orderId, 'o1');
+      // A job notification meant for a technician never opens for a customer.
       expect(
         pushDestination(
-          {'type': 'technician_assigned', 'orderId': 'o1', 'recipientType': 'technician'},
+          {'type': 'job_ready', 'orderId': 'o1', 'recipientType': 'technician'},
+          _profile(UserRole.customer),
+        ),
+        isNull,
+      );
+      // A message in a job's conversation: the company opens the order, the
+      // technician the job, and nobody else anything.
+      expect(
+        pushDestination(
+          {'type': 'job_chat_message', 'orderId': 'o1', 'role': 'company'},
+          _profile(UserRole.companyAdmin, companyId: 'c1'),
+        ),
+        isA<CompanyOrderDestination>(),
+      );
+      expect(
+        pushDestination(
+          {'type': 'job_chat_message', 'orderId': 'o1', 'role': 'technician'},
           _profile(UserRole.technician, companyId: 'c1'),
+        ),
+        isA<TechnicianJobDestination>(),
+      );
+      expect(
+        pushDestination(
+          {'type': 'job_chat_message', 'orderId': 'o1', 'role': 'company'},
+          _profile(UserRole.customer),
         ),
         isNull,
       );

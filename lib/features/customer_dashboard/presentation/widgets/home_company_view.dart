@@ -50,13 +50,16 @@ Map<String, List<String>> companyTopCategories({
 }
 
 /// [companies] in [categoryId] (a top-level category, or all when null),
-/// ordered by [sort]. Companies that tie keep the order they came in.
+/// ordered by [sort]. Companies that tie keep the order they came in. With a
+/// [cityId], the companies that serve it come first (each group ordered by
+/// [sort]); the others follow.
 List<Company> viewCompanies(
   List<Company> companies, {
   required CompanySort sort,
   required Map<String, RatingStats> ratings,
   required Map<String, List<String>> categoriesOf,
   String? categoryId,
+  String? cityId,
 }) {
   final kept = [
     for (final company in companies)
@@ -64,9 +67,10 @@ List<Company> viewCompanies(
           (categoriesOf[company.id] ?? const <String>[]).contains(categoryId))
         company,
   ];
+  final List<Company> ordered;
   switch (sort) {
     case CompanySort.topRated:
-      return companiesByRating(kept, ratings);
+      ordered = companiesByRating(kept, ratings);
     case CompanySort.mostReviewed:
       final indexed = [for (var i = 0; i < kept.length; i++) (i, kept[i])];
       indexed.sort((a, b) {
@@ -76,7 +80,7 @@ List<Company> viewCompanies(
         ).count.compareTo(companyRating(a.$2, ratings).count);
         return byCount != 0 ? byCount : a.$1.compareTo(b.$1);
       });
-      return [for (final entry in indexed) entry.$2];
+      ordered = [for (final entry in indexed) entry.$2];
     case CompanySort.name:
       final indexed = [for (var i = 0; i < kept.length; i++) (i, kept[i])];
       indexed.sort((a, b) {
@@ -85,6 +89,13 @@ List<Company> viewCompanies(
         );
         return byName != 0 ? byName : a.$1.compareTo(b.$1);
       });
-      return [for (final entry in indexed) entry.$2];
+      ordered = [for (final entry in indexed) entry.$2];
   }
+  if (cityId == null) {
+    return ordered;
+  }
+  return [
+    ...ordered.where((company) => company.servesCity(cityId)),
+    ...ordered.where((company) => !company.servesCity(cityId)),
+  ];
 }

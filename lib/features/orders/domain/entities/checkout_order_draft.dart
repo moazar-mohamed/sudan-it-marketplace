@@ -18,6 +18,7 @@ class CheckoutOrderDraft {
     required this.deliveryAddress,
     required this.contactPhone,
     this.deliveryMethod = DeliveryMethod.delivery,
+    this.deliveryCityId,
     this.customerName = '',
     this.deliveryLatitude,
     this.deliveryLongitude,
@@ -39,6 +40,9 @@ class CheckoutOrderDraft {
   final String deliveryAddress;
   final String contactPhone;
   final DeliveryMethod deliveryMethod;
+
+  /// The city a delivery order goes to; null for a pickup.
+  final String? deliveryCityId;
   final String customerName;
 
   /// Exact delivery point chosen on the map (delivery orders only).

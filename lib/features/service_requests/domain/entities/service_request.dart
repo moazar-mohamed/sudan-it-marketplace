@@ -48,6 +48,7 @@ class ServiceRequest {
     this.price,
     this.latitude,
     this.longitude,
+    this.cityId,
     this.updatedAt,
   });
 
@@ -72,6 +73,11 @@ class ServiceRequest {
   final String address;
   final double? latitude;
   final double? longitude;
+
+  /// The city the service is wanted in (a customer can ask for someone in
+  /// another city). Null on requests sent before it was recorded, which were
+  /// for the customer's own city.
+  final String? cityId;
   final String contactPhone;
   final ServiceRequestStatus status;
   final DateTime createdAt;

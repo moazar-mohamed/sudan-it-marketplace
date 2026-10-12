@@ -44,12 +44,16 @@ const recentProductFor = Duration(days: 30);
 
 /// [products] narrowed by [filters] and ordered by [sort]. [ratings] are the
 /// live averages, keyed as in [RatingStats.productKey]. Products that tie keep
-/// the order they came in.
+/// the order they came in. [servesCity] tells whether a product's company
+/// serves the customer's city: with it, and with the default (newest) order,
+/// those products come first. Another order the customer picked (by price, by
+/// rating) is kept as it is.
 List<Product> viewProducts(
   List<Product> products, {
   required ProductSort sort,
   required ProductFilters filters,
   Map<String, RatingStats> ratings = const {},
+  bool Function(Product product)? servesCity,
 }) {
   RatingStats? statsOf(Product p) => ratings[RatingStats.productKey(p.id)];
   double averageOf(Product p) => statsOf(p)?.average ?? 0;
@@ -77,7 +81,14 @@ List<Product> viewProducts(
     return descending ? pb.compareTo(pa) : pa.compareTo(pb);
   }
 
+  final cityFirst = servesCity != null && sort == ProductSort.newest;
+
   int compare((int, Product) a, (int, Product) b) {
+    if (cityFirst) {
+      final aServes = servesCity(a.$2) ? 0 : 1;
+      final bServes = servesCity(b.$2) ? 0 : 1;
+      if (aServes != bServes) return aServes - bServes;
+    }
     final result = switch (sort) {
       ProductSort.newest => _byNewest(a.$2, b.$2),
       ProductSort.priceLow => byPrice(a.$2, b.$2, descending: false),

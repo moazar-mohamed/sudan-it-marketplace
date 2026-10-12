@@ -44,6 +44,12 @@ List<AppNotification> _everyEvent() => [
           orderId: 'o1', customerId: 'cust1', productName: 'Router'),
       NotificationEvents.technicianAssigned(
           orderId: 'o1', technicianId: 't1', productName: 'Router'),
+      NotificationEvents.jobReady(
+          orderId: 'o1', technicianId: 't1', productName: 'Router'),
+      NotificationEvents.jobCancelled(
+          orderId: 'o1', technicianId: 't1', productName: 'Router'),
+      NotificationEvents.jobCompleted(
+          orderId: 'o1', companyId: 'c1', productName: 'Router'),
     ];
 
 class _RecordingRemote extends Fake implements NotificationsRemoteDataSource {
@@ -68,10 +74,10 @@ void main() {
 
   group('what a notification stores', () {
     test('the app sends exactly the known types, one event each', () {
-      // Seven about orders (built here) and six about service requests (see
+      // Ten about orders (built here) and six about service requests (see
       // service_request_notifications_test.dart).
       final orderTypes = _everyEvent().map((n) => n.type).toSet();
-      expect(orderTypes, hasLength(7));
+      expect(orderTypes, hasLength(10));
       const serviceRequestTypes = {
         NotificationTypes.newServiceRequest,
         NotificationTypes.serviceRequestAccepted,
@@ -81,7 +87,7 @@ void main() {
         NotificationTypes.serviceRequestCancelled,
       };
       expect(NotificationTypes.all, {...orderTypes, ...serviceRequestTypes});
-      expect(NotificationTypes.all, hasLength(13));
+      expect(NotificationTypes.all, hasLength(16));
     });
 
     test('no title or body: only the listed fields, whatever the event', () {
@@ -97,7 +103,7 @@ void main() {
 
     test('each goes to its own recipient', () {
       final byType = {for (final n in _everyEvent()) n.type: n};
-      for (final type in ['new_order', 'new_review']) {
+      for (final type in ['new_order', 'new_review', 'job_completed']) {
         expect(byType[type]!.recipientType, NotificationRecipientType.companyAdmin);
         expect(byType[type]!.recipientId, 'c1');
       }
@@ -164,7 +170,7 @@ void main() {
 
     test('every id is unique across the types of one order', () {
       final ids = _everyEvent().map((n) => n.id).toSet();
-      expect(ids, hasLength(7));
+      expect(ids, hasLength(10));
     });
   });
 

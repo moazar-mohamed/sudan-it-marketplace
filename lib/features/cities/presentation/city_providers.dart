@@ -49,25 +49,31 @@ final customerCityIdProvider = Provider<String?>((ref) {
   return profile.cityId;
 });
 
-/// True while the customer chose to look at every city. They can browse all
-/// companies, but ordering still needs a company that serves their own city.
-/// Kept in memory only: the next launch starts on their own city again.
-class BrowseAllCities extends Notifier<bool> {
+/// The city the customer is ordering for when it is not their own: they chose
+/// another city for a delivery (a gift, a family member). Null means their own
+/// city. Kept in memory only, and cleared once an order is placed or their own
+/// city changes, so a later order never goes to a forgotten city.
+class DeliveryCityOverride extends Notifier<String?> {
   @override
-  bool build() => false;
+  String? build() => null;
 
-  void set(bool value) => state = value;
+  void set(String? value) => state = value;
 }
 
-final browseAllCitiesProvider =
-    NotifierProvider<BrowseAllCities, bool>(BrowseAllCities.new);
+final deliveryCityOverrideProvider =
+    NotifierProvider<DeliveryCityOverride, String?>(DeliveryCityOverride.new);
 
-/// The city the marketplace lists are narrowed to: the customer's own city, or
-/// null (everything) while they browse all cities or have none yet.
+/// The city an order or service request goes to: the one the customer chose
+/// for it, else their own city (null while they have none).
+final deliveryCityIdProvider = Provider<String?>((ref) {
+  return ref.watch(deliveryCityOverrideProvider) ??
+      ref.watch(customerCityIdProvider);
+});
+
+/// The city the marketplace lists are ranked by: the customer's own city (null
+/// while they have none). Companies that serve it come first; the others stay
+/// in the list, after them.
 final cityFilterProvider = Provider<String?>((ref) {
-  if (ref.watch(browseAllCitiesProvider)) {
-    return null;
-  }
   return ref.watch(customerCityIdProvider);
 });
 
@@ -87,7 +93,7 @@ Future<bool> saveCustomerCity(WidgetRef ref, String cityId) async {
     return false;
   }
   try {
-    ref.read(browseAllCitiesProvider.notifier).set(false);
+    ref.read(deliveryCityOverrideProvider.notifier).set(null);
     await ref
         .read(cityPreferenceServiceProvider)
         .saveCity(userId: profile.id, cityId: cityId);

@@ -159,4 +159,38 @@ void main() {
     expect(searchMatches('printer', fields), isFalse);
     expect(searchMatches('', fields), isTrue);
   });
+
+  group('did you mean', () {
+    const vocabulary = ['Dell Laptop', 'TP-Link Router', 'Cisco Switch', 'Networks'];
+
+    test('fixes a word that matches nothing', () {
+      expect(suggestCorrection('lapotp', vocabulary), 'laptop');
+      expect(suggestCorrection('swtich', vocabulary), 'switch');
+      expect(suggestCorrection('dell lptop', vocabulary), 'dell laptop');
+    });
+
+    test('leaves a query that already matches alone', () {
+      expect(suggestCorrection('lapt', vocabulary), isNull);
+      expect(suggestCorrection('router', vocabulary), isNull);
+      expect(suggestCorrection('', vocabulary), isNull);
+    });
+
+    test('does not guess when nothing is close', () {
+      expect(suggestCorrection('xyzxyz', vocabulary), isNull);
+      expect(suggestCorrection('laptop', const []), isNull);
+    });
+  });
+
+  group('brands and trade words', () {
+    test('Arabic spellings of brands find the English names', () {
+      const items = [
+        _Item('HP LaserJet Printer'),
+        _Item('Hikvision 4MP Camera'),
+        _Item('TP-Link Archer Router'),
+      ];
+      expect(_names(items, 'اتش بي'), ['HP LaserJet Printer']);
+      expect(_names(items, 'هيكفيجن'), ['Hikvision 4MP Camera']);
+      expect(_names(items, 'تي بي لينك'), ['TP-Link Archer Router']);
+    });
+  });
 }

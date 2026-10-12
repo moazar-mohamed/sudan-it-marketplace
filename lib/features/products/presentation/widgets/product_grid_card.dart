@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../../../cities/presentation/city_tags.dart';
 import '../../../offers/presentation/offer_price.dart';
 import '../../../reviews/domain/review.dart';
 import '../../../reviews/presentation/review_widgets.dart';
@@ -203,6 +204,15 @@ class ProductGridCard extends ConsumerWidget {
                         ],
                       ),
                     ],
+                    // Where this company delivers, when not the customer's
+                    // city.
+                    if (product.companyId != null &&
+                        product.companyId!.isNotEmpty)
+                      CompanyCityTag(
+                        companyId: product.companyId!,
+                        compact: true,
+                        spaceAbove: AppSpacing.s8,
+                      ),
                   ],
                 ),
               ),

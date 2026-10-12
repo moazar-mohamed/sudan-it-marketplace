@@ -9,6 +9,7 @@ import '../../../core/widgets/app_widgets.dart';
 import '../../chats/domain/entities/chat_conversation.dart';
 import '../../chats/presentation/chat_providers.dart';
 import '../../chats/presentation/chat_screen.dart';
+import '../../cities/domain/sudan_city.dart';
 import '../../location/presentation/location_strings.dart';
 import '../../reviews/presentation/review_widgets.dart';
 import '../../reviews/presentation/reviews_providers.dart';
@@ -165,6 +166,14 @@ class OrderDetailsScreen extends ConsumerWidget {
                       label: l10n.orderAddress,
                       value: orderDeliveryLabel(context, order),
                     ),
+                    if (order.deliveryMethod == DeliveryMethod.delivery &&
+                        cityById(order.deliveryCityId) != null)
+                      KeyValueRow(
+                        label: l10n.orderDeliveryCity,
+                        value: cityById(order.deliveryCityId)!.name(
+                          Localizations.localeOf(context).languageCode,
+                        ),
+                      ),
                     OrderLocationButton(
                       order: order,
                       label: LocationStrings.of(context).openDeliveryLocation,

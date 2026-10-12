@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 /// A city customers and companies choose from. The [id] is what Firestore
 /// stores (`users/{uid}.cityId` and `companies/{id}.serviceCityIds`), so an id
 /// never changes once it exists. Platform Admin keeps the list in
@@ -10,19 +8,12 @@ class SudanCity {
     this.id,
     this.nameAr,
     this.nameEn, [
-    this.latitude,
-    this.longitude,
     this.active = true,
   ]);
 
   final String id;
   final String nameAr;
   final String nameEn;
-
-  /// The centre of the city, used only to suggest the nearest one. Null for a
-  /// city added without a position: it is never suggested.
-  final double? latitude;
-  final double? longitude;
 
   /// False once Platform Admin hid the city: it can no longer be chosen, but
   /// customers and companies that already have it keep working.
@@ -41,50 +32,44 @@ class SudanCity {
     final ar = nameAr is String ? nameAr.trim() : '';
     final en = nameEn is String ? nameEn.trim() : '';
     if (ar.isEmpty && en.isEmpty) return null;
-    double? number(Object? value) => value is num && value.isFinite ? value.toDouble() : null;
-    final latitude = number(raw['latitude']);
-    final longitude = number(raw['longitude']);
-    final hasPoint = latitude != null && longitude != null;
     return SudanCity(
       id,
       ar.isEmpty ? en : ar,
       en.isEmpty ? ar : en,
-      hasPoint ? latitude : null,
-      hasPoint ? longitude : null,
       raw['active'] != false,
     );
   }
 }
 
 const builtInCities = <SudanCity>[
-  SudanCity('khartoum', 'الخرطوم', 'Khartoum', 15.5007, 32.5599),
-  SudanCity('omdurman', 'أم درمان', 'Omdurman', 15.6445, 32.4777),
-  SudanCity('bahri', 'الخرطوم بحري', 'Khartoum Bahri', 15.6389, 32.5444),
-  SudanCity('port_sudan', 'بورتسودان', 'Port Sudan', 19.6158, 37.2164),
-  SudanCity('wad_madani', 'ود مدني', 'Wad Madani', 14.4012, 33.5199),
-  SudanCity('kassala', 'كسلا', 'Kassala', 15.451, 36.404),
-  SudanCity('gedaref', 'القضارف', 'Gedaref', 14.035, 35.384),
-  SudanCity('atbara', 'عطبرة', 'Atbara', 17.702, 33.986),
-  SudanCity('shendi', 'شندي', 'Shendi', 16.687, 33.435),
-  SudanCity('ed_damer', 'الدامر', 'Ed Damer', 17.59, 33.96),
-  SudanCity('berber', 'بربر', 'Berber', 18.017, 33.983),
-  SudanCity('dongola', 'دنقلا', 'Dongola', 19.165, 30.476),
-  SudanCity('wadi_halfa', 'وادي حلفا', 'Wadi Halfa', 21.8, 31.35),
-  SudanCity('el_obeid', 'الأبيض', 'El Obeid', 13.183, 30.217),
-  SudanCity('kosti', 'كوستي', 'Kosti', 13.163, 32.663),
-  SudanCity('rabak', 'ربك', 'Rabak', 13.183, 32.742),
-  SudanCity('ed_dueim', 'الدويم', 'Ed Dueim', 14.0, 32.3),
-  SudanCity('sennar', 'سنار', 'Sennar', 13.55, 33.6),
-  SudanCity('singa', 'سنجة', 'Singa', 13.15, 33.933),
-  SudanCity('ed_damazin', 'الدمازين', 'Ed Damazin', 11.789, 34.359),
-  SudanCity('nyala', 'نيالا', 'Nyala', 12.05, 24.88),
-  SudanCity('el_fasher', 'الفاشر', 'El Fasher', 13.628, 25.349),
-  SudanCity('el_geneina', 'الجنينة', 'El Geneina', 13.45, 22.45),
-  SudanCity('zalingei', 'زالنجي', 'Zalingei', 12.91, 23.47),
-  SudanCity('ed_daein', 'الضعين', 'Ed Daein', 11.46, 26.13),
-  SudanCity('kadugli', 'كادقلي', 'Kadugli', 11.011, 29.718),
-  SudanCity('al_fula', 'الفولة', 'Al Fula', 11.993, 28.34),
-  SudanCity('tokar', 'طوكر', 'Tokar', 18.433, 37.733),
+  SudanCity('khartoum', 'الخرطوم', 'Khartoum'),
+  SudanCity('omdurman', 'أم درمان', 'Omdurman'),
+  SudanCity('bahri', 'الخرطوم بحري', 'Khartoum Bahri'),
+  SudanCity('port_sudan', 'بورتسودان', 'Port Sudan'),
+  SudanCity('wad_madani', 'ود مدني', 'Wad Madani'),
+  SudanCity('kassala', 'كسلا', 'Kassala'),
+  SudanCity('gedaref', 'القضارف', 'Gedaref'),
+  SudanCity('atbara', 'عطبرة', 'Atbara'),
+  SudanCity('shendi', 'شندي', 'Shendi'),
+  SudanCity('ed_damer', 'الدامر', 'Ed Damer'),
+  SudanCity('berber', 'بربر', 'Berber'),
+  SudanCity('dongola', 'دنقلا', 'Dongola'),
+  SudanCity('wadi_halfa', 'وادي حلفا', 'Wadi Halfa'),
+  SudanCity('el_obeid', 'الأبيض', 'El Obeid'),
+  SudanCity('kosti', 'كوستي', 'Kosti'),
+  SudanCity('rabak', 'ربك', 'Rabak'),
+  SudanCity('ed_dueim', 'الدويم', 'Ed Dueim'),
+  SudanCity('sennar', 'سنار', 'Sennar'),
+  SudanCity('singa', 'سنجة', 'Singa'),
+  SudanCity('ed_damazin', 'الدمازين', 'Ed Damazin'),
+  SudanCity('nyala', 'نيالا', 'Nyala'),
+  SudanCity('el_fasher', 'الفاشر', 'El Fasher'),
+  SudanCity('el_geneina', 'الجنينة', 'El Geneina'),
+  SudanCity('zalingei', 'زالنجي', 'Zalingei'),
+  SudanCity('ed_daein', 'الضعين', 'Ed Daein'),
+  SudanCity('kadugli', 'كادقلي', 'Kadugli'),
+  SudanCity('al_fula', 'الفولة', 'Al Fula'),
+  SudanCity('tokar', 'طوكر', 'Tokar'),
 ];
 
 /// The push topic of the customers of [cityId] who read [languageCode]
@@ -163,34 +148,3 @@ String cityNamesText(Iterable<String> ids, String languageCode) {
   ].join(languageCode == 'ar' ? '، ' : ', ');
 }
 
-/// The city whose centre is nearest to the point, or null when even the
-/// nearest one is farther than [maxKm] (the person is not near any listed
-/// city, so nothing sensible can be suggested). Cities without a position and
-/// hidden ones are never suggested.
-SudanCity? nearestCity(double latitude, double longitude, {double maxKm = 300}) {
-  SudanCity? best;
-  var bestKm = double.infinity;
-  for (final city in _directory) {
-    final cityLatitude = city.latitude;
-    final cityLongitude = city.longitude;
-    if (!city.active || cityLatitude == null || cityLongitude == null) continue;
-    final km = _distanceKm(latitude, longitude, cityLatitude, cityLongitude);
-    if (km < bestKm) {
-      bestKm = km;
-      best = city;
-    }
-  }
-  return bestKm <= maxKm ? best : null;
-}
-
-double _distanceKm(double lat1, double lon1, double lat2, double lon2) {
-  const earthKm = 6371.0;
-  double rad(double deg) => deg * math.pi / 180;
-  final dLat = rad(lat2 - lat1);
-  final dLon = rad(lon2 - lon1);
-  final a = math.pow(math.sin(dLat / 2), 2) +
-      math.cos(rad(lat1)) *
-          math.cos(rad(lat2)) *
-          math.pow(math.sin(dLon / 2), 2);
-  return 2 * earthKm * math.asin(math.sqrt(a));
-}

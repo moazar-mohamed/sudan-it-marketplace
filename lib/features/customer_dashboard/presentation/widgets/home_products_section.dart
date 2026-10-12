@@ -7,6 +7,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../categories/domain/entities/category.dart';
+import '../../../companies/presentation/companies_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/widgets/product_grid_card.dart';
 import '../../../reviews/presentation/reviews_providers.dart';
@@ -46,11 +47,18 @@ class HomeProductsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final ratings = ref.watch(ratingsProvider).asData?.value ?? const {};
+    final servingIds = ref.watch(servingCompanyIdsProvider);
     final shown = viewProducts(
       products,
       sort: sort,
       filters: filters,
       ratings: ratings,
+      servesCity: servingIds == null
+          ? null
+          : (product) =>
+                product.companyId == null ||
+                product.companyId!.isEmpty ||
+                servingIds.contains(product.companyId),
     );
     final now = DateTime.now();
     final side = EdgeInsets.symmetric(horizontal: horizontalPadding);

@@ -46,10 +46,13 @@ class ServiceRequestActions {
         error: _ref.read(appLocalizationsProvider).errorPermissionDenied,
       );
     }
-    if (!company.servesCity(_ref.read(customerCityIdProvider))) {
+    // The city the service is wanted in: the customer's own, or the one they
+    // chose for this request (someone in another city).
+    final cityId = _ref.read(deliveryCityIdProvider);
+    if (!company.servesCity(cityId)) {
       return (
         requestId: null,
-        error: _ref.read(appLocalizationsProvider).cityNotServed,
+        error: _ref.read(appLocalizationsProvider).cityDeliveryNeedsCity,
       );
     }
     final repository = _ref.read(serviceRequestsRepositoryProvider);
@@ -71,12 +74,15 @@ class ServiceRequestActions {
       address: address,
       latitude: location?.latitude,
       longitude: location?.longitude,
+      cityId: cityId,
       contactPhone: contactPhone,
       status: ServiceRequestStatus.pending,
       createdAt: DateTime.now(),
     );
     try {
       await repository.createServiceRequest(request);
+      // The next request starts from the customer's own city again.
+      _ref.read(deliveryCityOverrideProvider.notifier).set(null);
       await _notify(
         NotificationEvents.newServiceRequest(
           serviceRequestId: request.id,

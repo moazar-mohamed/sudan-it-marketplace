@@ -23,6 +23,7 @@ abstract interface class OrdersRepository {
     required String deliveryAddress,
     required String contactPhone,
     DeliveryMethod deliveryMethod = DeliveryMethod.delivery,
+    String? deliveryCityId,
     String customerName = '',
     String? receiptFileName,
     double? deliveryLatitude,

@@ -13,6 +13,7 @@ import '../widgets/admin_section_card.dart';
 import '../widgets/order_status_actions.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/technician_assignment_card.dart';
+import '../widgets/technician_job_extras.dart';
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../orders/presentation/order_labels.dart';
 
@@ -96,6 +97,7 @@ class InstallationJobDetailsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 TechnicianAssignmentCard(companyId: companyId, order: order),
+                TechnicianJobExtras(order: order),
                 const SizedBox(height: 12),
                 OrderStatusActions(order: order),
                 const SizedBox(height: 12),

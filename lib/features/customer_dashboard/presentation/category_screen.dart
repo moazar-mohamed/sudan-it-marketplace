@@ -11,6 +11,7 @@ import '../../categories/domain/category_tree.dart';
 import '../../categories/domain/entities/category.dart';
 import '../../categories/presentation/category_label.dart';
 import '../../categories/presentation/category_providers.dart';
+import '../../companies/presentation/companies_providers.dart';
 import '../../products/domain/entities/product.dart';
 import '../../products/presentation/products_providers.dart';
 import '../../products/presentation/widgets/product_grid_card.dart';
@@ -79,11 +80,18 @@ class _CategoryScreenState extends ConsumerState<CategoryScreen> {
     ];
 
     final ratings = ref.watch(ratingsProvider).asData?.value ?? const {};
+    final servingIds = ref.watch(servingCompanyIdsProvider);
     final shownProducts = viewProducts(
       filterProducts(products, _filters),
       sort: _sort,
       filters: const ProductFilters(),
       ratings: ratings,
+      servesCity: servingIds == null
+          ? null
+          : (product) =>
+                product.companyId == null ||
+                product.companyId!.isEmpty ||
+                servingIds.contains(product.companyId),
     );
     final shownListings = filterListings(listings, _filters);
 

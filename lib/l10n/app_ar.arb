@@ -1031,7 +1031,7 @@
   "pushKindCityHint": "عندما تبدأ شركة بخدمة مدينتك",
   "reportLimitReached": "يمكنك إرسال 5 بلاغات كل 24 ساعة. يرجى المحاولة لاحقاً.",
   "cityPickerTitle": "اختر مدينتك",
-  "cityPickerSubtitle": "نعرض لك الشركات التي تخدم مدينتك فقط، حتى تصلك طلباتك.",
+  "cityPickerSubtitle": "تظهر لك أولاً الشركات التي تخدم مدينتك، حتى تصلك طلباتك.",
   "cityChangeTooltip": "تغيير المدينة",
   "citySaveFailed": "تعذّر حفظ مدينتك. حاول مرة أخرى.",
   "cityServiceAreaTitle": "المدن التي تخدمها",
@@ -1041,10 +1041,24 @@
   "cityServiceAreaCount": "{count} مدن",
   "cityNotServed": "هذه الشركة لا تخدم مدينتك.",
   "citySearchHint": "ابحث عن مدينة",
-  "cityUseMyLocation": "استخدم موقعي",
-  "cityLocationFailed": "تعذّر تحديد موقعك. اختر مدينتك من القائمة.",
-  "cityBrowseAll": "تصفح كل المدن",
-  "cityBrowseAllHint": "يمكنك تصفح كل الشركات، لكن الطلب يكون فقط من شركات تخدم مدينتك.",
+  "cityDeliveryPickerTitle": "مدينة التوصيل",
+  "cityDeliveryPickerHint": "يمكنك اختيار المدن التي تخدمها هذه الشركة. هذا لا يغيّر مدينة حسابك.",
+  "cityCompanyDoesNotServe": "الشركة لا تخدمها",
+  "cityDeliveryLabel": "مدينة التوصيل",
+  "cityDeliveryChange": "تغيير",
+  "cityDeliveryChangeButton": "غيّر مدينة التوصيل",
+  "cityDeliveryForOther": "الطلب لشخص آخر؟ اختر مدينته. مدينة حسابك لا تتغير.",
+  "cityDeliveryServed": "{company} تخدم هذه المدينة",
+  "cityServesCity": "تخدم {city}",
+  "cityServesList": "تخدم: {cities}",
+  "cityOtherCompaniesTitle": "شركات أخرى",
+  "cityOtherCompaniesHint": "لا تخدم {city}، لكن يمكنك الطلب منها لتوصيل إلى مدينة أخرى.",
+  "cityNotServedOnlyTitle": "تخدم {cities} فقط",
+  "cityNotServedOnlyBody": "مدينة التوصيل الحالية هي {city}. لإتمام الطلب غيّر مدينة التوصيل إلى مدينة تخدمها الشركة.",
+  "cityDeliveringTo": "التوصيل إلى {city}",
+  "cityDeliveryChoose": "اختر مدينة",
+  "cityDeliveryNeedsCity": "اختر مدينة توصيل تخدمها الشركة.",
+  "orderDeliveryCity": "مدينة التوصيل",
   "cityCompaniesCount": "{count} شركة",
   "cityNoResults": "لا توجد مدينة بهذا الاسم.",
   "cityCompanyNoCitiesTitle": "اختر المدن التي تخدمها",
@@ -1100,5 +1114,165 @@
   "formBrandLabel": "الماركة",
   "formBrandHint": "مثلاً HP أو Cisco أو Samsung",
   "formCategoryRequired": "التصنيف مطلوب",
-  "productBrand": "الماركة"
+  "productBrand": "الماركة",
+  "tjAvailable": "متاح",
+  "tjBusy": "مشغول",
+  "tjOpenJobsCount": "لديك {count} مهام جارية",
+  "@tjOpenJobsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjNoOpenJobs": "لا توجد مهام جارية الآن",
+  "tjNextJob": "المهمة التالية",
+  "tjNavigate": "الموقع",
+  "tjCall": "اتصال",
+  "tjStatOpen": "جارية",
+  "tjMonthFees": "رسوم التركيب هذا الشهر",
+  "tjMonthFeesHint": "من المهام المكتملة",
+  "tjDistanceKm": "{km} كم",
+  "@tjDistanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "tjSearchHint": "ابحث بالعميل أو المنتج",
+  "tjSortNewest": "الأحدث",
+  "tjSortNearest": "الأقرب",
+  "tjFilterAll": "الكل {count}",
+  "@tjFilterAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjFilterOpen": "جارية {count}",
+  "@tjFilterOpen": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjFilterDone": "مكتملة {count}",
+  "@tjFilterDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjFilterCancelled": "ملغاة {count}",
+  "@tjFilterCancelled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjSectionOpen": "جارية",
+  "tjSectionDone": "مكتملة",
+  "tjSectionCancelled": "ملغاة",
+  "tjNoMatches": "لا توجد مهام تطابق بحثك.",
+  "tjAwaitingPaymentTag": "بانتظار تأكيد الدفع",
+  "tjCancelledTag": "ملغاة من الشركة",
+  "tjProgressTitle": "تقدّم المهمة",
+  "tjStepPaid": "تأكيد الدفع",
+  "tjStepPreparing": "قيد التجهيز",
+  "tjStepOnTheWay": "في الطريق",
+  "tjStepDone": "اكتملت",
+  "tjCopyAddress": "نسخ العنوان",
+  "tjAddressCopied": "تم نسخ العنوان",
+  "tjNotesTitle": "ملاحظاتي",
+  "tjNotesHint": "اكتب ملاحظة عن المهمة",
+  "tjNotesAdd": "إضافة",
+  "tjNotesEmpty": "لا توجد ملاحظات بعد.",
+  "tjNotesVisibility": "تظهر للشركة فقط، ولا يراها العميل.",
+  "tjNoteDelete": "حذف الملاحظة",
+  "tjTechnicianNotesTitle": "ملاحظات الفني",
+  "tjNoteCompletion": "عند الإنجاز",
+  "tjChatWithCompany": "محادثة مع الشركة",
+  "tjChatWithTechnician": "محادثة مع الفني",
+  "tjChatEmpty": "لا توجد رسائل بعد. اكتب أول رسالة.",
+  "tjChatHint": "اكتب رسالة",
+  "tjChatPrivate": "هذه المحادثة بين الفني والشركة فقط.",
+  "tjChatCompany": "الشركة",
+  "tjChatYou": "أنت",
+  "tjNoTechnicianAssigned": "لم يُسند فني لهذا الطلب بعد.",
+  "tjFinishTitle": "إنهاء المهمة {id}",
+  "@tjFinishTitle": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "tjCheckInstalled": "ركّبت المنتج وتأكدت من عمله",
+  "tjCheckExplained": "شرحت للعميل طريقة الاستخدام",
+  "tjCheckHandedOver": "سلّمت العميل ما يلزم من فاتورة أو ضمان",
+  "tjFinishNoteHint": "ملاحظة للشركة (اختيارية)",
+  "tjFinishConfirm": "تأكيد الإنجاز",
+  "tjFinishChecklistRequired": "علّم الخطوات الثلاث قبل التأكيد.",
+  "tjNotifToday": "اليوم",
+  "tjNotifEarlier": "أقدم",
+  "tjMarkAllRead": "قراءة الكل",
+  "tjCompletedJobs": "مهمة منجزة",
+  "tjAvailabilityTitle": "أنا متاح للمهام",
+  "tjAvailabilityHint": "عند إيقافه تراك الشركة غير متاح عند إسناد المهام.",
+  "tjAvailabilityFailed": "تعذّر تغيير حالتك. حاول مرة أخرى.",
+  "tjJobNotificationsTitle": "إشعارات المهام",
+  "tjUnavailable": "غير متاح",
+  "notifJobReadyTitle": "المهمة جاهزة للبدء",
+  "notifJobReadyBody": "تم تأكيد دفع «{product}». يمكنك بدء المهمة.",
+  "@notifJobReadyBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifJobCancelledTitle": "تم إلغاء المهمة",
+  "notifJobCancelledBody": "ألغت الشركة مهمة «{product}».",
+  "@notifJobCancelledBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifJobCompletedTitle": "اكتمل التركيب",
+  "notifJobCompletedBody": "أنهى الفني مهمة «{product}».",
+  "@notifJobCompletedBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "searchDidYouMean": "هل تقصد «{term}»؟",
+  "@searchDidYouMean": {
+    "placeholders": {
+      "term": {
+        "type": "String"
+      }
+    }
+  },
+  "searchSortRelevance": "الأنسب",
+  "searchSortPriceLow": "الأقل سعراً",
+  "searchSortPriceHigh": "الأعلى سعراً",
+  "searchInStockOnly": "المتوفر فقط",
+  "searchTypeCategory": "قسم",
+  "tjSearchResults": "{count} نتيجة",
+  "@tjSearchResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

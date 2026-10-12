@@ -87,23 +87,61 @@ void main() {
       expect(companiesServingCity(companies, null), hasLength(3));
     });
 
-    test('products of companies that do not serve the city are hidden', () {
+    test('companies serving the city come first, the others after them', () {
+      expect(
+        companiesServingCityFirst(companies, 'port_sudan').map((c) => c.id),
+        ['portCo', 'everywhereCo', 'khartoumCo'],
+      );
+      expect(
+        companiesServingCityFirst(companies, 'khartoum').map((c) => c.id),
+        ['khartoumCo', 'everywhereCo', 'portCo'],
+      );
+      // No city: nothing is moved.
+      expect(
+        companiesServingCityFirst(companies, null).map((c) => c.id),
+        ['khartoumCo', 'portCo', 'everywhereCo'],
+      );
+    });
+
+    test('products of companies that do not serve the city come last', () {
       final products = [
         _product('p1', 'khartoumCo'),
         _product('p2', 'portCo'),
         _product('p3', 'everywhereCo'),
       ];
+      // Nothing is hidden: p1 stays, after the ones that serve Port Sudan.
       expect(
         productsOfActiveCompanies(
           products,
           companies,
           cityId: 'port_sudan',
         ).map((p) => p.id),
-        ['p2', 'p3'],
+        ['p2', 'p3', 'p1'],
       );
       expect(
         productsOfActiveCompanies(products, companies).map((p) => p.id),
         ['p1', 'p2', 'p3'],
+      );
+    });
+
+    test('products of an inactive company are still hidden', () {
+      final withInactive = [
+        ...companies,
+        const Company(
+          id: 'offCo',
+          name: 'Off',
+          rating: 0,
+          reviewCount: 0,
+          status: 'deactivated',
+        ),
+      ];
+      expect(
+        productsOfActiveCompanies(
+          [_product('p1', 'offCo'), _product('p2', 'portCo')],
+          withInactive,
+          cityId: 'port_sudan',
+        ).map((p) => p.id),
+        ['p2'],
       );
     });
   });
@@ -127,6 +165,23 @@ void main() {
       expect(serves(null, company), isTrue);
       expect(serves('port_sudan', _company('c1')), isTrue);
       expect(serves('port_sudan', null), isTrue);
+    });
+
+    test('the delivery city the customer chose counts instead of their own', () {
+      final company = _company('c1', ['port_sudan']);
+      final container = ProviderContainer(
+        overrides: [
+          customerCityIdProvider.overrideWithValue('khartoum'),
+          resolvedCompanyProvider('c1').overrideWithValue(company),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(companyServesMyCityProvider('c1')), isFalse);
+      container.read(deliveryCityOverrideProvider.notifier).set('port_sudan');
+      expect(container.read(deliveryCityIdProvider), 'port_sudan');
+      expect(container.read(companyServesMyCityProvider('c1')), isTrue);
+      container.read(deliveryCityOverrideProvider.notifier).set(null);
+      expect(container.read(deliveryCityIdProvider), 'khartoum');
     });
   });
 }

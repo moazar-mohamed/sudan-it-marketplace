@@ -6,25 +6,22 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../domain/sudan_city.dart';
 
-/// What the picker returns when the customer chooses to browse every city.
-const browseAllCitiesChoice = '*';
-
 /// Lets the customer choose the one city they shop in. Returns the chosen
-/// city id (or [browseAllCitiesChoice]), or null when dismissed. With
-/// [dismissible] false the sheet cannot be closed without a choice (the first
-/// time, before any city is saved).
+/// city id, or null when dismissed. With [dismissible] false the sheet cannot
+/// be closed without a choice (the first time, before any city is saved).
 ///
-/// [counts] shows how many companies serve each city; [locate] finds the
-/// nearest city to the phone (null when it cannot); [allowBrowseAll] adds the
-/// "browse all cities" row.
+/// [counts] shows how many companies serve each city. With [enabledIds] only
+/// those cities can be chosen (the cities one company serves); the others stay
+/// in the list, faded, with the reason. [title] and [subtitle] replace the
+/// texts of choosing the customer's own city.
 Future<String?> showCityPickerSheet(
   BuildContext context, {
   String? selectedId,
   bool dismissible = true,
   Map<String, int> counts = const {},
-  Future<String?> Function()? locate,
-  bool allowBrowseAll = false,
-  bool browseAllSelected = false,
+  Set<String>? enabledIds,
+  String? title,
+  String? subtitle,
 }) {
   return showModalBottomSheet<String>(
     context: context,
@@ -33,14 +30,12 @@ Future<String?> showCityPickerSheet(
     isDismissible: dismissible,
     enableDrag: dismissible,
     builder: (_) => _CitySheet(
-      title: context.l10n.cityPickerTitle,
-      subtitle: context.l10n.cityPickerSubtitle,
+      title: title ?? context.l10n.cityPickerTitle,
+      subtitle: subtitle ?? context.l10n.cityPickerSubtitle,
       initial: {?selectedId},
       multiple: false,
       counts: counts,
-      locate: locate,
-      allowBrowseAll: allowBrowseAll,
-      browseAllSelected: browseAllSelected,
+      enabledIds: enabledIds,
     ),
   ).then((result) => result is String ? result : null);
 }
@@ -71,9 +66,7 @@ class _CitySheet extends StatefulWidget {
     required this.initial,
     required this.multiple,
     this.counts = const {},
-    this.locate,
-    this.allowBrowseAll = false,
-    this.browseAllSelected = false,
+    this.enabledIds,
   });
 
   final String title;
@@ -81,9 +74,9 @@ class _CitySheet extends StatefulWidget {
   final Set<String> initial;
   final bool multiple;
   final Map<String, int> counts;
-  final Future<String?> Function()? locate;
-  final bool allowBrowseAll;
-  final bool browseAllSelected;
+
+  /// The only cities that can be chosen; null means all of them.
+  final Set<String>? enabledIds;
 
   @override
   State<_CitySheet> createState() => _CitySheetState();
@@ -92,25 +85,9 @@ class _CitySheet extends StatefulWidget {
 class _CitySheetState extends State<_CitySheet> {
   late final Set<String> _selected = {...widget.initial};
   String _query = '';
-  bool _locating = false;
-  bool _locateFailed = false;
 
-  Future<void> _useLocation() async {
-    setState(() {
-      _locating = true;
-      _locateFailed = false;
-    });
-    final id = await widget.locate!();
-    if (!mounted) return;
-    if (id == null) {
-      setState(() {
-        _locating = false;
-        _locateFailed = true;
-      });
-      return;
-    }
-    Navigator.of(context).pop(id);
-  }
+  bool _isEnabled(String cityId) =>
+      widget.enabledIds == null || widget.enabledIds!.contains(cityId);
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +95,7 @@ class _CitySheetState extends State<_CitySheet> {
     final language = Localizations.localeOf(context).languageCode;
     final l10n = context.l10n;
     final needle = _query.trim().toLowerCase();
-    final shown = [
+    final matching = [
       for (final city in sudanCities)
         if ((city.active || _selected.contains(city.id)) &&
             (needle.isEmpty ||
@@ -126,6 +103,14 @@ class _CitySheetState extends State<_CitySheet> {
             city.nameEn.toLowerCase().contains(needle)))
           city,
     ];
+    // With a company's cities to choose from, those come first and the faded
+    // ones after them, each group in list order.
+    final shown = widget.enabledIds == null
+        ? matching
+        : [
+            ...matching.where((city) => _isEnabled(city.id)),
+            ...matching.where((city) => !_isEnabled(city.id)),
+          ];
     return SafeArea(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -169,57 +154,10 @@ class _CitySheetState extends State<_CitySheet> {
                   ),
                 ),
               ),
-            if (widget.locate != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.s16,
-                  AppSpacing.s8,
-                  AppSpacing.s16,
-                  0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    OutlinedButton.icon(
-                      key: const ValueKey('city-use-location'),
-                      onPressed: _locating ? null : _useLocation,
-                      icon: _locating
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.my_location_outlined),
-                      label: Text(l10n.cityUseMyLocation),
-                    ),
-                    if (_locateFailed)
-                      Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.s4),
-                        child: Text(
-                          l10n.cityLocationFailed,
-                          style: AppTextStyles.caption.copyWith(
-                            color: colors.errorText,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
             Flexible(
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  if (widget.allowBrowseAll && needle.isEmpty)
-                    ListTile(
-                      key: const ValueKey('city-browse-all'),
-                      leading: const Icon(Icons.public_rounded),
-                      title: Text(l10n.cityBrowseAll),
-                      subtitle: Text(l10n.cityBrowseAllHint),
-                      trailing: widget.browseAllSelected
-                          ? Icon(Icons.check_circle_rounded, color: colors.primary)
-                          : null,
-                      onTap: () => Navigator.of(context).pop(browseAllCitiesChoice),
-                    ),
                   if (shown.isEmpty)
                     Padding(
                       padding: const EdgeInsets.all(AppSpacing.s16),
@@ -229,9 +167,14 @@ class _CitySheetState extends State<_CitySheet> {
                     _CityTile(
                       key: ValueKey('city-${city.id}'),
                       label: city.name(language),
-                      subtitle: widget.counts.containsKey(city.id)
-                          ? l10n.cityCompaniesCount(widget.counts[city.id]!)
-                          : null,
+                      subtitle: _isEnabled(city.id)
+                          ? (widget.counts.containsKey(city.id)
+                                ? l10n.cityCompaniesCount(
+                                    widget.counts[city.id]!,
+                                  )
+                                : null)
+                          : l10n.cityCompanyDoesNotServe,
+                      enabled: _isEnabled(city.id),
                       selected: _selected.contains(city.id),
                       multiple: widget.multiple,
                       onTap: () {
@@ -277,19 +220,22 @@ class _CityTile extends StatelessWidget {
     required this.multiple,
     required this.onTap,
     this.subtitle,
+    this.enabled = true,
   });
 
   final String label;
   final String? subtitle;
   final bool selected;
   final bool multiple;
+  final bool enabled;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     return ListTile(
-      onTap: onTap,
+      enabled: enabled,
+      onTap: enabled ? onTap : null,
       title: Text(label),
       subtitle: subtitle == null ? null : Text(subtitle!),
       trailing: multiple

@@ -8,6 +8,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../chats/domain/entities/chat_conversation.dart';
 import '../../chats/presentation/chat_screen.dart';
+import '../../cities/presentation/city_tags.dart';
 import '../../companies/domain/entities/company.dart';
 import '../../company_services/domain/entities/company_service.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
@@ -151,6 +152,9 @@ class _ServiceRequestFormScreenState
                         ],
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.s12),
+                    // The city the service is wanted in, own city by default.
+                    DeliveryCityRow(companyId: widget.company.id),
                     const SizedBox(height: AppSpacing.s20),
                     AppTextField(
                       label: context.l10n.serviceRequestDetailsLabel,

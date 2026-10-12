@@ -5,6 +5,7 @@ import '../../../core/localization/l10n_extension.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/search_ranking.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../categories/domain/entities/category.dart';
 import '../../categories/presentation/category_providers.dart';
@@ -44,6 +45,10 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
   /// The search whose results are shown; null while typing.
   MarketplaceQuery? _submitted;
   _Scope _scope = _Scope.all;
+
+  /// How the product results are arranged (kept across searches).
+  ProductSort _sort = ProductSort.relevance;
+  bool _inStockOnly = false;
 
   @override
   void dispose() {
@@ -149,6 +154,7 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
               ? _SuggestionsView(
                   text: _text,
                   onSearch: () => _search(_text),
+                  onSearchText: _search,
                   onOpen: _openSuggestion,
                   onCategory: _openCategory,
                 )
@@ -157,6 +163,12 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
                   scope: _scope,
                   onScope: (scope) => setState(() => _scope = scope),
                   onCategory: _openCategory,
+                  onSearchText: _search,
+                  sort: _sort,
+                  inStockOnly: _inStockOnly,
+                  onSort: (sort) => setState(() => _sort = sort),
+                  onInStockOnly: (value) =>
+                      setState(() => _inStockOnly = value),
                 ),
     );
   }
@@ -255,12 +267,14 @@ class _SuggestionsView extends ConsumerWidget {
   const _SuggestionsView({
     required this.text,
     required this.onSearch,
+    required this.onSearchText,
     required this.onOpen,
     required this.onCategory,
   });
 
   final String text;
   final VoidCallback onSearch;
+  final ValueChanged<String> onSearchText;
   final ValueChanged<Widget> onOpen;
   final ValueChanged<Category> onCategory;
 
@@ -270,9 +284,25 @@ class _SuggestionsView extends ConsumerWidget {
     final colors = context.colors;
     final results =
         ref.watch(marketplaceSearchProvider((text: text, categoryId: null)));
-    if (results.isEmpty && !results.servicesLoading) {
-      return _NoResults(query: text.trim(), onCategory: onCategory);
+    // Categories whose name matches what is being typed.
+    final matchingCategories = [
+      for (final category in searchRanked(
+        ref.watch(categoriesByIdProvider).values.where((c) => c.isActive),
+        text,
+        (category) => [SearchField(category.searchText, weight: 3)],
+      ).take(2))
+        category,
+    ];
+    if (results.isEmpty &&
+        matchingCategories.isEmpty &&
+        !results.servicesLoading) {
+      return _NoResults(
+        query: text.trim(),
+        onCategory: onCategory,
+        onSearchText: onSearchText,
+      );
     }
+    final language = Localizations.localeOf(context).languageCode;
 
     Widget suggestion({
       required Key key,
@@ -311,6 +341,22 @@ class _SuggestionsView extends ConsumerWidget {
           onTap: onSearch,
         ),
         const Divider(height: 1),
+        for (final category in matchingCategories)
+          ListTile(
+            key: ValueKey('suggestion-category-${category.id}'),
+            leading: Icon(categoryIconFor(category), color: colors.iconBrand),
+            title: HighlightedText(
+              category.nameFor(language),
+              query: text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              l10n.searchTypeCategory,
+              style: AppTextStyles.caption.copyWith(color: colors.textSecondary),
+            ),
+            onTap: () => onCategory(category),
+          ),
         for (final product in results.products.take(3))
           suggestion(
             key: ValueKey('suggestion-product-${product.id}'),
@@ -347,21 +393,46 @@ class _ResultsView extends ConsumerWidget {
     required this.scope,
     required this.onScope,
     required this.onCategory,
+    required this.onSearchText,
+    required this.sort,
+    required this.inStockOnly,
+    required this.onSort,
+    required this.onInStockOnly,
   });
 
   final MarketplaceQuery query;
   final _Scope scope;
   final ValueChanged<_Scope> onScope;
   final ValueChanged<Category> onCategory;
+  final ValueChanged<String> onSearchText;
+  final ProductSort sort;
+  final bool inStockOnly;
+  final ValueChanged<ProductSort> onSort;
+  final ValueChanged<bool> onInStockOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final results = ref.watch(marketplaceSearchProvider(query));
+    final matched = ref.watch(marketplaceSearchProvider(query));
     final categoryNames = ref.watch(categoryNamesProvider);
-    if (results.isEmpty && !results.servicesLoading) {
-      return _NoResults(query: query.text, onCategory: onCategory);
+    if (matched.isEmpty && !matched.servicesLoading) {
+      return _NoResults(
+        query: query.text,
+        onCategory: onCategory,
+        onSearchText: onSearchText,
+      );
     }
+    // The products as the customer arranged them (price order, in stock).
+    final results = MarketplaceResults(
+      products: arrangeProducts(
+        matched.products,
+        sort: sort,
+        inStockOnly: inStockOnly,
+      ),
+      services: matched.services,
+      companies: matched.companies,
+      servicesLoading: matched.servicesLoading,
+    );
     // A category is browsed, not matched word by word: nothing to mark.
     final highlight = query.categoryId == null ? query.text : null;
 
@@ -419,6 +490,37 @@ class _ResultsView extends ConsumerWidget {
           selectedIndex: scope.index,
           onChanged: (index) => onScope(_Scope.values[index]),
         ),
+        if (matched.products.isNotEmpty &&
+            (scope == _Scope.all || scope == _Scope.products)) ...[
+          const SizedBox(height: AppSpacing.s8),
+          SingleChildScrollView(
+            key: const ValueKey('search-product-arrange'),
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final option in ProductSort.values) ...[
+                  ChoiceChip(
+                    key: ValueKey('search-sort-${option.name}'),
+                    label: Text(switch (option) {
+                      ProductSort.relevance => l10n.searchSortRelevance,
+                      ProductSort.priceLow => l10n.searchSortPriceLow,
+                      ProductSort.priceHigh => l10n.searchSortPriceHigh,
+                    }),
+                    selected: sort == option,
+                    onSelected: (_) => onSort(option),
+                  ),
+                  const SizedBox(width: AppSpacing.s8),
+                ],
+                FilterChip(
+                  key: const ValueKey('search-in-stock'),
+                  label: Text(l10n.searchInStockOnly),
+                  selected: inStockOnly,
+                  onSelected: onInStockOnly,
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: AppSpacing.s16),
         if (scope == _Scope.all || scope == _Scope.products)
           ...group(
@@ -459,15 +561,22 @@ class _ResultsView extends ConsumerWidget {
 }
 
 /// Nothing found: say so, suggest what to try, and offer the categories.
-class _NoResults extends StatelessWidget {
-  const _NoResults({required this.query, required this.onCategory});
+class _NoResults extends ConsumerWidget {
+  const _NoResults({
+    required this.query,
+    required this.onCategory,
+    required this.onSearchText,
+  });
 
   final String query;
   final ValueChanged<Category> onCategory;
+  final ValueChanged<String> onSearchText;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final guess =
+        suggestCorrection(query, ref.watch(marketplaceVocabularyProvider));
     return AppCenteredList(
       children: [
         AppEmptyState(
@@ -476,6 +585,22 @@ class _NoResults extends StatelessWidget {
           title: l10n.searchNoResults(query),
           message: l10n.searchNoResultsTip,
         ),
+        if (guess != null) ...[
+          const SizedBox(height: AppSpacing.s8),
+          ListTile(
+            key: const ValueKey('search-did-you-mean'),
+            leading: Icon(
+              Icons.lightbulb_outline_rounded,
+              color: context.colors.iconBrand,
+            ),
+            title: Text(
+              l10n.searchDidYouMean(guess),
+              style: AppTextStyles.bodyStrong
+                  .copyWith(color: context.colors.textBrand),
+            ),
+            onTap: () => onSearchText(guess),
+          ),
+        ],
         const SizedBox(height: AppSpacing.s16),
         _CategoryChips(onCategory: onCategory),
       ],

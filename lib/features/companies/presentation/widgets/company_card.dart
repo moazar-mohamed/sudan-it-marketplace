@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../../../cities/presentation/city_tags.dart';
 import '../../domain/entities/company.dart';
 import '../company_details_screen.dart';
 import '../../../reviews/domain/review.dart';
@@ -49,6 +50,11 @@ class CompanyCard extends StatelessWidget {
             ratingsKey: RatingStats.companyKey(company.id),
             fallbackAverage: company.rating,
             fallbackCount: company.reviewCount,
+          ),
+          CompanyCityTag(
+            companyId: company.id,
+            compact: true,
+            spaceAbove: AppSpacing.s4,
           ),
         ],
       ),

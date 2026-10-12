@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../../../cities/presentation/city_tags.dart';
 import '../../domain/entities/product.dart';
 import '../product_details_screen.dart';
 import '../../../offers/presentation/offer_price.dart';
@@ -67,6 +68,12 @@ class ProductCard extends StatelessWidget {
             ratingsKey: RatingStats.productKey(product.id),
             showNew: false,
           ),
+          if (product.companyId != null && product.companyId!.isNotEmpty)
+            CompanyCityTag(
+              companyId: product.companyId!,
+              compact: true,
+              spaceAbove: AppSpacing.s4,
+            ),
         ],
       ),
     );

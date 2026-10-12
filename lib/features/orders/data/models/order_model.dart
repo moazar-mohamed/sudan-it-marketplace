@@ -21,6 +21,7 @@ class OrderModel {
     required this.deliveryAddress,
     required this.contactPhone,
     this.deliveryMethod = DeliveryMethod.delivery,
+    this.deliveryCityId,
     this.customerName = '',
     required this.paymentStatus,
     required this.orderStatus,
@@ -72,6 +73,7 @@ class OrderModel {
       deliveryAddress: map['deliveryAddress'] as String? ?? '',
       contactPhone: map['contactPhone'] as String? ?? '',
       deliveryMethod: DeliveryMethod.fromValue(map['deliveryMethod'] as String?),
+      deliveryCityId: map['deliveryCityId'] as String?,
       customerName: map['customerName'] as String? ?? '',
       paymentStatus: PaymentStatus.fromValue(map['paymentStatus'] as String?),
       orderStatus: OrderStatus.fromValue(map['orderStatus'] as String?),
@@ -110,6 +112,7 @@ class OrderModel {
   final String deliveryAddress;
   final String contactPhone;
   final DeliveryMethod deliveryMethod;
+  final String? deliveryCityId;
   final String customerName;
   final PaymentStatus paymentStatus;
   final OrderStatus orderStatus;
@@ -144,6 +147,8 @@ class OrderModel {
       'deliveryAddress': deliveryAddress,
       'contactPhone': contactPhone,
       'deliveryMethod': deliveryMethod.value,
+      // Left out (not null) when there is none: a pickup, or an old order.
+      if (deliveryCityId != null) 'deliveryCityId': deliveryCityId,
       'customerName': customerName,
       'paymentStatus': paymentStatus.value,
       'orderStatus': orderStatus.value,
@@ -181,6 +186,7 @@ class OrderModel {
       deliveryAddress: deliveryAddress,
       contactPhone: contactPhone,
       deliveryMethod: deliveryMethod,
+      deliveryCityId: deliveryCityId,
       customerName: customerName,
       paymentStatus: paymentStatus,
       orderStatus: orderStatus,

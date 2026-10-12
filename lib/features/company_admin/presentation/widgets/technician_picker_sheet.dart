@@ -181,6 +181,13 @@ class _TechnicianTile extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+                      if (!technician.isAvailable)
+                        Text(
+                          context.l10n.tjUnavailable,
+                          style: AppTextStyles.caption.copyWith(
+                            color: context.colors.warningText,
+                          ),
+                        ),
                       if (phone.isNotEmpty)
                         Directionality(
                           textDirection: TextDirection.ltr,

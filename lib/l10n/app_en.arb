@@ -1835,7 +1835,7 @@
   "pushKindCityHint": "When a company starts serving your city",
   "reportLimitReached": "You can send 5 reports in 24 hours. Please try again later.",
   "cityPickerTitle": "Choose your city",
-  "cityPickerSubtitle": "We show you the companies that serve your city, so your orders can be delivered.",
+  "cityPickerSubtitle": "Companies that serve your city come first, so your orders can be delivered.",
   "cityChangeTooltip": "Change city",
   "citySaveFailed": "Could not save your city. Please try again.",
   "cityServiceAreaTitle": "Cities you serve",
@@ -1846,10 +1846,31 @@
   "@cityServiceAreaCount": {"placeholders": {"count": {"type": "int"}}},
   "cityNotServed": "This company does not serve your city.",
   "citySearchHint": "Search cities",
-  "cityUseMyLocation": "Use my location",
-  "cityLocationFailed": "Could not find your location. Choose your city from the list.",
-  "cityBrowseAll": "Browse all cities",
-  "cityBrowseAllHint": "You can look at every company, but you can only order from companies that serve your city.",
+  "cityDeliveryPickerTitle": "Delivery city",
+  "cityDeliveryPickerHint": "You can choose the cities this company serves. This does not change your own city.",
+  "cityCompanyDoesNotServe": "This company does not serve it",
+  "cityDeliveryLabel": "Delivery city",
+  "cityDeliveryChange": "Change",
+  "cityDeliveryChangeButton": "Change delivery city",
+  "cityDeliveryForOther": "Ordering for someone else? Choose their city. Your own city stays the same.",
+  "cityDeliveryServed": "{company} serves this city",
+  "@cityDeliveryServed": {"placeholders": {"company": {"type": "String"}}},
+  "cityServesCity": "Serves {city}",
+  "@cityServesCity": {"placeholders": {"city": {"type": "String"}}},
+  "cityServesList": "Serves: {cities}",
+  "@cityServesList": {"placeholders": {"cities": {"type": "String"}}},
+  "cityOtherCompaniesTitle": "Other companies",
+  "cityOtherCompaniesHint": "They do not serve {city}, but you can order from them for delivery to another city.",
+  "@cityOtherCompaniesHint": {"placeholders": {"city": {"type": "String"}}},
+  "cityNotServedOnlyTitle": "Serves {cities} only",
+  "@cityNotServedOnlyTitle": {"placeholders": {"cities": {"type": "String"}}},
+  "cityNotServedOnlyBody": "Your delivery city is {city}. To order, change the delivery city to one this company serves.",
+  "@cityNotServedOnlyBody": {"placeholders": {"city": {"type": "String"}}},
+  "cityDeliveringTo": "Delivery to {city}",
+  "@cityDeliveringTo": {"placeholders": {"city": {"type": "String"}}},
+  "cityDeliveryChoose": "Choose a city",
+  "cityDeliveryNeedsCity": "Choose a delivery city this company serves.",
+  "orderDeliveryCity": "Delivery city",
   "cityCompaniesCount": "{count} companies",
   "@cityCompaniesCount": {"placeholders": {"count": {"type": "int"}}},
   "cityNoResults": "No city matches your search.",
@@ -1906,5 +1927,165 @@
   "formBrandLabel": "Brand",
   "formBrandHint": "For example HP, Cisco, Samsung",
   "formCategoryRequired": "A category is required",
-  "productBrand": "Brand"
+  "productBrand": "Brand",
+  "tjAvailable": "Available",
+  "tjBusy": "Busy",
+  "tjOpenJobsCount": "You have {count} open jobs",
+  "@tjOpenJobsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjNoOpenJobs": "No open jobs right now",
+  "tjNextJob": "Next job",
+  "tjNavigate": "Directions",
+  "tjCall": "Call",
+  "tjStatOpen": "Open",
+  "tjMonthFees": "Installation fees this month",
+  "tjMonthFeesHint": "From completed jobs",
+  "tjDistanceKm": "{km} km",
+  "@tjDistanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "tjSearchHint": "Search by customer or product",
+  "tjSortNewest": "Newest",
+  "tjSortNearest": "Nearest",
+  "tjFilterAll": "All {count}",
+  "@tjFilterAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjFilterOpen": "Open {count}",
+  "@tjFilterOpen": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjFilterDone": "Done {count}",
+  "@tjFilterDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjFilterCancelled": "Cancelled {count}",
+  "@tjFilterCancelled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjSectionOpen": "Open",
+  "tjSectionDone": "Completed",
+  "tjSectionCancelled": "Cancelled",
+  "tjNoMatches": "No jobs match your search.",
+  "tjAwaitingPaymentTag": "Waiting for payment confirmation",
+  "tjCancelledTag": "Cancelled by the company",
+  "tjProgressTitle": "Job progress",
+  "tjStepPaid": "Payment confirmed",
+  "tjStepPreparing": "Preparing",
+  "tjStepOnTheWay": "On the way",
+  "tjStepDone": "Done",
+  "tjCopyAddress": "Copy address",
+  "tjAddressCopied": "Address copied",
+  "tjNotesTitle": "My notes",
+  "tjNotesHint": "Write a note about the job",
+  "tjNotesAdd": "Add",
+  "tjNotesEmpty": "No notes yet.",
+  "tjNotesVisibility": "Only your company sees these, not the customer.",
+  "tjNoteDelete": "Delete note",
+  "tjTechnicianNotesTitle": "Technician notes",
+  "tjNoteCompletion": "On completion",
+  "tjChatWithCompany": "Chat with the company",
+  "tjChatWithTechnician": "Chat with the technician",
+  "tjChatEmpty": "No messages yet. Write the first one.",
+  "tjChatHint": "Write a message",
+  "tjChatPrivate": "This conversation is between the technician and the company only.",
+  "tjChatCompany": "Company",
+  "tjChatYou": "You",
+  "tjNoTechnicianAssigned": "No technician is assigned to this order yet.",
+  "tjFinishTitle": "Finish job {id}",
+  "@tjFinishTitle": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "tjCheckInstalled": "I installed the product and checked it works",
+  "tjCheckExplained": "I showed the customer how to use it",
+  "tjCheckHandedOver": "I handed over the invoice or warranty",
+  "tjFinishNoteHint": "Note for the company (optional)",
+  "tjFinishConfirm": "Confirm completion",
+  "tjFinishChecklistRequired": "Tick all three steps before confirming.",
+  "tjNotifToday": "Today",
+  "tjNotifEarlier": "Earlier",
+  "tjMarkAllRead": "Mark all read",
+  "tjCompletedJobs": "Jobs done",
+  "tjAvailabilityTitle": "I am available for jobs",
+  "tjAvailabilityHint": "When off, your company sees you as unavailable when assigning jobs.",
+  "tjAvailabilityFailed": "Could not change your status. Try again.",
+  "tjJobNotificationsTitle": "Job notifications",
+  "tjUnavailable": "Unavailable",
+  "notifJobReadyTitle": "Job ready to start",
+  "notifJobReadyBody": "The payment for \"{product}\" was confirmed. You can start the job.",
+  "@notifJobReadyBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifJobCancelledTitle": "Job cancelled",
+  "notifJobCancelledBody": "The company cancelled the job for \"{product}\".",
+  "@notifJobCancelledBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifJobCompletedTitle": "Installation completed",
+  "notifJobCompletedBody": "The technician finished the job for \"{product}\".",
+  "@notifJobCompletedBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "searchDidYouMean": "Did you mean “{term}”?",
+  "@searchDidYouMean": {
+    "placeholders": {
+      "term": {
+        "type": "String"
+      }
+    }
+  },
+  "searchSortRelevance": "Best match",
+  "searchSortPriceLow": "Price: low to high",
+  "searchSortPriceHigh": "Price: high to low",
+  "searchInStockOnly": "In stock only",
+  "searchTypeCategory": "Category",
+  "tjSearchResults": "{count} results",
+  "@tjSearchResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

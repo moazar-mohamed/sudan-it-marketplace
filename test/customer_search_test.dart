@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sudan_it_marketplace/core/localization/locale_controller.dart';
+import 'package:sudan_it_marketplace/core/utils/search_ranking.dart';
+import 'package:sudan_it_marketplace/features/products/presentation/widgets/product_card.dart';
 import 'package:sudan_it_marketplace/features/categories/domain/entities/category.dart';
 import 'package:sudan_it_marketplace/features/categories/presentation/category_providers.dart';
 import 'package:sudan_it_marketplace/features/companies/domain/entities/company.dart';
@@ -71,11 +73,12 @@ Widget _app(
   SharedPreferences prefs, {
   Widget home = const CustomerSearchScreen(),
   Locale locale = const Locale('en'),
+  List<Product> products = _products,
 }) {
   return ProviderScope(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
-      marketplaceProductsProvider.overrideWithValue(_products),
+      marketplaceProductsProvider.overrideWithValue(products),
       marketplaceCompaniesProvider.overrideWithValue(_companies),
       marketplaceServicesProvider.overrideWithValue(AsyncValue.data(_services)),
       allCategoriesProvider.overrideWith((_) => Stream.value(_categories)),
@@ -273,5 +276,81 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Browse categories'), findsOneWidget);
+  });
+
+  group('arranging the products', () {
+    const priced = [
+      Product(id: 'a', name: 'Cable Cat6 100m', price: 50, inStock: true, stockCount: 5),
+      Product(id: 'b', name: 'Cable Cat6 305m', price: 200, inStock: true, stockCount: 0),
+      Product(id: 'c', name: 'Cable Cat6 Pro', price: 120, inStock: true, stockCount: 9),
+    ];
+
+    List<String> shownProducts(WidgetTester tester) => [
+          for (final e in find.byType(ProductCard).evaluate())
+            (e.widget as ProductCard).product.id,
+        ];
+
+    testWidgets('price order and in stock only', (tester) async {
+      tester.view.physicalSize = const Size(400, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_app(await _prefs(), products: priced));
+      await tester.pumpAndSettle();
+      await _submit(tester, 'cable');
+
+      await tester.ensureVisible(find.byKey(const ValueKey('search-sort-priceHigh')));
+      await tester.tap(find.byKey(const ValueKey('search-sort-priceHigh')));
+      await tester.pumpAndSettle();
+      expect(shownProducts(tester), ['b', 'c', 'a']);
+
+      await tester.ensureVisible(find.byKey(const ValueKey('search-sort-priceLow')));
+      await tester.tap(find.byKey(const ValueKey('search-sort-priceLow')));
+      await tester.pumpAndSettle();
+      expect(shownProducts(tester), ['a', 'c', 'b']);
+
+      await tester.ensureVisible(find.byKey(const ValueKey('search-in-stock')));
+      await tester.tap(find.byKey(const ValueKey('search-in-stock')));
+      await tester.pumpAndSettle();
+      expect(shownProducts(tester), ['a', 'c']);
+    });
+
+    test('what can be bought wins a tie', () {
+      final soldOut = priced[1];
+      final ranked = searchRanked(
+        [soldOut, priced[0]],
+        'cable cat6',
+        (p) => [SearchField(p.name, weight: 3)],
+        tieBreak: (p) => p.isAvailable ? 1 : 0,
+      );
+      expect(ranked.first.id, 'a');
+    });
+  });
+
+  testWidgets('a misspelt word offers the right one', (tester) async {
+    await tester.pumpWidget(_app(await _prefs()));
+    await tester.pumpAndSettle();
+    // Two letters wrong: too many for the search itself, but close enough
+    // to say what was probably meant.
+    await _submit(tester, 'rotur');
+    expect(find.byKey(const ValueKey('search-no-results')), findsOneWidget);
+    expect(find.byKey(const ValueKey('search-did-you-mean')), findsOneWidget);
+    expect(find.text('Did you mean “router”?'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('search-did-you-mean')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('search-no-results')), findsNothing);
+    expect(find.text('TP-Link Router'), findsWidgets);
+  });
+
+  testWidgets('typing a category name suggests the category', (tester) async {
+    await tester.pumpWidget(_app(await _prefs()));
+    await tester.pumpAndSettle();
+    await _type(tester, 'netw');
+    expect(
+      find.byKey(const ValueKey('suggestion-category-networks')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('suggestion-category-networks')));
+    await tester.pumpAndSettle();
+    expect(find.text('TP-Link Router'), findsWidgets);
   });
 }

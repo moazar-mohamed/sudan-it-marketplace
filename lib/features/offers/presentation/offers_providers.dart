@@ -20,14 +20,13 @@ final marketplaceServiceOffersProvider = Provider<List<ServiceOfferItem>>((
   final companies = ref.watch(firestoreCompaniesStreamProvider).asData?.value;
   if (companies == null) return const [];
   final servicesById = {for (final service in services) service.id: service};
-  final companyNames = {
-    for (final company in companiesServingCity(
-      activeCompanies(companies),
-      ref.watch(cityFilterProvider),
-    ))
-      company.id: company.name,
+  final cityId = ref.watch(cityFilterProvider);
+  final active = activeCompanies(companies);
+  final companyNames = {for (final company in active) company.id: company.name};
+  final servingIds = {
+    for (final company in companiesServingCity(active, cityId)) company.id,
   };
-  return [
+  final items = [
     for (final link in links)
       if (link.hasActiveOffer)
         if (servicesById[link.serviceId] case final service?)
@@ -37,6 +36,12 @@ final marketplaceServiceOffersProvider = Provider<List<ServiceOfferItem>>((
               service: service,
               companyName: companyName,
             ),
+  ];
+  // Offers of companies that serve the customer's city first; the others
+  // stay, after them.
+  return [
+    ...items.where((item) => servingIds.contains(item.link.companyId)),
+    ...items.where((item) => !servingIds.contains(item.link.companyId)),
   ];
 });
 

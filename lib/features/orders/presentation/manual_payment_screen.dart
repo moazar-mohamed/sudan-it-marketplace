@@ -8,6 +8,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/phone_number.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../companies/domain/entities/payment_account.dart';
+import '../../cities/presentation/city_providers.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../../core/services/receipt_image_compressor.dart';
 import '../../../core/widgets/image_picker_strings.dart';
@@ -147,6 +148,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
             deliveryAddress: widget.draft.deliveryAddress,
             contactPhone: widget.draft.contactPhone,
             deliveryMethod: widget.draft.deliveryMethod,
+            deliveryCityId: widget.draft.deliveryCityId,
             customerName: widget.draft.customerName,
             receipt: _receipt,
             deliveryLatitude: widget.draft.deliveryLatitude,
@@ -155,6 +157,8 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
 
       if (!mounted) return;
       if (order != null) {
+        // The next order starts from the customer's own city again.
+        ref.read(deliveryCityOverrideProvider.notifier).set(null);
         setState(() => _isSubmitting = false);
         Navigator.of(context).pushReplacement(
           MaterialPageRoute<void>(

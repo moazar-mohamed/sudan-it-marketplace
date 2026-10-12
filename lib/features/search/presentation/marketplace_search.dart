@@ -44,6 +44,7 @@ List<SearchField> productSearchFields(
         categoriesById[product.categoryId]?.searchText ?? '',
         weight: 2,
       ),
+      SearchField(product.brand, weight: 2),
       SearchField(product.companyName ?? ''),
       SearchField(product.description ?? ''),
       SearchField(
@@ -73,6 +74,48 @@ List<SearchField> companySearchFields(Company company) => [
       SearchField(company.address ?? ''),
       SearchField(company.description ?? ''),
     ];
+
+/// The names people can search for: what a "did you mean" is built from.
+final marketplaceVocabularyProvider = Provider<List<String>>((ref) {
+  final products = ref.watch(marketplaceProductsProvider);
+  final companies = ref.watch(marketplaceCompaniesProvider);
+  final services =
+      ref.watch(marketplaceServicesProvider).asData?.value ?? const [];
+  final categoriesById = ref.watch(categoriesByIdProvider);
+  return [
+    for (final product in products) ...[product.name, product.brand],
+    for (final service in services) service.name,
+    for (final company in companies) company.name,
+    for (final category in categoriesById.values) category.searchText,
+  ];
+});
+
+/// How the product results are ordered.
+enum ProductSort { relevance, priceLow, priceHigh }
+
+/// [products] ordered and filtered the way the customer chose. Relevance keeps
+/// the ranking; a price order puts products without a price last.
+List<Product> arrangeProducts(
+  List<Product> products, {
+  required ProductSort sort,
+  required bool inStockOnly,
+}) {
+  final shown = [
+    for (final product in products)
+      if (!inStockOnly || product.isAvailable) product,
+  ];
+  if (sort == ProductSort.relevance) return shown;
+  double? priceOf(Product p) => p.offerPrice ?? p.price;
+  shown.sort((a, b) {
+    final pa = priceOf(a);
+    final pb = priceOf(b);
+    if (pa == null && pb == null) return 0;
+    if (pa == null) return 1;
+    if (pb == null) return -1;
+    return sort == ProductSort.priceLow ? pa.compareTo(pb) : pb.compareTo(pa);
+  });
+  return shown;
+}
 
 final marketplaceSearchProvider =
     Provider.family<MarketplaceResults, MarketplaceQuery>((ref, query) {
@@ -113,6 +156,8 @@ final marketplaceSearchProvider =
       products,
       query.text,
       (product) => productSearchFields(product, categoriesById),
+      // Among equally good matches, what can be bought now comes first.
+      tieBreak: (product) => product.isAvailable ? 1 : 0,
     ),
     services: searchRanked(
       services,

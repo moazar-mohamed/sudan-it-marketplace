@@ -39,7 +39,7 @@ enum PushCategory {
             reports,
             platform,
           ],
-        UserRole.technician => const [orders],
+        UserRole.technician => const [orders, chat],
         UserRole.platformAdmin => const [],
       };
 }

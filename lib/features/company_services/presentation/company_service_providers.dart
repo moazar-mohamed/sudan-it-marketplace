@@ -68,17 +68,20 @@ final serviceOffersProvider =
   if (linkList == null || companyList == null) {
     return const AsyncValue.loading();
   }
+  final cityId = ref.watch(cityFilterProvider);
   final companiesById = {
-    for (final company in companiesServingCity(
-      activeCompanies(companyList),
-      ref.watch(cityFilterProvider),
-    ))
-      company.id: company,
+    for (final company in activeCompanies(companyList)) company.id: company,
   };
   final offers = [
     for (final link in linkList)
       if (companiesById[link.companyId] case final company?)
         ServiceOffer(offer: link, company: company),
-  ]..sort((a, b) => a.company.name.compareTo(b.company.name));
+  ]..sort((a, b) {
+      // Companies that serve the customer's city first, then by name.
+      final aServes = a.company.servesCity(cityId) ? 0 : 1;
+      final bServes = b.company.servesCity(cityId) ? 0 : 1;
+      if (aServes != bServes) return aServes - bServes;
+      return a.company.name.compareTo(b.company.name);
+    });
   return AsyncValue.data(offers);
 });

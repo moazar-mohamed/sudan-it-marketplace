@@ -31,6 +31,10 @@ class TechniciansRepositoryImpl implements TechniciansRepository {
       _remoteDataSource.deactivateTechnician(technicianId);
 
   @override
+  Future<void> setAvailability(String technicianId, {required bool available}) =>
+      _remoteDataSource.setAvailability(technicianId, available: available);
+
+  @override
   Future<void> provisionTechnician({
     required String companyId,
     required String fullName,

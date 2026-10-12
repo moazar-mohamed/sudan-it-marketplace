@@ -7,6 +7,7 @@ class Technician {
     this.email,
     this.uid,
     this.isActive = true,
+    this.isAvailable = true,
     this.createdAt,
   });
 
@@ -20,5 +21,9 @@ class Technician {
   /// provisioned through the secure backend (createTechnician callable).
   final String? uid;
   final bool isActive;
+
+  /// Whether the technician is taking new jobs. Chosen by the technician;
+  /// the company only sees it. Records without the field count as available.
+  final bool isAvailable;
   final DateTime? createdAt;
 }

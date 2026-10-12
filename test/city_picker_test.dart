@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sudan_it_marketplace/features/cities/domain/sudan_city.dart';
 import 'package:sudan_it_marketplace/features/cities/presentation/city_picker_sheets.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 
@@ -10,8 +9,7 @@ Future<String?> _open(
   WidgetTester tester, {
   Locale locale = const Locale('en'),
   Map<String, int> counts = const {},
-  Future<String?> Function()? locate,
-  bool allowBrowseAll = false,
+  Set<String>? enabledIds,
   Future<void> Function()? afterOpen,
 }) async {
   String? result;
@@ -34,8 +32,7 @@ Future<String?> _open(
                 result = await showCityPickerSheet(
                   context,
                   counts: counts,
-                  locate: locate,
-                  allowBrowseAll: allowBrowseAll,
+                  enabledIds: enabledIds,
                 );
                 done = true;
               },
@@ -58,18 +55,6 @@ Future<String?> _open(
 }
 
 void main() {
-  group('nearestCity', () {
-    test('finds the city a point is in', () {
-      expect(nearestCity(15.50, 32.56)?.id, 'khartoum');
-      expect(nearestCity(19.62, 37.21)?.id, 'port_sudan');
-      expect(nearestCity(12.05, 24.88)?.id, 'nyala');
-    });
-
-    test('returns null when no listed city is near', () {
-      expect(nearestCity(30.0, 31.2), isNull); // Cairo
-    });
-  });
-
   group('city picker sheet', () {
     testWidgets('choosing a city returns its id', (tester) async {
       final picked = await _open(
@@ -111,37 +96,32 @@ void main() {
       );
     });
 
-    testWidgets('the browse-all row only appears when allowed', (tester) async {
-      await _open(
+    testWidgets('cities the company does not serve are faded and cannot be chosen',
+        (tester) async {
+      final picked = await _open(
         tester,
+        enabledIds: {'port_sudan', 'kassala'},
         afterOpen: () async {
-          expect(find.byKey(const ValueKey('city-browse-all')), findsNothing);
+          expect(
+            find.text('This company does not serve it'),
+            findsWidgets,
+          );
+          // The list is long: the served city must still be reachable.
+          await tester.tap(find.byKey(const ValueKey('city-khartoum')));
+          await tester.pumpAndSettle();
+          expect(find.byKey(const ValueKey('city-khartoum')), findsOneWidget);
+          await tester.tap(find.byKey(const ValueKey('city-kassala')));
+          await tester.pumpAndSettle();
         },
       );
-      await tester.pumpWidget(const SizedBox());
-      await _open(
-        tester,
-        allowBrowseAll: true,
-        afterOpen: () async {
-          expect(find.byKey(const ValueKey('city-browse-all')), findsOneWidget);
-        },
-      );
+      expect(picked, 'kassala');
     });
 
-    testWidgets('the location button picks the nearest city, or says it failed',
-        (tester) async {
+    testWidgets('there is no "use my location" button', (tester) async {
       await _open(
         tester,
-        locate: () async => null,
         afterOpen: () async {
-          await tester.tap(find.byKey(const ValueKey('city-use-location')));
-          await tester.pumpAndSettle();
-          expect(
-            find.text(
-              'Could not find your location. Choose your city from the list.',
-            ),
-            findsOneWidget,
-          );
+          expect(find.byKey(const ValueKey('city-use-location')), findsNothing);
         },
       );
     });
