@@ -1,0 +1,229 @@
+// Shapes mirror the Firestore documents the Flutter app already reads.
+
+export type OfferBadge = 'discount' | 'special' | 'limited';
+
+/** Anything a company sells at a price: a product or a company's service. */
+export interface Priced {
+  /** null = no price set; never treated as 0. */
+  price: number | null;
+  offerPrice: number | null;
+  offerEndsAt: Date | null;
+  offerBadge: OfferBadge | null;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  nameAr: string;
+  nameEn: string;
+  description: string;
+  parentId: string | null;
+  sortOrder: number | null;
+  iconName: string;
+  color: string;
+  isActive: boolean;
+  deletionPending: boolean;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  rating: number;
+  reviewCount: number;
+  logoUrl: string;
+  description: string;
+  city: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  phone: string;
+  status: string;
+  /** City ids it serves; empty = it has not said, shown in every city. */
+  serviceCityIds: string[];
+  pickupAddress: string;
+  pickupPoints: PickupPoint[];
+  paymentAccounts: PaymentAccount[];
+}
+
+export interface PickupPoint {
+  name: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface PaymentAccount {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  phoneNumber: string;
+}
+
+export type OrderStatus = 'processing' | 'out_for_delivery' | 'completed' | 'cancelled';
+export type PaymentStatus = 'pending_verification' | 'confirmed';
+export type DeliveryMethod = 'delivery' | 'pickup';
+
+export interface Order {
+  id: string;
+  companyId: string;
+  companyName: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  productSubtotal: number;
+  installationSelected: boolean;
+  installationFee: number;
+  deliveryFee: number;
+  totalAmount: number;
+  deliveryAddress: string;
+  deliveryLatitude: number | null;
+  deliveryLongitude: number | null;
+  deliveryCityId: string | null;
+  contactPhone: string;
+  deliveryMethod: DeliveryMethod;
+  paymentStatus: PaymentStatus;
+  orderStatus: OrderStatus;
+  receiptFileName: string;
+  cancelReason: string | null;
+  cancelledAt: Date | null;
+  createdAt: Date;
+}
+
+/** What checkout hands to the payment step; nothing is stored until the receipt is sent. */
+export interface OrderDraft {
+  id: string;
+  customerId: string;
+  customerName: string;
+  companyId: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  productSubtotal: number;
+  installationSelected: boolean;
+  installationFee: number;
+  deliveryFee: number;
+  totalAmount: number;
+  deliveryAddress: string;
+  deliveryLatitude: number | null;
+  deliveryLongitude: number | null;
+  deliveryCityId: string | null;
+  contactPhone: string;
+  deliveryMethod: DeliveryMethod;
+}
+
+/** A receipt ready to be stored: a JPEG within the limits the rules accept. */
+export interface ReceiptImage {
+  fileName: string;
+  bytes: Uint8Array;
+  width: number;
+  height: number;
+}
+
+export interface Product extends Priced {
+  id: string;
+  companyId: string;
+  companyName: string;
+  categoryId: string | null;
+  name: string;
+  imageUrl: string;
+  currency: string;
+  description: string;
+  brand: string;
+  inStock: boolean;
+  stockCount: number;
+  specifications: Record<string, string>;
+  isDeliveryAvailable: boolean;
+  isInstallationAvailable: boolean;
+  installationPrice: number | null;
+  hidden: boolean;
+  createdAt: Date | null;
+}
+
+export interface CatalogService {
+  id: string;
+  categoryId: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+}
+
+/** One company's offer of a catalogue service. */
+export interface CompanyService extends Priced {
+  id: string;
+  companyId: string;
+  serviceId: string;
+  isActive: boolean;
+  note: string;
+}
+
+/** A catalogue service with the active offers of the companies customers can see. */
+export interface ServiceListing {
+  service: CatalogService;
+  /** Cheapest first; an offer without a price goes last. */
+  offers: CompanyService[];
+  companies: Map<string, Company>;
+}
+
+export interface RatingStats {
+  sum: number;
+  count: number;
+}
+
+export interface Review {
+  id: string;
+  authorName: string;
+  companyId: string;
+  companyName: string;
+  targetType: string;
+  targetId: string;
+  stars: number;
+  tags: string[];
+  comment: string;
+  hidden: boolean;
+  reply: string;
+  createdAt: Date;
+}
+
+export interface City {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  active: boolean;
+}
+
+export interface UserProfile {
+  id: string;
+  role: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  photoUrl: string;
+  isActive: boolean;
+  /** null until they choose one. */
+  cityId: string | null;
+}
+
+export interface AppNotification {
+  id: string;
+  type: string;
+  productName: string;
+  orderId: string;
+  serviceRequestId: string;
+  reportId: string;
+  isRead: boolean;
+  createdAt: Date;
+}
+
+export interface Report {
+  id: string;
+  reason: string;
+  subject: string;
+  details: string;
+  orderRef: string;
+  status: string;
+  /** What Platform Admin wrote back; empty until they do. */
+  resolution: string;
+  createdAt: Date;
+}
