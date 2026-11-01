@@ -1030,79 +1030,84 @@ service cloud.firestore {
     // 10 characters from the app (20 for a Firestore auto id); 36 leaves room
     // for a longer format and is well inside what notifications accept (128).
     function isValidOrderCreate(orderId) {
+      // One name for the new order: every step of a path counts towards the 1000
+      // expressions a request may evaluate, and this function reads it over fifty
+      // times. Spelled out in full, a delivery order goes over that limit and is
+      // refused however correct it is (order-expression-limit.rules.test.ts).
+      let data = request.resource.data;
       return hasRequiredOrderKeys()
         && orderId.size() <= 36
-        && request.resource.data.id == orderId
-        && request.resource.data.customerId == request.auth.uid
-        && request.resource.data.companyId is string
-        && request.resource.data.companyId.size() > 0
-        && request.resource.data.get('companyName', '') is string
-        && request.resource.data.get('companyName', '').size() <= 200
-        && request.resource.data.productId is string
-        && request.resource.data.productId.size() > 0
-        && request.resource.data.productName is string
-        && request.resource.data.productName.size() > 0
-        && request.resource.data.productName.size() <= 200
-        && request.resource.data.quantity is int
-        && request.resource.data.quantity > 0
-        && request.resource.data.unitPrice is number
-        && request.resource.data.unitPrice >= 0
-        && request.resource.data.productSubtotal is number
-        && request.resource.data.productSubtotal >= 0
-        && request.resource.data.installationSelected is bool
-        && request.resource.data.installationFee is number
-        && request.resource.data.installationFee >= 0
-        && request.resource.data.deliveryFee is number
-        && request.resource.data.deliveryFee >= 0
-        && request.resource.data.totalAmount is number
-        && request.resource.data.totalAmount > 0
-        && request.resource.data.deliveryAddress is string
-        && request.resource.data.deliveryAddress.size() <= 500
+        && data.id == orderId
+        && data.customerId == request.auth.uid
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.get('companyName', '') is string
+        && data.get('companyName', '').size() <= 200
+        && data.productId is string
+        && data.productId.size() > 0
+        && data.productName is string
+        && data.productName.size() > 0
+        && data.productName.size() <= 200
+        && data.quantity is int
+        && data.quantity > 0
+        && data.unitPrice is number
+        && data.unitPrice >= 0
+        && data.productSubtotal is number
+        && data.productSubtotal >= 0
+        && data.installationSelected is bool
+        && data.installationFee is number
+        && data.installationFee >= 0
+        && data.deliveryFee is number
+        && data.deliveryFee >= 0
+        && data.totalAmount is number
+        && data.totalAmount > 0
+        && data.deliveryAddress is string
+        && data.deliveryAddress.size() <= 500
         // A typed address, a map point, or both; never neither.
-        && (request.resource.data.deliveryAddress.size() > 0
-          || orderHasDeliveryPoint(request.resource.data))
+        && (data.deliveryAddress.size() > 0
+          || orderHasDeliveryPoint(data))
         && isValidCoordinatePair(
-          request.resource.data.get('deliveryLatitude', null),
-          request.resource.data.get('deliveryLongitude', null))
-        && (request.resource.data.get('deliveryMethod', 'delivery') != 'pickup'
-          || !orderHasDeliveryPoint(request.resource.data))
-        && request.resource.data.contactPhone is string
-        && request.resource.data.contactPhone.size() > 0
-        && request.resource.data.contactPhone.size() <= 30
-        && (!request.resource.data.keys().hasAny(['deliveryMethod'])
-          || request.resource.data.deliveryMethod in ['delivery', 'pickup'])
-        && (request.resource.data.get('deliveryMethod', 'delivery') != 'pickup'
-          || request.resource.data.deliveryFee == 0)
+          data.get('deliveryLatitude', null),
+          data.get('deliveryLongitude', null))
+        && (data.get('deliveryMethod', 'delivery') != 'pickup'
+          || !orderHasDeliveryPoint(data))
+        && data.contactPhone is string
+        && data.contactPhone.size() > 0
+        && data.contactPhone.size() <= 30
+        && (!data.keys().hasAny(['deliveryMethod'])
+          || data.deliveryMethod in ['delivery', 'pickup'])
+        && (data.get('deliveryMethod', 'delivery') != 'pickup'
+          || data.deliveryFee == 0)
         // The city the order is delivered to: a short text. Whether it is one
         // the company serves is checked by companyServesOrder (a company that
         // lists cities only accepts those). It is not checked against the
         // city list here: that list costs too many of the 1000 expressions an
         // order's rules may evaluate.
-        && (!('deliveryCityId' in request.resource.data)
-          || (request.resource.data.deliveryCityId is string
-            && request.resource.data.deliveryCityId.size() > 0
-            && request.resource.data.deliveryCityId.size() <= 40))
-        && (!request.resource.data.keys().hasAny(['customerName'])
-          || (request.resource.data.customerName is string
-            && request.resource.data.customerName.size() <= 120))
-        && request.resource.data.paymentStatus == 'pending_verification'
-        && request.resource.data.orderStatus == 'processing'
+        && (!('deliveryCityId' in data)
+          || (data.deliveryCityId is string
+            && data.deliveryCityId.size() > 0
+            && data.deliveryCityId.size() <= 40))
+        && (!data.keys().hasAny(['customerName'])
+          || (data.customerName is string
+            && data.customerName.size() <= 120))
+        && data.paymentStatus == 'pending_verification'
+        && data.orderStatus == 'processing'
         // Every order is placed with its payment receipt, stored in the same
         // write under this name (orderComesWithItsReceipt). A stored receipt
         // is only the customer's claim: the payment is confirmed by the
         // company alone (isCompanyPaymentConfirmation).
-        && request.resource.data.receiptFileName is string
-        && request.resource.data.receiptFileName.size() > 0
-        && request.resource.data.receiptFileName.size() <= 100
+        && data.receiptFileName is string
+        && data.receiptFileName.size() > 0
+        && data.receiptFileName.size() <= 100
         // A new order takes no stock. stockReserved becomes true only in the
         // write that confirms its payment and takes its stock
         // (isCompanyPaymentConfirmation), so a cancellation gives back
         // exactly what was taken.
-        && request.resource.data.stockReserved == false
+        && data.stockReserved == false
         // The server's time, never the customer's: the 24-hour payment
         // verification window is counted from createdAt.
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.updatedAt == request.time;
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
     }
 
     // Orders go only to a company that exists and is active (a company with
