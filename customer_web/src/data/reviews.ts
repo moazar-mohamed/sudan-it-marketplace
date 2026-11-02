@@ -2,7 +2,8 @@ import { doc, increment, serverTimestamp, updateDoc, writeBatch } from 'firebase
 import type { WriteBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { notifyCompany } from './orders';
-import type { Order, Review } from './types';
+import type { Order, Review, ServiceRequest } from './types';
+import { t } from '../i18n';
 
 // Port of firestore_reviews_repository.dart: there is no server, so each batch
 // that changes a review's stars moves the averages too, and the rules check both.
@@ -10,14 +11,49 @@ import type { Order, Review } from './types';
 export const COMMENT_MAX = 500;
 const EDIT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
-export const ORDER_TAGS = [
-  { value: 'quality', label: 'الجودة' },
-  { value: 'delivery', label: 'سرعة التوصيل' },
-  { value: 'service', label: 'حسن التعامل' },
-  { value: 'price', label: 'سعر مناسب' },
-] as const;
+const QUALITY = { value: 'quality', label: t('الجودة') };
+const SERVICE = { value: 'service', label: t('حسن التعامل') };
+const PRICE = { value: 'price', label: t('سعر مناسب') };
 
-export const STAR_LABELS = ['', 'سيئ', 'مقبول', 'جيد', 'جيد جدًا', 'ممتاز'];
+/** Products are delivered, services are done on time. */
+export const ORDER_TAGS = [QUALITY, { value: 'delivery', label: t('سرعة التوصيل') }, SERVICE, PRICE];
+export const REQUEST_TAGS = [QUALITY, { value: 'punctual', label: t('الالتزام بالموعد') }, SERVICE, PRICE];
+
+/** What a review is about: an order's product, or a request's company service. */
+export interface ReviewSubject {
+  id: string;
+  sourceType: 'order' | 'service_request';
+  targetType: 'product' | 'service';
+  targetId: string;
+  targetName: string;
+  companyId: string;
+  companyName: string;
+  tags: { value: string; label: string }[];
+}
+
+export const orderReviewSubject = (o: Order): ReviewSubject => ({
+  id: o.id,
+  sourceType: 'order',
+  targetType: 'product',
+  targetId: o.productId,
+  targetName: o.productName,
+  companyId: o.companyId,
+  companyName: o.companyName,
+  tags: ORDER_TAGS,
+});
+
+export const requestReviewSubject = (r: ServiceRequest): ReviewSubject => ({
+  id: r.id,
+  sourceType: 'service_request',
+  targetType: 'service',
+  targetId: r.companyServiceId,
+  targetName: r.serviceName,
+  companyId: r.companyId,
+  companyName: r.companyName,
+  tags: REQUEST_TAGS,
+});
+
+export const STAR_LABELS = ['', t('سيئ'), t('مقبول'), t('جيد'), t('جيد جدًا'), t('ممتاز')];
 
 export interface ReviewDraft {
   stars: number;
@@ -59,19 +95,19 @@ function moveRatings(
   }
 }
 
-/** The customer's rating of their completed order; its id is the order's, so it is rated once. */
-export async function rateOrder(order: Order, customerId: string, fullName: string, draft: ReviewDraft): Promise<void> {
+/** The customer's rating of what they received; its id is the order's or request's, so it is rated once. */
+export async function rateSubject(subject: ReviewSubject, customerId: string, fullName: string, draft: ReviewDraft): Promise<void> {
   const batch = writeBatch(db);
-  batch.set(doc(db, 'reviews', order.id), {
-    id: order.id,
-    sourceType: 'order',
+  batch.set(doc(db, 'reviews', subject.id), {
+    id: subject.id,
+    sourceType: subject.sourceType,
     customerId,
     authorName: reviewAuthorName(fullName),
-    companyId: order.companyId,
-    companyName: order.companyName,
-    targetType: 'product',
-    targetId: order.productId,
-    targetName: order.productName,
+    companyId: subject.companyId,
+    companyName: subject.companyName,
+    targetType: subject.targetType,
+    targetId: subject.targetId,
+    targetName: subject.targetName,
     stars: draft.stars,
     tags: draft.tags,
     comment: draft.comment.trim(),
@@ -79,9 +115,11 @@ export async function rateOrder(order: Order, customerId: string, fullName: stri
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  moveRatings(batch, { id: order.id, companyId: order.companyId, targetKey: `product_${order.productId}` }, draft.stars, 1);
+  moveRatings(batch, { id: subject.id, companyId: subject.companyId, targetKey: `${subject.targetType}_${subject.targetId}` }, draft.stars, 1);
   await batch.commit();
-  await notifyCompany(order, 'new_review').catch(() => undefined);
+  if (subject.sourceType === 'order') {
+    await notifyCompany({ id: subject.id, companyId: subject.companyId, productName: subject.targetName }, 'new_review').catch(() => undefined);
+  }
 }
 
 export async function editReview(review: Review, draft: ReviewDraft): Promise<void> {

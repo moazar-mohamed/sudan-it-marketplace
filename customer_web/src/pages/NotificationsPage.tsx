@@ -9,6 +9,7 @@ import {
   notificationTitle,
 } from '../data/notifications';
 import type { AppNotification } from '../data/types';
+import { t } from '../i18n';
 
 function when(value: Date): string {
   const two = (n: number) => String(n).padStart(2, '0');
@@ -26,16 +27,16 @@ export function NotificationsPage() {
   }
 
   function remove(n: AppNotification) {
-    if (window.confirm('حذف هذا الإشعار؟ سيُحذف نهائياً.')) void deleteNotification(n.id).catch(() => undefined);
+    if (window.confirm(t('حذف هذا الإشعار؟ سيُحذف نهائياً.'))) void deleteNotification(n.id).catch(() => undefined);
   }
 
   return (
     <main className="stack narrow">
-      <h1 className="page-title">الإشعارات</h1>
+      <h1 className="page-title">{t('الإشعارات')}</h1>
       {notifications === null ? (
         <Skeleton height={240} />
       ) : notifications.length === 0 ? (
-        <EmptyState title="لا توجد إشعارات بعد." />
+        <EmptyState title={t('لا توجد إشعارات بعد.')} />
       ) : (
         <section className="rows">
           {notifications.map((n) => (
@@ -45,7 +46,7 @@ export function NotificationsPage() {
                 <span>{notificationBody(n)}</span>
                 <time className="pmeta" dir="ltr">{when(n.createdAt)}</time>
               </button>
-              <button className="link-btn" aria-label="حذف الإشعار" onClick={() => remove(n)}>✕</button>
+              <button className="link-btn" aria-label={t('حذف الإشعار')} onClick={() => remove(n)}>✕</button>
             </div>
           ))}
         </section>

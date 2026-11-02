@@ -3,9 +3,12 @@ import type {
   AppNotification,
   CatalogService,
   Category,
+  ChatMessage,
+  ChatRole,
   City,
   Company,
   CompanyService,
+  Conversation,
   OfferBadge,
   Order,
   OrderStatus,
@@ -15,6 +18,8 @@ import type {
   Product,
   Report,
   Review,
+  ServiceRequest,
+  ServiceRequestStatus,
   UserProfile,
 } from './types';
 
@@ -134,6 +139,7 @@ export function mapOrder(id: string, d: DocumentData): Order {
   const point = geoPoint(d.deliveryLatitude, d.deliveryLongitude);
   return {
     id,
+    customerName: str(d.customerName),
     companyId: str(d.companyId),
     companyName: str(d.companyName),
     productId: str(d.productId),
@@ -231,6 +237,7 @@ export function mapReview(id: string, d: DocumentData): Review {
 
 export function mapProfile(id: string, d: DocumentData): UserProfile {
   return {
+    language: d.language === 'ar' || d.language === 'en' ? d.language : null,
     id,
     role: str(d.role).trim().toLowerCase() || 'customer',
     fullName: str(d.fullName).trim() || str(d.name).trim(),
@@ -277,4 +284,62 @@ export function mapCity(raw: unknown): City | null {
   const en = str(nameEn).trim();
   if (ar === '' && en === '') return null;
   return { id, nameAr: ar || en, nameEn: en || ar, active: active !== false };
+}
+
+const idOrNull = (v: unknown): string | null => (typeof v === 'string' && v !== '' ? v : null);
+const chatRole = (v: unknown): ChatRole | null => (v === 'customer' || v === 'company' ? v : null);
+
+export function mapConversation(id: string, d: DocumentData): Conversation {
+  return {
+    id,
+    serviceRequestId: idOrNull(d.serviceRequestId),
+    orderId: idOrNull(d.orderId),
+    productId: idOrNull(d.productId),
+    companyServiceId: idOrNull(d.companyServiceId),
+    customerName: str(d.customerName),
+    companyId: str(d.companyId),
+    companyName: str(d.companyName),
+    serviceName: str(d.serviceName),
+    productName: str(d.productName),
+    createdAt: toDate(d.createdAt) ?? new Date(),
+    lastMessageText: str(d.lastMessageText),
+    lastMessageAt: toDate(d.lastMessageAt),
+    lastMessageSenderRole: chatRole(d.lastMessageSenderRole),
+    customerLastReadAt: toDate(d.customerLastReadAt),
+    companyLastReadAt: toDate(d.companyLastReadAt),
+  };
+}
+
+export function mapMessage(id: string, d: DocumentData, pending: boolean): ChatMessage {
+  return {
+    id,
+    senderId: str(d.senderId),
+    senderRole: chatRole(d.senderRole) ?? 'customer',
+    text: str(d.text),
+    // A message just written reads back without its server time for a moment.
+    createdAt: toDate(d.createdAt) ?? new Date(),
+    pending,
+  };
+}
+
+const REQUEST_STATUSES: ServiceRequestStatus[] = ['pending', 'accepted', 'rejected', 'in_progress', 'completed', 'cancelled'];
+
+export function mapServiceRequest(id: string, d: DocumentData): ServiceRequest {
+  const price = numOrNull(d.price);
+  return {
+    id,
+    companyId: str(d.companyId),
+    companyName: str(d.companyName),
+    companyServiceId: str(d.companyServiceId),
+    serviceName: str(d.serviceName),
+    price: price !== null && price > 0 ? price : null,
+    details: str(d.details),
+    address: str(d.address),
+    latitude: numOrNull(d.latitude),
+    longitude: numOrNull(d.longitude),
+    cityId: idOrNull(d.cityId),
+    contactPhone: str(d.contactPhone),
+    status: REQUEST_STATUSES.find((s) => s === d.status) ?? 'pending',
+    createdAt: toDate(d.createdAt) ?? new Date(),
+  };
 }

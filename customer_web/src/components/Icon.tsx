@@ -1,3 +1,5 @@
+import { language } from '../i18n';
+
 export const PATHS = {
   search: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z m9 2-3.5-3.5',
   pin: 'M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
@@ -21,7 +23,7 @@ export const PATHS = {
 
 export function Icon({ d, size = 22 }: { d: string; size?: number }) {
   return (
-    <svg className="ico" style={{ width: size, height: size }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg className={`ico${d === PATHS.arrow && language === 'en' ? ' flip' : ''}`} style={{ width: size, height: size }} viewBox="0 0 24 24" aria-hidden="true">
       <path d={d} />
     </svg>
   );

@@ -15,6 +15,7 @@ import {
   SUBJECT_MAX,
   submitReport,
 } from '../data/reports';
+import { t } from '../i18n';
 
 export function ReportFormPage() {
   const nav = useNavigate();
@@ -28,26 +29,26 @@ export function ReportFormPage() {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (subject.trim() === '') return setError('اكتب موضوعاً.');
-    if (details.trim() === '') return setError('صف المشكلة.');
+    if (subject.trim() === '') return setError(t('اكتب موضوعاً.'));
+    if (details.trim() === '') return setError(t('صف المشكلة.'));
     setBusy(true);
     setError('');
     try {
       await submitReport(profile, { reason, subject, details, orderRef });
       nav('/reports?sent=1', { replace: true });
     } catch (err) {
-      setError(err instanceof ReportLimitReached ? 'يمكنك إرسال 5 بلاغات كل 24 ساعة. يرجى المحاولة لاحقاً.' : 'حدث خطأ. يرجى المحاولة مرة أخرى.');
+      setError(err instanceof ReportLimitReached ? t('يمكنك إرسال 5 بلاغات كل 24 ساعة. يرجى المحاولة لاحقاً.') : t('حدث خطأ. يرجى المحاولة مرة أخرى.'));
       setBusy(false);
     }
   }
 
   return (
     <main className="stack narrow">
-      <h1 className="page-title">الإبلاغ عن مشكلة</h1>
+      <h1 className="page-title">{t('الإبلاغ عن مشكلة')}</h1>
       <form className="tile" onSubmit={submit} noValidate>
-        <p className="prose" style={{ marginTop: 0 }}>أخبرنا بما حدث. يقرأ فريق المنصة كل بلاغ ويرد عليك في «بلاغاتي».</p>
+        <p className="prose" style={{ marginTop: 0 }}>{t('أخبرنا بما حدث. يقرأ فريق المنصة كل بلاغ ويرد عليك في «بلاغاتي».')}</p>
         <fieldset className="plain">
-          <legend>ما موضوع البلاغ؟</legend>
+          <legend>{t('ما موضوع البلاغ؟')}</legend>
           <div className="chips">
             {REPORT_REASONS.map((r) => (
               <label key={r.value} className={`chip-link${reason === r.value ? ' on' : ''}`}>
@@ -58,19 +59,19 @@ export function ReportFormPage() {
           </div>
         </fieldset>
         <label className="field">
-          الموضوع
-          <input value={subject} maxLength={SUBJECT_MAX} placeholder="بإيجاز" onChange={(e) => setSubject(e.target.value)} />
+          {t('الموضوع')}
+          <input value={subject} maxLength={SUBJECT_MAX} placeholder={t('بإيجاز')} onChange={(e) => setSubject(e.target.value)} />
         </label>
         <label className="field">
-          ماذا حدث؟
-          <textarea rows={5} value={details} maxLength={DETAILS_MAX} placeholder="اشرح ما حدث ومتى ومع أي شركة أو طلب." onChange={(e) => setDetails(e.target.value)} />
+          {t('ماذا حدث؟')}
+          <textarea rows={5} value={details} maxLength={DETAILS_MAX} placeholder={t('اشرح ما حدث ومتى ومع أي شركة أو طلب.')} onChange={(e) => setDetails(e.target.value)} />
         </label>
         <label className="field">
-          رقم الطلب (اختياري)
+          {t('رقم الطلب (اختياري)')}
           <input value={orderRef} maxLength={ORDER_REF_MAX} onChange={(e) => setOrderRef(e.target.value)} dir="ltr" />
         </label>
         {error && <div className="error" role="alert">{error}</div>}
-        <button className="btn" type="submit" disabled={busy}>إرسال البلاغ</button>
+        <button className="btn" type="submit" disabled={busy}>{t('إرسال البلاغ')}</button>
       </form>
     </main>
   );
@@ -84,17 +85,17 @@ export function MyReportsPage() {
   return (
     <main className="stack narrow">
       <div className="section-title" style={{ margin: 0 }}>
-        <h1 className="page-title">بلاغاتي</h1>
-        {items && items.length > 0 && <Link to="/reports/new" className="more">الإبلاغ عن مشكلة</Link>}
+        <h1 className="page-title">{t('بلاغاتي')}</h1>
+        {items && items.length > 0 && <Link to="/reports/new" className="more">{t('الإبلاغ عن مشكلة')}</Link>}
       </div>
-      {sent && <div className="ok-note" role="status">تم إرسال بلاغك. سنرد عليك في «بلاغاتي».</div>}
+      {sent && <div className="ok-note" role="status">{t('تم إرسال بلاغك. سنرد عليك في «بلاغاتي».')}</div>}
       {error ? (
         <ErrorState />
       ) : items === null ? (
         <Skeleton height={200} />
       ) : items.length === 0 ? (
-        <EmptyState title="لم ترسل أي بلاغ.">
-          <Link to="/reports/new" className="pill">الإبلاغ عن مشكلة</Link>
+        <EmptyState title={t('لم ترسل أي بلاغ.')}>
+          <Link to="/reports/new" className="pill">{t('الإبلاغ عن مشكلة')}</Link>
         </EmptyState>
       ) : (
         items.map((report) => {
@@ -109,8 +110,8 @@ export function MyReportsPage() {
               <div className="pmeta">{reportReasonLabel(report.reason)} · {formatDate(report.createdAt)}</div>
               <p>{report.details}</p>
               <div className="reply">
-                <strong>رد فريق المنصة</strong>
-                <p className={replied ? undefined : 'pmeta'}>{replied ? report.resolution : 'لا رد بعد.'}</p>
+                <strong>{t('رد فريق المنصة')}</strong>
+                <p className={replied ? undefined : 'pmeta'}>{replied ? report.resolution : t('لا رد بعد.')}</p>
               </div>
             </article>
           );

@@ -4,6 +4,8 @@ import { saveCity } from '../data/account';
 import { useCatalog } from '../data/DataProvider';
 import { companiesCount } from '../data/format';
 import { Icon, PATHS } from './Icon';
+import { cityName } from '../data/cities';
+import { t } from '../i18n';
 
 /** Chooses the one city the customer shops in. Without [onClose] a choice is required. */
 export function CityPicker({ uid, selectedId, onClose }: { uid: string; selectedId: string | null; onClose?: () => void }) {
@@ -40,22 +42,22 @@ export function CityPicker({ uid, selectedId, onClose }: { uid: string; selected
   }
 
   const panel = (
-    <div className="palette city-panel" role="dialog" aria-modal="true" aria-label="اختر مدينتك">
+    <div className="palette city-panel" role="dialog" aria-modal="true" aria-label={t('اختر مدينتك')}>
       <div className="city-head">
-        <h2>اختر مدينتك</h2>
-        <p>تظهر لك أولاً الشركات التي تخدم مدينتك، حتى تصلك طلباتك.</p>
+        <h2>{t('اختر مدينتك')}</h2>
+        <p>{t('تظهر لك أولاً الشركات التي تخدم مدينتك، حتى تصلك طلباتك.')}</p>
         <label className="city-search">
           <Icon d={PATHS.search} size={18} />
-          <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن مدينة" aria-label="ابحث عن مدينة" />
+          <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('ابحث عن مدينة')} aria-label={t('ابحث عن مدينة')} />
         </label>
-        {failed && <div className="error" role="alert">تعذّر حفظ مدينتك. حاول مرة أخرى.</div>}
+        {failed && <div className="error" role="alert">{t('تعذّر حفظ مدينتك. حاول مرة أخرى.')}</div>}
       </div>
       <div className="palette-list">
-        {shown.length === 0 && <div className="empty">لا توجد مدينة بهذا الاسم.</div>}
+        {shown.length === 0 && <div className="empty">{t('لا توجد مدينة بهذا الاسم.')}</div>}
         {shown.map((city) => (
           <button key={city.id} className={`item${city.id === selectedId ? ' on' : ''}`} disabled={busy} onClick={() => choose(city.id)}>
             <span className="grow">
-              <span style={{ display: 'block', fontWeight: 700 }}>{city.nameAr}</span>
+              <span style={{ display: 'block', fontWeight: 700 }}>{cityName(city)}</span>
               <span className="pmeta">{companiesCount(counts.get(city.id) ?? 0)}</span>
             </span>
             {city.id === selectedId && <span className="price">✓</span>}

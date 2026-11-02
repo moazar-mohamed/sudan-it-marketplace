@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { signOut } from 'firebase/auth';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { CityPicker } from '../components/CityPicker';
@@ -9,7 +8,9 @@ import { PhoneInput, phoneError } from '../components/PhoneInput';
 import { changePassword, hasPassword, PASSWORD_MIN, updateProfile } from '../data/account';
 import { useCatalog } from '../data/DataProvider';
 import { displayPhone, parsePhone, toE164 } from '../data/phone';
-import { auth } from '../firebase';
+import { signOutHere } from '../firebase';
+import { cityName } from '../data/cities';
+import { t } from '../i18n';
 
 function ChangePassword({ onDone }: { onDone: () => void }) {
   const { user } = useAuth();
@@ -21,11 +22,11 @@ function ChangePassword({ onDone }: { onDone: () => void }) {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (current === '') return setError('أدخل كلمة المرور الحالية.');
-    if (next === '') return setError('أدخل كلمة مرور جديدة.');
-    if (next.length < PASSWORD_MIN) return setError('استخدم 6 أحرف على الأقل.');
-    if (confirm === '') return setError('أكّد كلمة المرور الجديدة.');
-    if (confirm !== next) return setError('كلمتا المرور غير متطابقتين.');
+    if (current === '') return setError(t('أدخل كلمة المرور الحالية.'));
+    if (next === '') return setError(t('أدخل كلمة مرور جديدة.'));
+    if (next.length < PASSWORD_MIN) return setError(t('استخدم 6 أحرف على الأقل.'));
+    if (confirm === '') return setError(t('أكّد كلمة المرور الجديدة.'));
+    if (confirm !== next) return setError(t('كلمتا المرور غير متطابقتين.'));
     setBusy(true);
     setError('');
     const failure = await changePassword(user!, current, next);
@@ -36,21 +37,21 @@ function ChangePassword({ onDone }: { onDone: () => void }) {
 
   return (
     <form className="tile" onSubmit={submit} noValidate>
-      <h2>تغيير كلمة المرور</h2>
+      <h2>{t('تغيير كلمة المرور')}</h2>
       <label className="field">
-        كلمة المرور الحالية
+        {t('كلمة المرور الحالية')}
         <input type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} dir="ltr" />
       </label>
       <label className="field">
-        كلمة المرور الجديدة
+        {t('كلمة المرور الجديدة')}
         <input type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} dir="ltr" />
       </label>
       <label className="field">
-        تأكيد كلمة المرور الجديدة
+        {t('تأكيد كلمة المرور الجديدة')}
         <input type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} dir="ltr" />
       </label>
       {error && <div className="error" role="alert">{error}</div>}
-      <button className="btn" type="submit" disabled={busy}>تحديث كلمة المرور</button>
+      <button className="btn" type="submit" disabled={busy}>{t('تحديث كلمة المرور')}</button>
     </form>
   );
 }
@@ -66,7 +67,7 @@ export function ProfilePage() {
   const [note, setNote] = useState('');
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
-  const cityName = cities.find((c) => c.id === cityId)?.nameAr ?? '';
+  const cityLabel = cityName(cities.find((c) => c.id === cityId));
 
   function startEditing() {
     setName(profile.fullName);
@@ -78,7 +79,7 @@ export function ProfilePage() {
 
   async function save(e: FormEvent) {
     e.preventDefault();
-    if (name.trim() === '') return setError('أدخل اسمك الكامل.');
+    if (name.trim() === '') return setError(t('أدخل اسمك الكامل.'));
     const problem = phoneError(phone);
     if (problem) return setError(problem);
     setBusy(true);
@@ -90,7 +91,7 @@ export function ProfilePage() {
       return;
     }
     setEditing(false);
-    setNote('تم تحديث الملف الشخصي بنجاح.');
+    setNote(t('تم تحديث الملف الشخصي بنجاح.'));
   }
 
   return (
@@ -107,47 +108,47 @@ export function ProfilePage() {
 
       {editing ? (
         <form className="tile" onSubmit={save} noValidate>
-          <h2>تعديل الملف الشخصي</h2>
+          <h2>{t('تعديل الملف الشخصي')}</h2>
           <label className="field">
-            الاسم الكامل
+            {t('الاسم الكامل')}
             <input autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} disabled={busy} />
           </label>
           <label className="field">
-            البريد الإلكتروني
+            {t('البريد الإلكتروني')}
             <input value={profile.email} disabled dir="ltr" />
           </label>
-          <PhoneInput label="رقم الهاتف (اختياري)" value={phone} onChange={setPhone} disabled={busy} />
+          <PhoneInput label={t('رقم الهاتف (اختياري)')} value={phone} onChange={setPhone} disabled={busy} />
           {error && <div className="error" role="alert">{error}</div>}
           <div className="buy-row" style={{ marginTop: 20 }}>
-            <button type="button" className="btn-line" disabled={busy} onClick={() => setEditing(false)}>إلغاء</button>
-            <button type="submit" className="btn-solid" disabled={busy}>حفظ التغييرات</button>
+            <button type="button" className="btn-line" disabled={busy} onClick={() => setEditing(false)}>{t('إلغاء')}</button>
+            <button type="submit" className="btn-solid" disabled={busy}>{t('حفظ التغييرات')}</button>
           </div>
         </form>
       ) : (
-        <section className="rows" aria-label="بيانات الحساب">
-          <div className="row"><span className="pmeta">رقم الهاتف</span><span dir="ltr">{displayPhone(profile.phone) || '—'}</span></div>
+        <section className="rows" aria-label={t('بيانات الحساب')}>
+          <div className="row"><span className="pmeta">{t('رقم الهاتف')}</span><span dir="ltr">{displayPhone(profile.phone) || '—'}</span></div>
           <button className="row" onClick={() => setCityOpen(true)}>
             <Icon d={PATHS.pin} />
-            <span className="grow">مدينتي</span>
-            <span className="pmeta">{cityName}</span>
+            <span className="grow">{t('مدينتي')}</span>
+            <span className="pmeta">{cityLabel}</span>
           </button>
           <button className="row" onClick={startEditing}>
             <Icon d={PATHS.user} />
-            <span className="grow">تعديل الملف الشخصي</span>
+            <span className="grow">{t('تعديل الملف الشخصي')}</span>
           </button>
           {user && hasPassword(user) && (
             <button className="row" onClick={() => { setPasswordOpen((v) => !v); setNote(''); }} aria-expanded={passwordOpen}>
               <Icon d={PATHS.lock} />
-              <span className="grow">تغيير كلمة المرور</span>
+              <span className="grow">{t('تغيير كلمة المرور')}</span>
             </button>
           )}
           <Link className="row" to="/settings">
             <Icon d={PATHS.gear} />
-            <span className="grow">الإعدادات</span>
+            <span className="grow">{t('الإعدادات')}</span>
           </Link>
           <Link className="row" to="/notifications">
             <Icon d={PATHS.bell} />
-            <span className="grow">الإشعارات</span>
+            <span className="grow">{t('الإشعارات')}</span>
           </Link>
         </section>
       )}
@@ -156,12 +157,12 @@ export function ProfilePage() {
         <ChangePassword
           onDone={() => {
             setPasswordOpen(false);
-            setNote('تم تغيير كلمة المرور بنجاح.');
+            setNote(t('تم تغيير كلمة المرور بنجاح.'));
           }}
         />
       )}
 
-      <button className="btn ghost" onClick={() => signOut(auth)}>تسجيل الخروج</button>
+      <button className="btn ghost" onClick={signOutHere}>{t('تسجيل الخروج')}</button>
       {cityOpen && <CityPicker uid={profile.id} selectedId={cityId} onClose={() => setCityOpen(false)} />}
     </main>
   );

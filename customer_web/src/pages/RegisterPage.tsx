@@ -3,16 +3,17 @@ import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthCard } from '../components/AuthCard';
 import { authErrorMessage, EMAIL_PATTERN, NAME_PATTERN, PASSWORD_MIN, signUp } from '../data/account';
+import { t } from '../i18n';
 
 function problemOf(name: string, email: string, password: string, confirm: string): string | null {
-  if (name.trim() === '') return 'الاسم الكامل مطلوب.';
-  if (!NAME_PATTERN.test(name.trim())) return 'يجب أن يحتوي الاسم الكامل على أحرف ومسافات فقط.';
-  if (email.trim() === '') return 'البريد الإلكتروني مطلوب.';
-  if (!EMAIL_PATTERN.test(email.trim())) return 'أدخل بريدًا إلكترونيًا صالحًا.';
-  if (password === '') return 'كلمة المرور مطلوبة.';
-  if (password.length < PASSWORD_MIN) return 'يجب ألا تقل كلمة المرور عن 6 أحرف.';
-  if (confirm === '') return 'تأكيد كلمة المرور مطلوب.';
-  if (confirm !== password) return 'كلمتا المرور غير متطابقتين.';
+  if (name.trim() === '') return t('الاسم الكامل مطلوب.');
+  if (!NAME_PATTERN.test(name.trim())) return t('يجب أن يحتوي الاسم الكامل على أحرف ومسافات فقط.');
+  if (email.trim() === '') return t('البريد الإلكتروني مطلوب.');
+  if (!EMAIL_PATTERN.test(email.trim())) return t('أدخل بريدًا إلكترونيًا صالحًا.');
+  if (password === '') return t('كلمة المرور مطلوبة.');
+  if (password.length < PASSWORD_MIN) return t('يجب ألا تقل كلمة المرور عن 6 أحرف.');
+  if (confirm === '') return t('تأكيد كلمة المرور مطلوب.');
+  if (confirm !== password) return t('كلمتا المرور غير متطابقتين.');
   return null;
 }
 
@@ -42,29 +43,29 @@ export function RegisterPage() {
   }
 
   return (
-    <AuthCard title="إنشاء حساب" subtitle="أنشئ حسابًا للبدء.">
+    <AuthCard title={t('إنشاء حساب')} subtitle={t('أنشئ حسابًا للبدء.')}>
       <form onSubmit={submit} noValidate>
         <label className="field">
-          الاسم الكامل
+          {t('الاسم الكامل')}
           <input autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
         </label>
         <label className="field">
-          البريد الإلكتروني
+          {t('البريد الإلكتروني')}
           <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} dir="ltr" placeholder="you@example.com" />
         </label>
         <label className="field">
-          كلمة المرور
+          {t('كلمة المرور')}
           <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} dir="ltr" />
-          <span className="pmeta">6 أحرف على الأقل.</span>
+          <span className="pmeta">{t('6 أحرف على الأقل.')}</span>
         </label>
         <label className="field">
-          تأكيد كلمة المرور
+          {t('تأكيد كلمة المرور')}
           <input type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} dir="ltr" />
         </label>
         {error && <div className="error" role="alert">{error}</div>}
-        <button className="btn" type="submit" disabled={busy}>{busy ? 'جارٍ الإنشاء...' : 'إنشاء حساب'}</button>
+        <button className="btn" type="submit" disabled={busy}>{busy ? t('جارٍ الإنشاء...') : t('إنشاء حساب')}</button>
       </form>
-      <p className="auth-foot">لديك حساب بالفعل؟ <Link to="/" className="auth-link">تسجيل الدخول</Link></p>
+      <p className="auth-foot">{t('لديك حساب بالفعل؟')}{' '}<Link to="/" className="auth-link">{t('تسجيل الدخول')}</Link></p>
     </AuthCard>
   );
 }

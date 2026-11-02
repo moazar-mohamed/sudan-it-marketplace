@@ -4,6 +4,7 @@ import { CompanyLogo } from '../components/CompanyCard';
 import { servesCity } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
 import { categoryName, ratingKey } from '../data/format';
+import { t } from '../i18n';
 
 export function ServicePage() {
   const { id = '' } = useParams();
@@ -15,8 +16,8 @@ export function ServicePage() {
   if (!service) {
     return (
       <main className="stack">
-        <EmptyState title="هذه الخدمة غير متاحة حاليًا">
-          <Link to="/browse?kind=services" className="pill">كل الخدمات</Link>
+        <EmptyState title={t('هذه الخدمة غير متاحة حاليًا')}>
+          <Link to="/browse?kind=services" className="pill">{t('كل الخدمات')}</Link>
         </EmptyState>
       </main>
     );
@@ -40,7 +41,7 @@ export function ServicePage() {
     <main className="stack">
       <Breadcrumbs
         items={[
-          { label: 'كل التصنيفات', to: '/browse' },
+          { label: t('كل التصنيفات'), to: '/browse' },
           ...path.map((c) => ({ label: categoryName(c), to: `/category/${c.id}` })),
           { label: service.name },
         ]}
@@ -51,9 +52,9 @@ export function ServicePage() {
       </section>
 
       <section>
-        <div className="section-title"><h2>الشركات المتاحة</h2></div>
+        <div className="section-title"><h2>{t('الشركات المتاحة')}</h2></div>
         {offers.length === 0 ? (
-          <EmptyState title="لا توجد شركة تقدم هذه الخدمة حاليًا." />
+          <EmptyState title={t('لا توجد شركة تقدم هذه الخدمة حاليًا.')} />
         ) : (
           <div className="offers">
             {offers.map(({ offer, company }) => (
@@ -75,8 +76,8 @@ export function ServicePage() {
                 {offer.note && <p className="pmeta">{offer.note}</p>}
                 <CityTag companyId={company.id} />
                 <div className="buy-row">
-                  <Link to={`/chats?offer=${offer.id}`} className="btn-line">تواصل</Link>
-                  <Link to={`/service-request?offer=${offer.id}`} className="btn-solid">اطلب الخدمة</Link>
+                  <Link to={`/chats?offer=${offer.id}`} className="btn-line">{t('تواصل')}</Link>
+                  <Link to={`/service-request?offer=${offer.id}`} className="btn-solid">{t('اطلب الخدمة')}</Link>
                 </div>
               </article>
             ))}

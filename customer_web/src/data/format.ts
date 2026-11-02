@@ -1,6 +1,7 @@
 import type { Category, Priced, Product, RatingStats } from './types';
+import { language, localName, t } from '../i18n';
 
-const CURRENCY_LABEL: Record<string, string> = { SDG: 'ج.س' };
+const CURRENCY_LABEL: Record<string, string> = { SDG: t('ج.س') };
 
 /** Digits as the app writes them: 279,000. */
 export function formatPrice(amount: number, currency = 'SDG'): string {
@@ -8,7 +9,7 @@ export function formatPrice(amount: number, currency = 'SDG'): string {
 }
 
 export function formatDate(value: Date): string {
-  return value.toLocaleDateString('ar-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' });
+  return value.toLocaleDateString(language === 'en' ? 'en-GB' : 'ar-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 /** `2026-11-02 14:05`, on the reader's clock. */
@@ -21,12 +22,13 @@ export function formatDateTime(value: Date): string {
 export function countText(count: number, one: string, two: string, few: string, many: string): string {
   if (count === 1) return one;
   if (count === 2) return two;
-  return `${count} ${count >= 3 && count <= 10 ? few : many}`;
+  // English has one plural; Arabic changes the word again after ten.
+  return `${count} ${language === 'en' || (count >= 3 && count <= 10) ? few : many}`;
 }
 
-export const productsCount = (n: number): string => countText(n, 'منتج واحد', 'منتجان', 'منتجات', 'منتج');
-export const servicesCount = (n: number): string => countText(n, 'خدمة واحدة', 'خدمتان', 'خدمات', 'خدمة');
-export const companiesCount = (n: number): string => countText(n, 'شركة واحدة', 'شركتان', 'شركات', 'شركة');
+export const productsCount = (n: number): string => countText(n, t('منتج واحد'), t('منتجان'), t('منتجات'), t('منتج'));
+export const servicesCount = (n: number): string => countText(n, t('خدمة واحدة'), t('خدمتان'), t('خدمات'), t('خدمة'));
+export const companiesCount = (n: number): string => countText(n, t('شركة واحدة'), t('شركتان'), t('شركات'), t('شركة'));
 
 // ── offers (lib/features/offers/domain/offer_pricing.dart) ─────────────────
 
@@ -50,9 +52,9 @@ export function discountPercent(p: Priced): number {
 }
 
 export function offerLabel(p: Priced): string {
-  if (p.offerBadge === 'special') return 'عرض خاص';
-  if (p.offerBadge === 'limited') return 'لفترة محدودة';
-  return `خصم ${discountPercent(p)}%`;
+  if (p.offerBadge === 'special') return t('عرض خاص');
+  if (p.offerBadge === 'limited') return t('لفترة محدودة');
+  return t('خصم {0}%', discountPercent(p));
 }
 
 // ── products ───────────────────────────────────────────────────────────────
@@ -79,7 +81,7 @@ export const averageOf = (stats: RatingStats): number =>
 // ── categories ─────────────────────────────────────────────────────────────
 
 export function categoryName(c: Category): string {
-  return c.nameAr.trim() || c.name;
+  return localName(c.nameAr, c.nameEn) || c.name;
 }
 
 /** Every spelling of the name, so a search in either language finds it. */

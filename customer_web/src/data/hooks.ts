@@ -3,6 +3,7 @@ import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/fire
 import type { DocumentData, Query } from 'firebase/firestore';
 import { db } from '../firebase';
 import { BUILT_IN_CITIES, citiesFromDocument } from './cities';
+import { useRetryKey } from './retry';
 import {
   mapCategory,
   mapCompany,
@@ -36,18 +37,21 @@ export interface Loaded<T> {
   error: boolean;
 }
 
-function useCollection<T>(build: () => Query<DocumentData>, map: (id: string, d: DocumentData) => T, key = ''): Loaded<T> {
+export function useCollection<T>(build: () => Query<DocumentData>, map: (id: string, d: DocumentData) => T, key = ''): Loaded<T> {
   const [state, setState] = useState<Loaded<T>>({ items: null, error: false });
+  const retry = useRetryKey();
   useEffect(
-    () =>
-      onSnapshot(
+    () => {
+      setState((s) => (s.error ? { items: null, error: false } : s));
+      return onSnapshot(
         build(),
         (snap) => setState({ items: snap.docs.map((d) => map(d.id, d.data())), error: false }),
         () => setState({ items: null, error: true }),
-      ),
+      );
+    },
     // build/map are stable for one [key]: each call site passes module-level code.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [key],
+    [key, retry],
   );
   return state;
 }
@@ -129,15 +133,14 @@ export function useMyOrders(uid: string): Loaded<Order> {
 /** One order, live; null when it is not there or is not the reader's. */
 export function useOrder(id: string): { order: Order | null; loaded: boolean } {
   const [state, setState] = useState<{ order: Order | null; loaded: boolean }>({ order: null, loaded: false });
-  useEffect(
-    () =>
-      onSnapshot(
-        doc(db, 'orders', id),
-        (snap) => setState({ order: snap.exists() ? mapOrder(snap.id, snap.data()) : null, loaded: true }),
-        () => setState({ order: null, loaded: true }),
-      ),
-    [id],
-  );
+  useEffect(() => {
+    if (!id) return;
+    return onSnapshot(
+      doc(db, 'orders', id),
+      (snap) => setState({ order: snap.exists() ? mapOrder(snap.id, snap.data()) : null, loaded: true }),
+      () => setState({ order: null, loaded: true }),
+    );
+  }, [id]);
   return state;
 }
 

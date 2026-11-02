@@ -65,6 +65,7 @@ export type DeliveryMethod = 'delivery' | 'pickup';
 
 export interface Order {
   id: string;
+  customerName: string;
   companyId: string;
   companyName: string;
   productId: string;
@@ -193,6 +194,76 @@ export interface City {
   active: boolean;
 }
 
+export type ChatRole = 'customer' | 'company';
+
+/** A customer's conversation with a company about one order, request or item. */
+export interface Conversation {
+  id: string;
+  serviceRequestId: string | null;
+  orderId: string | null;
+  productId: string | null;
+  companyServiceId: string | null;
+  customerName: string;
+  companyId: string;
+  companyName: string;
+  serviceName: string;
+  productName: string;
+  createdAt: Date;
+  lastMessageText: string;
+  lastMessageAt: Date | null;
+  lastMessageSenderRole: ChatRole | null;
+  customerLastReadAt: Date | null;
+  companyLastReadAt: Date | null;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderRole: ChatRole;
+  text: string;
+  createdAt: Date;
+  /** Written here and not yet confirmed by the server. */
+  pending: boolean;
+}
+
+export type ServiceRequestStatus = 'pending' | 'accepted' | 'rejected' | 'in_progress' | 'completed' | 'cancelled';
+
+export interface ServiceRequest {
+  id: string;
+  companyId: string;
+  companyName: string;
+  companyServiceId: string;
+  serviceName: string;
+  /** The company's price when it was sent; null when it had set none. */
+  price: number | null;
+  details: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  cityId: string | null;
+  contactPhone: string;
+  status: ServiceRequestStatus;
+  createdAt: Date;
+}
+
+export interface ServiceRequestDraft {
+  id: string;
+  customerId: string;
+  customerName: string;
+  companyId: string;
+  companyName: string;
+  companyServiceId: string;
+  serviceId: string;
+  serviceName: string;
+  price: number | null;
+  details: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  cityId: string;
+  contactPhone: string;
+}
+
 export interface UserProfile {
   id: string;
   role: string;
@@ -203,6 +274,8 @@ export interface UserProfile {
   isActive: boolean;
   /** null until they choose one. */
   cityId: string | null;
+  /** null when they never chose one. */
+  language: 'ar' | 'en' | null;
 }
 
 export interface AppNotification {

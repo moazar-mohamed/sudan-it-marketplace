@@ -14,6 +14,7 @@ import { db } from '../firebase';
 import { formatDateTime, isAvailable, salePrice } from './format';
 import { mapOrder, mapProduct } from './mappers';
 import type { Company, Order, OrderDraft, OrderStatus, PickupPoint, Product, ReceiptImage } from './types';
+import { t } from '../i18n';
 
 // Port of the app's order layer (firestore_orders_remote_data_source.dart,
 // order_pricing.dart, order_quota.dart). The rules recompute every amount from
@@ -77,21 +78,21 @@ export function nextOrderAllowedAt(quota: DocumentData | undefined, now = new Da
 
 export const quotaMessage = (nextAt: Date | null): string =>
   nextAt
-    ? `قدّمت ${ORDERS_PER_DAY} طلبات خلال آخر 24 ساعة، وهذا هو الحد الأقصى. يمكنك الطلب مرة أخرى بعد ${formatDateTime(nextAt)}.`
-    : `قدّمت ${ORDERS_PER_DAY} طلبات خلال آخر 24 ساعة، وهذا هو الحد الأقصى. يُرجى المحاولة لاحقاً.`;
+    ? t('قدّمت {0} طلبات خلال آخر 24 ساعة، وهذا هو الحد الأقصى. يمكنك الطلب مرة أخرى بعد {1}.', ORDERS_PER_DAY, formatDateTime(nextAt))
+    : t('قدّمت {0} طلبات خلال آخر 24 ساعة، وهذا هو الحد الأقصى. يُرجى المحاولة لاحقاً.', ORDERS_PER_DAY);
 
 function checkProduct(product: Product, draft: OrderDraft): void {
-  if (product.companyId !== draft.companyId) throw new OrderRefused('هذا المنتج لم يعد متاحًا.');
+  if (product.companyId !== draft.companyId) throw new OrderRefused(t('هذا المنتج لم يعد متاحًا.'));
   if (product.price === null) {
-    throw new OrderRefused(`لا يوجد سعر معلن لـ ${draft.productName} حتى الآن. يرجى التواصل مع الشركة لطلبه.`);
+    throw new OrderRefused(t('لا يوجد سعر معلن لـ {0} حتى الآن. يرجى التواصل مع الشركة لطلبه.', draft.productName));
   }
   if (!matchesProduct(product, draft.unitPrice, draft.installationSelected, draft.installationFee)) {
-    throw new OrderRefused(`تغيّر سعر ${draft.productName} قبل إرسال طلبك، لذلك لم يُسجَّل الطلب. ارجع لمراجعة السعر الجديد، وإذا كنت قد حوّلت المبلغ فيرجى التواصل مع الشركة.`);
+    throw new OrderRefused(t('تغيّر سعر {0} قبل إرسال طلبك، لذلك لم يُسجَّل الطلب. ارجع لمراجعة السعر الجديد، وإذا كنت قد حوّلت المبلغ فيرجى التواصل مع الشركة.', draft.productName));
   }
   const available = isAvailable(product) ? product.stockCount : 0;
-  if (available === 0) throw new OrderRefused(`${draft.productName} غير متوفر في المخزون.`);
+  if (available === 0) throw new OrderRefused(t('{0} غير متوفر في المخزون.', draft.productName));
   if (available < draft.quantity) {
-    throw new OrderRefused(`المتوفر من ${draft.productName} في المخزون ${available} فقط. يرجى تقليل الكمية.`);
+    throw new OrderRefused(t('المتوفر من {0} في المخزون {1} فقط. يرجى تقليل الكمية.', draft.productName, available));
   }
 }
 
@@ -118,7 +119,7 @@ export async function placeOrder(draft: OrderDraft, receipt: ReceiptImage): Prom
     await runTransaction(db, async (tx) => {
       const productSnap = await tx.get(productRef);
       const quotaSnap = await tx.get(quotaRef);
-      if (!productSnap.exists()) throw new OrderRefused('هذا المنتج لم يعد متاحًا.');
+      if (!productSnap.exists()) throw new OrderRefused(t('هذا المنتج لم يعد متاحًا.'));
       const product = mapProduct(productSnap.id, productSnap.data());
       checkProduct(product, draft);
 
@@ -200,10 +201,10 @@ export async function placeOrder(draft: OrderDraft, receipt: ReceiptImage): Prom
     if (code === 'permission-denied') {
       const nextAt = await getDoc(quotaRef).then((s) => nextOrderAllowedAt(s.data())).catch(() => null);
       if (nextAt) throw new OrderRefused(quotaMessage(nextAt));
-      throw new OrderRefused('ليست لديك صلاحية لإرسال هذا الطلب. يرجى تسجيل الدخول مرة أخرى والمحاولة من جديد.');
+      throw new OrderRefused(t('ليست لديك صلاحية لإرسال هذا الطلب. يرجى تسجيل الدخول مرة أخرى والمحاولة من جديد.'));
     }
-    if (code === 'unavailable') throw new OrderRefused('تعذر تأكيد الطلب. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.');
-    throw new OrderRefused('تعذر إنشاء الطلب. يرجى المحاولة مرة أخرى.');
+    if (code === 'unavailable') throw new OrderRefused(t('تعذر تأكيد الطلب. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.'));
+    throw new OrderRefused(t('تعذر إنشاء الطلب. يرجى المحاولة مرة أخرى.'));
   }
 
   const placed = await getDoc(orderRef);
@@ -237,10 +238,10 @@ export async function loadReceipt(orderId: string): Promise<Blob | null> {
 }
 
 export const ORDER_STATUS: Record<OrderStatus, { label: string; tone: string }> = {
-  processing: { label: 'قيد المعالجة', tone: 'info' },
-  out_for_delivery: { label: 'في الطريق للتسليم', tone: 'warn' },
-  completed: { label: 'مكتمل', tone: 'ok' },
-  cancelled: { label: 'ملغى', tone: 'off' },
+  processing: { label: t('قيد المعالجة'), tone: 'info' },
+  out_for_delivery: { label: t('في الطريق للتسليم'), tone: 'warn' },
+  completed: { label: t('مكتمل'), tone: 'ok' },
+  cancelled: { label: t('ملغى'), tone: 'off' },
 };
 
 export const isAwaitingVerification = (o: Order): boolean =>
@@ -248,25 +249,25 @@ export const isAwaitingVerification = (o: Order): boolean =>
 
 /** A cancelled order's payment was never verified and never will be. */
 export function paymentLabel(o: Order): { label: string; tone: string } {
-  if (o.paymentStatus === 'confirmed') return { label: 'مؤكد', tone: 'ok' };
+  if (o.paymentStatus === 'confirmed') return { label: t('مؤكد'), tone: 'ok' };
   return o.orderStatus === 'cancelled'
-    ? { label: 'لم يُتحقق منه', tone: 'off' }
-    : { label: 'بانتظار التحقق', tone: 'warn' };
+    ? { label: t('لم يُتحقق منه'), tone: 'off' }
+    : { label: t('بانتظار التحقق'), tone: 'warn' };
 }
 
 const CANCEL_REASON: Record<string, string> = {
-  company: 'ألغته الشركة.',
-  expired: 'أُلغي تلقائياً: لم يُتحقق من الدفع خلال 24 ساعة.',
-  out_of_stock: 'أُلغي لأن المنتج نفد قبل تأكيد الدفع. تعيد الشركة المبلغ المحوّل خارج التطبيق.',
-  admin: 'ألغته المنصة.',
+  company: t('ألغته الشركة.'),
+  expired: t('أُلغي تلقائياً: لم يُتحقق من الدفع خلال 24 ساعة.'),
+  out_of_stock: t('أُلغي لأن المنتج نفد قبل تأكيد الدفع. تعيد الشركة المبلغ المحوّل خارج التطبيق.'),
+  admin: t('ألغته المنصة.'),
 };
 
 /** What happened to a cancelled order, and how the money comes back. */
 export function cancelledLines(o: Order): string[] {
   const lines: string[] = [];
   if (o.cancelReason && CANCEL_REASON[o.cancelReason]) lines.push(CANCEL_REASON[o.cancelReason]);
-  if (o.cancelledAt) lines.push(`أُلغي في ${formatDateTime(o.cancelledAt)}`);
-  if (o.paymentStatus === 'confirmed') lines.push('كان دفعك قد تأكد: تعيد الشركة إليك المبلغ خارج التطبيق.');
-  else if (o.cancelReason !== 'out_of_stock') lines.push('إذا كنت قد حوّلت مبلغاً لهذا الطلب، فستعيده الشركة إليك خارج التطبيق. يمكنك التواصل معها من محادثة الطلب.');
+  if (o.cancelledAt) lines.push(t('أُلغي في {0}', formatDateTime(o.cancelledAt)));
+  if (o.paymentStatus === 'confirmed') lines.push(t('كان دفعك قد تأكد: تعيد الشركة إليك المبلغ خارج التطبيق.'));
+  else if (o.cancelReason !== 'out_of_stock') lines.push(t('إذا كنت قد حوّلت مبلغاً لهذا الطلب، فستعيده الشركة إليك خارج التطبيق. يمكنك التواصل معها من محادثة الطلب.'));
   return lines;
 }

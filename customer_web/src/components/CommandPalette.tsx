@@ -8,6 +8,7 @@ import { normalizeSearchText, suggestCorrection } from '../data/searchRanking';
 import { useTheme } from '../theme';
 import { Highlighted } from './Bits';
 import { Icon, PATHS } from './Icon';
+import { t } from '../i18n';
 
 interface Entry {
   key: string;
@@ -41,18 +42,18 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
     };
 
     const actions: Entry[] = [
-      { key: 'a-browse', group: 'أوامر سريعة', title: 'تصفح كل المنتجات', hint: '', icon: PATHS.grid, run: go('/browse') },
-      { key: 'a-offers', group: 'أوامر سريعة', title: 'العروض', hint: '', icon: PATHS.box, run: go('/browse?offers=1') },
-      { key: 'a-service', group: 'أوامر سريعة', title: 'اطلب فنيًا', hint: '', icon: PATHS.wrench, run: go('/browse?kind=services') },
-      { key: 'a-companies', group: 'أوامر سريعة', title: 'الشركات', hint: '', icon: PATHS.building, run: go('/companies') },
-      { key: 'a-orders', group: 'أوامر سريعة', title: 'افتح طلباتي', hint: '', icon: PATHS.box, run: go('/orders') },
-      { key: 'a-chats', group: 'أوامر سريعة', title: 'افتح المحادثات', hint: '', icon: PATHS.chat, run: go('/chats') },
-      { key: 'a-profile', group: 'أوامر سريعة', title: 'حسابي', hint: '', icon: PATHS.user, run: go('/profile') },
-      { key: 'a-theme', group: 'أوامر سريعة', title: 'تبديل المظهر (فاتح / داكن)', hint: '', icon: PATHS.moon, run: () => { cycle(); onClose(); } },
+      { key: 'a-browse', group: t('أوامر سريعة'), title: t('تصفح كل المنتجات'), hint: '', icon: PATHS.grid, run: go('/browse') },
+      { key: 'a-offers', group: t('أوامر سريعة'), title: t('العروض'), hint: '', icon: PATHS.box, run: go('/browse?offers=1') },
+      { key: 'a-service', group: t('أوامر سريعة'), title: t('اطلب فنيًا'), hint: '', icon: PATHS.wrench, run: go('/browse?kind=services') },
+      { key: 'a-companies', group: t('أوامر سريعة'), title: t('الشركات'), hint: '', icon: PATHS.building, run: go('/companies') },
+      { key: 'a-orders', group: t('أوامر سريعة'), title: t('افتح طلباتي'), hint: '', icon: PATHS.box, run: go('/orders') },
+      { key: 'a-chats', group: t('أوامر سريعة'), title: t('افتح المحادثات'), hint: '', icon: PATHS.chat, run: go('/chats') },
+      { key: 'a-profile', group: t('أوامر سريعة'), title: t('حسابي'), hint: '', icon: PATHS.user, run: go('/profile') },
+      { key: 'a-theme', group: t('أوامر سريعة'), title: t('تبديل المظهر (فاتح / داكن)'), hint: '', icon: PATHS.moon, run: () => { cycle(); onClose(); } },
     ];
     if (!typed) {
       const recent: Entry[] = readRecentSearches().map((text) => ({
-        key: `r-${text}`, group: 'عمليات البحث الأخيرة', title: text, hint: '', icon: PATHS.search, run: searchFor(text),
+        key: `r-${text}`, group: t('عمليات البحث الأخيرة'), title: text, hint: '', icon: PATHS.search, run: searchFor(text),
       }));
       return [...recent, ...actions];
     }
@@ -61,30 +62,30 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
     const categories = matchingCategories(typed, catalog.tree).slice(0, 2);
     const needle = normalizeSearchText(typed);
     const out: Entry[] = [
-      { key: 'search', group: 'بحث', title: `ابحث عن «${typed}»`, hint: '', icon: PATHS.search, run: searchFor(typed) },
+      { key: 'search', group: t('بحث'), title: t('ابحث عن «{0}»', typed), hint: '', icon: PATHS.search, run: searchFor(typed) },
     ];
     if (results.products.length + results.services.length + results.companies.length + categories.length === 0) {
       const guess = suggestCorrection(typed, catalog.vocabulary);
       if (guess) {
-        out.push({ key: 'guess', group: 'بحث', title: `هل تقصد «${guess}»؟`, hint: '', icon: PATHS.search, run: searchFor(guess) });
+        out.push({ key: 'guess', group: t('بحث'), title: t('هل تقصد «{0}»؟', guess), hint: '', icon: PATHS.search, run: searchFor(guess) });
       }
     }
     for (const c of categories) {
-      out.push({ key: `c-${c.id}`, group: 'أقسام', title: categoryName(c), hint: 'قسم', icon: iconPath(c.iconName), run: go(`/category/${c.id}`) });
+      out.push({ key: `c-${c.id}`, group: t('أقسام'), title: categoryName(c), hint: t('قسم'), icon: iconPath(c.iconName), run: go(`/category/${c.id}`) });
     }
     for (const p of results.products.slice(0, 3)) {
       const price = salePrice(p);
       out.push({
-        key: `p-${p.id}`, group: 'منتجات', title: p.name,
+        key: `p-${p.id}`, group: t('منتجات'), title: p.name,
         hint: price === null ? p.companyName : `${p.companyName} · ${formatPrice(price, p.currency)}`,
         icon: PATHS.box, image: p.imageUrl, run: go(`/product/${p.id}`),
       });
     }
     for (const s of results.services.slice(0, 2)) {
-      out.push({ key: `s-${s.id}`, group: 'خدمات', title: s.name, hint: 'خدمة', icon: PATHS.wrench, run: go(`/service/${s.id}`) });
+      out.push({ key: `s-${s.id}`, group: t('خدمات'), title: s.name, hint: t('خدمة'), icon: PATHS.wrench, run: go(`/service/${s.id}`) });
     }
     for (const c of results.companies.slice(0, 2)) {
-      out.push({ key: `co-${c.id}`, group: 'شركات', title: c.name, hint: c.city || 'شركة', icon: PATHS.building, image: c.logoUrl, run: go(`/company/${c.id}`) });
+      out.push({ key: `co-${c.id}`, group: t('شركات'), title: c.name, hint: c.city || t('شركة'), icon: PATHS.building, image: c.logoUrl, run: go(`/company/${c.id}`) });
     }
     return out.concat(actions.filter((a) => normalizeSearchText(a.title).includes(needle)));
   }, [typed, catalog, nav, onClose, cycle]);
@@ -104,7 +105,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   let lastGroup = '';
   return (
     <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="palette" role="dialog" aria-modal="true" aria-label="بحث">
+      <div className="palette" role="dialog" aria-modal="true" aria-label={t('بحث')}>
         <div className="palette-input">
           <Icon d={PATHS.search} />
           <input
@@ -112,8 +113,8 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={onKey}
-            placeholder="ابحث عن منتجات وخدمات وشركات، أو اكتب أمرًا"
-            aria-label="بحث"
+            placeholder={t('ابحث عن منتجات وخدمات وشركات')}
+            aria-label={t('بحث')}
           />
           <span className="kbd">Esc</span>
         </div>
@@ -145,8 +146,8 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
           })}
         </div>
         <div className="palette-foot">
-          <span><span className="kbd">↑</span> <span className="kbd">↓</span> للتنقل</span>
-          <span><span className="kbd">↵</span> للفتح</span>
+          <span><span className="kbd">↑</span> <span className="kbd">↓</span>{' '}{t('للتنقل')}</span>
+          <span><span className="kbd">↵</span>{' '}{t('للفتح')}</span>
         </div>
       </div>
     </div>

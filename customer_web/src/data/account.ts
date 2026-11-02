@@ -15,6 +15,7 @@ import {
 import type { User } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { t } from '../i18n';
 
 // Ports of the app's auth data layer (firebase_auth_remote_data_source.dart,
 // auth_repository_impl.dart, firestore_user_profile_remote_data_source.dart).
@@ -36,21 +37,21 @@ const errorCode = (e: unknown): string =>
 /** Sign-in and sign-up failures, in the app's words. */
 export function authErrorMessage(e: unknown): string {
   switch (errorCode(e)) {
-    case 'email-already-in-use': return 'هذا البريد الإلكتروني مسجّل بالفعل.';
-    case 'invalid-email': return 'أدخل بريدًا إلكترونيًا صالحًا.';
-    case 'weak-password': return 'اختر كلمة مرور أقوى.';
+    case 'email-already-in-use': return t('هذا البريد الإلكتروني مسجّل بالفعل.');
+    case 'invalid-email': return t('أدخل بريدًا إلكترونيًا صالحًا.');
+    case 'weak-password': return t('اختر كلمة مرور أقوى.');
     case 'user-not-found':
     case 'wrong-password':
-    case 'invalid-credential': return 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
-    case 'user-disabled': return 'تم تعطيل هذا الحساب.';
-    case 'too-many-requests': return 'محاولات كثيرة. يرجى الانتظار ثم المحاولة مرة أخرى.';
-    case 'network-request-failed': return 'خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى.';
-    case 'operation-not-allowed': return 'تسجيل الدخول بالبريد الإلكتروني وكلمة المرور غير مفعّل.';
-    case 'account-exists-with-different-credential': return 'يوجد حساب بهذا البريد الإلكتروني بطريقة تسجيل دخول مختلفة.';
-    case 'popup-blocked': return 'منع المتصفح نافذة تسجيل الدخول باستخدام Google. اسمح بالنوافذ المنبثقة لهذا الموقع ثم حاول مرة أخرى.';
-    case 'unauthorized-domain': return 'تسجيل الدخول باستخدام Google غير مفعّل لعنوان هذا الموقع.';
-    case 'profile-create-failed': return 'تعذر حفظ ملفك الشخصي. يرجى المحاولة مرة أخرى.';
-    default: return 'فشلت المصادقة. يرجى المحاولة مرة أخرى.';
+    case 'invalid-credential': return t('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+    case 'user-disabled': return t('تم تعطيل هذا الحساب.');
+    case 'too-many-requests': return t('محاولات كثيرة. يرجى الانتظار ثم المحاولة مرة أخرى.');
+    case 'network-request-failed': return t('خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى.');
+    case 'operation-not-allowed': return t('تسجيل الدخول بالبريد الإلكتروني وكلمة المرور غير مفعّل.');
+    case 'account-exists-with-different-credential': return t('يوجد حساب بهذا البريد الإلكتروني بطريقة تسجيل دخول مختلفة.');
+    case 'popup-blocked': return t('منع المتصفح نافذة تسجيل الدخول باستخدام Google. اسمح بالنوافذ المنبثقة لهذا الموقع ثم حاول مرة أخرى.');
+    case 'unauthorized-domain': return t('تسجيل الدخول باستخدام Google غير مفعّل لعنوان هذا الموقع.');
+    case 'profile-create-failed': return t('تعذر حفظ ملفك الشخصي. يرجى المحاولة مرة أخرى.');
+    default: return t('فشلت المصادقة. يرجى المحاولة مرة أخرى.');
   }
 }
 
@@ -132,10 +133,10 @@ export async function requestPasswordReset(email: string): Promise<void> {
 
 export function passwordResetErrorMessage(e: unknown): string {
   switch (errorCode(e)) {
-    case 'invalid-email': return 'أدخل بريدًا إلكترونيًا صالحًا.';
-    case 'too-many-requests': return 'محاولات كثيرة. يرجى الانتظار ثم المحاولة مرة أخرى.';
-    case 'network-request-failed': return 'خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى.';
-    default: return 'تعذّر إرسال رسالة إعادة التعيين. حاول مرة أخرى.';
+    case 'invalid-email': return t('أدخل بريدًا إلكترونيًا صالحًا.');
+    case 'too-many-requests': return t('محاولات كثيرة. يرجى الانتظار ثم المحاولة مرة أخرى.');
+    case 'network-request-failed': return t('خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى.');
+    default: return t('تعذّر إرسال رسالة إعادة التعيين. حاول مرة أخرى.');
   }
 }
 
@@ -146,8 +147,8 @@ export async function resendVerification(user: User): Promise<string | null> {
     return null;
   } catch (e) {
     return errorCode(e) === 'too-many-requests'
-      ? 'محاولات كثيرة. يرجى الانتظار ثم المحاولة مرة أخرى.'
-      : 'تعذر إرسال رسالة التحقق. يرجى المحاولة مرة أخرى.';
+      ? t('محاولات كثيرة. يرجى الانتظار ثم المحاولة مرة أخرى.')
+      : t('تعذر إرسال رسالة التحقق. يرجى المحاولة مرة أخرى.');
   }
 }
 
@@ -174,11 +175,11 @@ export async function changePassword(user: User, current: string, next: string):
   } catch (e) {
     switch (errorCode(e)) {
       case 'wrong-password':
-      case 'invalid-credential': return 'كلمة المرور الحالية غير صحيحة.';
-      case 'weak-password': return 'كلمة المرور الجديدة ضعيفة. استخدم 6 أحرف على الأقل.';
-      case 'requires-recent-login': return 'يرجى تسجيل الخروج ثم الدخول مجددًا قبل تغيير كلمة المرور.';
-      case 'too-many-requests': return 'محاولات كثيرة. يرجى الانتظار ثم المحاولة مرة أخرى.';
-      default: return 'تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى.';
+      case 'invalid-credential': return t('كلمة المرور الحالية غير صحيحة.');
+      case 'weak-password': return t('كلمة المرور الجديدة ضعيفة. استخدم 6 أحرف على الأقل.');
+      case 'requires-recent-login': return t('يرجى تسجيل الخروج ثم الدخول مجددًا قبل تغيير كلمة المرور.');
+      case 'too-many-requests': return t('محاولات كثيرة. يرجى الانتظار ثم المحاولة مرة أخرى.');
+      default: return t('تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى.');
     }
   }
 }
@@ -193,7 +194,7 @@ export async function updateProfile(uid: string, fullName: string, phone: string
     });
     return null;
   } catch {
-    return 'تعذر تحديث ملفك الشخصي. يرجى المحاولة مرة أخرى.';
+    return t('تعذر تحديث ملفك الشخصي. يرجى المحاولة مرة أخرى.');
   }
 }
 
@@ -201,6 +202,16 @@ export async function updateProfile(uid: string, fullName: string, phone: string
 export async function saveCity(uid: string, cityId: string): Promise<boolean> {
   try {
     await updateDoc(doc(db, 'users', uid), { cityId });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** The rules allow exactly this edit: `language`, nothing else with it. */
+export async function saveLanguage(uid: string, language: 'ar' | 'en'): Promise<boolean> {
+  try {
+    await updateDoc(doc(db, 'users', uid), { language });
     return true;
   } catch {
     return false;

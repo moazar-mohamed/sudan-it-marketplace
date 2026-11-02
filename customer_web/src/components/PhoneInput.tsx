@@ -1,6 +1,7 @@
 import { COMMON_COUNTRIES, PHONE_COUNTRIES } from '../data/phoneCountries';
 import { cleanNational, countryByIso, flagOf, phoneProblem } from '../data/phone';
 import type { PhoneNumber } from '../data/phone';
+import { language, t } from '../i18n';
 
 const common = COMMON_COUNTRIES.flatMap((iso) => PHONE_COUNTRIES.filter((c) => c.iso === iso));
 const others = PHONE_COUNTRIES.filter((c) => !COMMON_COUNTRIES.includes(c.iso)).sort((a, b) => a.ar.localeCompare(b.ar, 'ar'));
@@ -9,9 +10,9 @@ const others = PHONE_COUNTRIES.filter((c) => !COMMON_COUNTRIES.includes(c.iso)).
 export function phoneError(number: PhoneNumber, required = false): string | null {
   const problem = phoneProblem(number, required);
   if (!problem) return null;
-  if (problem.kind === 'required') return 'رقم الهاتف مطلوب.';
-  if (problem.kind === 'digits') return `أدخل ${problem.count} أرقام بعد ${problem.code}.`;
-  return 'رقم الهاتف غير صحيح.';
+  if (problem.kind === 'required') return t('رقم الهاتف مطلوب.');
+  if (problem.kind === 'digits') return t('أدخل {0} أرقام بعد {1}.', problem.count, problem.code);
+  return t('رقم الهاتف غير صحيح.');
 }
 
 export function PhoneInput({
@@ -26,14 +27,14 @@ export function PhoneInput({
   disabled?: boolean;
 }) {
   const option = (c: (typeof PHONE_COUNTRIES)[number]) => (
-    <option key={c.iso} value={c.iso}>{flagOf(c)} {c.ar} +{c.dialCode}</option>
+    <option key={c.iso} value={c.iso}>{flagOf(c)} {language === 'en' ? c.en : c.ar} +{c.dialCode}</option>
   );
   return (
     <div className="field">
       <span id="phone-label">{label}</span>
       <div className="phone-row" dir="ltr">
         <select
-          aria-label="مفتاح الدولة"
+          aria-label={t('مفتاح الدولة')}
           disabled={disabled}
           value={value.country.iso}
           onChange={(e) => {
@@ -41,8 +42,8 @@ export function PhoneInput({
             onChange({ country, national: cleanNational(value.national, country) });
           }}
         >
-          <optgroup label="الأكثر استخدامًا">{common.map(option)}</optgroup>
-          <optgroup label="كل الدول">{others.map(option)}</optgroup>
+          <optgroup label={t('الأكثر استخدامًا')}>{common.map(option)}</optgroup>
+          <optgroup label={t('كل الدول')}>{others.map(option)}</optgroup>
         </select>
         <input
           aria-labelledby="phone-label"

@@ -10,6 +10,10 @@
     <script>
       // Before the first paint, so a dark page never flashes light (see src/theme.tsx).
       try {
+        if (localStorage.getItem('language') === 'en') {
+          document.documentElement.lang = 'en';
+          document.documentElement.dir = 'ltr';
+        }
         var t = localStorage.getItem('sudan-it-theme');
         document.documentElement.dataset.theme =
           t === 'light' || t === 'dark' ? t : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

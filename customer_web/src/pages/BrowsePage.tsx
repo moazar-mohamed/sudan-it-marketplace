@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { FormEvent } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Breadcrumbs, EmptyState, ErrorState, Skeleton } from '../components/Bits';
 import { Icon, PATHS } from '../components/Icon';
@@ -15,23 +14,24 @@ import {
 } from '../data/browse';
 import type { BrowseFilters, BrowseKind, ProductSort } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
-import { categoryName, productsCount, servicesCount } from '../data/format';
+import { categoryColor, categoryName, iconPath, productsCount, servicesCount } from '../data/format';
 import type { Product, ServiceListing } from '../data/types';
+import { t } from '../i18n';
 
 const PAGE = 24;
 
 const SORTS: { value: ProductSort; label: string }[] = [
-  { value: 'newest', label: 'الأحدث' },
-  { value: 'priceLow', label: 'السعر: من الأقل' },
-  { value: 'priceHigh', label: 'السعر: من الأعلى' },
-  { value: 'topRated', label: 'الأعلى تقييمًا' },
+  { value: 'newest', label: t('الأحدث') },
+  { value: 'priceLow', label: t('السعر: من الأقل') },
+  { value: 'priceHigh', label: t('السعر: من الأعلى') },
+  { value: 'topRated', label: t('الأعلى تقييمًا') },
 ];
 
-function numberParam(value: string | null): number | null {
-  if (value === null || value === '') return null;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
-}
+const KINDS: { value: BrowseKind; label: string }[] = [
+  { value: 'all', label: t('الكل') },
+  { value: 'products', label: t('المنتجات') },
+  { value: 'services', label: t('الخدمات') },
+];
 
 /** The filters live in the address, so a list can be shared and Back restores it. */
 function readFilters(p: URLSearchParams): BrowseFilters {
@@ -45,8 +45,8 @@ function readFilters(p: URLSearchParams): BrowseFilters {
     topRated: p.get('rated') === '1',
     brand: p.get('brand'),
     companyId: p.get('company'),
-    minPrice: numberParam(p.get('min')),
-    maxPrice: numberParam(p.get('max')),
+    minPrice: null,
+    maxPrice: null,
   };
 }
 
@@ -62,35 +62,10 @@ function companiesOf(products: Product[], listings: ServiceListing[]) {
   return [...names].map(([id, name]) => ({ id, name })).sort((a, b) => (a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1));
 }
 
-function PriceFilter({ filters, onApply }: { filters: BrowseFilters; onApply: (min: number | null, max: number | null) => void }) {
-  const [min, setMin] = useState(filters.minPrice?.toString() ?? '');
-  const [max, setMax] = useState(filters.maxPrice?.toString() ?? '');
-  useEffect(() => {
-    setMin(filters.minPrice?.toString() ?? '');
-    setMax(filters.maxPrice?.toString() ?? '');
-  }, [filters.minPrice, filters.maxPrice]);
-
-  function submit(e: FormEvent) {
-    e.preventDefault();
-    const a = numberParam(min.trim());
-    const b = numberParam(max.trim());
-    if (a !== null && b !== null && a > b) onApply(b, a);
-    else onApply(a, b);
-  }
-  return (
-    <form className="price-filter" onSubmit={submit}>
-      <input inputMode="decimal" placeholder="من" aria-label="السعر من" value={min} onChange={(e) => setMin(e.target.value)} dir="ltr" />
-      <input inputMode="decimal" placeholder="إلى" aria-label="السعر إلى" value={max} onChange={(e) => setMax(e.target.value)} dir="ltr" />
-      <button type="submit" className="mini-btn">تطبيق</button>
-    </form>
-  );
-}
-
 export function BrowsePage() {
   const { id } = useParams();
   const { tree, products: allProducts, listings: allListings, ratings, counts, servingIds, loading, error } = useCatalog();
   const [params, setParams] = useSearchParams();
-  const [panelOpen, setPanelOpen] = useState(false);
   const [limit, setLimit] = useState(PAGE);
   const filters = useMemo(() => readFilters(params), [params]);
   const sort = readSort(params);
@@ -123,8 +98,8 @@ export function BrowsePage() {
   if (id && (!current || !tree.isEffectivelyActive(id))) {
     return (
       <main className="stack">
-        <EmptyState title="القسم غير متاح" message="هذا التصنيف لم يعد متاحاً. اختر تصنيفاً آخر.">
-          <Link to="/browse" className="pill">تصفح الكل</Link>
+        <EmptyState title={t('القسم غير متاح')} message={t('هذا التصنيف لم يعد متاحاً. اختر تصنيفاً آخر.')}>
+          <Link to="/browse" className="pill">{t('تصفح الكل')}</Link>
         </EmptyState>
       </main>
     );
@@ -135,169 +110,166 @@ export function BrowsePage() {
     change(next);
     setParams(next, { replace: true });
   }
-  const setFlag = (key: string, on: boolean) => update((n) => (on ? n.set(key, '1') : n.delete(key)));
   const setValue = (key: string, value: string) => update((n) => (value ? n.set(key, value) : n.delete(key)));
   const clearFilters = () =>
-    update((n) => ['offers', 'stock', 'delivery', 'install', 'rated', 'brand', 'company', 'min', 'max'].forEach((k) => n.delete(k)));
+    update((n) => ['offers', 'stock', 'delivery', 'install', 'rated', 'brand', 'company'].forEach((k) => n.delete(k)));
 
   const hasBoth = products.length > 0 && listings.length > 0;
   const nothingHere = products.length === 0 && listings.length === 0;
   const nothingMatches = shownProducts.length === 0 && shownListings.length === 0;
 
-  // A category with sub-categories lists them; a last-level one its siblings.
   const shownChildren = (parent: string | null) =>
     tree.activeChildrenOf(parent).filter((c) => counts === null || countTotal(counts.get(c.id)) > 0);
-  const children = id ? shownChildren(id) : shownChildren(null);
+  const roots = shownChildren(null);
+  const path = current ? tree.pathOf(current.id) : [];
+  // A category with sub-categories lists them; a last-level one its siblings.
+  const children = id ? shownChildren(id) : [];
   const chipParent = children.length > 0 ? (id ?? null) : (current?.parentId ?? null);
   const chips = children.length > 0 ? children : current?.parentId ? shownChildren(current.parentId) : [];
   const title = current
     ? categoryName(current)
-    : filters.kind === 'services' ? 'الخدمات' : filters.offers ? 'العروض' : 'كل المنتجات';
+    : filters.kind === 'services' ? t('الخدمات') : filters.offers ? t('العروض') : t('كل المنتجات');
 
   const crumbs = [
-    { label: 'كل التصنيفات', to: '/browse' },
-    ...(current
-      ? tree.pathOf(current.id).map((c) => ({
-          label: categoryName(c),
-          to: c.id === current.id ? undefined : `/category/${c.id}`,
-        }))
-      : []),
+    { label: t('كل التصنيفات'), to: '/browse' },
+    ...path.map((c) => ({
+      label: categoryName(c),
+      to: c.id === current?.id ? undefined : `/category/${c.id}`,
+    })),
+  ];
+
+  const toggles = [
+    { key: 'offers', label: t('عروض'), on: filters.offers, shown: true },
+    { key: 'stock', label: t('متوفر'), on: filters.inStock, shown: products.length > 0 },
+    { key: 'delivery', label: t('توصيل'), on: filters.delivery, shown: true },
+    { key: 'install', label: t('تركيب'), on: filters.installation, shown: true },
+    { key: 'rated', label: t('الأعلى تقييمًا'), on: filters.topRated, shown: true },
+  ];
+  const companyName = companies.find((c) => c.id === filters.companyId)?.name ?? filters.companyId;
+  const tags = [
+    ...toggles.filter((t) => t.on),
+    ...(filters.brand ? [{ key: 'brand', label: filters.brand }] : []),
+    ...(filters.companyId ? [{ key: 'company', label: companyName ?? '' }] : []),
   ];
 
   return (
     <main className="stack">
-      <section className="tile browse-head">
-        {id && <Breadcrumbs items={crumbs} />}
-        <h1>{title}</h1>
-        {chips.length > 0 && (
-          <div className="chips">
-            <Link to={chipParent ? `/category/${chipParent}` : '/browse'} className={`chip-link${chipParent === (id ?? null) ? ' on' : ''}`}>
-              الكل{chipParent && counts ? ` (${countTotal(counts.get(chipParent))})` : ''}
+      <h1 className="sr-only">{title}</h1>
+
+      <nav className="cat-strip" aria-label={t('الأقسام')}>
+        <Link to="/browse" className={`cat${id ? '' : ' on'}`}>
+          <Icon d={PATHS.grid} size={24} />
+          <span>{t('الكل')}</span>
+        </Link>
+        {roots.map((c) => {
+          const on = path[0]?.id === c.id;
+          const color = categoryColor(c);
+          return (
+            <Link key={c.id} to={`/category/${c.id}`} className={`cat${on ? ' on' : ''}`} style={on ? undefined : { background: `${color}1f` }}>
+              <span style={{ color }}><Icon d={iconPath(c.iconName)} size={24} /></span>
+              <span>{categoryName(c)}</span>
             </Link>
-            {chips.map((c) => (
-              <Link key={c.id} to={`/category/${c.id}`} className={`chip-link${c.id === id ? ' on' : ''}`}>
-                {categoryName(c)}{counts ? ` (${countTotal(counts.get(c.id))})` : ''}
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+          );
+        })}
+      </nav>
+
+      {path.length > 2 && <Breadcrumbs items={crumbs} />}
+
+      {chips.length > 0 && (
+        <div className="scroll-row">
+          <Link to={`/category/${chipParent}`} className={`chip-link small${chipParent === id ? ' on' : ''}`}>
+            {t('الكل')}{chipParent && counts ? ` (${countTotal(counts.get(chipParent))})` : ''}
+          </Link>
+          {chips.map((c) => (
+            <Link key={c.id} to={`/category/${c.id}`} className={`chip-link small${c.id === id ? ' on' : ''}`}>
+              {categoryName(c)}{counts ? ` (${countTotal(counts.get(c.id))})` : ''}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {nothingHere ? (
-        <EmptyState title="لا يوجد شيء هنا بعد." />
+        <EmptyState title={t('لا يوجد شيء هنا بعد.')} />
       ) : (
-        <div className="browse-grid">
-          <aside className={`tile filters${panelOpen ? ' open' : ''}`} aria-label="الفلاتر">
-            <div className="filters-head">
-              <strong>الفلاتر</strong>
-              {filtersActive(filters) && <button className="link-btn" onClick={clearFilters}>مسح الفلاتر</button>}
-            </div>
-            {hasBoth && (
-              <fieldset>
-                <legend>النوع</legend>
-                {(['all', 'products', 'services'] as BrowseKind[]).map((k) => (
-                  <label key={k} className="check">
-                    <input type="radio" name="kind" checked={filters.kind === k} onChange={() => setValue('kind', k === 'all' ? '' : k)} />
-                    {k === 'all' ? 'الكل' : k === 'products' ? 'المنتجات' : 'الخدمات'}
-                  </label>
-                ))}
-              </fieldset>
-            )}
-            <fieldset>
-              <legend>تضييق النتائج</legend>
-              <label className="check"><input type="checkbox" checked={filters.offers} onChange={(e) => setFlag('offers', e.target.checked)} />عروض</label>
-              {products.length > 0 && (
-                <label className="check"><input type="checkbox" checked={filters.inStock} onChange={(e) => setFlag('stock', e.target.checked)} />متوفر</label>
-              )}
-              {!id && (
-                <>
-                  <label className="check"><input type="checkbox" checked={filters.delivery} onChange={(e) => setFlag('delivery', e.target.checked)} />توصيل</label>
-                  <label className="check"><input type="checkbox" checked={filters.installation} onChange={(e) => setFlag('install', e.target.checked)} />تركيب</label>
-                  <label className="check"><input type="checkbox" checked={filters.topRated} onChange={(e) => setFlag('rated', e.target.checked)} />الأعلى تقييمًا</label>
-                </>
-              )}
-            </fieldset>
-            <fieldset>
-              <legend>السعر</legend>
-              <PriceFilter
-                filters={filters}
-                onApply={(min, max) =>
-                  update((n) => {
-                    if (min === null) n.delete('min'); else n.set('min', String(min));
-                    if (max === null) n.delete('max'); else n.set('max', String(max));
-                  })
-                }
-              />
-            </fieldset>
+        <section className="results" aria-label={t('النتائج')}>
+          <div className="scroll-row filter-row" role="group" aria-label={t('الفلاتر')}>
+            {hasBoth && KINDS.map((k) => (
+              <button
+                key={k.value}
+                className={`filter-pill${filters.kind === k.value ? ' on' : ''}`}
+                aria-pressed={filters.kind === k.value}
+                onClick={() => setValue('kind', k.value === 'all' ? '' : k.value)}
+              >
+                {k.label}
+              </button>
+            ))}
+            {hasBoth && <span className="filter-gap" />}
+            {toggles.filter((t) => t.shown).map((t) => (
+              <button key={t.key} className={`filter-pill${t.on ? ' on' : ''}`} aria-pressed={t.on} onClick={() => setValue(t.key, t.on ? '' : '1')}>
+                {t.label}
+              </button>
+            ))}
             {brands.length > 0 && (
-              <label className="select-field">
-                الماركة
-                <select value={filters.brand ?? ''} onChange={(e) => setValue('brand', e.target.value)}>
-                  <option value="">كل الماركات</option>
-                  {brands.map((b) => <option key={b} value={b}>{b}</option>)}
-                </select>
-              </label>
+              <select className={`filter-pill${filters.brand ? ' on' : ''}`} aria-label={t('الماركة')} value={filters.brand ?? ''} onChange={(e) => setValue('brand', e.target.value)}>
+                <option value="">{t('الماركة')}</option>
+                {brands.map((b) => <option key={b} value={b}>{b}</option>)}
+              </select>
             )}
             {(companies.length > 1 || filters.companyId !== null) && (
-              <label className="select-field">
-                الشركة
-                <select value={filters.companyId ?? ''} onChange={(e) => setValue('company', e.target.value)}>
-                  <option value="">كل الشركات</option>
-                  {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </label>
+              <select className={`filter-pill${filters.companyId ? ' on' : ''}`} aria-label={t('الشركة')} value={filters.companyId ?? ''} onChange={(e) => setValue('company', e.target.value)}>
+                <option value="">{t('الشركة')}</option>
+                {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
             )}
-          </aside>
+            {products.length > 0 && (
+              <select className="filter-pill filter-sort" aria-label={t('ترتيب')} value={sort} onChange={(e) => setValue('sort', e.target.value === 'newest' ? '' : e.target.value)}>
+                {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            )}
+          </div>
 
-          <section className="results" aria-label="النتائج">
-            <div className="results-bar">
-              <button className="mini-btn filters-toggle" onClick={() => setPanelOpen((v) => !v)} aria-expanded={panelOpen}>
-                <Icon d={PATHS.grid} size={16} />
-                الفلاتر
+          <div className="filter-tags">
+            {tags.map((tag) => (
+              <button key={tag.key} className="filter-tag" aria-label={t('إزالة {0}', tag.label)} onClick={() => setValue(tag.key, '')}>
+                {tag.label} ✕
               </button>
-              <span className="grow pmeta">
-                {shownProducts.length > 0 && productsCount(shownProducts.length)}
-                {shownProducts.length > 0 && shownListings.length > 0 && ' · '}
-                {shownListings.length > 0 && servicesCount(shownListings.length)}
-              </span>
-              {products.length > 0 && (
-                <label className="sort">
-                  <span className="pmeta">ترتيب:</span>
-                  <select value={sort} onChange={(e) => setValue('sort', e.target.value === 'newest' ? '' : e.target.value)}>
-                    {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-                  </select>
-                </label>
-              )}
-            </div>
+            ))}
+            {filtersActive(filters) && <button className="link-btn" onClick={clearFilters}>{t('مسح الكل')}</button>}
+            <span className="grow" />
+            <span className="pmeta">
+              {shownProducts.length > 0 && productsCount(shownProducts.length)}
+              {shownProducts.length > 0 && shownListings.length > 0 && ' · '}
+              {shownListings.length > 0 && servicesCount(shownListings.length)}
+            </span>
+          </div>
 
-            {nothingMatches ? (
-              <EmptyState title="لا شيء يطابق هذه الفلاتر.">
-                <button className="pill" onClick={clearFilters}>مسح الفلاتر</button>
-              </EmptyState>
-            ) : (
-              <>
-                {shownProducts.length > 0 && (
-                  <>
-                    <div className="pcards">
-                      {shownProducts.slice(0, limit).map((p) => <ProductCard key={p.id} product={p} />)}
-                    </div>
-                    {shownProducts.length > limit && (
-                      <div className="center">
-                        <button className="pill" onClick={() => setLimit((n) => n + PAGE)}>عرض المزيد</button>
-                      </div>
-                    )}
-                  </>
-                )}
-                {shownListings.length > 0 && (
-                  <div className="service-list">
-                    {shownProducts.length > 0 && <h2>الخدمات ({shownListings.length})</h2>}
-                    {shownListings.map((l) => <ServiceCard key={l.service.id} service={l.service} />)}
+          {nothingMatches ? (
+            <EmptyState title={t('لا شيء يطابق هذه الفلاتر.')}>
+              <button className="pill" onClick={clearFilters}>{t('مسح الفلاتر')}</button>
+            </EmptyState>
+          ) : (
+            <>
+              {shownProducts.length > 0 && (
+                <>
+                  <div className="pcards">
+                    {shownProducts.slice(0, limit).map((p) => <ProductCard key={p.id} product={p} />)}
                   </div>
-                )}
-              </>
-            )}
-          </section>
-        </div>
+                  {shownProducts.length > limit && (
+                    <div className="center">
+                      <button className="pill" onClick={() => setLimit((n) => n + PAGE)}>{t('عرض المزيد')}</button>
+                    </div>
+                  )}
+                </>
+              )}
+              {shownListings.length > 0 && (
+                <div className="service-list">
+                  {shownProducts.length > 0 && <h2>{t('الخدمات (')}{shownListings.length})</h2>}
+                  {shownListings.map((l) => <ServiceCard key={l.service.id} service={l.service} />)}
+                </div>
+              )}
+            </>
+          )}
+        </section>
       )}
     </main>
   );

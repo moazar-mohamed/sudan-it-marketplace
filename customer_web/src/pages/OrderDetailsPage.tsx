@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { EmptyState, Skeleton } from '../components/Bits';
 import { Icon, PATHS } from '../components/Icon';
 import { ReviewCard } from '../components/ReviewCard';
+import { openOrderChat } from '../data/chats';
 import { useCatalog } from '../data/DataProvider';
 import { formatDateTime, formatPrice } from '../data/format';
 import { useOrder } from '../data/hooks';
 import { cancelledLines, isAwaitingVerification, loadReceipt, ORDER_STATUS, paymentLabel, shortOrderId } from '../data/orders';
 import { displayPhone } from '../data/phone';
+import { orderReviewSubject } from '../data/reviews';
 import type { Order, OrderStatus } from '../data/types';
+import { cityName } from '../data/cities';
+import { t } from '../i18n';
 
 const STEPS: OrderStatus[] = ['processing', 'out_for_delivery', 'completed'];
 
@@ -50,15 +54,15 @@ function ReceiptButton({ orderId }: { orderId: string }) {
 
   return (
     <>
-      <button className="mini-btn" disabled={state === 'loading'} onClick={open}>عرض الإيصال</button>
-      {state === 'none' && <span className="pmeta">لا توجد صورة إيصال لهذا الطلب.</span>}
-      {state === 'failed' && <span className="error" style={{ marginTop: 0 }}>تعذّر تحميل الإيصال. تحقق من اتصالك وحاول مرة أخرى.</span>}
+      <button className="mini-btn" disabled={state === 'loading'} onClick={open}>{t('عرض الإيصال')}</button>
+      {state === 'none' && <span className="pmeta">{t('لا توجد صورة إيصال لهذا الطلب.')}</span>}
+      {state === 'failed' && <span className="error" style={{ marginTop: 0 }}>{t('تعذّر تحميل الإيصال. تحقق من اتصالك وحاول مرة أخرى.')}</span>}
       {url && (
         <div className="scrim" onMouseDown={() => setUrl('')}>
-          <div className="palette receipt-panel" role="dialog" aria-modal="true" aria-label="إيصال الدفع" onMouseDown={(e) => e.stopPropagation()}>
-            <h2>إيصال الدفع</h2>
-            <img src={url} alt="إيصال الدفع" />
-            <button className="btn ghost" onClick={() => setUrl('')}>إغلاق</button>
+          <div className="palette receipt-panel" role="dialog" aria-modal="true" aria-label={t('إيصال الدفع')} onMouseDown={(e) => e.stopPropagation()}>
+            <h2>{t('إيصال الدفع')}</h2>
+            <img src={url} alt={t('إيصال الدفع')} />
+            <button className="btn ghost" onClick={() => setUrl('')}>{t('إغلاق')}</button>
           </div>
         </div>
       )}
@@ -67,7 +71,7 @@ function ReceiptButton({ orderId }: { orderId: string }) {
 }
 
 function pickupText(order: Order): string {
-  return order.deliveryAddress.replace(/^Pickup:\s*/, '').replace(/^Company pickup location.*$/, 'موقع استلام الشركة (ستؤكده الشركة عبر الهاتف)');
+  return order.deliveryAddress.replace(/^Pickup:\s*/, '').replace(/^Company pickup location.*$/, t('موقع استلام الشركة (ستؤكده الشركة عبر الهاتف)'));
 }
 
 function DeliveryCard({ order }: { order: Order }) {
@@ -86,20 +90,44 @@ function DeliveryCard({ order }: { order: Order }) {
         : null;
   return (
     <section className="tile">
-      <h2>{pickup ? 'تفاصيل الاستلام' : 'تفاصيل التوصيل'}</h2>
+      <h2>{pickup ? t('تفاصيل الاستلام') : t('تفاصيل التوصيل')}</h2>
       <dl className="specs">
-        <div><dt>العنوان</dt><dd>{text || (hasPoint ? 'محدد على الخريطة' : '—')}</dd></div>
-        {!pickup && city && <div><dt>مدينة التوصيل</dt><dd>{city.nameAr}</dd></div>}
-        <div><dt>هاتف التواصل</dt><dd dir="ltr">{displayPhone(order.contactPhone)}</dd></div>
-        {order.installationSelected && <div><dt>نوع الطلب</dt><dd>منتج + تركيب (+{formatPrice(order.installationFee)})</dd></div>}
-        <div><dt>تاريخ الطلب</dt><dd dir="ltr">{formatDateTime(order.createdAt)}</dd></div>
+        <div><dt>{t('العنوان')}</dt><dd>{text || (hasPoint ? t('محدد على الخريطة') : '—')}</dd></div>
+        {!pickup && city && <div><dt>{t('مدينة التوصيل')}</dt><dd>{cityName(city)}</dd></div>}
+        <div><dt>{t('هاتف التواصل')}</dt><dd dir="ltr">{displayPhone(order.contactPhone)}</dd></div>
+        {order.installationSelected && <div><dt>{t('نوع الطلب')}</dt><dd>{t('منتج + تركيب (+')}{formatPrice(order.installationFee)})</dd></div>}
+        <div><dt>{t('تاريخ الطلب')}</dt><dd dir="ltr">{formatDateTime(order.createdAt)}</dd></div>
       </dl>
       {mapLink && (
         <a className="more" href={mapLink} target="_blank" rel="noreferrer">
-          {pickup ? 'عرض موقع الشركة' : hasPoint ? 'فتح موقع التوصيل' : 'البحث عن العنوان في الخريطة'}
+          {pickup ? t('عرض موقع الشركة') : hasPoint ? t('فتح موقع التوصيل') : t('البحث عن العنوان في الخريطة')}
         </a>
       )}
     </section>
+  );
+}
+
+/** An order older than conversations gets its conversation here, on first use. */
+function OpenChatButton({ order }: { order: Order }) {
+  const navigate = useNavigate();
+  const { profile } = useCatalog();
+  const [error, setError] = useState('');
+  return (
+    <>
+      <button
+        className="btn-line contact"
+        onClick={() =>
+          openOrderChat(profile.id, order).then(
+            (id) => navigate(`/chats/${id}`),
+            () => setError(t('تعذر بدء المحادثة. يرجى المحاولة مرة أخرى.')),
+          )
+        }
+      >
+        <Icon d={PATHS.chat} size={18} />
+        {t('فتح المحادثة')}
+      </button>
+      {error && <div className="error" role="alert">{error}</div>}
+    </>
   );
 }
 
@@ -113,8 +141,8 @@ export function OrderDetailsPage() {
   if (!order) {
     return (
       <main className="stack">
-        <EmptyState title="تعذر تحميل الطلب">
-          <Link to="/orders" className="pill">طلباتي</Link>
+        <EmptyState title={t('تعذر تحميل الطلب')}>
+          <Link to="/orders" className="pill">{t('طلباتي')}</Link>
         </EmptyState>
       </main>
     );
@@ -128,28 +156,28 @@ export function OrderDetailsPage() {
 
   return (
     <main className="stack narrow">
-      <h1 className="page-title">طلب #<span dir="ltr">{shortOrderId(order.id)}</span></h1>
+      <h1 className="page-title">{t('طلب #')}<span dir="ltr">{shortOrderId(order.id)}</span></h1>
 
       {placed && awaiting && (
         <section className="tile pending">
-          <span className="status warn">بانتظار التحقق</span>
-          <h2>تم إرسال طلبك: بانتظار الشركة</h2>
-          <p>أُرسل طلبك وإيصال التحويل إلى الشركة. الإيصال ليس تأكيداً للدفع: تتحقق الشركة من وصول المبلغ ثم تؤكده.</p>
+          <span className="status warn">{t('بانتظار التحقق')}</span>
+          <h2>{t('تم إرسال طلبك: بانتظار الشركة')}</h2>
+          <p>{t('أُرسل طلبك وإيصال التحويل إلى الشركة. الإيصال ليس تأكيداً للدفع: تتحقق الشركة من وصول المبلغ ثم تؤكده.')}</p>
           <div className="buy-row">
-            <Link to="/orders" className="btn-line">عرض في طلباتي</Link>
-            <Link to="/" className="btn-solid">العودة إلى السوق</Link>
+            <Link to="/orders" className="btn-line">{t('عرض في طلباتي')}</Link>
+            <Link to="/" className="btn-solid">{t('العودة إلى السوق')}</Link>
           </div>
         </section>
       )}
 
       <section className="tile">
         <div className="tile-head">
-          <h2>حالة الطلب</h2>
+          <h2>{t('حالة الطلب')}</h2>
           <span className={`status ${status.tone}`}>{status.label}</span>
         </div>
         {cancelled ? (
           <div className="cancelled">
-            <strong>أُلغي هذا الطلب</strong>
+            <strong>{t('أُلغي هذا الطلب')}</strong>
             {cancelledLines(order).map((line) => <p key={line}>{line}</p>)}
           </div>
         ) : (
@@ -157,23 +185,20 @@ export function OrderDetailsPage() {
         )}
       </section>
 
-      {order.orderStatus === 'completed' && <ReviewCard order={order} />}
+      {order.orderStatus === 'completed' && <ReviewCard subject={orderReviewSubject(order)} />}
 
       <section className="tile">
-        <h2>التواصل</h2>
-        <Link to={`/chats/${order.id}`} className="btn-line contact">
-          <Icon d={PATHS.chat} size={18} />
-          فتح المحادثة
-        </Link>
+        <h2>{t('التواصل')}</h2>
+        <OpenChatButton order={order} />
       </section>
 
       <section className="tile">
-        <h2>المنتج المطلوب</h2>
+        <h2>{t('المنتج المطلوب')}</h2>
         <Link to={`/product/${order.productId}`} className="pname" style={{ display: 'block', marginTop: 12 }}>{order.productName}</Link>
         <div className="pmeta">{order.companyName}</div>
         <dl className="specs">
-          <div><dt>سعر الوحدة</dt><dd>{formatPrice(order.unitPrice)}</dd></div>
-          <div><dt>الكمية</dt><dd>{order.quantity}</dd></div>
+          <div><dt>{t('سعر الوحدة')}</dt><dd>{formatPrice(order.unitPrice)}</dd></div>
+          <div><dt>{t('الكمية')}</dt><dd>{order.quantity}</dd></div>
         </dl>
       </section>
 
@@ -181,26 +206,26 @@ export function OrderDetailsPage() {
 
       <section className="tile">
         <div className="tile-head">
-          <h2>حالة الدفع</h2>
+          <h2>{t('حالة الدفع')}</h2>
           <span className={`status ${payment.tone}`}>{payment.label}</span>
         </div>
         {order.receiptFileName && (
           <div className="location-row">
-            <span className="ok-text">الإيصال مرفق</span>
+            <span className="ok-text">{t('الإيصال مرفق')}</span>
             <span className="pmeta" dir="ltr">{order.receiptFileName}</span>
             <ReceiptButton orderId={order.id} />
           </div>
         )}
-        {awaiting && <div className="note" style={{ marginTop: 12 }}>المنتج غير محجوز لك بعد: لا يُخصم من المخزون إلا عندما تؤكد الشركة دفعك. وإذا نفد قبل ذلك، قد تلغي الشركة الطلب وتعيد إليك المبلغ المحوّل خارج التطبيق.</div>}
-        {order.paymentStatus === 'confirmed' && !cancelled && <div className="ok-note">أكدت الشركة دفعك، والمنتج محجوز لطلبك.</div>}
+        {awaiting && <div className="note" style={{ marginTop: 12 }}>{t('المنتج غير محجوز لك بعد: لا يُخصم من المخزون إلا عندما تؤكد الشركة دفعك. وإذا نفد قبل ذلك، قد تلغي الشركة الطلب وتعيد إليك المبلغ المحوّل خارج التطبيق.')}</div>}
+        {order.paymentStatus === 'confirmed' && !cancelled && <div className="ok-note">{t('أكدت الشركة دفعك، والمنتج محجوز لطلبك.')}</div>}
       </section>
 
       <section className="tile">
         <dl className="specs" style={{ marginTop: 0 }}>
-          <div><dt>إجمالي المنتج</dt><dd>{formatPrice(order.productSubtotal)}</dd></div>
-          {order.installationSelected && <div><dt>رسوم التركيب</dt><dd>+{formatPrice(order.installationFee)}</dd></div>}
-          {delivery && <div><dt>رسوم التوصيل</dt><dd>{formatPrice(order.deliveryFee)}</dd></div>}
-          <div className="total-row"><dt>الإجمالي</dt><dd>{formatPrice(order.totalAmount)}</dd></div>
+          <div><dt>{t('إجمالي المنتج')}</dt><dd>{formatPrice(order.productSubtotal)}</dd></div>
+          {order.installationSelected && <div><dt>{t('رسوم التركيب')}</dt><dd>+{formatPrice(order.installationFee)}</dd></div>}
+          {delivery && <div><dt>{t('رسوم التوصيل')}</dt><dd>{formatPrice(order.deliveryFee)}</dd></div>}
+          <div className="total-row"><dt>{t('الإجمالي')}</dt><dd>{formatPrice(order.totalAmount)}</dd></div>
         </dl>
       </section>
     </main>

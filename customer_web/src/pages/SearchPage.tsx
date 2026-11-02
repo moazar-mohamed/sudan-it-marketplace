@@ -13,6 +13,7 @@ import { categoryName } from '../data/format';
 import { marketplaceSearch } from '../data/marketplaceSearch';
 import { addRecentSearch, clearRecentSearches, readRecentSearches, removeRecentSearch } from '../data/recentSearches';
 import { suggestCorrection } from '../data/searchRanking';
+import { t } from '../i18n';
 
 type Scope = 'all' | 'products' | 'services' | 'companies';
 
@@ -20,9 +21,9 @@ type Scope = 'all' | 'products' | 'services' | 'companies';
 const PREVIEW = 3;
 
 const SORTS: { value: SearchSort; label: string }[] = [
-  { value: 'relevance', label: 'الأنسب' },
-  { value: 'priceLow', label: 'الأقل سعراً' },
-  { value: 'priceHigh', label: 'الأعلى سعراً' },
+  { value: 'relevance', label: t('الأنسب') },
+  { value: 'priceLow', label: t('الأقل سعراً') },
+  { value: 'priceHigh', label: t('الأعلى سعراً') },
 ];
 
 function CategoryChips() {
@@ -31,7 +32,7 @@ function CategoryChips() {
   if (categories.length === 0) return null;
   return (
     <div>
-      <h2 className="sub-title">تصفح الأقسام</h2>
+      <h2 className="sub-title">{t('تصفح الأقسام')}</h2>
       <div className="chips">
         {categories.map((c) => <Link key={c.id} to={`/category/${c.id}`} className="chip-link">{categoryName(c)}</Link>)}
       </div>
@@ -74,7 +75,7 @@ export function SearchPage() {
         {scope === 'all' && (
           <div className="section-title">
             <h2>{title}</h2>
-            {count > PREVIEW && <button className="link-btn" onClick={() => setScope(target)}>عرض الكل ({count})</button>}
+            {count > PREVIEW && <button className="link-btn" onClick={() => setScope(target)}>{t('عرض الكل (')}{count})</button>}
           </div>
         )}
         {children(shown)}
@@ -84,10 +85,10 @@ export function SearchPage() {
 
   const guess = empty && q.trim() ? suggestCorrection(q, catalog.vocabulary) : null;
   const scopes: { value: Scope; label: string }[] = [
-    { value: 'all', label: `الكل (${total})` },
-    { value: 'products', label: `منتجات (${products.length})` },
-    { value: 'services', label: `خدمات (${matched.services.length})` },
-    { value: 'companies', label: `شركات (${matched.companies.length})` },
+    { value: 'all', label: t('الكل ({0})', total) },
+    { value: 'products', label: t('منتجات ({0})', products.length) },
+    { value: 'services', label: t('خدمات ({0})', matched.services.length) },
+    { value: 'companies', label: t('شركات ({0})', matched.companies.length) },
   ];
 
   return (
@@ -98,10 +99,10 @@ export function SearchPage() {
           autoFocus
           value={q}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="ابحث عن منتجات وخدمات وشركات"
-          aria-label="بحث"
+          placeholder={t('ابحث عن منتجات وخدمات وشركات')}
+          aria-label={t('بحث')}
         />
-        {q && <button type="button" className="link-btn" onClick={() => setQuery('')}>مسح</button>}
+        {q && <button type="button" className="link-btn" onClick={() => setQuery('')}>{t('مسح')}</button>}
       </form>
 
       {catalog.error ? (
@@ -113,13 +114,13 @@ export function SearchPage() {
           {recent.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <div className="tile-head">
-                <h2>عمليات البحث الأخيرة</h2>
-                <button className="link-btn" onClick={() => setRecent(clearRecentSearches())}>مسح</button>
+                <h2>{t('عمليات البحث الأخيرة')}</h2>
+                <button className="link-btn" onClick={() => setRecent(clearRecentSearches())}>{t('مسح')}</button>
               </div>
               {recent.map((text) => (
                 <div key={text} className="recent-row">
                   <button className="recent" onClick={() => search(text)}>{text}</button>
-                  <button className="link-btn" aria-label={`إزالة ${text}`} onClick={() => setRecent(removeRecentSearch(text))}>✕</button>
+                  <button className="link-btn" aria-label={t('إزالة {0}', text)} onClick={() => setRecent(removeRecentSearch(text))}>✕</button>
                 </div>
               ))}
             </div>
@@ -127,8 +128,8 @@ export function SearchPage() {
           <CategoryChips />
         </section>
       ) : empty ? (
-        <EmptyState title={`لا توجد نتائج لـ «${q.trim()}»`} message="تأكد من الإملاء، أو جرّب كلمة أقصر، أو تصفح أحد الأقسام.">
-          {guess && <button className="pill" onClick={() => search(guess)}>هل تقصد «{guess}»؟</button>}
+        <EmptyState title={t('لا توجد نتائج لـ «{0}»', q.trim())} message={t('تأكد من الإملاء، أو جرّب كلمة أقصر، أو تصفح أحد الأقسام.')}>
+          {guess && <button className="pill" onClick={() => search(guess)}>{t('هل تقصد «')}{guess}{t('»؟')}</button>}
           <CategoryChips />
         </EmptyState>
       ) : (
@@ -145,27 +146,27 @@ export function SearchPage() {
               {SORTS.map((s) => (
                 <button key={s.value} className={`chip-link small${sort === s.value ? ' on' : ''}`} onClick={() => setSort(s.value)}>{s.label}</button>
               ))}
-              <button className={`chip-link small${inStockOnly ? ' on' : ''}`} aria-pressed={inStockOnly} onClick={() => setInStockOnly((v) => !v)}>المتوفر فقط</button>
+              <button className={`chip-link small${inStockOnly ? ' on' : ''}`} aria-pressed={inStockOnly} onClick={() => setInStockOnly((v) => !v)}>{t('المتوفر فقط')}</button>
             </div>
           )}
-          {group('المنتجات', products.length, 'products', (shown) => (
+          {group(t('المنتجات'), products.length, 'products', (shown) => (
             <div className="pcards">
               {products.slice(0, shown).map((p) => <ProductCard key={p.id} product={p} highlight={q} />)}
             </div>
           ))}
-          {group('الخدمات', matched.services.length, 'services', (shown) => (
+          {group(t('الخدمات'), matched.services.length, 'services', (shown) => (
             <div className="service-list">
               {matched.services.slice(0, shown).map((s) => <ServiceCard key={s.id} service={s} highlight={q} />)}
             </div>
           ))}
-          {group('الشركات', matched.companies.length, 'companies', (shown) => (
+          {group(t('الشركات'), matched.companies.length, 'companies', (shown) => (
             <div className="ccards">
               {matched.companies.slice(0, shown).map((c) => <CompanyCard key={c.id} company={c} highlight={q} />)}
             </div>
           ))}
           {scope !== 'all' &&
             (scope === 'products' ? products.length : scope === 'services' ? matched.services.length : matched.companies.length) === 0 && (
-              <EmptyState title={`لا توجد نتائج لـ «${q.trim()}»`} />
+              <EmptyState title={t('لا توجد نتائج لـ «{0}»', q.trim())} />
             )}
         </>
       )}

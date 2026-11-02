@@ -1,3 +1,4 @@
+import { retryLoads } from '../data/retry';
 import { useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
@@ -7,10 +8,11 @@ import { useCatalog } from '../data/DataProvider';
 import { averageOf, countText, formatPrice, hasActiveOffer, offerLabel, salePrice } from '../data/format';
 import { searchQueryTokens, searchWordHit } from '../data/searchRanking';
 import type { Priced } from '../data/types';
+import { t } from '../i18n';
 
 /** "(12 تقييم)": the plural forms the app's reviewsCount uses. */
 export const reviewsCountText = (count: number): string =>
-  countText(count, 'تقييم واحد', 'تقييمان', 'تقييمات', 'تقييم');
+  countText(count, t('تقييم واحد'), t('تقييمان'), t('تقييمات'), t('تقييم'));
 
 /** Stars and count; "جديد" until someone rates (nothing with [showNew] false). */
 export function RatingLine({
@@ -31,7 +33,7 @@ export function RatingLine({
   const live = !!stats && stats.count > 0;
   const average = live ? averageOf(stats) : fallbackAverage;
   const count = live ? stats.count : fallbackCount;
-  if (count === 0) return showNew ? <span className="new-rating">جديد</span> : null;
+  if (count === 0) return showNew ? <span className="new-rating">{t('جديد')}</span> : null;
   return (
     <span className="rating">
       ★ {average.toFixed(1)}
@@ -43,7 +45,7 @@ export function RatingLine({
 /** The price to pay, with the struck-through normal price while an offer runs. */
 export function PriceText({ item, currency = 'SDG', big }: { item: Priced; currency?: string; big?: boolean }) {
   const sale = salePrice(item);
-  if (sale === null) return <span className="on-request">السعر عند التواصل</span>;
+  if (sale === null) return <span className="on-request">{t('السعر عند التواصل')}</span>;
   return (
     <span className="price-line">
       <span className={big ? 'price big' : 'price'}>{formatPrice(sale, currency)}</span>
@@ -62,7 +64,7 @@ export function CityTag({ companyId }: { companyId: string }) {
   const company = companies.find((c) => c.id === companyId);
   if (!company || cityId === null || servesCity(company, cityId)) return null;
   const names = cityNamesText(company.serviceCityIds, cities);
-  return <span className="city-tag">{names ? `تخدم: ${names}` : 'الشركة لا تخدم مدينتك'}</span>;
+  return <span className="city-tag">{names ? t('تخدم: {0}', names) : t('الشركة لا تخدم مدينتك')}</span>;
 }
 
 /** [text] with the words the query matched marked (same rules as the search). */
@@ -80,7 +82,7 @@ export function Highlighted({ text, query }: { text: string; query?: string }) {
 
 export function Breadcrumbs({ items }: { items: { label: string; to?: string }[] }) {
   return (
-    <nav className="crumbs" aria-label="مسار الصفحة">
+    <nav className="crumbs" aria-label={t('مسار الصفحة')}>
       {items.map((item, i) => (
         <span key={`${item.label}-${i}`} className="crumb">
           {i > 0 && <span aria-hidden="true">‹</span>}
@@ -103,8 +105,8 @@ export function EmptyState({ title, message, children }: { title?: string; messa
 
 export function ErrorState() {
   return (
-    <EmptyState title="تعذر تحميل البيانات" message="تأكد من اتصالك بالإنترنت ثم حاول مرة أخرى.">
-      <button className="pill" onClick={() => window.location.reload()}>إعادة المحاولة</button>
+    <EmptyState title={t('تعذر تحميل البيانات')} message={t('تأكد من اتصالك بالإنترنت ثم حاول مرة أخرى.')}>
+      <button className="pill" onClick={retryLoads}>{t('إعادة المحاولة')}</button>
     </EmptyState>
   );
 }

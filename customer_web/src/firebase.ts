@@ -1,6 +1,13 @@
 import { initializeApp } from 'firebase/app';
-import { connectAuthEmulator, getAuth } from 'firebase/auth';
-import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
+import { connectAuthEmulator, getAuth, signOut } from 'firebase/auth';
+import {
+  clearIndexedDbPersistence,
+  connectFirestoreEmulator,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  terminate,
+} from 'firebase/firestore';
 
 // Public identifiers of the existing "sudan-it-marketplace" project (the same
 // values the Flutter app and the admin panel ship). They identify the project,
@@ -16,7 +23,20 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// What was read stays in this browser, so a return visit shows at once and then
+// updates. Where the browser refuses, the SDK keeps it in memory instead.
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+});
+
+/** Signs out and clears what this browser saved, so the next person on a shared computer finds nothing. */
+export async function signOutHere(): Promise<void> {
+  await signOut(auth);
+  await terminate(db);
+  await clearIndexedDbPersistence(db).catch(() => undefined);
+  window.location.assign('/');
+}
 
 // Local testing only: `.env.local` (gitignored) with VITE_EMULATOR=1 points the
 // site at the Firebase emulators instead of the real project.

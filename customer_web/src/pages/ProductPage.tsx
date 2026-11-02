@@ -19,6 +19,7 @@ import {
 } from '../data/format';
 import { useProductDoc } from '../data/hooks';
 import { recordProductView } from '../data/usage';
+import { t } from '../i18n';
 
 export function ProductPage() {
   const { id = '' } = useParams();
@@ -42,8 +43,8 @@ export function ProductPage() {
   if (!product) {
     return (
       <main className="stack">
-        <EmptyState title="هذا المنتج لم يعد متاحًا">
-          <Link to="/browse" className="pill">تصفح المنتجات</Link>
+        <EmptyState title={t('هذا المنتج لم يعد متاحًا')}>
+          <Link to="/browse" className="pill">{t('تصفح المنتجات')}</Link>
         </EmptyState>
       </main>
     );
@@ -67,7 +68,7 @@ export function ProductPage() {
     <main className="stack">
       <Breadcrumbs
         items={[
-          { label: 'كل التصنيفات', to: '/browse' },
+          { label: t('كل التصنيفات'), to: '/browse' },
           ...path.map((c) => ({ label: categoryName(c), to: `/category/${c.id}` })),
           { label: product.name },
         ]}
@@ -80,7 +81,7 @@ export function ProductPage() {
 
         <div className="product-info">
           <span className={available ? 'status ok' : 'status off'}>
-            {available ? `متوفر (${product.stockCount})` : 'غير متوفر في المخزون'}
+            {available ? t('متوفر ({0})', product.stockCount) : t('غير متوفر في المخزون')}
           </span>
           <h1>{product.name}</h1>
           <RatingLine ratingsFor={ratingKey('product', product.id)} />
@@ -92,7 +93,7 @@ export function ProductPage() {
           )}
           <PriceText item={product} currency={product.currency} big />
           {hasActiveOffer(product) && product.offerEndsAt && (
-            <span className="offer-ends">ينتهي في {formatDate(product.offerEndsAt)}</span>
+            <span className="offer-ends">{t('ينتهي في')}{' '}{formatDate(product.offerEndsAt)}</span>
           )}
 
           {company ? (
@@ -122,32 +123,32 @@ export function ProductPage() {
             <div className="note">
               <Icon d={PATHS.wrench} />
               <span>
-                <strong style={{ display: 'block' }}>خدمة التركيب الاحترافي متاحة</strong>
-                سعر التركيب: {formatPrice(product.installationPrice ?? 0, product.currency)}. يتم اختيار خيار التركيب أثناء إتمام الطلب.
+                <strong style={{ display: 'block' }}>{t('خدمة التركيب الاحترافي متاحة')}</strong>
+                {t('سعر التركيب:')}{' '}{formatPrice(product.installationPrice ?? 0, product.currency)}{t('. يتم اختيار خيار التركيب أثناء إتمام الطلب.')}
               </span>
             </div>
           )}
 
           <div className="buy-box">
             <div className="buy-row">
-              <div className="stepper" role="group" aria-label="الكمية">
-                <button aria-label="زيادة الكمية" disabled={qty >= max} onClick={() => setQuantity(qty + 1)}>+</button>
+              <div className="stepper" role="group" aria-label={t('الكمية')}>
+                <button aria-label={t('زيادة الكمية')} disabled={qty >= max} onClick={() => setQuantity(qty + 1)}>+</button>
                 <output aria-live="polite">{qty}</output>
-                <button aria-label="تقليل الكمية" disabled={qty <= 1} onClick={() => setQuantity(qty - 1)}>−</button>
+                <button aria-label={t('تقليل الكمية')} disabled={qty <= 1} onClick={() => setQuantity(qty - 1)}>−</button>
               </div>
               <span className="total">
-                {total !== null && <span className="pmeta">الإجمالي</span>}
-                <strong>{total === null ? 'السعر عند التواصل' : formatPrice(total, product.currency)}</strong>
+                {total !== null && <span className="pmeta">{t('الإجمالي')}</span>}
+                <strong>{total === null ? t('السعر عند التواصل') : formatPrice(total, product.currency)}</strong>
               </span>
             </div>
             <div className="buy-row">
               {product.companyId && (
-                <Link to={`/chats?product=${product.id}`} className={canBuy ? 'btn-line' : 'btn-solid'}>تواصل</Link>
+                <Link to={`/chats?product=${product.id}`} className={canBuy ? 'btn-line' : 'btn-solid'}>{t('تواصل')}</Link>
               )}
               {canBuy ? (
-                <Link to={`/checkout/${product.id}?qty=${qty}`} className="btn-solid">اشترِ الآن</Link>
+                <Link to={`/checkout/${product.id}?qty=${qty}`} className="btn-solid">{t('اشترِ الآن')}</Link>
               ) : (
-                <button className="btn-solid" disabled>اشترِ الآن</button>
+                <button className="btn-solid" disabled>{t('اشترِ الآن')}</button>
               )}
             </div>
           </div>
@@ -156,13 +157,13 @@ export function ProductPage() {
 
       {description && (
         <section className="tile">
-          <h2>الوصف</h2>
+          <h2>{t('الوصف')}</h2>
           <p className="prose">{description}</p>
         </section>
       )}
       {specs.length > 0 && (
         <section className="tile">
-          <h2>المواصفات</h2>
+          <h2>{t('المواصفات')}</h2>
           <dl className="specs">
             {specs.map(([key, value]) => (
               <div key={key}><dt>{key}</dt><dd>{value}</dd></div>

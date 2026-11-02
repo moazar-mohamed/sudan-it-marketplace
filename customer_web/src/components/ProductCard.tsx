@@ -4,6 +4,7 @@ import { categoryColor, categoryName, hasActiveOffer, iconPath, isNewProduct, ra
 import type { Product } from '../data/types';
 import { CityTag, Highlighted, OfferPill, PriceText, RatingLine } from './Bits';
 import { Icon, PATHS } from './Icon';
+import { t } from '../i18n';
 
 export function ProductCard({ product: p, highlight }: { product: Product; highlight?: string }) {
   const { tree } = useCatalog();
@@ -17,7 +18,7 @@ export function ProductCard({ product: p, highlight }: { product: Product; highl
         ) : (
           <Icon d={category ? iconPath(category.iconName) : PATHS.box} size={54} />
         )}
-        {hasActiveOffer(p) ? <OfferPill item={p} /> : isNewProduct(p) && <span className="badge">جديد</span>}
+        {hasActiveOffer(p) ? <OfferPill item={p} /> : isNewProduct(p) && <span className="badge">{t('جديد')}</span>}
       </div>
       <div className="pbody">
         {category && <div className="pcat">{categoryName(category)}</div>}
@@ -29,8 +30,8 @@ export function ProductCard({ product: p, highlight }: { product: Product; highl
         </div>
         {(p.isDeliveryAvailable || p.isInstallationAvailable) && (
           <div className="ptags">
-            {p.isDeliveryAvailable && <span>توصيل</span>}
-            {p.isInstallationAvailable && <span>تركيب</span>}
+            {p.isDeliveryAvailable && <span>{t('توصيل')}</span>}
+            {p.isInstallationAvailable && <span>{t('تركيب')}</span>}
           </div>
         )}
         <CityTag companyId={p.companyId} />

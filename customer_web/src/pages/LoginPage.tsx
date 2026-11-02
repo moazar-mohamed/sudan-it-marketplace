@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthCard } from '../components/AuthCard';
 import { authErrorMessage, signIn, signInWithGoogle } from '../data/account';
+import { t } from '../i18n';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -34,22 +35,22 @@ export function LoginPage() {
   }
 
   return (
-    <AuthCard title="تسجيل الدخول" subtitle="مرحبًا بعودتك. سجّل الدخول للمتابعة.">
+    <AuthCard title={t('تسجيل الدخول')} subtitle={t('مرحبًا بعودتك. سجّل الدخول للمتابعة.')}>
       <form onSubmit={submit}>
         <label className="field">
-          البريد الإلكتروني
+          {t('البريد الإلكتروني')}
           <input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} dir="ltr" />
         </label>
         <label className="field">
-          كلمة المرور
+          {t('كلمة المرور')}
           <input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} dir="ltr" />
         </label>
-        <Link to={`/forgot-password?email=${encodeURIComponent(email)}`} className="auth-link end">نسيت كلمة المرور؟</Link>
+        <Link to={`/forgot-password?email=${encodeURIComponent(email)}`} className="auth-link end">{t('نسيت كلمة المرور؟')}</Link>
         {error && <div className="error" role="alert">{error}</div>}
-        <button className="btn" type="submit" disabled={busy}>{busy ? 'جارٍ الدخول...' : 'تسجيل الدخول'}</button>
+        <button className="btn" type="submit" disabled={busy}>{busy ? t('جارٍ الدخول...') : t('تسجيل الدخول')}</button>
       </form>
-      <button className="btn ghost" disabled={busy} onClick={google}>المتابعة باستخدام Google</button>
-      <p className="auth-foot">ليس لديك حساب؟ <Link to="/register" className="auth-link">إنشاء حساب</Link></p>
+      <button className="btn ghost" disabled={busy} onClick={google}>{t('المتابعة باستخدام Google')}</button>
+      <p className="auth-foot">{t('ليس لديك حساب؟')}{' '}<Link to="/register" className="auth-link">{t('إنشاء حساب')}</Link></p>
     </AuthCard>
   );
 }

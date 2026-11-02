@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { useReviews } from '../data/hooks';
 import { reviewsCountText } from './Bits';
+import { t } from '../i18n';
 
 const TAG_LABEL: Record<string, string> = {
-  quality: 'الجودة',
-  delivery: 'سرعة التوصيل',
-  punctual: 'الالتزام بالموعد',
-  service: 'حسن التعامل',
-  price: 'سعر مناسب',
+  quality: t('الجودة'),
+  delivery: t('سرعة التوصيل'),
+  punctual: t('الالتزام بالموعد'),
+  service: t('حسن التعامل'),
+  price: t('سعر مناسب'),
 };
 
 const Stars = ({ value }: { value: number }) => (
-  <span className="stars" role="img" aria-label={`${value} من 5`}>
+  <span className="stars" role="img" aria-label={t('{0} من 5', value)}>
     {'★'.repeat(value)}
     <span className="stars-off">{'★'.repeat(5 - value)}</span>
   </span>
@@ -27,8 +28,8 @@ export function ReviewsSection({ field, id }: { field: 'targetId' | 'companyId';
   const average = reviews.reduce((sum, r) => sum + r.stars, 0) / reviews.length;
   const shown = all ? reviews : reviews.slice(0, PREVIEW);
   return (
-    <section className="tile reviews" aria-label="التقييمات">
-      <h2>التقييمات</h2>
+    <section className="tile reviews" aria-label={t('التقييمات')}>
+      <h2>{t('التقييمات')}</h2>
       <div className="review-summary">
         <strong>{average.toFixed(1)}</strong>
         <span>
@@ -37,14 +38,14 @@ export function ReviewsSection({ field, id }: { field: 'targetId' | 'companyId';
         </span>
       </div>
       {shown.map((r) => {
-        const name = r.authorName.trim() || 'عميل';
+        const name = r.authorName.trim() || t('عميل');
         return (
           <article key={r.id} className="review">
             <header>
               <span className="review-avatar">{[...name][0]}</span>
               <span className="grow">
                 <strong>{name}</strong>
-                <span className="verified">عميل مؤكَّد</span>
+                <span className="verified">{t('عميل مؤكَّد')}</span>
               </span>
               <span style={{ textAlign: 'end' }}>
                 <Stars value={r.stars} />
@@ -61,7 +62,7 @@ export function ReviewsSection({ field, id }: { field: 'targetId' | 'companyId';
             {r.comment && <p>{r.comment}</p>}
             {r.reply && (
               <blockquote>
-                <strong>رد الشركة · {r.companyName}</strong>
+                <strong>{t('رد الشركة ·')}{' '}{r.companyName}</strong>
                 <p>{r.reply}</p>
               </blockquote>
             )}
@@ -69,7 +70,7 @@ export function ReviewsSection({ field, id }: { field: 'targetId' | 'companyId';
         );
       })}
       {!all && reviews.length > PREVIEW && (
-        <button className="link-btn" onClick={() => setAll(true)}>عرض كل التقييمات ({reviews.length})</button>
+        <button className="link-btn" onClick={() => setAll(true)}>{t('عرض كل التقييمات (')}{reviews.length})</button>
       )}
     </section>
   );

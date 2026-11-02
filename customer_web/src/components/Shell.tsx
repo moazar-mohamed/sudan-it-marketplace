@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { isUnread, useConversations } from '../data/chats';
 import { useCatalog } from '../data/DataProvider';
-import { useTheme } from '../theme';
-import { CityPicker } from './CityPicker';
-import { CommandPalette } from './CommandPalette';
 import { Icon, PATHS } from './Icon';
+import { PageBoundary } from './PageBoundary';
+import { t } from '../i18n';
 
-const THEME_LABEL = { light: 'المظهر: فاتح', dark: 'المظهر: داكن', system: 'المظهر: تلقائي' } as const;
+// The search loads the first time it is opened.
+const CommandPalette = lazy(() => import('./CommandPalette').then((m) => ({ default: m.CommandPalette })));
 
 /** Opens the search from anywhere on the site. */
 export const openPalette = () => window.dispatchEvent(new Event('open-palette'));
@@ -15,11 +16,9 @@ const linkClass = ({ isActive }: { isActive: boolean }) => (isActive ? 'active' 
 
 export function Shell() {
   const [open, setOpen] = useState(false);
-  const [cityOpen, setCityOpen] = useState(false);
-  const { choice, cycle } = useTheme();
-  const { cities, cityId, profile, notifications } = useCatalog();
+  const { notifications, profile } = useCatalog();
+  const chats = useConversations(profile.id).items?.filter(isUnread).length ?? 0;
   const { pathname } = useLocation();
-  const cityName = cities.find((c) => c.id === cityId)?.nameAr;
   const unread = notifications?.filter((n) => !n.isRead).length ?? 0;
   const close = useCallback(() => setOpen(false), []);
 
@@ -49,48 +48,39 @@ export function Shell() {
     window.scrollTo(0, 0);
   }, [pathname]);
 
-  const themeIcon = choice === 'dark' ? PATHS.moon : choice === 'light' ? PATHS.sun : PATHS.auto;
-
   return (
     <div className="page">
       <header className="nav">
         <NavLink to="/" className="brand">
-          <span className="brand-mark">س</span>
-          سوق التقنية
+          <span className="brand-mark">{t('س')}</span>
+          {t('سوق التقنية')}
         </NavLink>
-        <nav className="nav-links" aria-label="التنقل الرئيسي">
-          <NavLink to="/" end className={linkClass}>الرئيسية</NavLink>
-          <NavLink to="/browse" className={linkClass}>تصفح</NavLink>
-          <NavLink to="/companies" className={linkClass}>الشركات</NavLink>
-          <NavLink to="/orders" className={linkClass}>طلباتي</NavLink>
-          <NavLink to="/chats" className={linkClass}>المحادثات</NavLink>
+        <nav className="nav-links" aria-label={t('التنقل الرئيسي')}>
+          <NavLink to="/" end className={linkClass}>{t('الرئيسية')}</NavLink>
+          <NavLink to="/browse" className={linkClass}>{t('تصفح')}</NavLink>
+          <NavLink to="/companies" className={linkClass}>{t('الشركات')}</NavLink>
+          <NavLink to="/orders" className={linkClass}>{t('طلباتي')}</NavLink>
+          <NavLink to="/chats" className={linkClass}>
+            {t('المحادثات')}
+            {chats > 0 && <span className="nav-count" aria-label={t('{0} غير مقروءة', chats)}>{chats > 9 ? '9+' : chats}</span>}
+          </NavLink>
         </nav>
         <span className="grow" />
-        <button className="search-trigger" onClick={() => setOpen(true)} aria-label="بحث">
+        <button className="search-trigger" onClick={() => setOpen(true)} aria-label={t('بحث')}>
           <Icon d={PATHS.search} size={18} />
-          <span className="label">ابحث أو اكتب أمرًا</span>
+          <span className="label">{t('عن ماذا تبحث')}</span>
           <span className="grow" />
-          <span className="kbd">Ctrl</span>
-          <span className="kbd">K</span>
         </button>
-        <button className="nav-city" onClick={() => setCityOpen(true)} title="تغيير المدينة">
-          <Icon d={PATHS.pin} size={18} />
-          {cityName}
-        </button>
-        <button className="icon-btn theme-btn" onClick={cycle} aria-label={THEME_LABEL[choice]} title={THEME_LABEL[choice]}>
-          <Icon d={themeIcon} />
-        </button>
-        <NavLink to="/notifications" className="icon-btn bell" aria-label={unread > 0 ? `الإشعارات، ${unread} غير مقروء` : 'الإشعارات'} title="الإشعارات">
+        <NavLink to="/notifications" className="icon-btn bell" aria-label={unread > 0 ? t('الإشعارات، {0} غير مقروء', unread) : t('الإشعارات')} title={t('الإشعارات')}>
           <Icon d={PATHS.bell} />
           {unread > 0 && <span className="dot">{unread > 9 ? '9+' : unread}</span>}
         </NavLink>
-        <NavLink to="/profile" className="icon-btn solid" aria-label="حسابي" title="حسابي">
+        <NavLink to="/profile" className="icon-btn solid" aria-label={t('حسابي')} title={t('حسابي')}>
           <Icon d={PATHS.user} />
         </NavLink>
       </header>
-      <Outlet />
-      {open && <CommandPalette onClose={close} />}
-      {cityOpen && <CityPicker uid={profile.id} selectedId={cityId} onClose={() => setCityOpen(false)} />}
+      <PageBoundary key={pathname}><Outlet /></PageBoundary>
+      {open && <Suspense fallback={null}><CommandPalette onClose={close} /></Suspense>}
     </div>
   );
 }

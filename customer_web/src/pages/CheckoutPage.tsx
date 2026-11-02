@@ -23,11 +23,13 @@ import {
 import { displayPhone, parsePhone, toE164 } from '../data/phone';
 import { prepareReceipt, ReceiptProblem } from '../data/receiptImage';
 import type { Company, OrderDraft, Product, ReceiptImage } from '../data/types';
+import { cityName } from '../data/cities';
+import { t } from '../i18n';
 
 // The map (and Leaflet) loads only when someone opens it.
 const MapPicker = lazy(() => import('../components/MapPicker'));
 
-const PICKUP_FALLBACK = 'موقع استلام الشركة (ستؤكده الشركة عبر الهاتف)';
+const PICKUP_FALLBACK = t('موقع استلام الشركة (ستؤكده الشركة عبر الهاتف)');
 
 /** Where a pickup is collected: the chosen point, else the company's own address. */
 function pickupText(company: Company, index: number, stored: boolean): string {
@@ -82,12 +84,12 @@ function CheckoutForm({
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    if (useDelivery && address.trim() === '' && point === null) return setError('أدخل العنوان أو حدد الموقع من الخريطة.');
+    if (useDelivery && address.trim() === '' && point === null) return setError(t('أدخل العنوان أو حدد الموقع من الخريطة.'));
     const phoneProblem = phoneError(phone, true);
-    if (phoneProblem) return setError(phoneProblem === 'رقم الهاتف مطلوب.' ? 'يرجى إدخال رقم هاتف للتواصل' : phoneProblem);
+    if (phoneProblem) return setError(phoneProblem === t('رقم الهاتف مطلوب.') ? t('يرجى إدخال رقم هاتف للتواصل') : phoneProblem);
     // Stop here with a clear reason, not a refusal after the customer has paid.
     // A pickup is collected in person, so it is not tied to a city.
-    if (useDelivery && (cityId === '' || !servesCity(company, cityId))) return setError('اختر مدينة توصيل تخدمها الشركة.');
+    if (useDelivery && (cityId === '' || !servesCity(company, cityId))) return setError(t('اختر مدينة توصيل تخدمها الشركة.'));
     onReady({
       id: initial?.id ?? newOrderId(),
       customerId: profile.id,
@@ -114,28 +116,28 @@ function CheckoutForm({
 
   return (
     <form className="stack narrow" onSubmit={submit} noValidate>
-      <h1 className="page-title">إتمام الطلب</h1>
+      <h1 className="page-title">{t('إتمام الطلب')}</h1>
 
       <section className="tile line-item">
         <span className="thumb-lg">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <Icon d={PATHS.box} size={32} />}</span>
         <span className="grow">
           <strong className="pname" style={{ display: 'block' }}>{product.name}</strong>
-          <span className="pmeta" style={{ display: 'block' }}>سعر الوحدة: {money(unitPrice)} · الكمية: {quantity}</span>
-          <strong className="price">المجموع الفرعي: {money(subtotal)}</strong>
+          <span className="pmeta" style={{ display: 'block' }}>{t('سعر الوحدة:')}{' '}{money(unitPrice)}{' '}{t('· الكمية:')}{' '}{quantity}</span>
+          <strong className="price">{t('المجموع الفرعي:')}{' '}{money(subtotal)}</strong>
         </span>
       </section>
 
       <section className="tile">
-        <h2>{product.isDeliveryAvailable ? 'التوصيل والتواصل' : 'الاستلام والتواصل'}</h2>
+        <h2>{product.isDeliveryAvailable ? t('التوصيل والتواصل') : t('الاستلام والتواصل')}</h2>
         {product.isDeliveryAvailable && (
-          <div className="segment" role="radiogroup" aria-label="طريقة الاستلام">
+          <div className="segment" role="radiogroup" aria-label={t('طريقة الاستلام')}>
             <label className={useDelivery ? 'on' : ''}>
               <input className="sr-only" type="radio" name="method" checked={useDelivery} onChange={() => setUseDelivery(true)} />
-              توصيل
+              {t('توصيل')}
             </label>
             <label className={useDelivery ? '' : 'on'}>
               <input className="sr-only" type="radio" name="method" checked={!useDelivery} onChange={() => { setUseDelivery(false); setInstallation(false); }} />
-              استلام
+              {t('استلام')}
             </label>
           </div>
         )}
@@ -143,32 +145,32 @@ function CheckoutForm({
         {useDelivery ? (
           <>
             <label className="field">
-              مدينة التوصيل
+              {t('مدينة التوصيل')}
               <select value={cityId} onChange={(e) => setCityId(e.target.value)}>
-                <option value="">اختر مدينة</option>
-                {cityChoices.map((c) => <option key={c.id} value={c.id}>{c.nameAr}</option>)}
+                <option value="">{t('اختر مدينة')}</option>
+                {cityChoices.map((c) => <option key={c.id} value={c.id}>{cityName(c)}</option>)}
               </select>
-              <span className="pmeta">الطلب لشخص آخر؟ اختر مدينته. مدينة حسابك لا تتغير.</span>
+              <span className="pmeta">{t('الطلب لشخص آخر؟ اختر مدينته. مدينة حسابك لا تتغير.')}</span>
             </label>
             <label className="field">
-              العنوان
+              {t('العنوان')}
               <textarea
                 rows={2}
                 value={address}
                 maxLength={DELIVERY_ADDRESS_MAX}
-                placeholder="اسم الشارع، رقم المبنى/المنزل، الحي، المدينة"
+                placeholder={t('اسم الشارع، رقم المبنى/المنزل، الحي، المدينة')}
                 onChange={(e) => setAddress(e.target.value)}
               />
             </label>
             <div className="location-row">
               <button type="button" className="mini-btn" onClick={() => setMapOpen(true)}>
                 <Icon d={PATHS.pin} size={16} />
-                {point ? 'تغيير الموقع' : 'تحديد من الخريطة'}
+                {point ? t('تغيير الموقع') : t('تحديد من الخريطة')}
               </button>
               {point && (
                 <>
-                  <span className="ok-text">تم تحديد الموقع</span>
-                  <button type="button" className="link-btn" onClick={() => setPoint(null)}>إزالة موقع الخريطة</button>
+                  <span className="ok-text">{t('تم تحديد الموقع')}</span>
+                  <button type="button" className="link-btn" onClick={() => setPoint(null)}>{t('إزالة موقع الخريطة')}</button>
                 </>
               )}
             </div>
@@ -177,7 +179,7 @@ function CheckoutForm({
           <>
             {points.length > 1 && (
               <fieldset className="plain">
-                <legend>اختر مكان استلام طلبك</legend>
+                <legend>{t('اختر مكان استلام طلبك')}</legend>
                 {points.map((p, i) => (
                   <label key={`${p.name}-${i}`} className="check">
                     <input type="radio" name="pickup" checked={i === Math.min(pickupIndex, points.length - 1)} onChange={() => setPickupIndex(i)} />
@@ -189,30 +191,30 @@ function CheckoutForm({
             <div className="note" style={{ marginTop: 14 }}>
               <Icon d={PATHS.pin} />
               <span>
-                <strong style={{ display: 'block' }}>موقع الاستلام</strong>
+                <strong style={{ display: 'block' }}>{t('موقع الاستلام')}</strong>
                 {pickupText(company, pickupIndex, false)}
               </span>
             </div>
           </>
         )}
 
-        <PhoneInput label="رقم هاتف التواصل" value={phone} onChange={setPhone} />
-        <span className="pmeta">ستتصل الشركة بهذا الرقم لتنسيق التوصيل</span>
+        <PhoneInput label={t('رقم هاتف التواصل')} value={phone} onChange={setPhone} />
+        <span className="pmeta">{t('ستتصل الشركة بهذا الرقم لتنسيق التوصيل')}</span>
       </section>
 
       {installationEligible && (
         <section className="tile">
-          <h2>خيار التركيب</h2>
-          <p className="prose" style={{ marginTop: 6 }}>تركيب بواسطة فني معتمد متاح مقابل {money(installationPrice)}.</p>
-          <div className="segment two-line" role="radiogroup" aria-label="خيار التركيب" style={{ marginTop: 12 }}>
+          <h2>{t('خيار التركيب')}</h2>
+          <p className="prose" style={{ marginTop: 6 }}>{t('تركيب بواسطة فني معتمد متاح مقابل')}{' '}{money(installationPrice)}.</p>
+          <div className="segment two-line" role="radiogroup" aria-label={t('خيار التركيب')} style={{ marginTop: 12 }}>
             <label className={installation ? '' : 'on'}>
               <input className="sr-only" type="radio" name="install" checked={!installation} onChange={() => setInstallation(false)} />
-              <strong>المنتج فقط</strong>
+              <strong>{t('المنتج فقط')}</strong>
               <span>{money(0)}</span>
             </label>
             <label className={installation ? 'on' : ''}>
               <input className="sr-only" type="radio" name="install" checked={installation} onChange={() => setInstallation(true)} />
-              <strong>المنتج + التركيب</strong>
+              <strong>{t('المنتج + التركيب')}</strong>
               <span>+{money(installationPrice)}</span>
             </label>
           </div>
@@ -220,21 +222,21 @@ function CheckoutForm({
       )}
 
       <section className="tile">
-        <h2>ملخص السعر</h2>
+        <h2>{t('ملخص السعر')}</h2>
         <dl className="specs">
-          <div><dt>إجمالي المنتج ({quantity} قطعة)</dt><dd>{money(subtotal)}</dd></div>
-          {installationEligible && <div><dt>خدمة التركيب</dt><dd>{installation ? `+${money(installationPrice)}` : 'غير مشمول'}</dd></div>}
-          {useDelivery && <div><dt>رسوم التوصيل</dt><dd>{money(deliveryFee)}</dd></div>}
-          <div className="total-row"><dt>الإجمالي النهائي</dt><dd>{money(total)}</dd></div>
+          <div><dt>{t('إجمالي المنتج (')}{quantity}{' '}{t('قطعة)')}</dt><dd>{money(subtotal)}</dd></div>
+          {installationEligible && <div><dt>{t('خدمة التركيب')}</dt><dd>{installation ? `+${money(installationPrice)}` : t('غير مشمول')}</dd></div>}
+          {useDelivery && <div><dt>{t('رسوم التوصيل')}</dt><dd>{money(deliveryFee)}</dd></div>}
+          <div className="total-row"><dt>{t('الإجمالي النهائي')}</dt><dd>{money(total)}</dd></div>
         </dl>
       </section>
 
       <div className="note">
         <Icon d={PATHS.box} />
-        <span>بعدها تحوّل المبلغ وترفع الإيصال. ثم تؤكد الشركة الدفع، وعندها فقط يُحجز المنتج لك.</span>
+        <span>{t('بعدها تحوّل المبلغ وترفع الإيصال. ثم تؤكد الشركة الدفع، وعندها فقط يُحجز المنتج لك.')}</span>
       </div>
       {error && <div className="error" role="alert">{error}</div>}
-      <button className="btn" type="submit" style={{ marginTop: 0 }}>تأكيد الطلب • {money(total)}</button>
+      <button className="btn" type="submit" style={{ marginTop: 0 }}>{t('تأكيد الطلب •')}{' '}{money(total)}</button>
 
       {mapOpen && (
         <Suspense fallback={null}>
@@ -263,20 +265,20 @@ function AccountCard({ account }: { account: Company['paymentAccounts'][number] 
   return (
     <article className="tile account">
       <strong>{account.bankName}</strong>
-      {account.accountName && <div className="kv"><span className="pmeta">اسم الحساب</span><span>{account.accountName}</span></div>}
+      {account.accountName && <div className="kv"><span className="pmeta">{t('اسم الحساب')}</span><span>{account.accountName}</span></div>}
       <div className="kv">
-        <span className="pmeta">رقم الحساب / MBAN</span>
+        <span className="pmeta">{t('رقم الحساب / MBAN')}</span>
         <span dir="ltr">{account.accountNumber}</span>
-        <button type="button" className="link-btn" onClick={() => copy(account.accountNumber, 'رقم الحساب')}>نسخ</button>
+        <button type="button" className="link-btn" onClick={() => copy(account.accountNumber, t('رقم الحساب'))}>{t('نسخ')}</button>
       </div>
       {account.phoneNumber && (
         <div className="kv">
-          <span className="pmeta">رقم الهاتف المعرّف</span>
+          <span className="pmeta">{t('رقم الهاتف المعرّف')}</span>
           <span dir="ltr">{displayPhone(account.phoneNumber)}</span>
-          <button type="button" className="link-btn" onClick={() => copy(account.phoneNumber, 'رقم الهاتف')}>نسخ</button>
+          <button type="button" className="link-btn" onClick={() => copy(account.phoneNumber, t('رقم الهاتف'))}>{t('نسخ')}</button>
         </div>
       )}
-      {copied && <div className="ok-text" role="status">تم نسخ {copied}</div>}
+      {copied && <div className="ok-text" role="status">{t('تم نسخ')}{' '}{copied}</div>}
     </article>
   );
 }
@@ -305,21 +307,21 @@ function PaymentStep({ draft, company, onBack }: { draft: OrderDraft; company: C
     try {
       setReceipt(await prepareReceipt(file));
     } catch (err) {
-      setError(err instanceof ReceiptProblem ? err.message : 'تعذّرت قراءة هذا الملف كصورة. اختر صورة أو لقطة شاشة للإيصال.');
+      setError(err instanceof ReceiptProblem ? err.message : t('تعذّرت قراءة هذا الملف كصورة. اختر صورة أو لقطة شاشة للإيصال.'));
     } finally {
       setPreparing(false);
     }
   }
 
   async function submit() {
-    if (!receipt) return setError('يرجى رفع صورة إيصال التحويل أو اختيارها قبل الإرسال.');
+    if (!receipt) return setError(t('يرجى رفع صورة إيصال التحويل أو اختيارها قبل الإرسال.'));
     setSending(true);
     setError('');
     try {
       const order = await placeOrder(draft, receipt);
       nav(`/orders/${order.id}?placed=1`, { replace: true });
     } catch (err) {
-      setError(err instanceof OrderRefused ? err.message : 'تعذر إرسال الإيصال. يرجى المحاولة مرة أخرى.');
+      setError(err instanceof OrderRefused ? err.message : t('تعذر إرسال الإيصال. يرجى المحاولة مرة أخرى.'));
       setSending(false);
     }
   }
@@ -327,54 +329,54 @@ function PaymentStep({ draft, company, onBack }: { draft: OrderDraft; company: C
   const accounts = company.paymentAccounts;
   return (
     <div className="stack narrow">
-      <h1 className="page-title">الدفع اليدوي</h1>
+      <h1 className="page-title">{t('الدفع اليدوي')}</h1>
       <section className="tile amount">
-        <span className="pmeta">المبلغ المطلوب تحويله</span>
+        <span className="pmeta">{t('المبلغ المطلوب تحويله')}</span>
         <strong className="price big">{formatPrice(draft.totalAmount)}</strong>
-        <span className="pmeta">سيتم إنشاء طلبك بعد إرسال الإيصال.</span>
+        <span className="pmeta">{t('سيتم إنشاء طلبك بعد إرسال الإيصال.')}</span>
       </section>
       <div className="note">
         <Icon d={PATHS.box} />
-        <span>يرجى تحويل المبلغ المطلوب بدقة خارج الموقع باستخدام تطبيق البنك (بنكك، فوري، وغيرها) أو التحويل النقدي. بعد إتمام الدفع، ارفع لقطة شاشة لإيصال التحويل أدناه.</span>
+        <span>{t('يرجى تحويل المبلغ المطلوب بدقة خارج الموقع باستخدام تطبيق البنك (بنكك، فوري، وغيرها) أو التحويل النقدي. بعد إتمام الدفع، ارفع لقطة شاشة لإيصال التحويل أدناه.')}</span>
       </div>
 
-      <h2 className="group-title">حسابات الدفع</h2>
+      <h2 className="group-title">{t('حسابات الدفع')}</h2>
       {accounts.length === 0 ? (
-        <div className="error" role="alert" style={{ marginTop: 0 }}>لم تضف هذه الشركة حسابات دفع بعد، لذلك لا تستطيع استلام دفعة الآن. يرجى التواصل مع الشركة.</div>
+        <div className="error" role="alert" style={{ marginTop: 0 }}>{t('لم تضف هذه الشركة حسابات دفع بعد، لذلك لا تستطيع استلام دفعة الآن. يرجى التواصل مع الشركة.')}</div>
       ) : (
         accounts.map((account, i) => <AccountCard key={`${account.accountNumber}-${i}`} account={account} />)
       )}
 
       <section className="tile">
-        <h2>رفع إيصال التحويل</h2>
-        <p className="prose" style={{ marginTop: 6 }}>ارفع لقطة شاشة أو صورة واضحة لإشعار التحويل.</p>
-        <input ref={fileInput} className="sr-only" type="file" accept="image/*" aria-label="رفع الإيصال" onChange={pick} />
+        <h2>{t('رفع إيصال التحويل')}</h2>
+        <p className="prose" style={{ marginTop: 6 }}>{t('ارفع لقطة شاشة أو صورة واضحة لإشعار التحويل.')}</p>
+        <input ref={fileInput} className="sr-only" type="file" accept="image/*" aria-label={t('رفع الإيصال')} onChange={pick} />
         {receipt ? (
           <div className="receipt-preview">
             <div className="kv">
-              <span className="ok-text grow">تم اختيار الإيصال</span>
-              <button type="button" className="link-btn" onClick={() => setReceipt(null)}>إزالة</button>
+              <span className="ok-text grow">{t('تم اختيار الإيصال')}</span>
+              <button type="button" className="link-btn" onClick={() => setReceipt(null)}>{t('إزالة')}</button>
             </div>
-            <img src={preview} alt="الإيصال" />
+            <img src={preview} alt={t('الإيصال')} />
             <div className="kv">
               <span className="pmeta grow" dir="ltr">{receipt.fileName} ({Math.round(receipt.bytes.length / 1024)} KB)</span>
-              <button type="button" className="link-btn" disabled={preparing} onClick={() => fileInput.current?.click()}>استبدال</button>
+              <button type="button" className="link-btn" disabled={preparing} onClick={() => fileInput.current?.click()}>{t('استبدال')}</button>
             </div>
           </div>
         ) : (
           <button type="button" className="upload" disabled={preparing} onClick={() => fileInput.current?.click()}>
-            <strong>{preparing ? 'جارٍ تجهيز الصورة…' : 'اضغط لرفع الإيصال / لقطة الشاشة'}</strong>
-            <span className="pmeta">يدعم JPG و PNG أو لقطة شاشة من بنكك/فوري</span>
+            <strong>{preparing ? t('جارٍ تجهيز الصورة…') : t('اضغط لرفع الإيصال / لقطة الشاشة')}</strong>
+            <span className="pmeta">{t('يدعم JPG و PNG أو لقطة شاشة من بنكك/فوري')}</span>
           </button>
         )}
       </section>
 
-      <div className="warn-note">يُرسل طلبك مع هذا الإيصال. الإيصال ليس تأكيداً للدفع: تتحقق الشركة من التحويل ثم تؤكده، وعندها فقط يُحجز المنتج لك.</div>
+      <div className="warn-note">{t('يُرسل طلبك مع هذا الإيصال. الإيصال ليس تأكيداً للدفع: تتحقق الشركة من التحويل ثم تؤكده، وعندها فقط يُحجز المنتج لك.')}</div>
       {error && <div className="error" role="alert" style={{ marginTop: 0 }}>{error}</div>}
       <button className="btn" style={{ marginTop: 0 }} disabled={accounts.length === 0 || preparing || sending} onClick={submit}>
-        {sending ? 'جارٍ الإرسال...' : 'إرسال الإيصال للتحقق'}
+        {sending ? t('جارٍ الإرسال...') : t('إرسال الإيصال للتحقق')}
       </button>
-      <button className="btn ghost" style={{ marginTop: 0 }} disabled={sending} onClick={onBack}>تعديل بيانات الطلب</button>
+      <button className="btn ghost" style={{ marginTop: 0 }} disabled={sending} onClick={onBack}>{t('تعديل بيانات الطلب')}</button>
     </div>
   );
 }
@@ -402,8 +404,8 @@ export function CheckoutPage() {
   if (!product || !company || !isAvailable(product) || salePrice(product) === null) {
     return (
       <main className="stack">
-        <EmptyState title="هذا المنتج غير متاح للطلب الآن">
-          <Link to={`/product/${id}`} className="pill">العودة للمنتج</Link>
+        <EmptyState title={t('هذا المنتج غير متاح للطلب الآن')}>
+          <Link to={`/product/${id}`} className="pill">{t('العودة للمنتج')}</Link>
         </EmptyState>
       </main>
     );
@@ -415,7 +417,7 @@ export function CheckoutPage() {
     <main>
       <div className="checkout-company">
         <CompanyLogo company={company} size={36} />
-        <span className="pmeta">الطلب من {company.name}</span>
+        <span className="pmeta">{t('الطلب من')}{' '}{company.name}</span>
       </div>
       {paying && draft ? (
         <PaymentStep draft={draft} company={company} onBack={() => setPaying(false)} />

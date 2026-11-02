@@ -1,31 +1,41 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './auth';
 import { AccountGate } from './components/AccountGate';
+import { AutoUpdate } from './components/AutoUpdate';
+import { NoticeGate } from './components/NoticeGate';
 import { Shell } from './components/Shell';
-import { BrowsePage } from './pages/BrowsePage';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { CompaniesPage } from './pages/CompaniesPage';
-import { CompanyPage } from './pages/CompanyPage';
-import { ComingSoon } from './pages/ComingSoon';
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
-import { NotificationsPage } from './pages/NotificationsPage';
-import { OrderDetailsPage } from './pages/OrderDetailsPage';
-import { OrdersPage } from './pages/OrdersPage';
-import { ProductPage } from './pages/ProductPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { RegisterPage } from './pages/RegisterPage';
-import { MyReportsPage, ReportFormPage } from './pages/ReportsPages';
-import { SearchPage } from './pages/SearchPage';
-import { ServicePage } from './pages/ServicePage';
-import { SettingsPage } from './pages/SettingsPage';
+
+// Each page loads when it is opened, so a first visit downloads little.
+const BrowsePage = lazy(() => import('./pages/BrowsePage').then((m) => ({ default: m.BrowsePage })));
+const ChatsPage = lazy(() => import('./pages/ChatsPage').then((m) => ({ default: m.ChatsPage })));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage').then((m) => ({ default: m.CheckoutPage })));
+const CompaniesPage = lazy(() => import('./pages/CompaniesPage').then((m) => ({ default: m.CompaniesPage })));
+const CompanyPage = lazy(() => import('./pages/CompanyPage').then((m) => ({ default: m.CompanyPage })));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
+const OrderDetailsPage = lazy(() => import('./pages/OrderDetailsPage').then((m) => ({ default: m.OrderDetailsPage })));
+const OrdersPage = lazy(() => import('./pages/OrdersPage').then((m) => ({ default: m.OrdersPage })));
+const ProductPage = lazy(() => import('./pages/ProductPage').then((m) => ({ default: m.ProductPage })));
+const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const RegisterPage = lazy(() => import('./pages/RegisterPage').then((m) => ({ default: m.RegisterPage })));
+const MyReportsPage = lazy(() => import('./pages/ReportsPages').then((m) => ({ default: m.MyReportsPage })));
+const ReportFormPage = lazy(() => import('./pages/ReportsPages').then((m) => ({ default: m.ReportFormPage })));
+const RequestDetailsPage = lazy(() => import('./pages/RequestDetailsPage').then((m) => ({ default: m.RequestDetailsPage })));
+const SearchPage = lazy(() => import('./pages/SearchPage').then((m) => ({ default: m.SearchPage })));
+const ServicePage = lazy(() => import('./pages/ServicePage').then((m) => ({ default: m.ServicePage })));
+const ServiceRequestPage = lazy(() => import('./pages/ServiceRequestPage').then((m) => ({ default: m.ServiceRequestPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 
 export default function App() {
   const { user, ready } = useAuth();
   if (!ready) return null;
   return (
     <BrowserRouter>
+      <AutoUpdate />
+      <NoticeGate>
       {user ? (
         <AccountGate>
           <Routes>
@@ -46,21 +56,24 @@ export default function App() {
               <Route path="checkout/:id" element={<CheckoutPage />} />
               <Route path="orders" element={<OrdersPage />} />
               <Route path="orders/:id" element={<OrderDetailsPage />} />
-              <Route path="chats" element={<ComingSoon title="المحادثات" />} />
-              <Route path="chats/:id" element={<ComingSoon title="المحادثة" />} />
-              <Route path="service-request" element={<ComingSoon title="اطلب الخدمة" />} />
-              <Route path="requests/:id" element={<ComingSoon title="طلب الخدمة" />} />
+              <Route path="chats" element={<ChatsPage />} />
+              <Route path="chats/:id" element={<ChatsPage />} />
+              <Route path="service-request" element={<ServiceRequestPage />} />
+              <Route path="requests/:id" element={<RequestDetailsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
         </AccountGate>
       ) : (
-        <Routes>
-          <Route path="register" element={<RegisterPage />} />
-          <Route path="forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="*" element={<LoginPage />} />
-        </Routes>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="register" element={<RegisterPage />} />
+            <Route path="forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="*" element={<LoginPage />} />
+          </Routes>
+        </Suspense>
       )}
+      </NoticeGate>
     </BrowserRouter>
   );
 }

@@ -6,6 +6,7 @@ import { ProductCard } from '../components/ProductCard';
 import { ReviewsSection } from '../components/ReviewsSection';
 import { useCatalog } from '../data/DataProvider';
 import { ratingKey } from '../data/format';
+import { t } from '../i18n';
 
 export function CompanyPage() {
   const { id = '' } = useParams();
@@ -17,8 +18,8 @@ export function CompanyPage() {
   if (!company) {
     return (
       <main className="stack">
-        <EmptyState title="هذه الشركة غير متاحة حاليًا">
-          <Link to="/companies" className="pill">كل الشركات</Link>
+        <EmptyState title={t('هذه الشركة غير متاحة حاليًا')}>
+          <Link to="/companies" className="pill">{t('كل الشركات')}</Link>
         </EmptyState>
       </main>
     );
@@ -52,7 +53,7 @@ export function CompanyPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                عرض على الخريطة
+                {t('عرض على الخريطة')}
               </a>
             )}
           </div>
@@ -62,7 +63,7 @@ export function CompanyPage() {
 
       {about && (
         <section className="tile">
-          <h2>نبذة عن الشركة</h2>
+          <h2>{t('نبذة عن الشركة')}</h2>
           <p className="prose">{about}</p>
         </section>
       )}
@@ -70,9 +71,9 @@ export function CompanyPage() {
       <ReviewsSection field="companyId" id={company.id} />
 
       <section>
-        <div className="section-title"><h2>المنتجات ({own.length})</h2></div>
+        <div className="section-title"><h2>{t('المنتجات (')}{own.length})</h2></div>
         {own.length === 0 ? (
-          <EmptyState title="لا توجد منتجات مدرجة لدى هذه الشركة بعد." />
+          <EmptyState title={t('لا توجد منتجات مدرجة لدى هذه الشركة بعد.')} />
         ) : (
           <div className="pcards">
             {own.map((p) => <ProductCard key={p.id} product={p} />)}

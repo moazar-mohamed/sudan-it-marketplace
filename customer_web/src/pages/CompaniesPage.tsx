@@ -6,11 +6,12 @@ import { companyTopCategories, viewCompanies } from '../data/browse';
 import type { CompanySort } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
 import { categoryName, companiesCount } from '../data/format';
+import { t } from '../i18n';
 
 const SORTS: { value: CompanySort; label: string }[] = [
-  { value: 'topRated', label: 'الأعلى تقييمًا' },
-  { value: 'mostReviewed', label: 'الأكثر تقييمًا' },
-  { value: 'name', label: 'الاسم' },
+  { value: 'topRated', label: t('الأعلى تقييمًا') },
+  { value: 'mostReviewed', label: t('الأكثر تقييمًا') },
+  { value: 'name', label: t('الاسم') },
 ];
 
 export function CompaniesPage() {
@@ -41,10 +42,10 @@ export function CompaniesPage() {
   return (
     <main className="stack">
       <section className="tile browse-head">
-        <h1>الشركات</h1>
+        <h1>{t('الشركات')}</h1>
         {chips.length > 0 && (
           <div className="chips">
-            <button className={`chip-link${categoryId === null ? ' on' : ''}`} onClick={() => set('cat', null)}>الكل</button>
+            <button className={`chip-link${categoryId === null ? ' on' : ''}`} onClick={() => set('cat', null)}>{t('الكل')}</button>
             {chips.map((c) => (
               <button key={c.id} className={`chip-link${categoryId === c.id ? ' on' : ''}`} onClick={() => set('cat', c.id)}>
                 {categoryName(c)}
@@ -56,7 +57,7 @@ export function CompaniesPage() {
       <div className="results-bar">
         <span className="grow pmeta">{companiesCount(shown.length)}</span>
         <label className="sort">
-          <span className="pmeta">ترتيب:</span>
+          <span className="pmeta">{t('ترتيب:')}</span>
           <select value={sort} onChange={(e) => set('sort', e.target.value === 'topRated' ? null : e.target.value)}>
             {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
@@ -65,7 +66,7 @@ export function CompaniesPage() {
       {loading ? (
         <Skeleton height={320} />
       ) : shown.length === 0 ? (
-        <EmptyState title="لا شركات هنا بعد." />
+        <EmptyState title={t('لا شركات هنا بعد.')} />
       ) : (
         <div className="ccards">
           {shown.map((c) => <CompanyCard key={c.id} company={c} />)}

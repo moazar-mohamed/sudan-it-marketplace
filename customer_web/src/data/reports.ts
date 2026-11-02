@@ -1,25 +1,26 @@
 import { collection, doc, getDoc, serverTimestamp, Timestamp, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { UserProfile } from './types';
+import { t } from '../i18n';
 
 // Port of lib/features/reports: the sender writes a report and reads only their own.
 
 export const REPORT_REASONS = [
-  { value: 'order_problem', label: 'مشكلة في طلب' },
-  { value: 'payment', label: 'مشكلة في الدفع' },
-  { value: 'company_conduct', label: 'سلوك شركة' },
-  { value: 'product_issue', label: 'مشكلة في منتج' },
-  { value: 'app_problem', label: 'مشكلة في التطبيق' },
-  { value: 'other', label: 'أخرى' },
+  { value: 'order_problem', label: t('مشكلة في طلب') },
+  { value: 'payment', label: t('مشكلة في الدفع') },
+  { value: 'company_conduct', label: t('سلوك شركة') },
+  { value: 'product_issue', label: t('مشكلة في منتج') },
+  { value: 'app_problem', label: t('مشكلة في التطبيق') },
+  { value: 'other', label: t('أخرى') },
 ] as const;
 
 export const reportReasonLabel = (reason: string): string =>
-  REPORT_REASONS.find((r) => r.value === reason)?.label ?? 'أخرى';
+  REPORT_REASONS.find((r) => r.value === reason)?.label ?? t('أخرى');
 
 export const REPORT_STATUS: Record<string, { label: string; tone: string }> = {
-  new: { label: 'تم الاستلام', tone: 'warn' },
-  in_progress: { label: 'قيد المعالجة', tone: 'info' },
-  closed: { label: 'مغلق', tone: 'ok' },
+  new: { label: t('تم الاستلام'), tone: 'warn' },
+  in_progress: { label: t('قيد المعالجة'), tone: 'info' },
+  closed: { label: t('مغلق'), tone: 'ok' },
 };
 
 export const SUBJECT_MAX = 120;

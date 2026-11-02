@@ -1,5 +1,6 @@
 import { mapCity } from './mappers';
 import type { City } from './types';
+import { localName } from '../i18n';
 
 const raw: [string, string, string][] = [
   ['khartoum', 'الخرطوم', 'Khartoum'],
@@ -53,7 +54,12 @@ export function citiesFromDocument(data: { items?: unknown } | undefined): City[
 /** "الخرطوم، كسلا": the names of [ids]; unknown ids are skipped. */
 export function cityNamesText(ids: string[], cities: City[]): string {
   return ids
-    .map((id) => cities.find((c) => c.id === id)?.nameAr)
+    .map((id) => cityName(cities.find((c) => c.id === id)))
     .filter(Boolean)
     .join('، ');
+}
+
+/** The city's name in the reader's language. */
+export function cityName(city: City | undefined): string {
+  return city ? localName(city.nameAr, city.nameEn) : '';
 }

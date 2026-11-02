@@ -5,6 +5,7 @@ import { categoryColor, categoryName, countText, formatPrice, iconPath } from '.
 import type { CatalogService } from '../data/types';
 import { Highlighted } from './Bits';
 import { Icon } from './Icon';
+import { t } from '../i18n';
 
 /** A service: its category's look, the company to start from and what it asks. */
 export function ServiceCard({ service, highlight }: { service: CatalogService; highlight?: string }) {
@@ -27,14 +28,14 @@ export function ServiceCard({ service, highlight }: { service: CatalogService; h
         {category && <span className="pcat">{categoryName(category)}</span>}
         {company && (
           <span className="pmeta" style={{ display: 'block' }}>
-            {company.name}{others > 0 ? ` و${countText(others, 'شركة أخرى', 'شركتان أخريان', 'شركات أخرى', 'شركة أخرى')}` : ''}
+            {company.name}{others > 0 ? t(' و{0}', countText(others, t('شركة أخرى'), t('شركتان أخريان'), t('شركات أخرى'), t('شركة أخرى'))) : ''}
           </span>
         )}
       </span>
       <span className="send">
-        {discount > 0 && <span className="discount">خصم {discount}%</span>}
+        {discount > 0 && <span className="discount">{t('خصم')}{' '}{discount}%</span>}
         {from !== null && (
-          <span className="from">يبدأ من <strong className="price">{formatPrice(from)}</strong></span>
+          <span className="from">{t('يبدأ من')}{' '}<strong className="price">{formatPrice(from)}</strong></span>
         )}
       </span>
     </Link>

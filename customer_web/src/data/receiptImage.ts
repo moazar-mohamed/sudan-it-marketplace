@@ -1,4 +1,5 @@
 import type { ReceiptImage } from './types';
+import { t } from '../i18n';
 
 // Port of receipt_image_compressor.dart: receipts live in Firestore as JPEG
 // bytes (no Storage on this plan), so they must stay small.
@@ -23,8 +24,8 @@ const LADDER: readonly [number, number][] = [
 
 export class ReceiptProblem extends Error {}
 
-const TOO_LARGE = 'ما زالت الصورة كبيرة جدًا بعد الضغط. اختر صورة أصغر.';
-const UNREADABLE = 'تعذّرت قراءة هذا الملف كصورة. اختر صورة أو لقطة شاشة للإيصال.';
+const TOO_LARGE = t('ما زالت الصورة كبيرة جدًا بعد الضغط. اختر صورة أصغر.');
+const UNREADABLE = t('تعذّرت قراءة هذا الملف كصورة. اختر صورة أو لقطة شاشة للإيصال.');
 
 /** The stored name: the file's base name, always ending in `.jpg`, within the limit. */
 export function jpegName(name: string): string {

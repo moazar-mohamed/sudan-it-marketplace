@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { t } from '../i18n';
 
 // OpenStreetMap tiles need no key or billing, as in the app (map_config.dart).
 const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -18,9 +19,9 @@ export interface GeoPoint {
 const pin = L.divIcon({ className: 'map-pin', iconSize: [22, 22], iconAnchor: [11, 11] });
 
 const GEO_ERRORS: Record<number, string> = {
-  1: 'تم رفض إذن الموقع. يمكنك الضغط على الخريطة أو كتابة العنوان.',
-  2: 'تعذر الحصول على موقعك الحالي. يمكنك الضغط على الخريطة.',
-  3: 'تعذر الحصول على موقعك الحالي. يمكنك الضغط على الخريطة.',
+  1: t('تم رفض إذن الموقع. يمكنك الضغط على الخريطة أو كتابة العنوان.'),
+  2: t('تعذر الحصول على موقعك الحالي. يمكنك الضغط على الخريطة.'),
+  3: t('تعذر الحصول على موقعك الحالي. يمكنك الضغط على الخريطة.'),
 };
 
 /** Tap the map to choose an exact point, tap again to move it, then confirm. */
@@ -90,8 +91,8 @@ export default function MapPicker({
 
   return (
     <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="palette map-panel" role="dialog" aria-modal="true" aria-label="الموقع">
-        <p className="map-hint">اضغط على الخريطة لتحديد النقطة بدقة. اضغط مرة أخرى لتحريكها.</p>
+      <div className="palette map-panel" role="dialog" aria-modal="true" aria-label={t('الموقع')}>
+        <p className="map-hint">{t('اضغط على الخريطة لتحديد النقطة بدقة. اضغط مرة أخرى لتحريكها.')}</p>
         <div className="map-box" ref={box} dir="ltr" />
         <div className="map-foot">
           {selected && (
@@ -99,10 +100,10 @@ export default function MapPicker({
           )}
           {note && <div className="error" role="status" style={{ marginTop: 0 }}>{note}</div>}
           <div className="buy-row">
-            <button className="btn-line" disabled={locating} onClick={useMyLocation}>استخدام موقعي الحالي</button>
-            <button className="btn-solid" disabled={!selected} onClick={() => selected && onConfirm(selected)}>تأكيد الموقع</button>
+            <button className="btn-line" disabled={locating} onClick={useMyLocation}>{t('استخدام موقعي الحالي')}</button>
+            <button className="btn-solid" disabled={!selected} onClick={() => selected && onConfirm(selected)}>{t('تأكيد الموقع')}</button>
           </div>
-          <button className="link-btn" onClick={onClose}>إلغاء</button>
+          <button className="link-btn" onClick={onClose}>{t('إلغاء')}</button>
         </div>
       </div>
     </div>
