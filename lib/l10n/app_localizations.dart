@@ -5607,7 +5607,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeVerifiedCompanies.
   ///
   /// In en, this message translates to:
-  /// **'Verified companies'**
+  /// **'Top companies'**
   String get homeVerifiedCompanies;
 
   /// No description provided for @homeAllCompanies.
@@ -5769,7 +5769,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeCompanyVerified.
   ///
   /// In en, this message translates to:
-  /// **'Verified'**
+  /// **'Top rated'**
   String get homeCompanyVerified;
 
   /// No description provided for @homeVisitCompany.

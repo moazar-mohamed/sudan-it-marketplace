@@ -3180,7 +3180,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeTrustInstallation => 'تركيب بواسطة فنّي';
 
   @override
-  String get homeVerifiedCompanies => 'شركات موثّقة';
+  String get homeVerifiedCompanies => 'أفضل الشركات';
 
   @override
   String get homeAllCompanies => 'كل الشركات';
@@ -3285,7 +3285,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get homeCompanyVerified => 'موثّقة';
+  String get homeCompanyVerified => 'الأعلى تقييمًا';
 
   @override
   String get homeVisitCompany => 'زيارة الشركة';

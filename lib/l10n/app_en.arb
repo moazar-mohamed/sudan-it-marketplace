@@ -1714,7 +1714,7 @@
   "homeShopNow": "Shop now",
   "homeTrustDelivery": "Delivery to your location",
   "homeTrustInstallation": "Installation by a technician",
-  "homeVerifiedCompanies": "Verified companies",
+  "homeVerifiedCompanies": "Top companies",
   "homeAllCompanies": "All companies",
   "homeOffersEndsIn": "Ends in",
   "homeOffersEndsInDays": "Ends in {days, plural, =1{1 day} other{{days} days}}",
@@ -1755,7 +1755,7 @@
       }
     }
   },
-  "homeCompanyVerified": "Verified",
+  "homeCompanyVerified": "Top rated",
   "homeVisitCompany": "Visit company",
   "maintenanceTitle": "Under maintenance",
   "maintenanceTryLater": "Please try again in a little while.",

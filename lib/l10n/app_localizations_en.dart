@@ -3195,7 +3195,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTrustInstallation => 'Installation by a technician';
 
   @override
-  String get homeVerifiedCompanies => 'Verified companies';
+  String get homeVerifiedCompanies => 'Top companies';
 
   @override
   String get homeAllCompanies => 'All companies';
@@ -3293,7 +3293,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeCompanyVerified => 'Verified';
+  String get homeCompanyVerified => 'Top rated';
 
   @override
   String get homeVisitCompany => 'Visit company';
