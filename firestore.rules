@@ -1341,10 +1341,13 @@ service cloud.firestore {
         && before.orderStatus == 'processing'
         && before.paymentStatus in ['pending_verification', 'confirmed']
         && after.diff(before).affectedKeys()
-          .hasOnly(['orderStatus', 'cancelReason', 'cancelledAt', 'stockReleased', 'updatedAt'])
+          .hasOnly(['orderStatus', 'cancelReason', 'cancelledAt', 'stockReleased', 'updatedAt', 'cancelNote'])
         && after.orderStatus == 'cancelled'
         && after.cancelledAt == request.time
         && after.updatedAt == request.time
+        // The company may say why, in a few words the customer can read.
+        && (!after.keys().hasAny(['cancelNote'])
+          || (after.cancelNote is string && after.cancelNote.size() <= 300))
         && (after.cancelReason == 'company'
           || (after.cancelReason == 'expired'
             && before.paymentStatus == 'pending_verification'
@@ -1357,6 +1360,22 @@ service cloud.firestore {
           || (getAfter(productPath).data.get('lastReleasedOrderId', '') == orderId
             && getAfter(productPath).data.stockCount
               == get(productPath).data.stockCount + before.quantity));
+    }
+
+    // After a PAID order was cancelled, the company gives the money back
+    // outside the app. This records, once, that it did (`refundedAt`, the
+    // server's time); nothing else on the order changes, and a refund
+    // already recorded can never be written again.
+    function isCompanyRefundMark() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return isCompanyAdminOf(before.companyId)
+        && before.orderStatus == 'cancelled'
+        && before.paymentStatus == 'confirmed'
+        && !before.keys().hasAny(['refundedAt'])
+        && after.diff(before).affectedKeys().hasOnly(['refundedAt', 'updatedAt'])
+        && after.refundedAt == request.time
+        && after.updatedAt == request.time;
     }
 
     // Platform Admin cancels an order that is stuck, with the fixed reason
@@ -1445,6 +1464,8 @@ service cloud.firestore {
         && get(productPath).data.get('inStock', true) == true
         // A product Platform Admin hid cannot be ordered.
         && get(productPath).data.get('hidden', false) != true
+        // Nor one its own company took off sale (a draft or an archived one).
+        && get(productPath).data.get('status', 'published') == 'published'
         // A product without a price cannot be ordered through checkout.
         && get(productPath).data.get('price', null) != null
         && get(productPath).data.stockCount is int
@@ -1569,9 +1590,38 @@ service cloud.firestore {
         'offerBadge',
         'hidden',
         'hiddenReason',
+        'status',
+        'sku',
+        'lowStockThreshold',
+        'imageUrls',
+        'specificationsOrder',
         'createdAt',
         'updatedAt'
       ]);
+    }
+
+    // Optional fields the company sets on its own product. Older documents
+    // have none of them, so each one is judged with a default:
+    //   status              the company's own visibility; absent = published
+    //   sku                 the company's own product code
+    //   lowStockThreshold   when it wants to be warned about low stock
+    //   imageUrls           up to five pictures; imageUrl stays the first one,
+    //                       so older apps keep showing a picture
+    //   specificationsOrder the order its specifications are shown in
+    // Rules cannot loop over a list, so the entries are the clients' to keep
+    // clean; here only the kind and the size are checked.
+    function hasValidProductExtras(data) {
+      return data.get('status', 'published') in ['published', 'draft', 'archived']
+        && data.get('sku', '') is string
+        && data.get('sku', '').size() <= 60
+        && (data.get('lowStockThreshold', null) == null
+          || (data.lowStockThreshold is int
+            && data.lowStockThreshold >= 0
+            && data.lowStockThreshold <= 100000))
+        && data.get('imageUrls', []) is list
+        && data.get('imageUrls', []).size() <= 5
+        && data.get('specificationsOrder', []) is list
+        && data.get('specificationsOrder', []).size() <= 50;
     }
 
     function isValidProductData() {
@@ -1614,6 +1664,7 @@ service cloud.firestore {
         && data.get('hidden', false) is bool
         && data.get('hiddenReason', '') is string
         && data.get('hiddenReason', '').size() <= 200
+        && hasValidProductExtras(data)
         && data.updatedAt == request.time;
     }
 
@@ -3404,6 +3455,7 @@ service cloud.firestore {
           || isCompanyOrderCancellation(orderId)
           || isPlatformAdminOrderCancellation(orderId)
           || isCompanyPaymentConfirmation(orderId)
+          || isCompanyRefundMark()
           || isCustomerReceiptAttachment(orderId)
           || isTechnicianOrderStatusUpdate());
 
