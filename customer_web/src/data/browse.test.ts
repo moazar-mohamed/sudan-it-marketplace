@@ -24,10 +24,10 @@ const product = (id: string, over: Partial<Product> = {}): Product => ({
   price: 100, currency: 'SDG', description: '', brand: '', inStock: true, stockCount: 5,
   specifications: {}, isDeliveryAvailable: true, isInstallationAvailable: false,
   installationPrice: null, offerPrice: null, offerEndsAt: null, offerBadge: null,
-  hidden: false, createdAt: null, ...over,
+  hidden: false, status: 'published', imageUrls: [], createdAt: null, ...over,
 });
 
-const company = (id: string, serviceCityIds: string[] = []): Company => ({
+const company =(id: string, serviceCityIds: string[] = []): Company => ({
   id, name: id, rating: 0, reviewCount: 0, logoUrl: '', description: '', city: '', address: '',
   latitude: null, longitude: null, phone: '', status: 'active', serviceCityIds,
   pickupAddress: '', pickupPoints: [], paymentAccounts: [],

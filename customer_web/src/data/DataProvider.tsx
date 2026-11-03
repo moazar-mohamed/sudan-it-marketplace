@@ -5,6 +5,7 @@ import type { CategoryCount, Ratings } from './browse';
 import { CategoryTree } from './categoryTree';
 import { useFavorites } from './favorites';
 import { useCategories, useCities, useCompanies, useCompanyServices, useNotifications, useProducts, useRatings, useServices } from './hooks';
+import { isOnSale } from './mappers';
 import type { AppNotification, CatalogService, City, Company, CompanyService, Favorite, Product, ServiceListing, UserProfile } from './types';
 
 interface CatalogValue {
@@ -71,7 +72,7 @@ export function CatalogProvider({ profile, children }: { profile: UserProfile; c
     // Company products stay hidden until the company list has loaded.
     const visible = [...(rawProducts.items ?? [])]
       .sort(newestFirst)
-      .filter((p) => !p.hidden && p.stockCount > 0 && (p.companyId === '' || activeIds.has(p.companyId)));
+      .filter((p) => isOnSale(p) && p.stockCount > 0 && (p.companyId === '' || activeIds.has(p.companyId)));
     const serves = (p: Product) => p.companyId === '' || !servingIds || servingIds.has(p.companyId);
     const products = [...visible.filter(serves), ...visible.filter((p) => !serves(p))];
 

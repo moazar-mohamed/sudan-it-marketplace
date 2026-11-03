@@ -24,6 +24,7 @@ class Product with OfferPricing {
     this.createdAt,
     this.hidden = false,
     this.hiddenReason = '',
+    this.status = 'published',
   });
 
   final String id;
@@ -68,6 +69,15 @@ class Product with OfferPricing {
   final bool hidden;
   final String hiddenReason;
 
+  /// The company's own visibility: `published`, `draft` or `archived`. A
+  /// document without it is published. The app never writes it (the company
+  /// web panel does), so an edit here leaves it as it is.
+  final String status;
+
+  /// The company has not taken this product off sale (a draft or an archived
+  /// product is kept from customers).
+  bool get isPublished => status == 'published';
+
   bool get hasPrice => price != null;
 
   /// Units remain. Products with no stock are hidden from customers (they stay
@@ -105,6 +115,7 @@ class Product with OfferPricing {
     createdAt: createdAt,
     hidden: hidden,
     hiddenReason: hiddenReason,
+    status: status,
   );
 
   /// This product with [offerPrice] until [offerEndsAt] under [badge]; a
@@ -136,5 +147,6 @@ class Product with OfferPricing {
     createdAt: createdAt,
     hidden: hidden,
     hiddenReason: hiddenReason,
+    status: status,
   );
 }

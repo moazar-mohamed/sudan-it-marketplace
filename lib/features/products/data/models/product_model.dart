@@ -42,6 +42,10 @@ class ProductModel {
       // edit leaves them as they are.
       hidden: map['hidden'] == true,
       hiddenReason: map['hiddenReason'] as String? ?? '',
+      // Set only by the company web panel; anything else reads as published.
+      status: map['status'] == 'draft' || map['status'] == 'archived'
+          ? map['status'] as String
+          : 'published',
     );
   }
 

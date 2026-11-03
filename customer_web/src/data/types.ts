@@ -139,6 +139,10 @@ export interface Product extends Priced {
   isInstallationAvailable: boolean;
   installationPrice: number | null;
   hidden: boolean;
+  /** The company's own visibility; a document without it is published. */
+  status: 'published' | 'draft' | 'archived';
+  /** Up to five pictures the company set (imageUrl is the first). */
+  imageUrls: string[];
   createdAt: Date | null;
 }
 

@@ -168,13 +168,23 @@ export function mapOrder(id: string, d: DocumentData): Order {
   };
 }
 
+/** Whether customers may see a product: Platform Admin has not hidden it and its company has not taken it off sale. */
+export const isOnSale = (p: Pick<Product, 'hidden' | 'status'>): boolean => !p.hidden && p.status === 'published';
+
 export function mapProduct(id: string, d: DocumentData): Product {
-  const specifications: Record<string, string> = {};
+  const raw: Record<string, string> = {};
   if (d.specifications && typeof d.specifications === 'object') {
     for (const [k, v] of Object.entries(d.specifications as Record<string, unknown>)) {
-      specifications[k] = String(v);
+      raw[k] = String(v);
     }
   }
+  // Firestore keeps map keys alphabetically; the company's own order is kept beside them.
+  const specifications: Record<string, string> = {};
+  const order = Array.isArray(d.specificationsOrder) ? d.specificationsOrder.filter((k: unknown): k is string => typeof k === 'string') : [];
+  for (const k of order) if (k in raw) specifications[k] = raw[k];
+  for (const k of Object.keys(raw)) if (!(k in specifications)) specifications[k] = raw[k];
+  const imageUrl = str(d.imageUrl);
+  const imageUrls = Array.isArray(d.imageUrls) ? d.imageUrls.filter((u: unknown): u is string => typeof u === 'string' && u !== '').slice(0, 5) : [];
   return {
     ...pricing(d),
     id,
@@ -182,7 +192,9 @@ export function mapProduct(id: string, d: DocumentData): Product {
     companyName: str(d.companyName),
     categoryId: typeof d.categoryId === 'string' && d.categoryId ? d.categoryId : null,
     name: str(d.name),
-    imageUrl: str(d.imageUrl),
+    imageUrl,
+    imageUrls: imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [],
+    status: d.status === 'draft' || d.status === 'archived' ? d.status : 'published',
     currency: str(d.currency) || 'SDG',
     description: str(d.description),
     brand: str(d.brand).trim(),

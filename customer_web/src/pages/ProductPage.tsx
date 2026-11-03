@@ -18,6 +18,7 @@ import {
   salePrice,
 } from '../data/format';
 import { useProductDoc } from '../data/hooks';
+import { isOnSale } from '../data/mappers';
 import { recordProductView } from '../data/usage';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { t } from '../i18n';
@@ -29,7 +30,7 @@ export function ProductPage() {
   // A link can name a product that left the marketplace (sold out, its company
   // went inactive): it reads as out of stock, so it cannot be bought from here.
   const snapshot = useProductDoc(id, loading || !!listed);
-  const product = listed ?? (snapshot && !snapshot.hidden ? { ...snapshot, stockCount: 0 } : undefined);
+  const product = listed ?? (snapshot && isOnSale(snapshot) ? { ...snapshot, stockCount: 0 } : undefined);
   const [quantity, setQuantity] = useState(1);
 
   const isCustomer = profile?.role === 'customer';

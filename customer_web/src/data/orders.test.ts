@@ -9,7 +9,7 @@ const product = (over: Partial<Product> = {}): Product => ({
   id: 'p', companyId: 'c', companyName: 'C', categoryId: null, name: 'p', imageUrl: '', price: 100,
   currency: 'SDG', description: '', brand: '', inStock: true, stockCount: 5, specifications: {},
   isDeliveryAvailable: true, isInstallationAvailable: false, installationPrice: null, offerPrice: null,
-  offerEndsAt: null, offerBadge: null, hidden: false, createdAt: null, ...over,
+  offerEndsAt: null, offerBadge: null, hidden: false, status: 'published', imageUrls: [], createdAt: null, ...over,
 });
 
 describe('order pricing', () => {
