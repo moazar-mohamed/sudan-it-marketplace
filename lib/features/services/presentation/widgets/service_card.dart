@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../../../favorites/domain/favorite.dart';
+import '../../../favorites/presentation/favorite_button.dart';
 import '../../domain/entities/catalog_service.dart';
 import '../service_details_screen.dart';
 
@@ -35,6 +37,11 @@ class ServiceCard extends StatelessWidget {
       leading: const AppIconTile(
         icon: Icons.miscellaneous_services_outlined,
         size: 52,
+      ),
+      trailing: FavoriteButton(
+        kind: FavoriteKind.service,
+        targetId: service.id,
+        name: service.name,
       ),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

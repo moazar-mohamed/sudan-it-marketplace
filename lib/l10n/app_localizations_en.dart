@@ -4011,4 +4011,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String tjSearchResults(int count) {
     return '$count results';
   }
+
+  @override
+  String get favoritesTitle => 'Favorites';
+
+  @override
+  String get favoritesEmptyTitle => 'No favorites yet';
+
+  @override
+  String get favoritesEmptyMessage =>
+      'Tap the heart on any product or service to save it here.';
+
+  @override
+  String get favoritesSubtitle => 'The products and services you saved';
+
+  @override
+  String get favoriteAdd => 'Add to favorites';
+
+  @override
+  String get favoriteRemove => 'Remove from favorites';
+
+  @override
+  String get favoriteUnavailable => 'Not available right now';
+
+  @override
+  String get favoriteSaveFailed =>
+      'Could not save the change. Please try again.';
+
+  @override
+  String get favoritesLoadFailed => 'Could not load your favorites.';
 }

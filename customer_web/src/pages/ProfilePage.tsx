@@ -142,6 +142,10 @@ export function ProfilePage() {
               <span className="grow">{t('تغيير كلمة المرور')}</span>
             </button>
           )}
+          <Link className="row" to="/favorites">
+            <Icon d={PATHS.heart} />
+            <span className="grow">{t('المفضلة')}</span>
+          </Link>
           <Link className="row" to="/settings">
             <Icon d={PATHS.gear} />
             <span className="grow">{t('الإعدادات')}</span>

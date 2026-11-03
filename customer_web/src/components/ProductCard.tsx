@@ -3,6 +3,7 @@ import { useCatalog } from '../data/DataProvider';
 import { categoryColor, categoryName, hasActiveOffer, iconPath, isNewProduct, ratingKey } from '../data/format';
 import type { Product } from '../data/types';
 import { CityTag, Highlighted, OfferPill, PriceText, RatingLine } from './Bits';
+import { FavoriteButton } from './FavoriteButton';
 import { Icon, PATHS } from './Icon';
 import { t } from '../i18n';
 
@@ -18,6 +19,7 @@ export function ProductCard({ product: p, highlight }: { product: Product; highl
         ) : (
           <Icon d={category ? iconPath(category.iconName) : PATHS.box} size={54} />
         )}
+        <FavoriteButton kind="product" targetId={p.id} name={p.name} className="on-image" />
         {hasActiveOffer(p) ? <OfferPill item={p} /> : isNewProduct(p) && <span className="badge">{t('جديد')}</span>}
       </div>
       <div className="pbody">

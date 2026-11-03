@@ -4001,4 +4001,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String tjSearchResults(int count) {
     return '$count نتيجة';
   }
+
+  @override
+  String get favoritesTitle => 'المفضلة';
+
+  @override
+  String get favoritesEmptyTitle => 'لا توجد عناصر في المفضلة';
+
+  @override
+  String get favoritesEmptyMessage =>
+      'اضغط على القلب في أي منتج أو خدمة لتحفظه هنا.';
+
+  @override
+  String get favoritesSubtitle => 'المنتجات والخدمات التي حفظتها';
+
+  @override
+  String get favoriteAdd => 'إضافة إلى المفضلة';
+
+  @override
+  String get favoriteRemove => 'إزالة من المفضلة';
+
+  @override
+  String get favoriteUnavailable => 'غير متاح حاليًا';
+
+  @override
+  String get favoriteSaveFailed => 'تعذر حفظ التغيير. حاول مرة أخرى.';
+
+  @override
+  String get favoritesLoadFailed => 'تعذر تحميل المفضلة.';
 }

@@ -903,6 +903,33 @@ service cloud.firestore {
         || isPlatformAdminAdminDelete(uid);
     }
 
+    // A customer's saved products and services, private to them. The id is
+    // fixed per item, so one is saved once, and only something that exists can
+    // be saved. An entry is added or removed, never edited.
+    function isValidFavoriteCreate(favoriteId) {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['kind', 'targetId', 'name', 'createdAt'])
+        && data.keys().hasAll(['kind', 'targetId', 'name', 'createdAt'])
+        && data.kind in ['product', 'service']
+        && data.targetId is string
+        && data.targetId.size() > 0
+        && data.targetId.size() <= 200
+        && favoriteId == data.kind + '_' + data.targetId
+        && data.name is string
+        && data.name.size() <= 200
+        && data.createdAt == request.time
+        && exists(/databases/$(database)/documents/$(data.kind == 'product' ? 'products' : 'services')/$(data.targetId));
+    }
+
+    match /users/{uid}/favorites/{favoriteId} {
+      allow get, list: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && isActiveCustomer()
+        && isValidFavoriteCreate(favoriteId);
+      allow update: if false;
+      allow delete: if isOwner(uid);
+    }
+
     // The record that Platform Admin deleted a customer account. The login
     // itself cannot be removed from here (no Admin SDK on this plan), so this
     // is what keeps the person out: they can no longer make a profile, and the

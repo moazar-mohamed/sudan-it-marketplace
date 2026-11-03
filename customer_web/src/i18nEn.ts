@@ -573,4 +573,11 @@ export const EN: Record<string, string> = {
   "يتبع إعداد جهازك": "Follows your device setting",
   "اللغة": "Language",
   "تعذر حفظ اللغة في حسابك. تم تغييرها على هذا الجهاز فقط.": "Could not save the language to your account. It changed on this device only.",
+  "المفضلة": "Favorites",
+  "لا توجد عناصر في المفضلة": "No favorites yet",
+  "اضغط على القلب في أي منتج أو خدمة لتحفظه هنا.": "Press the heart on any product or service to save it here.",
+  "إضافة إلى المفضلة": "Add to favorites",
+  "إزالة من المفضلة": "Remove from favorites",
+  "غير متاح حاليًا": "Not available right now",
+  "تعذر حفظ التغيير. حاول مرة أخرى.": "Could not save the change. Please try again.",
 };

@@ -1,3 +1,5 @@
+import '../../favorites/domain/favorite.dart';
+import '../../favorites/presentation/favorite_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -183,7 +185,16 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     final margin = AppSpacing.screenMargin(screenWidth);
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.product.name)),
+      appBar: AppBar(
+        title: Text(widget.product.name),
+        actions: [
+          FavoriteButton(
+            kind: FavoriteKind.product,
+            targetId: widget.product.id,
+            name: widget.product.name,
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
         padding: EdgeInsets.fromLTRB(

@@ -1274,5 +1274,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "favoritesTitle": "المفضلة",
+  "favoritesEmptyTitle": "لا توجد عناصر في المفضلة",
+  "favoritesEmptyMessage": "اضغط على القلب في أي منتج أو خدمة لتحفظه هنا.",
+  "favoritesSubtitle": "المنتجات والخدمات التي حفظتها",
+  "favoriteAdd": "إضافة إلى المفضلة",
+  "favoriteRemove": "إزالة من المفضلة",
+  "favoriteUnavailable": "غير متاح حاليًا",
+  "favoriteSaveFailed": "تعذر حفظ التغيير. حاول مرة أخرى.",
+  "favoritesLoadFailed": "تعذر تحميل المفضلة."
 }

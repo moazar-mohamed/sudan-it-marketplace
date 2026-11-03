@@ -19,6 +19,7 @@ import {
 } from '../data/format';
 import { useProductDoc } from '../data/hooks';
 import { recordProductView } from '../data/usage';
+import { FavoriteButton } from '../components/FavoriteButton';
 import { t } from '../i18n';
 
 export function ProductPage() {
@@ -83,7 +84,10 @@ export function ProductPage() {
           <span className={available ? 'status ok' : 'status off'}>
             {available ? t('متوفر ({0})', product.stockCount) : t('غير متوفر في المخزون')}
           </span>
-          <h1>{product.name}</h1>
+          <div className="title-row">
+            <h1>{product.name}</h1>
+            <FavoriteButton kind="product" targetId={product.id} name={product.name} />
+          </div>
           <RatingLine ratingsFor={ratingKey('product', product.id)} />
           {(product.brand || path.length > 0) && (
             <div className="ptags">

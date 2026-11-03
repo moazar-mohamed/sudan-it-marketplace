@@ -4,6 +4,7 @@ import { useCatalog } from '../data/DataProvider';
 import { categoryColor, categoryName, countText, formatPrice, iconPath } from '../data/format';
 import type { CatalogService } from '../data/types';
 import { Highlighted } from './Bits';
+import { FavoriteButton } from './FavoriteButton';
 import { Icon } from './Icon';
 import { t } from '../i18n';
 
@@ -38,6 +39,7 @@ export function ServiceCard({ service, highlight }: { service: CatalogService; h
           <span className="from">{t('يبدأ من')}{' '}<strong className="price">{formatPrice(from)}</strong></span>
         )}
       </span>
+      <FavoriteButton kind="service" targetId={service.id} name={service.name} />
     </Link>
   );
 }

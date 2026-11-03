@@ -6995,6 +6995,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} results'**
   String tjSearchResults(int count);
+
+  /// No description provided for @favoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get favoritesTitle;
+
+  /// No description provided for @favoritesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No favorites yet'**
+  String get favoritesEmptyTitle;
+
+  /// No description provided for @favoritesEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the heart on any product or service to save it here.'**
+  String get favoritesEmptyMessage;
+
+  /// No description provided for @favoritesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The products and services you saved'**
+  String get favoritesSubtitle;
+
+  /// No description provided for @favoriteAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get favoriteAdd;
+
+  /// No description provided for @favoriteRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from favorites'**
+  String get favoriteRemove;
+
+  /// No description provided for @favoriteUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available right now'**
+  String get favoriteUnavailable;
+
+  /// No description provided for @favoriteSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the change. Please try again.'**
+  String get favoriteSaveFailed;
+
+  /// No description provided for @favoritesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your favorites.'**
+  String get favoritesLoadFailed;
 }
 
 class _AppLocalizationsDelegate

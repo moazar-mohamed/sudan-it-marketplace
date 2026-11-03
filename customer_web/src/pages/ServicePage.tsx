@@ -4,6 +4,7 @@ import { CompanyLogo } from '../components/CompanyCard';
 import { servesCity } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
 import { categoryName, ratingKey } from '../data/format';
+import { FavoriteButton } from '../components/FavoriteButton';
 import { t } from '../i18n';
 
 export function ServicePage() {
@@ -47,7 +48,10 @@ export function ServicePage() {
         ]}
       />
       <section className="tile">
-        <h1 className="page-title">{service.name}</h1>
+        <div className="title-row">
+          <h1 className="page-title">{service.name}</h1>
+          <FavoriteButton kind="service" targetId={service.id} name={service.name} />
+        </div>
         {description && <p className="prose">{description}</p>}
       </section>
 

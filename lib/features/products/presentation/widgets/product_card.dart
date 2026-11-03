@@ -5,6 +5,8 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../cities/presentation/city_tags.dart';
+import '../../../favorites/domain/favorite.dart';
+import '../../../favorites/presentation/favorite_button.dart';
 import '../../domain/entities/product.dart';
 import '../product_details_screen.dart';
 import '../../../offers/presentation/offer_price.dart';
@@ -43,6 +45,11 @@ class ProductCard extends StatelessWidget {
         );
       },
       leading: AppImageTile(imageUrl: product.imageUrl),
+      trailing: FavoriteButton(
+        kind: FavoriteKind.product,
+        targetId: product.id,
+        name: product.name,
+      ),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

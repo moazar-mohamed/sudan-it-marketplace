@@ -8,6 +8,8 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../categories/domain/entities/category.dart';
 import '../../../companies/domain/entities/company.dart';
+import '../../../favorites/domain/favorite.dart';
+import '../../../favorites/presentation/favorite_button.dart';
 import '../../../offers/presentation/offer_price.dart';
 import '../../../reviews/domain/review.dart';
 import '../../../reviews/presentation/reviews_providers.dart';
@@ -111,6 +113,11 @@ class HomeServiceCard extends ConsumerWidget {
                           ),
                       ],
                     ),
+                  ),
+                  FavoriteButton(
+                    kind: FavoriteKind.service,
+                    targetId: service.id,
+                    name: service.name,
                   ),
                   if (discount > 0) ...[
                     const SizedBox(width: AppSpacing.s8),

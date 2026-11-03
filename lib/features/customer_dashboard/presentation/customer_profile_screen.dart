@@ -9,6 +9,7 @@ import '../../../core/widgets/app_widgets.dart';
 import '../../../core/widgets/image_picker_field.dart';
 import '../../../core/widgets/image_picker_strings.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../favorites/presentation/favorites_screen.dart';
 import '../../auth/presentation/auth_state.dart';
 import '../../auth/domain/entities/user_profile.dart';
 import '../../auth/domain/exceptions/auth_exception.dart';
@@ -455,6 +456,32 @@ class _ProfileContent extends StatelessWidget {
                     onPressed: onEdit,
                   ),
                 const SizedBox(height: AppSpacing.s16),
+                AppListCard(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const FavoritesScreen(),
+                    ),
+                  ),
+                  leading: const AppIconTile(
+                    icon: Icons.favorite_border,
+                    size: 40,
+                  ),
+                  content: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.favoritesTitle,
+                        style: AppTextStyles.bodyStrong,
+                      ),
+                      Text(
+                        l10n.favoritesSubtitle,
+                        style: AppTextStyles.caption
+                            .copyWith(color: context.colors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s12),
                 AppListCard(
                   onTap: onChangePassword,
                   leading: const AppIconTile(

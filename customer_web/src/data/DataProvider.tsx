@@ -3,8 +3,9 @@ import type { ReactNode } from 'react';
 import { buildServiceListings, countByCategory, servesCity } from './browse';
 import type { CategoryCount, Ratings } from './browse';
 import { CategoryTree } from './categoryTree';
+import { useFavorites } from './favorites';
 import { useCategories, useCities, useCompanies, useCompanyServices, useNotifications, useProducts, useRatings, useServices } from './hooks';
-import type { AppNotification, CatalogService, City, Company, CompanyService, Product, ServiceListing, UserProfile } from './types';
+import type { AppNotification, CatalogService, City, Company, CompanyService, Favorite, Product, ServiceListing, UserProfile } from './types';
 
 interface CatalogValue {
   tree: CategoryTree;
@@ -27,6 +28,8 @@ interface CatalogValue {
   profile: UserProfile;
   /** Null until they have loaded. */
   notifications: AppNotification[] | null;
+  /** Null until they have loaded. */
+  favorites: Favorite[] | null;
   /** Null when the customer has no city: nothing is then ranked or labelled. */
   servingIds: Set<string> | null;
   loading: boolean;
@@ -49,6 +52,7 @@ export function CatalogProvider({ profile, children }: { profile: UserProfile; c
   const rawRatings = useRatings();
   const cities = useCities();
   const notifications = useNotifications(profile.id);
+  const favorites = useFavorites(profile.id);
   const cityId = profile.cityId;
 
   const value = useMemo<CatalogValue>(() => {
@@ -102,11 +106,12 @@ export function CatalogProvider({ profile, children }: { profile: UserProfile; c
       cityId,
       profile,
       notifications,
+      favorites,
       servingIds,
       loading: !loaded && !(categories.error || rawProducts.error || rawCompanies.error),
       error: categories.error || rawProducts.error || rawCompanies.error,
     };
-  }, [categories, rawProducts, rawCompanies, rawServices, rawLinks, rawRatings, cities, cityId, profile, notifications]);
+  }, [categories, rawProducts, rawCompanies, rawServices, rawLinks, rawRatings, cities, cityId, profile, notifications, favorites]);
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>;
 }

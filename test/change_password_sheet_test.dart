@@ -65,6 +65,9 @@ Future<_FakeProfileController> _openSheet(
     ),
   );
   await tester.pumpAndSettle();
+  // The profile scrolls: this card sits below the fold in the test's window.
+  await tester.ensureVisible(find.text('Change password'));
+  await tester.pumpAndSettle();
   await tester.tap(find.text('Change password'));
   await tester.pumpAndSettle();
   expect(find.text('Update password'), findsOneWidget);

@@ -264,6 +264,16 @@ export interface ServiceRequestDraft {
   contactPhone: string;
 }
 
+export type FavoriteKind = 'product' | 'service';
+
+/** A saved item; its name is kept so it can be read after the item stops being offered. */
+export interface Favorite {
+  kind: FavoriteKind;
+  targetId: string;
+  name: string;
+  createdAt: Date;
+}
+
 export interface UserProfile {
   id: string;
   role: string;

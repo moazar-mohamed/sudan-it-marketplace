@@ -457,3 +457,15 @@ a.tile.order-card:hover { box-shadow: var(--shadow); }
 @media (max-width: 1200px) {
   [dir="ltr"] .search-trigger { min-width: 110px; }
 }
+.fav-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); }
+.fav-btn:hover { background: var(--surface-2); }
+.fav-btn.on { color: var(--err); }
+.fav-btn.on .ico path { fill: currentColor; }
+.fav-btn.failed { outline: 2px solid var(--err); }
+.fav-btn.on-image { position: absolute; top: 8px; inset-inline-end: 8px; z-index: 1; background: var(--surface); }
+.title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.title-row h1 { min-width: 0; }
+@media (max-width: 960px) {
+  .scard { position: relative; padding-inline-end: 52px; }
+  .scard .fav-btn { position: absolute; top: 8px; inset-inline-end: 8px; }
+}

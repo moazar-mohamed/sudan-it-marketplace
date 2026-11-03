@@ -1,3 +1,5 @@
+import '../../favorites/domain/favorite.dart';
+import '../../favorites/presentation/favorite_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -27,7 +29,16 @@ class ServiceDetailsScreen extends ConsumerWidget {
     final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.serviceDetailsTitle)),
+      appBar: AppBar(
+        title: Text(context.l10n.serviceDetailsTitle),
+        actions: [
+          FavoriteButton(
+            kind: FavoriteKind.service,
+            targetId: service.id,
+            name: service.name,
+          ),
+        ],
+      ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
         children: [

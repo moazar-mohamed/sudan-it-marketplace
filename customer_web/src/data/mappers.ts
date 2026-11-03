@@ -9,6 +9,7 @@ import type {
   Company,
   CompanyService,
   Conversation,
+  Favorite,
   OfferBadge,
   Order,
   OrderStatus,
@@ -340,6 +341,16 @@ export function mapServiceRequest(id: string, d: DocumentData): ServiceRequest {
     cityId: idOrNull(d.cityId),
     contactPhone: str(d.contactPhone),
     status: REQUEST_STATUSES.find((s) => s === d.status) ?? 'pending',
+    createdAt: toDate(d.createdAt) ?? new Date(),
+  };
+}
+
+export function mapFavorite(_id: string, d: DocumentData): Favorite {
+  return {
+    kind: d.kind === 'service' ? 'service' : 'product',
+    targetId: str(d.targetId),
+    name: str(d.name),
+    // An entry just written reads back without its server time for a moment.
     createdAt: toDate(d.createdAt) ?? new Date(),
   };
 }

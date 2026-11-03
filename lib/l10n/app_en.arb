@@ -2087,5 +2087,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "favoritesTitle": "Favorites",
+  "favoritesEmptyTitle": "No favorites yet",
+  "favoritesEmptyMessage": "Tap the heart on any product or service to save it here.",
+  "favoritesSubtitle": "The products and services you saved",
+  "favoriteAdd": "Add to favorites",
+  "favoriteRemove": "Remove from favorites",
+  "favoriteUnavailable": "Not available right now",
+  "favoriteSaveFailed": "Could not save the change. Please try again.",
+  "favoritesLoadFailed": "Could not load your favorites."
 }
