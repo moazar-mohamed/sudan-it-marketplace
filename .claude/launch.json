@@ -32,6 +32,12 @@
       "port": 5190
     },
     {
+      "name": "company-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "company_web", "run", "dev"],
+      "port": 5195
+    },
+    {
       "name": "platform-admin-web",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "platform_admin_web", "run", "dev", "--", "--port", "5183"],
