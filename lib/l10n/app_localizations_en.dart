@@ -704,6 +704,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'If the customer transferred money, return it outside the app.';
 
   @override
+  String orderCancelNote(String note) {
+    return 'Note from the company: $note';
+  }
+
+  @override
+  String orderCancelledRefundDone(String date) {
+    return 'The company returned your payment on $date.';
+  }
+
+  @override
+  String adminCancelledRefundRecorded(String date) {
+    return 'You recorded returning the payment to the customer on $date.';
+  }
+
+  @override
   String orderCancelledOn(String date) {
     return 'Cancelled on $date';
   }

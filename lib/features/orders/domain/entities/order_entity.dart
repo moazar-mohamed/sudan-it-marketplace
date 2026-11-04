@@ -115,7 +115,9 @@ class OrderEntity {
     this.stockReserved = false,
     this.stockReleased = false,
     this.cancelReason,
+    this.cancelNote,
     this.cancelledAt,
+    this.refundedAt,
     required this.createdAt,
     this.updatedAt,
   });
@@ -174,7 +176,13 @@ class OrderEntity {
 
   /// Set only on a cancelled order.
   final OrderCancelReason? cancelReason;
+
+  /// What the company wrote when it cancelled (optional).
+  final String? cancelNote;
   final DateTime? cancelledAt;
+
+  /// When the company recorded giving a paid, cancelled order's money back.
+  final DateTime? refundedAt;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -244,7 +252,9 @@ class OrderEntity {
     bool? stockReserved,
     bool? stockReleased,
     OrderCancelReason? cancelReason,
+    String? cancelNote,
     DateTime? cancelledAt,
+    DateTime? refundedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -277,7 +287,9 @@ class OrderEntity {
       stockReserved: stockReserved ?? this.stockReserved,
       stockReleased: stockReleased ?? this.stockReleased,
       cancelReason: cancelReason ?? this.cancelReason,
+      cancelNote: cancelNote ?? this.cancelNote,
       cancelledAt: cancelledAt ?? this.cancelledAt,
+      refundedAt: refundedAt ?? this.refundedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

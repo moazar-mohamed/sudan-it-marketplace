@@ -699,6 +699,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'إذا كان العميل قد حوّل مبلغاً، فأعده إليه خارج التطبيق.';
 
   @override
+  String orderCancelNote(String note) {
+    return 'ملاحظة الشركة: $note';
+  }
+
+  @override
+  String orderCancelledRefundDone(String date) {
+    return 'أعادت الشركة المبلغ إليك في $date.';
+  }
+
+  @override
+  String adminCancelledRefundRecorded(String date) {
+    return 'سُجّل أنك أعدت المبلغ إلى العميل في $date.';
+  }
+
+  @override
   String orderCancelledOn(String date) {
     return 'أُلغي في $date';
   }

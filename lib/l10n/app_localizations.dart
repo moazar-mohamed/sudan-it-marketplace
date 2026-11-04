@@ -1328,6 +1328,24 @@ abstract class AppLocalizations {
   /// **'If the customer transferred money, return it outside the app.'**
   String get adminCancelledRefundIfPaid;
 
+  /// No description provided for @orderCancelNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note from the company: {note}'**
+  String orderCancelNote(String note);
+
+  /// No description provided for @orderCancelledRefundDone.
+  ///
+  /// In en, this message translates to:
+  /// **'The company returned your payment on {date}.'**
+  String orderCancelledRefundDone(String date);
+
+  /// No description provided for @adminCancelledRefundRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'You recorded returning the payment to the customer on {date}.'**
+  String adminCancelledRefundRecorded(String date);
+
   /// No description provided for @orderCancelledOn.
   ///
   /// In en, this message translates to:

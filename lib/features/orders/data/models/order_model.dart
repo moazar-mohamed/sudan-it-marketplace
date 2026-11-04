@@ -33,7 +33,9 @@ class OrderModel {
     this.stockReserved = false,
     this.stockReleased = false,
     this.cancelReason,
+    this.cancelNote,
     this.cancelledAt,
+    this.refundedAt,
     required this.createdAt,
     this.updatedAt,
   });
@@ -90,7 +92,9 @@ class OrderModel {
       stockReserved: map['stockReserved'] != false,
       stockReleased: map['stockReleased'] == true,
       cancelReason: OrderCancelReason.fromValue(map['cancelReason']),
+      cancelNote: (map['cancelNote'] as String? ?? '').trim().isEmpty ? null : (map['cancelNote'] as String).trim(),
       cancelledAt: map['cancelledAt'] != null ? parseTimestamp(map['cancelledAt']) : null,
+      refundedAt: map['refundedAt'] != null ? parseTimestamp(map['refundedAt']) : null,
       createdAt: parseTimestamp(map['createdAt']),
       updatedAt: map['updatedAt'] != null ? parseTimestamp(map['updatedAt']) : null,
     );
@@ -124,7 +128,9 @@ class OrderModel {
   final bool stockReserved;
   final bool stockReleased;
   final OrderCancelReason? cancelReason;
+  final String? cancelNote;
   final DateTime? cancelledAt;
+  final DateTime? refundedAt;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -198,7 +204,9 @@ class OrderModel {
       stockReserved: stockReserved,
       stockReleased: stockReleased,
       cancelReason: cancelReason,
+      cancelNote: cancelNote,
       cancelledAt: cancelledAt,
+      refundedAt: refundedAt,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

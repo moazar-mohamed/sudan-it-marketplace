@@ -18,6 +18,7 @@ import '../../companies/presentation/company_details_screen.dart';
 import '../../orders/presentation/checkout_screen.dart';
 import '../domain/entities/product.dart';
 import 'product_price_strings.dart';
+import 'widgets/product_gallery.dart';
 import '../../offers/presentation/offer_price.dart';
 import 'products_providers.dart';
 import '../../usage/presentation/usage_providers.dart';
@@ -209,27 +210,20 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Stack(
-                  children: [
-                    AppImageTile(
-                      imageUrl: widget.product.imageUrl,
-                      size: 240,
-                      radius: AppRadius.lg,
-                      expand: true,
+                ProductGallery(
+                  urls: widget.product.imageUrls,
+                  overlay: PositionedDirectional(
+                    top: AppSpacing.s12,
+                    start: AppSpacing.s12,
+                    child: StatusChip(
+                      label: stock.isAvailable
+                          ? context.l10n.productInStockCount(stock.stockCount)
+                          : context.l10n.productOutOfStock,
+                      tone: stock.isAvailable
+                          ? AppTone.success
+                          : AppTone.error,
                     ),
-                    PositionedDirectional(
-                      top: AppSpacing.s12,
-                      start: AppSpacing.s12,
-                      child: StatusChip(
-                        label: stock.isAvailable
-                            ? context.l10n.productInStockCount(stock.stockCount)
-                            : context.l10n.productOutOfStock,
-                        tone: stock.isAvailable
-                            ? AppTone.success
-                            : AppTone.error,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.s16),
                 Text(widget.product.name, style: AppTextStyles.h2),

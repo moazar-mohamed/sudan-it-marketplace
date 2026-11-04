@@ -38,12 +38,17 @@ class OrderCancelledNote extends StatelessWidget {
     final when = order.cancelledAt;
     final paymentConfirmed = order.paymentStatus == PaymentStatus.confirmed;
     // The out-of-stock reason already says that the money goes back.
+    final refundedAt = order.refundedAt;
     final refund = !showRefund
         ? null
         : paymentConfirmed
-            ? (forCompany
-                ? l10n.adminCancelledRefundConfirmed
-                : l10n.orderCancelledRefundConfirmed)
+            ? (refundedAt != null
+                ? (forCompany
+                    ? l10n.adminCancelledRefundRecorded(_date(refundedAt))
+                    : l10n.orderCancelledRefundDone(_date(refundedAt)))
+                : forCompany
+                    ? l10n.adminCancelledRefundConfirmed
+                    : l10n.orderCancelledRefundConfirmed)
             : reason == OrderCancelReason.outOfStock
                 ? null
                 : (forCompany
@@ -51,6 +56,7 @@ class OrderCancelledNote extends StatelessWidget {
                     : l10n.orderCancelledRefundIfPaid);
     final lines = [
       if (reason != null) reason.label(l10n),
+      if (order.cancelNote != null) l10n.orderCancelNote(order.cancelNote!),
       if (when != null) l10n.orderCancelledOn(_date(when)),
       if (forCompany)
         order.stockReleased

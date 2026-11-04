@@ -247,6 +247,12 @@
   "orderCancelledRefundIfPaid": "If you transferred money for this order, the company returns it outside the app. You can reach them in the order's chat.",
   "adminCancelledRefundConfirmed": "Its payment had been confirmed: return the money to the customer outside the app.",
   "adminCancelledRefundIfPaid": "If the customer transferred money, return it outside the app.",
+  "orderCancelNote": "Note from the company: {note}",
+  "@orderCancelNote": {"placeholders": {"note": {"type": "String"}}},
+  "orderCancelledRefundDone": "The company returned your payment on {date}.",
+  "@orderCancelledRefundDone": {"placeholders": {"date": {"type": "String"}}},
+  "adminCancelledRefundRecorded": "You recorded returning the payment to the customer on {date}.",
+  "@adminCancelledRefundRecorded": {"placeholders": {"date": {"type": "String"}}},
   "orderCancelledOn": "Cancelled on {date}",
   "@orderCancelledOn": {
     "placeholders": {

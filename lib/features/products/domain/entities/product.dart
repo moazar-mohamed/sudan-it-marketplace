@@ -7,6 +7,7 @@ class Product with OfferPricing {
     this.price,
     this.currency = 'SDG',
     this.imageUrl,
+    this.imageUrls = const [],
     this.companyId,
     this.companyName,
     this.categoryId,
@@ -36,6 +37,10 @@ class Product with OfferPricing {
   final double? price;
   final String currency;
   final String? imageUrl;
+
+  /// Every picture of the product, the main one first; the company web panel
+  /// can add up to 5. Empty when it has none.
+  final List<String> imageUrls;
   final String? companyId;
   final String? companyName;
 
@@ -98,6 +103,7 @@ class Product with OfferPricing {
     price: price,
     currency: currency,
     imageUrl: imageUrl,
+    imageUrls: imageUrls,
     companyId: companyId,
     companyName: companyName,
     categoryId: categoryId,
@@ -130,6 +136,7 @@ class Product with OfferPricing {
     price: price,
     currency: currency,
     imageUrl: imageUrl,
+    imageUrls: imageUrls,
     companyId: companyId,
     companyName: companyName,
     categoryId: categoryId,

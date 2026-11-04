@@ -16,13 +16,23 @@ class ProductModel {
       });
     }
     final rawCreatedAt = map['createdAt'];
+    final mainImage = map['imageUrl'] as String?;
+    final rawImages = map['imageUrls'];
+    final images = <String>[
+      if (rawImages is List)
+        for (final u in rawImages)
+          if (u is String && u.trim().isNotEmpty) u.trim(),
+    ].take(5).toList();
     final rawOfferEndsAt = map['offerEndsAt'];
     return Product(
       id: doc.id,
       name: map['name'] as String? ?? '',
       price: (map['price'] as num?)?.toDouble(),
       currency: map['currency'] as String? ?? 'SDG',
-      imageUrl: map['imageUrl'] as String?,
+      imageUrl: mainImage,
+      imageUrls: images.isNotEmpty
+          ? images
+          : (mainImage != null && mainImage.trim().isNotEmpty ? [mainImage.trim()] : const []),
       companyId: map['companyId'] as String?,
       companyName: map['companyName'] as String?,
       categoryId: map['categoryId'] as String?,

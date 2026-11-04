@@ -29,7 +29,9 @@ OrderEntity _order({
   bool stockReserved = true,
   bool stockReleased = false,
   OrderCancelReason? reason,
+  String? cancelNote,
   DateTime? cancelledAt,
+  DateTime? refundedAt,
   DateTime? createdAt,
 }) =>
     OrderEntity(
@@ -53,7 +55,9 @@ OrderEntity _order({
       stockReserved: stockReserved,
       stockReleased: stockReleased,
       cancelReason: reason,
+      cancelNote: cancelNote,
       cancelledAt: cancelledAt,
+      refundedAt: refundedAt,
       createdAt: createdAt ?? _created,
     );
 
@@ -61,12 +65,18 @@ OrderEntity _cancelled({
   OrderCancelReason reason = OrderCancelReason.company,
   bool stockReleased = true,
   bool installation = false,
+  String? note,
+  bool paid = false,
+  DateTime? refundedAt,
 }) =>
     _order(
       status: OrderStatus.cancelled,
+      payment: paid ? PaymentStatus.confirmed : PaymentStatus.pendingVerification,
       reason: reason,
       stockReleased: stockReleased,
       installation: installation,
+      cancelNote: note,
+      refundedAt: refundedAt,
       cancelledAt: DateTime(2026, 9, 21, 12, 30),
     );
 
@@ -300,6 +310,51 @@ void main() {
       // No progress steps and no stock details for the customer.
       expect(find.text('Out for Delivery'), findsNothing);
       expect(find.textContaining('back to stock'), findsNothing);
+    });
+
+    testWidgets("the order page shows the company's own note", (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _customerApp(OrderDetailsScreen(order: _cancelled(note: 'Out at the supplier'))),
+      );
+      await tester.pumpAndSettle();
+      await _scrollTo(tester, find.text('This order was cancelled'));
+      expect(find.text('Note from the company: Out at the supplier'), findsOneWidget);
+    });
+
+    testWidgets('a paid order says the money is still to come back, then that it came back',
+        (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_customerApp(OrderDetailsScreen(order: _cancelled(paid: true))));
+      await tester.pumpAndSettle();
+      await _scrollTo(tester, find.text('This order was cancelled'));
+      expect(find.textContaining('returns the money to you outside the app'), findsOneWidget);
+      expect(find.textContaining('returned your payment'), findsNothing);
+
+      await tester.pumpWidget(_customerApp(OrderDetailsScreen(
+        order: _cancelled(paid: true, refundedAt: DateTime(2026, 9, 22, 9)),
+      )));
+      await tester.pumpAndSettle();
+      await _scrollTo(tester, find.text('This order was cancelled'));
+      expect(find.textContaining('The company returned your payment on 2026-09-22'), findsOneWidget);
+      expect(find.textContaining('returns the money to you outside the app'), findsNothing);
+    });
+
+    test('the model reads the note and the refund date, and ignores a blank note', () {
+      final read = OrderModel.fromMap({
+        'orderStatus': 'cancelled',
+        'cancelNote': '  Out at the supplier ',
+        'refundedAt': Timestamp.fromDate(DateTime(2026, 9, 22, 9)),
+      }, 'o').toEntity();
+      expect(read.cancelNote, 'Out at the supplier');
+      expect(read.refundedAt, DateTime(2026, 9, 22, 9));
+      final blank = OrderModel.fromMap({'orderStatus': 'cancelled', 'cancelNote': '   '}, 'o').toEntity();
+      expect(blank.cancelNote, isNull);
+      expect(blank.refundedAt, isNull);
     });
   });
 
