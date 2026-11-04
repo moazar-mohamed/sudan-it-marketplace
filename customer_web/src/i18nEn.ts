@@ -581,4 +581,8 @@ export const EN: Record<string, string> = {
   "إزالة من المفضلة": "Remove from favorites",
   "غير متاح حاليًا": "Not available right now",
   "تعذر حفظ التغيير. حاول مرة أخرى.": "Could not save the change. Please try again.",
+  "صور المنتج": "Product pictures",
+  "الصورة {0}": "Picture {0}",
+  "ملاحظة الشركة: {0}": "Note from the company: {0}",
+  "أعادت الشركة المبلغ إليك في {0}.": "The company returned your payment on {0}.",
 };

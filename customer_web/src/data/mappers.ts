@@ -162,7 +162,9 @@ export function mapOrder(id: string, d: DocumentData): Order {
     orderStatus: orderStatus(d.orderStatus),
     receiptFileName: str(d.receiptFileName),
     cancelReason: typeof d.cancelReason === 'string' ? d.cancelReason : null,
+    cancelNote: typeof d.cancelNote === 'string' && d.cancelNote.trim() !== '' ? d.cancelNote.trim() : null,
     cancelledAt: toDate(d.cancelledAt),
+    refundedAt: toDate(d.refundedAt),
     // A new order reads back without its server time for a moment.
     createdAt: toDate(d.createdAt) ?? new Date(),
   };

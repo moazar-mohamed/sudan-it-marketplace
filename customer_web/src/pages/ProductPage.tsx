@@ -32,6 +32,7 @@ export function ProductPage() {
   const snapshot = useProductDoc(id, loading || !!listed);
   const product = listed ?? (snapshot && isOnSale(snapshot) ? { ...snapshot, stockCount: 0 } : undefined);
   const [quantity, setQuantity] = useState(1);
+  const [shot, setShot] = useState(0);
 
   const isCustomer = profile?.role === 'customer';
   useEffect(() => {
@@ -65,6 +66,9 @@ export function ProductPage() {
   const description = product.description.trim();
   const companyName = product.companyName || company?.name || '';
   const color = categoryColor(category, product.id);
+  const images = product.imageUrls;
+  const shotIndex = Math.min(shot, Math.max(0, images.length - 1));
+  const mainImage = images[shotIndex] ?? product.imageUrl;
 
   return (
     <main className="stack">
@@ -76,9 +80,20 @@ export function ProductPage() {
         ]}
       />
       <div className="product-grid">
-        <div className="product-media" style={product.imageUrl ? undefined : { background: `${color}1f`, color }}>
-          {product.imageUrl ? <img src={product.imageUrl} alt={product.name} /> : <Icon d={category ? iconPath(category.iconName) : PATHS.box} size={120} />}
-          {hasActiveOffer(product) && <OfferPill item={product} />}
+        <div className="product-media-col">
+          <div className="product-media" style={mainImage ? undefined : { background: `${color}1f`, color }}>
+            {mainImage ? <img src={mainImage} alt={product.name} /> : <Icon d={category ? iconPath(category.iconName) : PATHS.box} size={120} />}
+            {hasActiveOffer(product) && <OfferPill item={product} />}
+          </div>
+          {images.length > 1 && (
+            <div className="thumbs" role="group" aria-label={t('صور المنتج')}>
+              {images.map((url, i) => (
+                <button key={url + i} type="button" className={i === shotIndex ? 'on' : ''} aria-pressed={i === shotIndex} aria-label={t('الصورة {0}', i + 1)} onClick={() => setShot(i)}>
+                  <img src={url} alt="" loading="lazy" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="product-info">

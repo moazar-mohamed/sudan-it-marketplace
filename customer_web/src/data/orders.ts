@@ -266,8 +266,11 @@ const CANCEL_REASON: Record<string, string> = {
 export function cancelledLines(o: Order): string[] {
   const lines: string[] = [];
   if (o.cancelReason && CANCEL_REASON[o.cancelReason]) lines.push(CANCEL_REASON[o.cancelReason]);
+  if (o.cancelNote) lines.push(t('ملاحظة الشركة: {0}', o.cancelNote));
   if (o.cancelledAt) lines.push(t('أُلغي في {0}', formatDateTime(o.cancelledAt)));
-  if (o.paymentStatus === 'confirmed') lines.push(t('كان دفعك قد تأكد: تعيد الشركة إليك المبلغ خارج التطبيق.'));
+  if (o.paymentStatus === 'confirmed') {
+    lines.push(o.refundedAt ? t('أعادت الشركة المبلغ إليك في {0}.', formatDateTime(o.refundedAt)) : t('كان دفعك قد تأكد: تعيد الشركة إليك المبلغ خارج التطبيق.'));
+  }
   else if (o.cancelReason !== 'out_of_stock') lines.push(t('إذا كنت قد حوّلت مبلغاً لهذا الطلب، فستعيده الشركة إليك خارج التطبيق. يمكنك التواصل معها من محادثة الطلب.'));
   return lines;
 }

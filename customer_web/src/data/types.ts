@@ -87,7 +87,11 @@ export interface Order {
   orderStatus: OrderStatus;
   receiptFileName: string;
   cancelReason: string | null;
+  /** What the company wrote when it cancelled (optional). */
+  cancelNote: string | null;
   cancelledAt: Date | null;
+  /** When the company recorded giving the money back (a paid order it cancelled). */
+  refundedAt: Date | null;
   createdAt: Date;
 }
 
