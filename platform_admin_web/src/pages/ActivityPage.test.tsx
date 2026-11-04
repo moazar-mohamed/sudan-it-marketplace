@@ -127,7 +127,7 @@ describe('Activity log page', () => {
       'company.create', 'company.status', 'company.delete', 'company.registration',
       'customer.create', 'customer.edit', 'customer.active',
       'review.hide', 'review.show',
-      'category.create', 'category.update', 'category.active', 'category.move', 'category.delete',
+      'category.create', 'category.update', 'category.active', 'category.move', 'category.delete', 'category.import',
       'service.create', 'service.update', 'service.active',
       'admin.create', 'admin.active',
       'report.status',

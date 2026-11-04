@@ -16,6 +16,8 @@ import type { Locale } from '../i18n/I18nProvider';
 import { recordAudit, stageAudit } from './auditLog';
 import { allCities, cityToItem, normalizeCityIds, type SudanCity } from './cities';
 import * as ops from './categoryOps';
+import { importCategoryTree, type ImportResult } from './categoryImport';
+import { DEFAULT_CATEGORY_TREE } from './defaultCategoryTree';
 import type { CategoryFields, NewCategoryInput, RunOptions } from './categoryOps';
 import type { ImageSelection } from './imageRules';
 import { resolveImageSelection } from './imageUpload';
@@ -523,6 +525,22 @@ export async function setCategoryActive(id: string, isActive: boolean, name = ''
     targetName: name,
     detail: isActive ? 'active' : 'inactive',
   });
+}
+
+/** Adds the ready-made category tree (nothing is deleted); one activity entry for the whole import. */
+export async function importDefaultCategories(
+  all: readonly Category[],
+  options: { trashOthers: boolean; onStep?: (done: number, total: number) => void },
+): Promise<ImportResult> {
+  const result = await importCategoryTree(db, all, DEFAULT_CATEGORY_TREE, options);
+  await recordAudit({
+    action: 'category.import',
+    targetType: 'category',
+    targetId: '',
+    targetName: String(result.created),
+    detail: String(result.trashed),
+  });
+  return result;
 }
 
 /** Moves a category and everything below it to the trash; returns how many categories went. */

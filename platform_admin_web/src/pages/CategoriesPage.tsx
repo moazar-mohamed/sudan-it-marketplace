@@ -24,6 +24,7 @@ import {
   MoveDialog,
   type FormTarget,
 } from './CategoryDialogs';
+import { CategoryImportDialog } from './CategoryImportDialog';
 
 /** The tint of a main category's tile, picked from its id so it never changes. */
 const TONES = ['primary', 'success', 'warning', 'info'] as const;
@@ -32,7 +33,8 @@ const hashOf = (id: string) => [...id].reduce((sum, ch) => (sum * 31 + ch.charCo
 type Dialog =
   | { kind: 'form'; target: FormTarget }
   | { kind: 'move'; category: Category }
-  | { kind: 'delete'; category: Category };
+  | { kind: 'delete'; category: Category }
+  | { kind: 'import' };
 
 /**
  * Category management: ONE tree, any depth, shared by products and services.
@@ -344,12 +346,17 @@ export function CategoriesPage() {
         subtitle={t('categories.subtitle')}
         back={{ to: '/', label: t('nav.dashboard') }}
         actions={
-          <button
-            className="btn btn--primary"
-            onClick={() => setDialog({ kind: 'form', target: { kind: 'create', parent: null } })}
-          >
-            + {t('categories.add')}
-          </button>
+          <>
+            <button className="btn" onClick={() => setDialog({ kind: 'import' })}>
+              {t('categories.import')}
+            </button>
+            <button
+              className="btn btn--primary"
+              onClick={() => setDialog({ kind: 'form', target: { kind: 'create', parent: null } })}
+            >
+              + {t('categories.add')}
+            </button>
+          </>
         }
       />
       <DataGate gates={[categories, products, services]}>
@@ -414,6 +421,7 @@ export function CategoriesPage() {
           onCreated={open}
         />
       )}
+      {dialog?.kind === 'import' && <CategoryImportDialog all={all} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'move' && (
         <MoveDialog category={dialog.category} all={all} onClose={() => setDialog(null)} />
       )}

@@ -6,6 +6,7 @@ import { ConfirmProvider, ToastProvider } from '../components/feedback';
 import {
   createCategory,
   deleteCategoryTree,
+  importDefaultCategories,
   moveCategory,
   repairCategoryChains,
   saveSiblingOrder,
@@ -50,6 +51,7 @@ vi.mock('../data/actions', () => {
     summarizeCategoryDeletion: vi.fn(),
     deleteCategoryTree: vi.fn(),
     trashCategory: vi.fn(),
+    importDefaultCategories: vi.fn(),
   };
 });
 
@@ -133,7 +135,7 @@ beforeEach(() => {
   store.services = [service('s1', 'lap')];
   for (const fn of [
     createCategory, updateCategory, setCategoryActive, saveSiblingOrder, moveCategory,
-    repairCategoryChains, deleteCategoryTree, trashCategory,
+    repairCategoryChains, deleteCategoryTree, trashCategory, importDefaultCategories,
   ]) {
     vi.mocked(fn as (...args: unknown[]) => unknown).mockReset().mockResolvedValue(undefined);
   }
@@ -642,5 +644,53 @@ describe('dragging a category', () => {
     renderPage();
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'lap' } });
     expect(rows().every((r) => r.querySelector('.cat-handle[draggable="false"]'))).toBe(true);
+  });
+});
+
+describe('importing the ready-made tree', () => {
+  const openImport = () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: en['categories.import'] }));
+    return screen.getByRole('dialog');
+  };
+
+  it('says what it would add and which other main categories it would send to the trash', () => {
+    const dialog = openImport();
+    expect(dialog.textContent).toContain('54 to add');
+    expect(dialog.textContent).toContain('0 already exist');
+    // Both live main categories of the test data are outside the ready-made tree.
+    expect(dialog.textContent).toContain('Other top-level categories (2)');
+    expect(within(dialog).getByRole('checkbox')).toHaveProperty('checked', true);
+  });
+
+  it('runs the import with the trash choice, then closes and says what was done', async () => {
+    vi.mocked(importDefaultCategories).mockResolvedValue({ created: 54, existing: 0, trashed: 4 });
+    const dialog = openImport();
+    fireEvent.click(within(dialog).getByRole('button', { name: en['categories.import.run'] }));
+    await waitFor(() => expect(importDefaultCategories).toHaveBeenCalledTimes(1));
+    expect(importDefaultCategories).toHaveBeenCalledWith(
+      store.categories,
+      expect.objectContaining({ trashOthers: true }),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(screen.getByText('Added 54 categories, moved 4 to the trash.')).toBeTruthy();
+  });
+
+  it('leaves the other categories alone when the box is unticked', async () => {
+    vi.mocked(importDefaultCategories).mockResolvedValue({ created: 54, existing: 0, trashed: 0 });
+    const dialog = openImport();
+    fireEvent.click(within(dialog).getByRole('checkbox'));
+    fireEvent.click(within(dialog).getByRole('button', { name: en['categories.import.run'] }));
+    await waitFor(() => expect(importDefaultCategories).toHaveBeenCalledTimes(1));
+    expect(importDefaultCategories).toHaveBeenCalledWith(
+      store.categories,
+      expect.objectContaining({ trashOthers: false }),
+    );
+  });
+
+  it('has the same words in Arabic', () => {
+    for (const key of Object.keys(en).filter((k) => k.startsWith('categories.import'))) {
+      expect(ar[key as keyof typeof en], key).toBeTruthy();
+    }
   });
 });
