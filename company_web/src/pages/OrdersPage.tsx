@@ -13,7 +13,6 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '../auth/AuthProvider';
 import { useCompanyData } from '../data/CompanyData';
-import { downloadCsv } from '../data/csv';
 import { db } from '../firebase';
 import {
   dayTime,
@@ -201,23 +200,11 @@ export function OrdersPage() {
     }
   };
 
-  const exportCsv = () =>
-    downloadCsv('orders.csv', [
-      ['رقم الطلب', 'التاريخ', 'العميل', 'الهاتف', 'المنتج', 'الكمية', 'النوع', 'الإجمالي', 'الدفع', 'الحالة'],
-      ...rows.map((o) => [shortId(o.id), o.createdAt.toISOString(), o.customerName, o.contactPhone, o.productName, o.quantity, o.installationSelected ? 'تركيب' : o.deliveryMethod === 'pickup' ? 'استلام' : 'توصيل', o.totalAmount, o.paymentStatus === 'confirmed' ? 'مؤكد' : 'بانتظار التحقق', o.orderStatus]),
-    ]);
-
   return (
     <main className="page">
       <PageHeader
         title="الطلبات"
         subtitle="طلبات المنتجات، الأحدث أولًا"
-        actions={
-          <>
-            <span className="live">يتحدّث لحظيًا</span>
-            <button type="button" className="btn" onClick={exportCsv} disabled={rows.length === 0}><Icon name="download" />تصدير CSV</button>
-          </>
-        }
       />
       {failed && <div style={{ marginBottom: 16 }}><Banner tone="warn" icon="alert" tight>تعذّر تحميل الطلبات. تأكد من الاتصال.</Banner></div>}
 

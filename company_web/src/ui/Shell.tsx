@@ -95,7 +95,7 @@ export function Shell() {
           ))}
         </nav>
         <div className="side-foot">
-          <div className={`live${failed ? ' off' : ''}`}>{failed ? 'الاتصال متقطع' : 'متصل · تحديث لحظي'}</div>
+          {failed && <div className="live off">الاتصال متقطع</div>}
           <button type="button" className="linkbtn" onClick={() => void signOut()}>
             تسجيل الخروج
           </button>

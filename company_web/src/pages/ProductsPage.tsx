@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCompanyData } from '../data/CompanyData';
 import { useCategoryLookup } from '../data/categories';
-import { downloadCsv } from '../data/csv';
 import { hasActiveOffer, hasEndedOffer, discountPercent, isLowStock, money, ordersText, parseNumber, productsText } from '../data/format';
 import {
   deleteProduct,
@@ -97,16 +96,6 @@ export function ProductsPage() {
   const toggleRow = (id: string) => setSelected((now) => { const n = new Set(now); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const selectedProducts = products.filter((p) => selected.has(p.id));
 
-  const exportCsv = () => {
-    downloadCsv('products.csv', [
-      ['الاسم', 'العلامة', 'التصنيف', 'السعر', 'سعر العرض', 'المخزون', 'متاح للبيع', 'توصيل', 'تركيب', 'سعر التركيب'],
-      ...rows.map((p) => [
-        p.name, p.brand, lookup.label(p.categoryId), p.price, hasActiveOffer(p) ? p.offerPrice : '', p.stockCount,
-        p.inStock ? 'نعم' : 'لا', p.isDeliveryAvailable ? 'نعم' : 'لا', p.isInstallationAvailable ? 'نعم' : 'لا', p.installationPrice,
-      ]),
-    ]);
-  };
-
   const moveTo = async (status: ProductStatus) => {
     const { ok, failed } = await setProductsStatus(selectedProducts.map((p) => p.id), status);
     toast(failed ? `تم تحديث ${ok} وتعذّر ${failed}` : `تم تحديث ${ok} منتج`, failed ? 'err' : 'ok');
@@ -120,10 +109,6 @@ export function ProductsPage() {
         subtitle={`${productsText(counts.all)} · ${counts.low + counts.out} تحتاج تعبئة · عدّل السعر والمخزون من الجدول مباشرة`}
         actions={
           <>
-            <button type="button" className="btn" onClick={exportCsv} disabled={rows.length === 0}>
-              <Icon name="download" />
-              تصدير CSV
-            </button>
             <Link to="/products/new" className="btn p">
               <Icon name="plus" />
               منتج جديد

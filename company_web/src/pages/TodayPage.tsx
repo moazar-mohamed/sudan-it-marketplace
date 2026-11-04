@@ -153,7 +153,7 @@ export function TodayPage() {
               );
             })
           )}
-          <div className="foot"><span className="sub">يتحدّث لحظيًا</span><Link to="/orders" className="btn sm g">عرض كل الطلبات</Link></div>
+          <div className="foot"><span /><Link to="/orders" className="btn sm g">عرض كل الطلبات</Link></div>
         </section>
 
         <div className="stack">
