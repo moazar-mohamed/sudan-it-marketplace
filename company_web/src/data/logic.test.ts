@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { csvCell } from './csv';
+import { csvCell, parseCsv } from './csv';
+import { readImport } from './importProducts';
 import { arCount, discountPercent, displayPhone, hasActiveOffer, hasEndedOffer, isLowStock, leftLabel, lowLevelOf, parseNumber, productsText, salePrice, shortId, unitsText, urgencyOf } from './format';
 import { mapProduct } from './mappers';
 import { awaitsRefund, nextStatusLabel, nextStatusOf } from './orderRules';
@@ -143,5 +144,41 @@ describe('csv', () => {
     expect(csvCell('=SUM(A1)')).toBe("'=SUM(A1)");
     expect(csvCell(null)).toBe('');
     expect(csvCell(12)).toBe('12');
+  });
+});
+
+describe('CSV import', () => {
+  const choices = [
+    { id: 'c1', label: 'حواسيب › لابتوبات' },
+    { id: 'c2', label: 'شبكات › راوترات' },
+  ];
+
+  it('reads quotes, a BOM, semicolons and Windows line endings', () => {
+    expect(parseCsv('﻿a;b\r\n"x;y";"he said ""hi"""\r\n\r\n')).toEqual([['a', 'b'], ['x;y', 'he said "hi"']]);
+    expect(parseCsv('a,b\n1,"two\nlines"')).toEqual([['a', 'b'], ['1', 'two\nlines']]);
+  });
+
+  it('turns good rows into drafts and lists what is wrong with the others', () => {
+    const file = [
+      'الاسم,العلامة,التصنيف,السعر,المخزون,تركيب,سعر التركيب,الحالة',
+      'لابتوب HP,HP,لابتوبات,1450000,3,نعم,30000,منشور',
+      'راوتر,,شبكات › راوترات,,,,,',
+      ',,لابتوبات,10,1,,,',
+      'كاميرا,,تصنيف غير موجود,-5,x,,,',
+    ].join('\n');
+    const { rows, problem } = readImport(file, choices);
+    expect(problem).toBeNull();
+    expect(rows.map((r) => r.draft !== null)).toEqual([true, true, false, false]);
+    expect(rows[0].draft).toMatchObject({ categoryId: 'c1', price: 1450000, isInstallationAvailable: true, installationPrice: 30000, status: 'published' });
+    expect(rows[1].draft).toMatchObject({ categoryId: 'c2', price: null, status: 'draft', isDeliveryAvailable: true });
+    expect(rows[1].stock).toBe(0);
+    expect(rows[2].errors).toContain('الاسم فارغ');
+    expect(rows[3].errors.length).toBe(3);
+  });
+
+  it('refuses a file without a name column or with too many rows', () => {
+    expect(readImport('a,b\n1,2', choices).problem).toContain('الاسم');
+    const many = ['الاسم,التصنيف', ...Array.from({ length: 201 }, (_, i) => `p${i},لابتوبات`)].join('\n');
+    expect(readImport(many, choices).problem).toContain('200');
   });
 });

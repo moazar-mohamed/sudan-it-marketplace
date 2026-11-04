@@ -9,6 +9,7 @@ import './styles.css';
 import { AuthProvider } from './auth/AuthProvider';
 import { ToastProvider } from './ui/toast';
 import App from './App';
+import { ThemeProvider } from './theme';
 import { ErrorBoundary, reloadForNewVersion } from './ui/ErrorBoundary';
 
 // A page file that is gone after a new deploy: load the new version instead of staying blank.
@@ -19,13 +20,15 @@ window.addEventListener('vite:preloadError', (e) => {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <ToastProvider>
-        <AuthProvider>
-          <ErrorBoundary>
-            <App />
-          </ErrorBoundary>
-        </AuthProvider>
-      </ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,
 );

@@ -31,7 +31,7 @@ export function ChatsPage() {
                   type="button"
                   className="lr"
                   aria-current={selected?.id === c.id}
-                  style={{ width: '100%', border: 0, borderBottom: '1px solid var(--line)', background: selected?.id === c.id ? 'var(--brand-tint)' : '#fff', textAlign: 'start' }}
+                  style={{ width: '100%', border: 0, borderBottom: '1px solid var(--line)', background: selected?.id === c.id ? 'var(--brand-tint)' : 'var(--surface)', textAlign: 'start' }}
                   onClick={() => setParams({ c: c.id }, { replace: true })}
                 >
                   <span className="av">{(c.customerName || 'ع').slice(0, 1)}</span>

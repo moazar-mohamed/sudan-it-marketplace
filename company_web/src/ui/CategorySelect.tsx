@@ -54,7 +54,7 @@ export function CategorySelect({
                 key={c.id}
                 type="button"
                 className="lr"
-                style={{ width: '100%', background: c.id === value ? 'var(--brand-tint)' : '#fff', border: 0, borderBottom: '1px solid var(--line)', textAlign: 'start' }}
+                style={{ width: '100%', background: c.id === value ? 'var(--brand-tint)' : 'var(--surface)', border: 0, borderBottom: '1px solid var(--line)', textAlign: 'start' }}
                 onClick={() => { onChange(c.id); setOpen(false); setQ(''); }}
               >
                 <span className="grow">{c.label}</span>

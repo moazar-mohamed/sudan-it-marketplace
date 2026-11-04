@@ -459,7 +459,7 @@ function Editor({
                 <div style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden' }}>
                   <div style={{ height: 170, background: 'var(--neutral-bg)', display: 'grid', placeItems: 'center', color: 'var(--muted)', position: 'relative' }}>
                     {form.imageUrls[0] ? <img src={form.imageUrls[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icon name="image" size="lg" />}
-                    {offerActive && product && <span className="chip c-bad nd" style={{ position: 'absolute', top: 10, insetInlineStart: 10, background: 'var(--bad)', color: '#fff' }}>خصم {discountPercent(product)}%</span>}
+                    {offerActive && product && <span className="chip c-bad nd" style={{ position: 'absolute', top: 10, insetInlineStart: 10, background: 'var(--bad-solid)', color: '#fff' }}>خصم {discountPercent(product)}%</span>}
                   </div>
                   <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <div className="b">{form.name || 'اسم المنتج'}</div>

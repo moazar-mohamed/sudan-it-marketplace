@@ -217,7 +217,7 @@ function Details({ order }: { order: Order }) {
 
                 <div className="row"><span className="hr grow" /><span className="sub">أو</span><span className="hr grow" /></div>
 
-                <div style={{ border: '1px solid #E4B3B2', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ border: '1px solid var(--bad-line)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div className="b" style={{ color: 'var(--bad)' }}>رفض الإيصال وإلغاء الطلب</div>
                   <div className="fld">
                     <label htmlFor="why">السبب</label>

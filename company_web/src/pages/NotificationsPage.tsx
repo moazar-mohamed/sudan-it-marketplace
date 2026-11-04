@@ -43,10 +43,10 @@ export function NotificationsPage() {
                 key={n.id}
                 type="button"
                 className="lr"
-                style={{ width: '100%', border: 0, borderBottom: '1px solid var(--line)', background: n.isRead ? '#fff' : 'var(--brand-tint)', textAlign: 'start' }}
+                style={{ width: '100%', border: 0, borderBottom: '1px solid var(--line)', background: n.isRead ? 'var(--surface)' : 'var(--brand-tint)', textAlign: 'start' }}
                 onClick={() => void open(n.id, v.to, n.isRead)}
               >
-                <div className="ico-c" style={{ background: n.isRead ? 'var(--neutral-bg)' : '#fff' }}><Icon name="bell" /></div>
+                <div className="ico-c" style={{ background: n.isRead ? 'var(--neutral-bg)' : 'var(--surface)' }}><Icon name="bell" /></div>
                 <div className="grow"><div className="b">{v.title}</div><div className="sub">{v.body}</div></div>
                 {!n.isRead && <Chip tone="info" dot={false} small>جديد</Chip>}
                 <span className="sub">{ago(n.createdAt)}</span>

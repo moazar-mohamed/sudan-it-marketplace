@@ -62,7 +62,7 @@ export function describeNotice(n: Notice): NoticeView {
   const order = n.orderId ? `/orders/${n.orderId}` : '/orders';
   switch (n.type) {
     case 'new_order': return { title: 'طلب جديد', body: `وصلك طلب جديد على «${name}». راجع الإيصال.`, to: order };
-    case 'new_review': return { title: 'تقييم جديد', body: `قيّم عميل «${name}».`, to: '/team' };
+    case 'new_review': return { title: 'تقييم جديد', body: `قيّم عميل «${name}».`, to: '/reviews' };
     case 'new_service_request': return { title: 'طلب خدمة جديد', body: `طلب عميل الخدمة «${name}».`, to: '/services' };
     case 'service_request_cancelled': return { title: 'أُلغي طلب خدمة', body: `ألغى عميل طلبه للخدمة «${name}».`, to: '/services' };
     case 'job_completed': return { title: 'اكتملت مهمة تركيب', body: `أنهى الفني تركيب «${name}».`, to: order };

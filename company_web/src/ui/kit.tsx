@@ -95,11 +95,15 @@ export function PageHeader({
 }
 
 /** A modal dialog: Escape and the backdrop close it unless it is [busy]. */
+/** The dialogs that are open, oldest first. */
+const openModals: object[] = [];
+
 export function Modal({
   title,
   onClose,
   busy,
   wide,
+  xl,
   children,
   footer,
   labelledBy = 'dlg-title',
@@ -108,26 +112,35 @@ export function Modal({
   onClose: () => void;
   busy?: boolean;
   wide?: boolean;
+  /** Wider still, for a table or a map. */
+  xl?: boolean;
   children: ReactNode;
   footer: ReactNode;
   labelledBy?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const me = useRef({}).current;
+  // Registered once on opening, so a re-render never moves it above a dialog opened later.
+  useEffect(() => {
+    openModals.push(me);
+    return () => { openModals.splice(openModals.indexOf(me), 1); };
+  }, [me]);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     ref.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !busy) onClose();
+      // Escape closes only the dialog on top (a map opened from a dialog, say).
+      if (e.key === 'Escape' && !busy && openModals[openModals.length - 1] === me) onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => {
       window.removeEventListener('keydown', onKey);
       previous?.focus?.();
     };
-  }, [busy, onClose]);
+  }, [busy, onClose, me]);
   return (
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && !busy && onClose()}>
-      <div ref={ref} tabIndex={-1} className={`dlg${wide ? ' wide' : ''}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
+      <div ref={ref} tabIndex={-1} className={`dlg${wide || xl ? ' wide' : ''}${xl ? ' xl' : ''}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
         <div className="dlg-b">
           <h2 id={labelledBy}>{title}</h2>
           {children}

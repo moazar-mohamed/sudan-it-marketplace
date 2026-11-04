@@ -16,6 +16,7 @@ import {
 import type { Order, Product, ProductStatus } from '../data/types';
 import { shortId } from '../data/format';
 import { Icon } from '../ui/Icon';
+import { ImportProductsDialog } from '../ui/ImportProductsDialog';
 import { Banner, Chip, ConfirmDialog, Empty, Loading, Modal, PageHeader, Spinner } from '../ui/kit';
 import { StockDialog } from '../ui/StockDialog';
 import { useToast } from '../ui/toast';
@@ -30,7 +31,7 @@ const PAGE = 50;
 const needsRestock = (p: Product): boolean => p.stockCount === 0 || isLowStock(p);
 
 export function ProductsPage() {
-  const { products, pendingPayment, categories, companyId } = useCompanyData();
+  const { products, pendingPayment, categories, companyId, company } = useCompanyData();
   const toast = useToast();
   const lookup = useCategoryLookup(categories);
 
@@ -44,6 +45,7 @@ export function ProductsPage() {
   const [stockFor, setStockFor] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
   const [bulkPrice, setBulkPrice] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   // Units waiting in orders whose payment is not confirmed yet (they take no stock until it is).
   const demand = useMemo(() => {
@@ -120,10 +122,16 @@ export function ProductsPage() {
         title="المنتجات"
         subtitle={`${productsText(counts.all)} · اضغط على السعر أو المخزون لتعديله من الجدول مباشرة`}
         actions={
-          <Link to="/products/new" className="btn p">
-            <Icon name="plus" />
-            منتج جديد
-          </Link>
+          <>
+            <button type="button" className="btn" onClick={() => setImporting(true)}>
+              <Icon name="upload" />
+              استيراد من ملف
+            </button>
+            <Link to="/products/new" className="btn p">
+              <Icon name="plus" />
+              منتج جديد
+            </Link>
+          </>
         }
       />
 
@@ -229,6 +237,7 @@ export function ProductsPage() {
       </section>
 
       {stockFor && <StockDialog product={products.find((p) => p.id === stockFor.id) ?? stockFor} demand={demand.get(stockFor.id) ?? 0} onClose={() => setStockFor(null)} />}
+      {importing && <ImportProductsDialog companyId={companyId} companyName={company?.name ?? ''} choices={lookup.choices} onClose={() => setImporting(false)} />}
       {deleting && <DeleteDialog companyId={companyId} product={deleting} onClose={() => setDeleting(null)} />}
       {bulkPrice && <BulkPriceDialog items={selectedProducts} onClose={(done) => { setBulkPrice(false); if (done) setSelected(new Set()); }} />}
     </main>

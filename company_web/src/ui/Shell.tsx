@@ -2,6 +2,7 @@ import { Suspense, useEffect, useRef, useState, type FormEvent } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useCompanyData } from '../data/CompanyData';
+import { useTheme } from '../theme';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Banner, Loading } from './kit';
 import { Icon, type IconName } from './Icon';
@@ -19,6 +20,7 @@ export function Shell() {
   const { company, pendingPayment, failed, unreadChats, unreadNotices } = useCompanyData();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { resolved: theme, toggle: toggleTheme } = useTheme();
   const searchRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState('');
 
@@ -58,7 +60,8 @@ export function Shell() {
       label: 'الشركة',
       items: [
         { to: '/company', label: 'ملف الشركة', icon: 'building' },
-        { to: '/team', label: 'الفريق والتقييمات', icon: 'users' },
+        { to: '/team', label: 'الفريق', icon: 'users' },
+        { to: '/reviews', label: 'التقييمات', icon: 'star' },
       ],
     },
   ];
@@ -112,6 +115,9 @@ export function Shell() {
             <kbd>Ctrl K</kbd>
           </form>
           <span className="grow" />
+          <button type="button" className="icon-btn" onClick={toggleTheme} aria-label={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'} title={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'}>
+            <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
+          </button>
           <NavLink to="/chats" className="icon-btn" aria-label={unreadChats ? `المحادثات، ${unreadChats} تنتظر ردك` : 'المحادثات'}>
             <Icon name="chat" />
             {unreadChats > 0 && <span className="bdg">{unreadChats}</span>}

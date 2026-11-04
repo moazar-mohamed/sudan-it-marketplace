@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useCompanyData } from '../data/CompanyData';
 import { saveServiceCities, saveProfile, savePaymentAccounts, savePickupPoints } from '../data/company';
 import { cityChoicesFor, useCities } from '../data/cities';
-import { parseNumber } from '../data/format';
 import type { Company, PaymentAccount, PickupPoint } from '../data/types';
 import { Icon } from '../ui/Icon';
 import { ImageField } from '../ui/ImageField';
+import { LocationField } from '../ui/LocationField';
 import { Banner, Chip, ConfirmDialog, Loading, Modal, PageHeader, Spinner } from '../ui/kit';
 import { useToast } from '../ui/toast';
 
@@ -38,15 +38,12 @@ function ProfileCard({ company }: { company: Company }) {
   const [phone, setPhone] = useState(company.phone);
   const [description, setDescription] = useState(company.description);
   const [address, setAddress] = useState(company.address);
-  const [lat, setLat] = useState(company.latitude === null ? '' : String(company.latitude));
-  const [lng, setLng] = useState(company.longitude === null ? '' : String(company.longitude));
+  const [latN, setLatN] = useState<number | null>(company.latitude);
+  const [lngN, setLngN] = useState<number | null>(company.longitude);
   const [busy, setBusy] = useState(false);
 
-  const latN = lat.trim() === '' ? null : parseNumber(lat);
-  const lngN = lng.trim() === '' ? null : parseNumber(lng);
-  const coordsOk = (latN === null && lngN === null) || (latN !== null && lngN !== null && Math.abs(latN) <= 90 && Math.abs(lngN) <= 180);
-  const valid = name.trim().length > 0 && name.trim().length <= 120 && coordsOk;
-  const dirty = name !== company.name || logoUrl !== company.logoUrl || phone !== company.phone || description !== company.description || address !== company.address || lat !== (company.latitude === null ? '' : String(company.latitude)) || lng !== (company.longitude === null ? '' : String(company.longitude));
+  const valid = name.trim().length > 0 && name.trim().length <= 120;
+  const dirty = name !== company.name || logoUrl !== company.logoUrl || phone !== company.phone || description !== company.description || address !== company.address || latN !== company.latitude || lngN !== company.longitude;
 
   const save = async () => {
     if (!valid) return;
@@ -67,11 +64,7 @@ function ProfileCard({ company }: { company: Company }) {
         <div className="fld"><label htmlFor="c-email">البريد الإلكتروني</label><input id="c-email" className="inp ltr" value={company.email} disabled /><span className="hint">بريد الشركة، يغيّره مدير المنصة.</span></div>
         <div className="fld"><label htmlFor="c-desc">نبذة عن الشركة</label><textarea id="c-desc" className="inp" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
         <div className="fld"><label htmlFor="c-addr">العنوان المكتوب</label><input id="c-addr" className="inp" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
-        <div className="row wrap" style={{ alignItems: 'flex-start' }}>
-          <div className="fld grow"><label htmlFor="c-lat">خط العرض (اختياري)</label><input id="c-lat" className="inp ltr" inputMode="decimal" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="15.5007" /></div>
-          <div className="fld grow"><label htmlFor="c-lng">خط الطول (اختياري)</label><input id="c-lng" className="inp ltr" inputMode="decimal" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="32.5599" /></div>
-        </div>
-        {!coordsOk && <span className="errt">اكتب خطَّي العرض والطول معًا بقيم صحيحة، أو اتركهما فارغين.</span>}
+        <LocationField latitude={latN} longitude={lngN} onChange={(la, lo) => { setLatN(la); setLngN(lo); }} />
         <div className="row"><button type="button" className="btn p" disabled={!valid || !dirty || busy} onClick={() => void save()}>{busy && <Spinner />}حفظ</button></div>
       </div>
     </section>
@@ -175,22 +168,15 @@ function PickupCard({ company }: { company: Company }) {
 function PickupDialog({ initial, busy, onSave, onClose }: { initial: PickupPoint; busy: boolean; onSave: (p: PickupPoint) => void; onClose: () => void }) {
   const [name, setName] = useState(initial.name);
   const [address, setAddress] = useState(initial.address);
-  const [lat, setLat] = useState(initial.latitude === null ? '' : String(initial.latitude));
-  const [lng, setLng] = useState(initial.longitude === null ? '' : String(initial.longitude));
-  const latN = lat.trim() === '' ? null : parseNumber(lat);
-  const lngN = lng.trim() === '' ? null : parseNumber(lng);
-  const coordsOk = (latN === null && lngN === null) || (latN !== null && lngN !== null && Math.abs(latN) <= 90 && Math.abs(lngN) <= 180);
-  const valid = name.trim().length > 0 && name.length <= 60 && address.length <= 200 && coordsOk;
+  const [latN, setLatN] = useState<number | null>(initial.latitude);
+  const [lngN, setLngN] = useState<number | null>(initial.longitude);
+  const valid = name.trim().length > 0 && name.length <= 60 && address.length <= 200;
   return (
     <Modal title={initial.name ? 'تعديل نقطة الاستلام' : 'نقطة استلام جديدة'} onClose={onClose} busy={busy}
       footer={<><button type="button" className="btn p" disabled={!valid || busy} onClick={() => onSave({ name, address, latitude: latN, longitude: lngN })}>{busy && <Spinner />}حفظ</button><button type="button" className="btn" disabled={busy} onClick={onClose}>إلغاء</button></>}>
       <div className="fld"><label htmlFor="pk-name">اسم النقطة</label><input id="pk-name" className="inp" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} autoFocus placeholder="المعرض الرئيسي" /></div>
       <div className="fld"><label htmlFor="pk-addr">العنوان</label><input id="pk-addr" className="inp" value={address} maxLength={200} onChange={(e) => setAddress(e.target.value)} /></div>
-      <div className="row" style={{ alignItems: 'flex-start' }}>
-        <div className="fld grow"><label htmlFor="pk-lat">خط العرض</label><input id="pk-lat" className="inp ltr" inputMode="decimal" value={lat} onChange={(e) => setLat(e.target.value)} /></div>
-        <div className="fld grow"><label htmlFor="pk-lng">خط الطول</label><input id="pk-lng" className="inp ltr" inputMode="decimal" value={lng} onChange={(e) => setLng(e.target.value)} /></div>
-      </div>
-      {!coordsOk && <span className="errt">اكتب خطَّي العرض والطول معًا بقيم صحيحة، أو اتركهما فارغين.</span>}
+      <LocationField latitude={latN} longitude={lngN} onChange={(la, lo) => { setLatN(la); setLngN(lo); }} />
     </Modal>
   );
 }
