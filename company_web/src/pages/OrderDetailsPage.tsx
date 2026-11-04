@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../auth/AuthProvider';
-import { sendChatMessage, useOrderChat } from '../data/chat';
 import { useCompanyData } from '../data/CompanyData';
 import { cityName, useCities } from '../data/cities';
 import { dateTime, dayTime, displayPhone, leftLabel, money, paymentTimeLeft, shortId, unitsText, urgencyOf } from '../data/format';
@@ -23,6 +22,7 @@ import { useReceipt } from '../data/receipts';
 import { useTechnicians } from '../data/technicians';
 import type { CancelReason, Order } from '../data/types';
 import { db } from '../firebase';
+import { ChatPanel } from '../ui/ChatPanel';
 import { Icon } from '../ui/Icon';
 import {
   Banner,
@@ -311,7 +311,7 @@ function Details({ order }: { order: Order }) {
         <div className="stack">
           <ReceiptCard orderId={order.id} />
           {awaiting && <Checklist order={order} />}
-          <ChatCard orderId={order.id} senderName={senderName} />
+          <ChatPanel chatId={order.id} senderName={senderName} />
         </div>
       </div>
 
@@ -467,42 +467,6 @@ function TechnicianCard({ order, technicians }: { order: Order; technicians: Ret
             </select>
             <button type="button" className="btn p" disabled={!choice || busy} onClick={() => void assign()}>{busy && <Spinner />}تعيين</button>
           </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function ChatCard({ orderId, senderName }: { orderId: string; senderName: string }) {
-  const { exists, messages } = useOrderChat(orderId);
-  const toast = useToast();
-  const [text, setText] = useState('');
-  const [busy, setBusy] = useState(false);
-  const box = useRef<HTMLDivElement>(null);
-  useEffect(() => { box.current?.scrollTo({ top: box.current.scrollHeight }); }, [messages.length]);
-
-  const send = async () => {
-    if (!text.trim() || busy) return;
-    setBusy(true);
-    const ok = await sendChatMessage(orderId, text, senderName);
-    if (ok) setText(''); else toast('تعذّر إرسال الرسالة.', 'err');
-    setBusy(false);
-  };
-  return (
-    <section className="card" aria-label="المحادثة">
-      <div className="card-h"><h3>محادثة الطلب</h3></div>
-      <div className="card-b stack t">
-        {exists === false ? <p className="muted">لا توجد محادثة لهذا الطلب (طلب قديم سبق المحادثات).</p> : (
-          <>
-            <div className="msgs" ref={box} aria-live="polite">
-              {messages.length === 0 && <p className="muted">لا رسائل بعد.</p>}
-              {messages.map((m) => <div key={m.id} className={`msg ${m.senderRole === 'company' ? 'out' : 'in'}`}>{m.text}</div>)}
-            </div>
-            <div className="row">
-              <input className="inp" value={text} placeholder="اكتب رسالة للعميل…" aria-label="رسالة" maxLength={2000} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && void send()} />
-              <button type="button" className="btn p" disabled={busy || !text.trim()} onClick={() => void send()}>إرسال</button>
-            </div>
-          </>
         )}
       </div>
     </section>

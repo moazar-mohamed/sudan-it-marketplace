@@ -191,6 +191,10 @@ export interface ChatMessage {
 export interface Chat {
   id: string;
   orderId: string;
+  /** Set when the conversation is about a service request. */
+  serviceRequestId: string;
+  serviceName: string;
+  productId: string;
   customerId: string;
   companyId: string;
   customerName: string;

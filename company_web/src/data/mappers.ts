@@ -248,6 +248,9 @@ export function mapChat(id: string, d: DocumentData): Chat {
   return {
     id,
     orderId: str(d.orderId),
+    serviceRequestId: str(d.serviceRequestId),
+    serviceName: str(d.serviceName),
+    productId: str(d.productId),
     customerId: str(d.customerId),
     companyId: str(d.companyId),
     customerName: str(d.customerName),

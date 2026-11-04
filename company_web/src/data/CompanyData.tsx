@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
+import { isUnreadChat, useChats, useNotices, type Notice } from './inbox';
 import { awaitsRefund, expireOverdueOrders } from './orders';
 import { mapCategory, mapCompany, mapOrder, mapProduct } from './mappers';
-import type { Category, Company, Order, Product } from './types';
+import type { Category, Chat, Company, Order, Product } from './types';
 
 interface CompanyDataValue {
   companyId: string;
@@ -16,6 +17,12 @@ interface CompanyDataValue {
   pendingPayment: Order[];
   /** Paid orders that were cancelled and whose refund has not been recorded yet. */
   pendingRefunds: Order[];
+  /** The company's notifications (null while they load) and how many are unread. */
+  notices: Notice[] | null;
+  unreadNotices: number;
+  /** Conversations with a message (null while they load) and how many wait for an answer. */
+  chats: Chat[] | null;
+  unreadChats: number;
   categories: Category[];
   /** A live read failed (offline, or access refused). */
   failed: boolean;
@@ -38,6 +45,8 @@ export function CompanyDataProvider({ companyId, children }: { companyId: string
   const [categories, setCategories] = useState<Category[]>([]);
   const [cancelledPaid, setCancelledPaid] = useState<Order[]>([]);
   const [failed, setFailed] = useState(false);
+  const notices = useNotices(companyId);
+  const chats = useChats(companyId);
 
   useEffect(() => {
     const fail = () => setFailed(true);
@@ -86,10 +95,14 @@ export function CompanyDataProvider({ companyId, children }: { companyId: string
       openOrders,
       pendingPayment: (openOrders ?? []).filter((o) => o.orderStatus === 'processing' && o.paymentStatus === 'pending_verification'),
       pendingRefunds: cancelledPaid.filter(awaitsRefund),
+      notices,
+      unreadNotices: (notices ?? []).filter((n) => !n.isRead).length,
+      chats,
+      unreadChats: (chats ?? []).filter(isUnreadChat).length,
       categories,
       failed,
     }),
-    [companyId, company, products, openOrders, cancelledPaid, categories, failed],
+    [companyId, company, products, openOrders, cancelledPaid, notices, chats, categories, failed],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

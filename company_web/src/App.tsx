@@ -20,6 +20,8 @@ const OffersPage = page(() => import('./pages/OffersPage'), 'OffersPage');
 const ServicesPage = page(() => import('./pages/ServicesPage'), 'ServicesPage');
 const CompanyPage = page(() => import('./pages/CompanyPage'), 'CompanyPage');
 const TeamPage = page(() => import('./pages/TeamPage'), 'TeamPage');
+const ChatsPage = page(() => import('./pages/ChatsPage'), 'ChatsPage');
+const NotificationsPage = page(() => import('./pages/NotificationsPage'), 'NotificationsPage');
 
 export default function App() {
   const { state } = useAuth();
@@ -49,6 +51,8 @@ export default function App() {
             <Route path="services" element={<ServicesPage />} />
             <Route path="company" element={<CompanyPage />} />
             <Route path="team" element={<TeamPage />} />
+            <Route path="chats" element={<ChatsPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
             <Route path="*" element={<Empty text="الصفحة غير موجودة" />} />
           </Route>
         </Routes>

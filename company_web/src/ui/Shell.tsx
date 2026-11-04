@@ -15,7 +15,7 @@ interface Item {
 
 export function Shell() {
   const { state, signOut } = useAuth();
-  const { company, pendingPayment, failed } = useCompanyData();
+  const { company, pendingPayment, failed, unreadChats, unreadNotices } = useCompanyData();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState('');
@@ -110,6 +110,14 @@ export function Shell() {
             <kbd>Ctrl K</kbd>
           </form>
           <span className="grow" />
+          <NavLink to="/chats" className="icon-btn" aria-label={unreadChats ? `المحادثات، ${unreadChats} تنتظر ردك` : 'المحادثات'}>
+            <Icon name="chat" />
+            {unreadChats > 0 && <span className="bdg">{unreadChats}</span>}
+          </NavLink>
+          <NavLink to="/notifications" className="icon-btn" aria-label={unreadNotices ? `التنبيهات، ${unreadNotices} غير مقروءة` : 'التنبيهات'}>
+            <Icon name="bell" />
+            {unreadNotices > 0 && <span className="bdg">{unreadNotices}</span>}
+          </NavLink>
           <div className="user">
             <span className="av">{name.slice(0, 1) || 'م'}</span>
             <div>
