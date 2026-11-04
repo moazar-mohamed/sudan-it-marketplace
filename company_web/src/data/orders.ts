@@ -18,6 +18,7 @@ import { mapOrder } from './mappers';
 import { sendNotice } from './notify';
 import { awaitsRefund, nextStatusLabel, nextStatusOf } from './orderRules';
 import { PAYMENT_WINDOW_MS, type CancelReason, type Order, type OrderStatus } from './types';
+import { t } from '../i18n';
 
 export type OrderProblem =
   | 'not-awaiting'
@@ -41,27 +42,27 @@ export class OrderError extends Error {
 }
 
 export function orderProblemText(error: unknown): string {
-  if (!(error instanceof OrderError)) return 'تعذّر تنفيذ العملية، حاول مرة أخرى.';
+  if (!(error instanceof OrderError)) return t('تعذّر تنفيذ العملية، حاول مرة أخرى.');
   const { available, requested } = error.detail;
   switch (error.problem) {
     case 'not-awaiting':
-      return 'لم يعد هذا الطلب بانتظار تأكيد الدفع. حدّث الصفحة.';
+      return t('لم يعد هذا الطلب بانتظار تأكيد الدفع. حدّث الصفحة.');
     case 'already-confirmed':
-      return 'تم تأكيد الدفع لهذا الطلب من قبل.';
+      return t('تم تأكيد الدفع لهذا الطلب من قبل.');
     case 'product-gone':
-      return 'المنتج لم يعد موجودًا في كتالوجك، فلا يمكن تأكيد الطلب. يمكنك إلغاؤه بسبب نفاد المخزون.';
+      return t('المنتج لم يعد موجودًا في كتالوجك، فلا يمكن تأكيد الطلب. يمكنك إلغاؤه بسبب نفاد المخزون.');
     case 'stock-short':
-      return `المخزون لا يغطي الطلب: المتوفر ${available ?? 0} والمطلوب ${requested ?? 0}. زد المخزون ثم أكّد، أو ألغِ الطلب.`;
+      return t('المخزون لا يغطي الطلب: المتوفر {0} والمطلوب {1}. زد المخزون ثم أكّد، أو ألغِ الطلب.', available ?? 0, requested ?? 0);
     case 'no-receipt':
-      return 'لا يوجد إيصال محفوظ لهذا الطلب، فلا يمكن تأكيد الدفع.';
+      return t('لا يوجد إيصال محفوظ لهذا الطلب، فلا يمكن تأكيد الدفع.');
     case 'cancel-not-allowed':
-      return 'لا يمكن إلغاء هذا الطلب الآن: تغيّرت حالته.';
+      return t('لا يمكن إلغاء هذا الطلب الآن: تغيّرت حالته.');
     case 'product-still-covers':
-      return 'المنتج ما زال يغطي هذا الطلب (المتوفر يكفي)، فلا يصح إلغاؤه بسبب نفاد المخزون.';
+      return t('المنتج ما زال يغطي هذا الطلب (المتوفر يكفي)، فلا يصح إلغاؤه بسبب نفاد المخزون.');
     case 'denied':
-      return 'ليس لديك صلاحية لهذه العملية.';
+      return t('ليس لديك صلاحية لهذه العملية.');
     default:
-      return 'تعذّر تنفيذ العملية، حاول مرة أخرى.';
+      return t('تعذّر تنفيذ العملية، حاول مرة أخرى.');
   }
 }
 

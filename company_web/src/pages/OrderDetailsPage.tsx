@@ -39,6 +39,7 @@ import {
   useNow,
 } from '../ui/kit';
 import { useToast } from '../ui/toast';
+import { t } from '../i18n';
 
 function useOrder(id: string): Order | null | undefined {
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
@@ -50,17 +51,17 @@ function useOrder(id: string): Order | null | undefined {
 }
 
 const REJECT_REASONS: { key: string; label: string; cancel: CancelReason; message: (o: Order) => string }[] = [
-  { key: 'amount', label: 'المبلغ المحوَّل لا يطابق قيمة الطلب', cancel: 'company', message: (o) => `عميلنا العزيز، المبلغ الظاهر في الإيصال لا يطابق قيمة الطلب #${shortId(o.id)} وهي ${money(o.totalAmount)} SDG، فتعذّر تأكيده. يمكنك إعادة الطلب أو التواصل معنا هنا.` },
-  { key: 'unclear', label: 'الإيصال غير واضح', cancel: 'company', message: (o) => `عميلنا العزيز، لم نتمكن من قراءة إيصال الطلب #${shortId(o.id)} لعدم وضوحه، فتعذّر تأكيده. يمكنك إعادة الطلب مع صورة أوضح.` },
-  { key: 'notreceived', label: 'لم يصلنا التحويل', cancel: 'company', message: (o) => `عميلنا العزيز، لم يصلنا تحويل الطلب #${shortId(o.id)} في حسابنا، فتعذّر تأكيده. إن كنت قد حوّلت المبلغ فتواصل معنا هنا.` },
-  { key: 'stock', label: 'نفد المخزون', cancel: 'out_of_stock', message: (o) => `تم إلغاء طلبك #${shortId(o.id)} لأن المنتج نفد من المخزون. إن كنت قد حوّلت المبلغ فسنعيده إليك. نعتذر عن الإزعاج.` },
+  { key: 'amount', label: t('المبلغ المحوَّل لا يطابق قيمة الطلب'), cancel: 'company', message: (o) => t('عميلنا العزيز، المبلغ الظاهر في الإيصال لا يطابق قيمة الطلب #{0} وهي {1} SDG، فتعذّر تأكيده. يمكنك إعادة الطلب أو التواصل معنا هنا.', shortId(o.id), money(o.totalAmount)) },
+  { key: 'unclear', label: t('الإيصال غير واضح'), cancel: 'company', message: (o) => t('عميلنا العزيز، لم نتمكن من قراءة إيصال الطلب #{0} لعدم وضوحه، فتعذّر تأكيده. يمكنك إعادة الطلب مع صورة أوضح.', shortId(o.id)) },
+  { key: 'notreceived', label: t('لم يصلنا التحويل'), cancel: 'company', message: (o) => t('عميلنا العزيز، لم يصلنا تحويل الطلب #{0} في حسابنا، فتعذّر تأكيده. إن كنت قد حوّلت المبلغ فتواصل معنا هنا.', shortId(o.id)) },
+  { key: 'stock', label: t('نفد المخزون'), cancel: 'out_of_stock', message: (o) => t('تم إلغاء طلبك #{0} لأن المنتج نفد من المخزون. إن كنت قد حوّلت المبلغ فسنعيده إليك. نعتذر عن الإزعاج.', shortId(o.id)) },
 ];
 
 export function OrderDetailsPage() {
   const { id = '' } = useParams();
   const order = useOrder(id);
   if (order === undefined) return <main className="page"><Loading /></main>;
-  if (order === null) return <main className="page"><Empty icon="receipt" text="الطلب غير موجود." action={<Link to="/orders" className="btn">العودة إلى الطلبات</Link>} /></main>;
+  if (order === null) return <main className="page"><Empty icon="receipt" text={t('الطلب غير موجود.')} action={<Link to="/orders" className="btn">{t('العودة إلى الطلبات')}</Link>} /></main>;
   return <Details order={order} />;
 }
 
@@ -71,7 +72,7 @@ function Details({ order }: { order: Order }) {
   const now = useNow();
   const cities = useCities();
   const technicians = useTechnicians(companyId);
-  const senderName = state.status === 'authorized' ? state.profile.fullName || 'الشركة' : 'الشركة';
+  const senderName = state.status === 'authorized' ? state.profile.fullName || t('الشركة') : t('الشركة');
 
   const awaiting = order.orderStatus === 'processing' && order.paymentStatus === 'pending_verification';
   const confirmedOpen = order.orderStatus !== 'cancelled' && order.orderStatus !== 'completed' && order.paymentStatus === 'confirmed';
@@ -105,7 +106,7 @@ function Details({ order }: { order: Order }) {
     try {
       const fresh = await confirmPayment(order.id);
       const notified = await notifyPaymentConfirmed(fresh);
-      toast(notified ? 'تم تأكيد الدفع وخصم المخزون وأُبلغ العميل' : 'تم تأكيد الدفع وخصم المخزون، لكن تعذّر إرسال الإشعار للعميل', notified ? 'ok' : 'info');
+      toast(notified ? t('تم تأكيد الدفع وخصم المخزون وأُبلغ العميل') : t('تم تأكيد الدفع وخصم المخزون، لكن تعذّر إرسال الإشعار للعميل'), notified ? 'ok' : 'info');
       setConfirming(false);
     } catch (e) {
       setError(orderProblemText(e));
@@ -120,7 +121,7 @@ function Details({ order }: { order: Order }) {
     setError('');
     try {
       const { messaged } = await cancelWithMessage(order, reason.cancel, message, senderName, reason.label);
-      toast(messaged ? 'أُلغي الطلب وأُرسلت الرسالة للعميل في المحادثة' : 'أُلغي الطلب، لكن تعذّر إرسال الرسالة (لا توجد محادثة لهذا الطلب)', messaged ? 'ok' : 'info');
+      toast(messaged ? t('أُلغي الطلب وأُرسلت الرسالة للعميل في المحادثة') : t('أُلغي الطلب، لكن تعذّر إرسال الرسالة (لا توجد محادثة لهذا الطلب)'), messaged ? 'ok' : 'info');
       setCancelling(false);
     } catch (e) {
       setError(orderProblemText(e));
@@ -134,9 +135,9 @@ function Details({ order }: { order: Order }) {
     setBusy(true);
     setError('');
     try {
-      const text = refundNote.trim() || `تم إلغاء طلبك #${shortId(order.id)}. سنتواصل معك لإعادة المبلغ الذي حوّلته.`;
+      const text = refundNote.trim() || t('تم إلغاء طلبك #{0}. سنتواصل معك لإعادة المبلغ الذي حوّلته.', shortId(order.id));
       const { messaged } = await cancelWithMessage(order, 'company', text, senderName, refundNote);
-      toast(messaged ? 'أُلغي الطلب وأُبلغ العميل في المحادثة. أعد المبلغ للعميل خارج النظام.' : 'أُلغي الطلب. أعد المبلغ للعميل خارج النظام.', 'ok');
+      toast(messaged ? t('أُلغي الطلب وأُبلغ العميل في المحادثة. أعد المبلغ للعميل خارج النظام.') : t('أُلغي الطلب. أعد المبلغ للعميل خارج النظام.'), 'ok');
       setCancelAfterPay(false);
     } catch (e) {
       setError(orderProblemText(e));
@@ -151,7 +152,7 @@ function Details({ order }: { order: Order }) {
     setError('');
     try {
       const { notified } = await advanceAndNotify(order);
-      toast(notified ? 'تم تحديث الحالة وأُبلغ العميل' : 'تم تحديث الحالة، لكن تعذّر إرسال الإشعار للعميل', notified ? 'ok' : 'info');
+      toast(notified ? t('تم تحديث الحالة وأُبلغ العميل') : t('تم تحديث الحالة، لكن تعذّر إرسال الإشعار للعميل'), notified ? 'ok' : 'info');
       setAdvancing(false);
     } catch (e) {
       setError(orderProblemText(e));
@@ -168,8 +169,8 @@ function Details({ order }: { order: Order }) {
   return (
     <main className="page">
       <PageHeader
-        crumbs={[{ to: '/orders', label: 'الطلبات' }, { label: `#${shortId(order.id)}` }]}
-        title={<>طلب <span className="num">#{shortId(order.id)}</span></>}
+        crumbs={[{ to: '/orders', label: t('الطلبات') }, { label: `#${shortId(order.id)}` }]}
+        title={<>{t('طلب')}{' '}<span className="num">#{shortId(order.id)}</span></>}
         actions={<><OrderStatusChip order={order} /><PaymentChip order={order} /></>}
       />
       {error && <div style={{ marginBottom: 16 }}><Banner tone="bad" icon="alert">{error}</Banner></div>}
@@ -177,32 +178,31 @@ function Details({ order }: { order: Order }) {
       <div className="g2r">
         <div className="stack">
           {awaiting && (
-            <section className="card" aria-label="القرار">
-              <div className="card-h"><h2>القرار</h2></div>
+            <section className="card" aria-label={t('القرار')}>
+              <div className="card-h"><h2>{t('القرار')}</h2></div>
               <div className="card-b stack" style={{ gap: 16 }}>
                 <Banner tone={left <= 0 ? 'bad' : urg === 'n' ? 'info' : urg} icon="clock" tight>
                   {left <= 0
-                    ? <b>انتهت مهلة التحقق، وسيُلغى الطلب تلقائيًا.</b>
-                    : <><b>تنتهي المهلة بعد <span className="num">{leftLabel(left)}</span></b><div style={{ fontSize: 13 }}>بعدها يُلغى الطلب تلقائيًا.</div></>}
+                    ? <b>{t('انتهت مهلة التحقق، وسيُلغى الطلب تلقائيًا.')}</b>
+                    : <><b>{t('تنتهي المهلة بعد')}{' '}<span className="num">{leftLabel(left)}</span></b><div style={{ fontSize: 13 }}>{t('بعدها يُلغى الطلب تلقائيًا.')}</div></>}
                 </Banner>
 
                 <div>
-                  <div className="b" style={{ marginBottom: 8 }}>أثر التأكيد على المخزون</div>
+                  <div className="b" style={{ marginBottom: 8 }}>{t('أثر التأكيد على المخزون')}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, textAlign: 'center' }}>
-                    <div style={{ background: 'var(--neutral-bg)', borderRadius: 10, padding: '10px 4px' }}><div className="sub">المتوفر الآن</div><div className="b" style={{ fontSize: 24 }}>{stock}</div></div>
-                    <div style={{ background: 'var(--neutral-bg)', borderRadius: 10, padding: '10px 4px' }}><div className="sub">هذا الطلب</div><div className="b" style={{ fontSize: 24 }}>{order.quantity}</div></div>
-                    <div style={{ background: stock - order.quantity < 0 ? 'var(--bad-bg)' : 'var(--brand-tint)', borderRadius: 10, padding: '10px 4px' }}><div className="sub" style={{ color: stock - order.quantity < 0 ? 'var(--bad)' : 'var(--brand-ink)' }}>بعد التأكيد</div><div className="b" style={{ fontSize: 24, color: stock - order.quantity < 0 ? 'var(--bad)' : 'var(--brand-ink)' }}>{product ? stock - order.quantity : '—'}</div></div>
+                    <div style={{ background: 'var(--neutral-bg)', borderRadius: 10, padding: '10px 4px' }}><div className="sub">{t('المتوفر الآن')}</div><div className="b" style={{ fontSize: 24 }}>{stock}</div></div>
+                    <div style={{ background: 'var(--neutral-bg)', borderRadius: 10, padding: '10px 4px' }}><div className="sub">{t('هذا الطلب')}</div><div className="b" style={{ fontSize: 24 }}>{order.quantity}</div></div>
+                    <div style={{ background: stock - order.quantity < 0 ? 'var(--bad-bg)' : 'var(--brand-tint)', borderRadius: 10, padding: '10px 4px' }}><div className="sub" style={{ color: stock - order.quantity < 0 ? 'var(--bad)' : 'var(--brand-ink)' }}>{t('بعد التأكيد')}</div><div className="b" style={{ fontSize: 24, color: stock - order.quantity < 0 ? 'var(--bad)' : 'var(--brand-ink)' }}>{product ? stock - order.quantity : '—'}</div></div>
                   </div>
                 </div>
-                {!product && <Banner tone="bad" icon="alert" tight>المنتج لم يعد في كتالوجك، فلا يمكن تأكيد الطلب. ألغه بسبب «نفد المخزون».</Banner>}
-                {product && stock < order.quantity && <Banner tone="bad" icon="alert" tight>المخزون لا يغطي هذا الطلب. زد المخزون من <Link to={`/products/${product.id}`} className="b">صفحة المنتج</Link> ثم أكّد، أو ألغه بسبب «نفد المخزون».</Banner>}
+                {!product && <Banner tone="bad" icon="alert" tight>{t('المنتج لم يعد في كتالوجك، فلا يمكن تأكيد الطلب. ألغه بسبب «نفد المخزون».')}</Banner>}
+                {product && stock < order.quantity && <Banner tone="bad" icon="alert" tight>{t('المخزون لا يغطي هذا الطلب. زد المخزون من')}{' '}<Link to={`/products/${product.id}`} className="b">{t('صفحة المنتج')}</Link>{' '}{t('ثم أكّد، أو ألغه بسبب «نفد المخزون».')}</Banner>}
                 {competing.length > 1 && demand > stock && (
                   <Banner tone="warn" icon="alert" tight>
-                    <b>المخزون لا يغطي كل الطلبات المعلقة.</b> على هذا المنتج {competing.length} طلبات تحتاج {unitsText(demand)} والمتوفر {stock}. أكِّد الأقدم أولًا:
-                    <div style={{ marginTop: 6 }}>
+                    <b>{t('المخزون لا يغطي كل الطلبات المعلقة.')}</b>{' '}{t('على هذا المنتج {0} طلبات تحتاج {1} والمتوفر {2}. أكِّد الأقدم أولًا:', competing.length, unitsText(demand), stock)}<div style={{ marginTop: 6 }}>
                       {competing.map((o, i) => (
                         <div key={o.id} className="row" style={{ justifyContent: 'space-between' }}>
-                          <Link to={`/orders/${o.id}`} className="num b">#{shortId(o.id)}{o.id === order.id ? ' (هذا)' : ''}</Link>
+                          <Link to={`/orders/${o.id}`} className="num b">#{shortId(o.id)}{o.id === order.id ? t(' (هذا)') : ''}</Link>
                           <span>{i + 1} · {unitsText(o.quantity)} · {dayTime(o.createdAt)}</span>
                         </div>
                       ))}
@@ -211,82 +211,80 @@ function Details({ order }: { order: Order }) {
                 )}
 
                 <button type="button" className="btn p lg" disabled={busy} onClick={() => setConfirming(true)}>
-                  <Icon name="check" />تأكيد الدفع وخصم {unitsText(order.quantity)}
-                </button>
-                <p className="sub" style={{ textAlign: 'center' }}>يصل العميل إشعار، ويُنقص المخزون في الخطوة نفسها.</p>
+                  <Icon name="check" />{t('تأكيد الدفع وخصم {0}', unitsText(order.quantity))}</button>
+                <p className="sub" style={{ textAlign: 'center' }}>{t('يصل العميل إشعار، ويُنقص المخزون في الخطوة نفسها.')}</p>
 
-                <div className="row"><span className="hr grow" /><span className="sub">أو</span><span className="hr grow" /></div>
+                <div className="row"><span className="hr grow" /><span className="sub">{t('أو')}</span><span className="hr grow" /></div>
 
                 <div style={{ border: '1px solid var(--bad-line)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div className="b" style={{ color: 'var(--bad)' }}>رفض الإيصال وإلغاء الطلب</div>
+                  <div className="b" style={{ color: 'var(--bad)' }}>{t('رفض الإيصال وإلغاء الطلب')}</div>
                   <div className="fld">
-                    <label htmlFor="why">السبب</label>
+                    <label htmlFor="why">{t('السبب')}</label>
                     <select id="why" className="inp" value={reasonKey} onChange={(e) => { const r = REJECT_REASONS.find((x) => x.key === e.target.value)!; setReasonKey(r.key); setMessage(r.message(order)); }}>
                       {REJECT_REASONS.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
                     </select>
                   </div>
                   <div className="fld">
-                    <label htmlFor="msg">رسالة للعميل</label>
+                    <label htmlFor="msg">{t('رسالة للعميل')}</label>
                     <textarea id="msg" className="inp" rows={4} value={message} maxLength={2000} onChange={(e) => setMessage(e.target.value)} />
-                    <span className="hint">تُضاف إلى محادثة الطلب ليراها العميل.</span>
+                    <span className="hint">{t('تُضاف إلى محادثة الطلب ليراها العميل.')}</span>
                   </div>
                   <button type="button" className="btn d blk" disabled={busy || !message.trim()} onClick={() => setCancelling(true)}>
-                    <Icon name="x" />إلغاء الطلب وإبلاغ العميل
-                  </button>
+                    <Icon name="x" />{t('إلغاء الطلب وإبلاغ العميل')}</button>
                 </div>
               </div>
             </section>
           )}
 
           {confirmedOpen && (
-            <section className="card" aria-label="إدارة الطلب">
-              <div className="card-h"><h2>إدارة الطلب</h2></div>
+            <section className="card" aria-label={t('إدارة الطلب')}>
+              <div className="card-h"><h2>{t('إدارة الطلب')}</h2></div>
               <div className="card-b stack" style={{ gap: 14 }}>
-                <Banner tone="ok" icon="check" tight>تم تأكيد الدفع وخُصم المخزون.</Banner>
-                {order.installationSelected && !order.technicianId && <Banner tone="warn" icon="alert" tight>هذا الطلب فيه تركيب ولم يُعيَّن له فني بعد.</Banner>}
+                <Banner tone="ok" icon="check" tight>{t('تم تأكيد الدفع وخُصم المخزون.')}</Banner>
+                {order.installationSelected && !order.technicianId && <Banner tone="warn" icon="alert" tight>{t('هذا الطلب فيه تركيب ولم يُعيَّن له فني بعد.')}</Banner>}
                 {next && <button type="button" className="btn p lg" disabled={busy} onClick={() => setAdvancing(true)}><Icon name="chevron" />{nextStatusLabel(order)}</button>}
                 {order.orderStatus === 'processing' && (
-                  <button type="button" className="btn d blk" disabled={busy} onClick={() => setCancelAfterPay(true)}><Icon name="x" />إلغاء الطلب</button>
+                  <button type="button" className="btn d blk" disabled={busy} onClick={() => setCancelAfterPay(true)}><Icon name="x" />{t('إلغاء الطلب')}</button>
                 )}
               </div>
             </section>
           )}
 
           {(order.orderStatus === 'completed' || order.orderStatus === 'cancelled') && (
-            <section className="card" aria-label="حالة الطلب">
+            <section className="card" aria-label={t('حالة الطلب')}>
               <div className="card-b">
                 {order.orderStatus === 'completed'
-                  ? <Banner tone="ok" icon="check" tight>اكتمل هذا الطلب.</Banner>
+                  ? <Banner tone="ok" icon="check" tight>{t('اكتمل هذا الطلب.')}</Banner>
                   : <CancelledNote order={order} />}
               </div>
             </section>
           )}
 
-          <section className="card" aria-label="ملخص الطلب">
-            <div className="card-h"><h3>ملخص الطلب</h3></div>
+          <section className="card" aria-label={t('ملخص الطلب')}>
+            <div className="card-h"><h3>{t('ملخص الطلب')}</h3></div>
             <div className="card-b">
               <div className="row">
                 <div className="thumb lg">{product?.imageUrl ? <img src={product.imageUrl} alt="" /> : <Icon name="image" size="lg" />}</div>
-                <div className="grow"><div className="b">{order.productName}</div><div className="sub">الكمية {order.quantity} · <span className="num">{money(order.unitPrice)}</span> للوحدة</div></div>
+                <div className="grow"><div className="b">{order.productName}</div><div className="sub">{t('الكمية {0} ·', order.quantity)}{' '}<span className="num">{money(order.unitPrice)}</span>{' '}{t('للوحدة')}</div></div>
               </div>
               <hr className="hr" style={{ margin: '14px 0 6px' }} />
-              <div className="kv"><span>المنتج</span><span className="num">{money(order.productSubtotal)}</span></div>
-              <div className="kv"><span>التوصيل</span><span className="num">{money(order.deliveryFee)}</span></div>
-              <div className="kv"><span>التركيب</span><span className="num">{order.installationSelected ? money(order.installationFee) : 'لا'}</span></div>
+              <div className="kv"><span>{t('المنتج')}</span><span className="num">{money(order.productSubtotal)}</span></div>
+              <div className="kv"><span>{t('التوصيل')}</span><span className="num">{money(order.deliveryFee)}</span></div>
+              <div className="kv"><span>{t('التركيب')}</span><span className="num">{order.installationSelected ? money(order.installationFee) : t('لا')}</span></div>
               <hr className="hr" />
-              <div className="kv b" style={{ fontSize: 16 }}><span style={{ color: 'var(--ink)' }}>الإجمالي</span><span><span className="num">{money(order.totalAmount)}</span> SDG</span></div>
+              <div className="kv b" style={{ fontSize: 16 }}><span style={{ color: 'var(--ink)' }}>{t('الإجمالي')}</span><span><span className="num">{money(order.totalAmount)}</span> SDG</span></div>
             </div>
           </section>
 
-          <section className="card" aria-label="العميل والتوصيل">
-            <div className="card-h"><h3>العميل والتوصيل</h3></div>
+          <section className="card" aria-label={t('العميل والتوصيل')}>
+            <div className="card-h"><h3>{t('العميل والتوصيل')}</h3></div>
             <div className="card-b">
-              <div className="kv"><span>العميل</span><span>{order.customerName || 'عميل'}</span></div>
-              <div className="kv"><span>الهاتف</span><a href={`tel:${order.contactPhone}`} className="num">{displayPhone(order.contactPhone)}</a></div>
-              <div className="kv"><span>النوع</span><KindCell order={order} /></div>
-              {order.deliveryMethod === 'delivery' && order.deliveryCityId && <div className="kv"><span>المدينة</span><span>{cityName(cities, order.deliveryCityId)}</span></div>}
-              <div className="kv"><span>{order.deliveryMethod === 'pickup' ? 'الاستلام' : 'العنوان'}</span><span style={{ textAlign: 'end' }}>{order.deliveryAddress || (order.deliveryMethod === 'pickup' ? 'من موقع الشركة' : '—')}</span></div>
-              {mapLink && <a href={mapLink} target="_blank" rel="noreferrer" className="btn sm blk" style={{ marginTop: 8 }}><Icon name="pin" size="sm" />فتح الموقع على الخريطة</a>}
+              <div className="kv"><span>{t('العميل')}</span><span>{order.customerName || t('عميل')}</span></div>
+              <div className="kv"><span>{t('الهاتف')}</span><a href={`tel:${order.contactPhone}`} className="num">{displayPhone(order.contactPhone)}</a></div>
+              <div className="kv"><span>{t('النوع')}</span><KindCell order={order} /></div>
+              {order.deliveryMethod === 'delivery' && order.deliveryCityId && <div className="kv"><span>{t('المدينة')}</span><span>{cityName(cities, order.deliveryCityId)}</span></div>}
+              <div className="kv"><span>{order.deliveryMethod === 'pickup' ? t('الاستلام') : t('العنوان')}</span><span style={{ textAlign: 'end' }}>{order.deliveryAddress || (order.deliveryMethod === 'pickup' ? t('من موقع الشركة') : '—')}</span></div>
+              {mapLink && <a href={mapLink} target="_blank" rel="noreferrer" className="btn sm blk" style={{ marginTop: 8 }}><Icon name="pin" size="sm" />{t('فتح الموقع على الخريطة')}</a>}
             </div>
           </section>
 
@@ -294,15 +292,15 @@ function Details({ order }: { order: Order }) {
             <TechnicianCard order={order} technicians={technicians} />
           )}
 
-          <section className="card" aria-label="سجل الطلب">
-            <div className="card-h"><h3>سجل الطلب</h3></div>
+          <section className="card" aria-label={t('سجل الطلب')}>
+            <div className="card-h"><h3>{t('سجل الطلب')}</h3></div>
             <div className="card-b">
               <ul className="tl">
-                <li><div><div className="b">تم الطلب</div><div className="sub">{dateTime(order.createdAt)}</div></div></li>
-                <li className={order.receiptFileName ? '' : 'todo'}><div><div className="b">{order.receiptFileName ? 'رُفع الإيصال' : 'لا إيصال'}</div><div className="sub num">{order.receiptFileName}</div></div></li>
-                <li className={order.paymentStatus === 'confirmed' ? '' : 'todo'}><div><div className="b">{order.paymentStatus === 'confirmed' ? 'تم تأكيد الدفع' : 'تأكيد الدفع'}</div></div></li>
-                <li className={order.orderStatus === 'out_for_delivery' || order.orderStatus === 'completed' ? '' : 'todo'}><div><div className="b">{order.deliveryMethod === 'pickup' ? 'جاهز للتسليم' : 'في الطريق'}</div></div></li>
-                <li className={order.orderStatus === 'completed' ? '' : 'todo'}><div><div className="b">مكتمل</div></div></li>
+                <li><div><div className="b">{t('تم الطلب')}</div><div className="sub">{dateTime(order.createdAt)}</div></div></li>
+                <li className={order.receiptFileName ? '' : 'todo'}><div><div className="b">{order.receiptFileName ? t('رُفع الإيصال') : t('لا إيصال')}</div><div className="sub num">{order.receiptFileName}</div></div></li>
+                <li className={order.paymentStatus === 'confirmed' ? '' : 'todo'}><div><div className="b">{order.paymentStatus === 'confirmed' ? t('تم تأكيد الدفع') : t('تأكيد الدفع')}</div></div></li>
+                <li className={order.orderStatus === 'out_for_delivery' || order.orderStatus === 'completed' ? '' : 'todo'}><div><div className="b">{order.deliveryMethod === 'pickup' ? t('جاهز للتسليم') : t('في الطريق')}</div></div></li>
+                <li className={order.orderStatus === 'completed' ? '' : 'todo'}><div><div className="b">{t('مكتمل')}</div></div></li>
               </ul>
             </div>
           </section>
@@ -317,9 +315,9 @@ function Details({ order }: { order: Order }) {
 
       {confirming && (
         <ConfirmDialog
-          title="تأكيد الدفع"
-          body={`سيُؤكَّد دفع الطلب #${shortId(order.id)} ويُخصم ${unitsText(order.quantity)} من المخزون ويصل العميل إشعار. تأكد أن المبلغ وصل فعلًا إلى حسابك.`}
-          confirmLabel="تأكيد الدفع"
+          title={t('تأكيد الدفع')}
+          body={t('سيُؤكَّد دفع الطلب #{0} ويُخصم {1} من المخزون ويصل العميل إشعار. تأكد أن المبلغ وصل فعلًا إلى حسابك.', shortId(order.id), unitsText(order.quantity))}
+          confirmLabel={t('تأكيد الدفع')}
           busy={busy}
           onConfirm={() => void doConfirm()}
           onClose={() => setConfirming(false)}
@@ -327,9 +325,9 @@ function Details({ order }: { order: Order }) {
       )}
       {cancelling && (
         <ConfirmDialog
-          title="إلغاء الطلب وإبلاغ العميل؟"
-          body={`سيُلغى الطلب #${shortId(order.id)} (${reason.label}) ولا يمكن التراجع، وتصل العميل رسالتك في المحادثة.`}
-          confirmLabel="إلغاء الطلب"
+          title={t('إلغاء الطلب وإبلاغ العميل؟')}
+          body={t('سيُلغى الطلب #{0} ({1}) ولا يمكن التراجع، وتصل العميل رسالتك في المحادثة.', shortId(order.id), reason.label)}
+          confirmLabel={t('إلغاء الطلب')}
           danger
           busy={busy}
           onConfirm={() => void doReject()}
@@ -338,25 +336,25 @@ function Details({ order }: { order: Order }) {
       )}
       {cancelAfterPay && (
         <ConfirmDialog
-          title="إلغاء طلب مدفوع؟"
-          body={`دفع هذا الطلب مؤكد بمبلغ ${money(order.totalAmount)} SDG. عند الإلغاء يعود المخزون، وعليك إعادة المبلغ للعميل خارج النظام.`}
-          confirmLabel="إلغاء الطلب"
+          title={t('إلغاء طلب مدفوع؟')}
+          body={t('دفع هذا الطلب مؤكد بمبلغ {0} SDG. عند الإلغاء يعود المخزون، وعليك إعادة المبلغ للعميل خارج النظام.', money(order.totalAmount))}
+          confirmLabel={t('إلغاء الطلب')}
           danger
           busy={busy}
           onConfirm={() => void doCancelConfirmed()}
           onClose={() => setCancelAfterPay(false)}
         >
           <div className="fld">
-            <label htmlFor="refund">رسالة للعميل <span className="muted">(اختياري)</span></label>
-            <textarea id="refund" className="inp" rows={3} value={refundNote} onChange={(e) => setRefundNote(e.target.value)} placeholder="سنعيد إليك المبلغ خلال يومين عمل…" />
+            <label htmlFor="refund">{t('رسالة للعميل')}{' '}<span className="muted">{t('(اختياري)')}</span></label>
+            <textarea id="refund" className="inp" rows={3} value={refundNote} onChange={(e) => setRefundNote(e.target.value)} placeholder={t('سنعيد إليك المبلغ خلال يومين عمل…')} />
           </div>
         </ConfirmDialog>
       )}
       {advancing && next && (
         <ConfirmDialog
-          title={`تحديث حالة الطلب #${shortId(order.id)}`}
-          body={`سيصبح الطلب «${next === 'completed' ? 'مكتمل' : 'في الطريق'}» ويصل العميل إشعار بذلك.`}
-          confirmLabel="تأكيد"
+          title={t('تحديث حالة الطلب #{0}', shortId(order.id))}
+          body={t('سيصبح الطلب «{0}» ويصل العميل إشعار بذلك.', next === 'completed' ? t('مكتمل') : t('في الطريق'))}
+          confirmLabel={t('تأكيد')}
           busy={busy}
           onConfirm={() => void doAdvance()}
           onClose={() => setAdvancing(false)}
@@ -373,21 +371,20 @@ function CancelledNote({ order }: { order: Order }) {
   const paid = order.paymentStatus === 'confirmed';
   const markPaidBack = async () => {
     setBusy(true);
-    try { await markRefunded(order.id); toast('سُجّل ردّ المبلغ للعميل', 'ok'); } catch { toast('تعذّر تسجيل الاسترداد.', 'err'); } finally { setBusy(false); }
+    try { await markRefunded(order.id); toast(t('سُجّل ردّ المبلغ للعميل'), 'ok'); } catch { toast(t('تعذّر تسجيل الاسترداد.'), 'err'); } finally { setBusy(false); }
   };
   return (
     <div className="stack t">
       <Banner tone="bad" icon="x" tight>
-        <b>أُلغي هذا الطلب</b>{order.cancelReason ? ` · ${CANCEL_REASON_LABEL[order.cancelReason]}` : ''}
-        <div style={{ fontSize: 13 }}>{order.cancelledAt ? dateTime(order.cancelledAt) : ''}{order.stockReleased ? ' · أُعيد المخزون المحجوز' : ''}</div>
-        {order.cancelNote && <div style={{ fontSize: 13, marginTop: 4 }}>السبب المسجَّل: {order.cancelNote}</div>}
+        <b>{t('أُلغي هذا الطلب')}</b>{order.cancelReason ? ` · ${CANCEL_REASON_LABEL[order.cancelReason]}` : ''}
+        <div style={{ fontSize: 13 }}>{order.cancelledAt ? dateTime(order.cancelledAt) : ''}{order.stockReleased ? t(' · أُعيد المخزون المحجوز') : ''}</div>
+        {order.cancelNote && <div style={{ fontSize: 13, marginTop: 4 }}>{t('السبب المسجَّل: {0}', order.cancelNote)}</div>}
       </Banner>
       {paid && (order.refundedAt ? (
-        <Banner tone="ok" icon="check" tight>رُدّ المبلغ للعميل · {dateTime(order.refundedAt)}</Banner>
+        <Banner tone="ok" icon="check" tight>{t('رُدّ المبلغ للعميل · {0}', dateTime(order.refundedAt))}</Banner>
       ) : (
-        <Banner tone="warn" icon="wallet" tight action={<button type="button" className="btn sm" disabled={busy} onClick={() => void markPaidBack()}>{busy && <Spinner />}سجّلت رد المبلغ</button>}>
-          <b>بانتظار ردّ المبلغ:</b> دفع هذا الطلب كان مؤكدًا بمبلغ <span className="num">{money(order.totalAmount)}</span> SDG. أعده للعميل خارج النظام ثم سجّله هنا.
-        </Banner>
+        <Banner tone="warn" icon="wallet" tight action={<button type="button" className="btn sm" disabled={busy} onClick={() => void markPaidBack()}>{busy && <Spinner />}{t('سجّلت رد المبلغ')}</button>}>
+          <b>{t('بانتظار ردّ المبلغ:')}</b>{' '}{t('دفع هذا الطلب كان مؤكدًا بمبلغ')}{' '}<span className="num">{money(order.totalAmount)}</span>{' '}{t('SDG. أعده للعميل خارج النظام ثم سجّله هنا.')}</Banner>
       ))}
     </div>
   );
@@ -398,27 +395,27 @@ function ReceiptCard({ orderId }: { orderId: string }) {
   const [zoom, setZoom] = useState(1);
   const [turn, setTurn] = useState(0);
   return (
-    <section className="card" aria-label="الإيصال">
+    <section className="card" aria-label={t('الإيصال')}>
       <div className="card-h">
-        <h2>إيصال التحويل</h2>
+        <h2>{t('إيصال التحويل')}</h2>
         {receipt.status === 'ready' && <span className="sub num">{receipt.fileName}</span>}
         <span className="grow" />
         {receipt.status === 'ready' && (
           <>
-            <button type="button" className="icon-btn flat" aria-label="تكبير" onClick={() => setZoom((z) => Math.min(4, z + 0.5))}><Icon name="zoom" /></button>
-            <button type="button" className="icon-btn flat" aria-label="تصغير" onClick={() => setZoom((z) => Math.max(0.5, z - 0.5))}><Icon name="minus" /></button>
-            <button type="button" className="icon-btn flat" aria-label="تدوير" onClick={() => setTurn((t) => (t + 90) % 360)}><Icon name="rotate" /></button>
-            <a className="icon-btn flat" aria-label="تنزيل" href={receipt.url} download={receipt.fileName || 'receipt.jpg'}><Icon name="download" /></a>
+            <button type="button" className="icon-btn flat" aria-label={t('تكبير')} onClick={() => setZoom((z) => Math.min(4, z + 0.5))}><Icon name="zoom" /></button>
+            <button type="button" className="icon-btn flat" aria-label={t('تصغير')} onClick={() => setZoom((z) => Math.max(0.5, z - 0.5))}><Icon name="minus" /></button>
+            <button type="button" className="icon-btn flat" aria-label={t('تدوير')} onClick={() => setTurn((t) => (t + 90) % 360)}><Icon name="rotate" /></button>
+            <a className="icon-btn flat" aria-label={t('تنزيل')} href={receipt.url} download={receipt.fileName || 'receipt.jpg'}><Icon name="download" /></a>
           </>
         )}
       </div>
       <div className="card-b">
         <div className="rcpt">
           {receipt.status === 'loading' && <Spinner />}
-          {receipt.status === 'none' && <Empty icon="image" text="لا يوجد إيصال محفوظ لهذا الطلب." />}
-          {receipt.status === 'error' && <Empty icon="alert" text="تعذّر تحميل الإيصال." />}
+          {receipt.status === 'none' && <Empty icon="image" text={t('لا يوجد إيصال محفوظ لهذا الطلب.')} />}
+          {receipt.status === 'error' && <Empty icon="alert" text={t('تعذّر تحميل الإيصال.')} />}
           {receipt.status === 'ready' && (
-            <img src={receipt.url} alt="إيصال التحويل الذي رفعه العميل" style={{ transform: `scale(${zoom}) rotate(${turn}deg)`, imageRendering: 'auto', minWidth: 120 }} />
+            <img src={receipt.url} alt={t('إيصال التحويل الذي رفعه العميل')} style={{ transform: `scale(${zoom}) rotate(${turn}deg)`, imageRendering: 'auto', minWidth: 120 }} />
           )}
         </div>
       </div>
@@ -430,13 +427,13 @@ function Checklist({ order }: { order: Order }) {
   const { company } = useCompanyData();
   const account = company?.paymentAccounts[0];
   return (
-    <section className="card" aria-label="قائمة التحقق">
-      <div className="card-h"><h3>قائمة التحقق قبل التأكيد</h3><span className="sub">للمساعدة فقط، لا تُحفظ</span></div>
+    <section className="card" aria-label={t('قائمة التحقق')}>
+      <div className="card-h"><h3>{t('قائمة التحقق قبل التأكيد')}</h3><span className="sub">{t('للمساعدة فقط، لا تُحفظ')}</span></div>
       <div className="card-b stack t">
-        <label className="row"><input type="checkbox" className="chk" /><span>المبلغ في الإيصال يساوي <b className="num">{money(order.totalAmount)}</b> SDG</span></label>
-        <label className="row"><input type="checkbox" className="chk" /><span>الحساب المستلم هو حسابنا{account ? <> · {account.bankName} · <span className="num">{account.accountNumber}</span></> : ''}</span></label>
-        <label className="row"><input type="checkbox" className="chk" /><span>وصل المبلغ فعلًا إلى حسابنا (راجع كشف الحساب)</span></label>
-        <label className="row"><input type="checkbox" className="chk" /><span>رقم العملية غير مستخدم في طلب آخر</span></label>
+        <label className="row"><input type="checkbox" className="chk" /><span>{t('المبلغ في الإيصال يساوي')}{' '}<b className="num">{money(order.totalAmount)}</b> SDG</span></label>
+        <label className="row"><input type="checkbox" className="chk" /><span>{t('الحساب المستلم هو حسابنا')}{account ? <> · {account.bankName} · <span className="num">{account.accountNumber}</span></> : ''}</span></label>
+        <label className="row"><input type="checkbox" className="chk" /><span>{t('وصل المبلغ فعلًا إلى حسابنا (راجع كشف الحساب)')}</span></label>
+        <label className="row"><input type="checkbox" className="chk" /><span>{t('رقم العملية غير مستخدم في طلب آخر')}</span></label>
       </div>
     </section>
   );
@@ -446,26 +443,26 @@ function TechnicianCard({ order, technicians }: { order: Order; technicians: Ret
   const toast = useToast();
   const [choice, setChoice] = useState('');
   const [busy, setBusy] = useState(false);
-  const active = (technicians ?? []).filter((t) => t.isActive);
+  const active = (technicians ?? []).filter((tech) => tech.isActive);
   const assign = async () => {
-    const t = active.find((x) => x.id === choice);
-    if (!t) return;
+    const tech = active.find((x) => x.id === choice);
+    if (!tech) return;
     setBusy(true);
-    try { await assignTechnician(order, t.id, t.fullName); toast(`عُيّن ${t.fullName} لهذا الطلب`, 'ok'); setChoice(''); }
-    catch (e) { toast(e instanceof OrderError ? orderProblemText(e) : 'تعذّر تعيين الفني.', 'err'); }
+    try { await assignTechnician(order, tech.id, tech.fullName); toast(t('عُيّن {0} لهذا الطلب', tech.fullName), 'ok'); setChoice(''); }
+    catch (e) { toast(e instanceof OrderError ? orderProblemText(e) : t('تعذّر تعيين الفني.'), 'err'); }
     finally { setBusy(false); }
   };
   return (
-    <section className="card" aria-label="الفني">
-      <div className="card-h"><h3>فني التركيب</h3>{order.technicianId ? <Chip tone="ok">{order.technicianName}</Chip> : <Chip tone="warn">غير معيّن</Chip>}</div>
-      <div className="card-b stack t">
-        {technicians === null ? <Spinner /> : active.length === 0 ? <p className="muted">لا فنيين نشطين. أضف فنيًا من «الفريق والتقييمات».</p> : (
+    <section className="card" aria-label={t('الفني')}>
+      <div className="card-h"><h3>{t('فني التركيب')}</h3>{order.technicianId ? <Chip tone="ok">{order.technicianName}</Chip> : <Chip tone="warn">{t('غير معيّن')}</Chip>}</div>
+      <div className="card-b stack tech">
+        {technicians === null ? <Spinner /> : active.length === 0 ? <p className="muted">{t('لا فنيين نشطين. أضف فنيًا من «الفريق والتقييمات».')}</p> : (
           <div className="row">
-            <select className="inp" value={choice} onChange={(e) => setChoice(e.target.value)} aria-label="اختر الفني">
-              <option value="">{order.technicianId ? 'تغيير الفني…' : 'اختر الفني…'}</option>
-              {active.filter((t) => t.id !== order.technicianId).map((t) => <option key={t.id} value={t.id}>{t.fullName}{t.isAvailable ? '' : ' (غير متاح)'}</option>)}
+            <select className="inp" value={choice} onChange={(e) => setChoice(e.target.value)} aria-label={t('اختر الفني')}>
+              <option value="">{order.technicianId ? t('تغيير الفني…') : t('اختر الفني…')}</option>
+              {active.filter((tech) => tech.id !== order.technicianId).map((tech) => <option key={tech.id} value={tech.id}>{tech.fullName}{tech.isAvailable ? '' : t(' (غير متاح)')}</option>)}
             </select>
-            <button type="button" className="btn p" disabled={!choice || busy} onClick={() => void assign()}>{busy && <Spinner />}تعيين</button>
+            <button type="button" className="btn p" disabled={!choice || busy} onClick={() => void assign()}>{busy && <Spinner />}{t('تعيين')}</button>
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { db } from '../firebase';
+import { language } from '../i18n';
 
 export interface City {
   id: string;
@@ -78,5 +79,10 @@ export function useCities(): City[] {
 /** What can be picked: the active cities, plus any hidden one the company already has. */
 export const cityChoicesFor = (cities: City[], selected: string[]): City[] => cities.filter((c) => c.active || selected.includes(c.id));
 
-export const cityName =(cities: City[], id: string | null): string =>
-  id ? (cities.find((x) => x.id === id)?.ar ?? id) : '';
+/** The city's name in the panel's language. */
+export const cityLabel = (c: City): string => (language === 'en' ? c.en || c.ar : c.ar);
+
+export const cityName = (cities: City[], id: string | null): string => {
+  const city = id ? cities.find((x) => x.id === id) : undefined;
+  return id ? (city ? cityLabel(city) : id) : '';
+};

@@ -3,6 +3,7 @@ import { imageProblem, imageProblemText, uploadImage, uploadProblemText } from '
 import { Icon } from './Icon';
 import { ImageAdder } from './ImageAdder';
 import { Banner, Chip } from './kit';
+import { t } from '../i18n';
 
 /**
  * Up to [max] pictures of a product. The first one is the main picture (also
@@ -39,7 +40,7 @@ export function GalleryField({
         break;
       }
     }
-    if (files.length > room) setError((now) => now || `الحد الأقصى ${max} صور.`);
+    if (files.length > room) setError((now) => now || t('الحد الأقصى {0} صور.', max));
     setProgress(null);
   };
 
@@ -54,14 +55,14 @@ export function GalleryField({
 
   return (
     <div className="fld">
-      <span className="lab">صور المنتج <span className="muted">({urls.length} من {max})</span></span>
+      <span className="lab">{t('صور المنتج')}{' '}<span className="muted">{t('({0} من {1})', urls.length, max)}</span></span>
       <div className="imgs">
         {urls.map((u, i) => (
           <div key={u + i} className={`imgslot${i === 0 ? ' main' : ''}`}>
             <img src={u} alt="" loading="lazy" />
-            {i === 0 && <span className="tag"><Chip tone="info" dot={false} small>الرئيسية</Chip></span>}
-            <button type="button" className="x" aria-label={`إزالة الصورة ${i + 1}`} onClick={() => onChange(urls.filter((_, k) => k !== i))}><Icon name="x" size="sm" /></button>
-            {i > 0 && <button type="button" className="btn sm" style={{ position: 'absolute', bottom: 6, insetInlineStart: 6, height: 26, padding: '0 8px', fontSize: 12 }} onClick={() => makeMain(i)}>رئيسية</button>}
+            {i === 0 && <span className="tag"><Chip tone="info" dot={false} small>{t('الرئيسية')}</Chip></span>}
+            <button type="button" className="x" aria-label={t('إزالة الصورة {0}', i + 1)} onClick={() => onChange(urls.filter((_, k) => k !== i))}><Icon name="x" size="sm" /></button>
+            {i > 0 && <button type="button" className="btn sm" style={{ position: 'absolute', bottom: 6, insetInlineStart: 6, height: 26, padding: '0 8px', fontSize: 12 }} onClick={() => makeMain(i)}>{t('رئيسية')}</button>}
           </div>
         ))}
         {urls.length === 0 && <div className="imgslot main"><Icon name="image" size="lg" /></div>}
@@ -79,11 +80,11 @@ export function GalleryField({
               multiple
               uploading={uploading}
               progress={progress}
-              deviceLabel="رفع صور من الجهاز"
+              deviceLabel={t('رفع صور من الجهاز')}
               onFiles={(files) => void addFiles(files)}
               onLink={(url) => onChange([...urls, url])}
             />
-            <div className="sub">JPG أو PNG أو WebP أو GIF، حتى 5MB للصورة. يمكنك رفع عدة صور معًا أو سحبها وإفلاتها هنا.</div>
+            <div className="sub">{t('JPG أو PNG أو WebP أو GIF، حتى 5MB للصورة. يمكنك رفع عدة صور معًا أو سحبها وإفلاتها هنا.')}</div>
           </div>
         </div>
       )}

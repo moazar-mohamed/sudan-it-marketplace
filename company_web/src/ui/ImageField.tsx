@@ -3,6 +3,7 @@ import { imageProblem, imageProblemText, uploadImage, uploadProblemText } from '
 import { ImageAdder } from './ImageAdder';
 import { Banner } from './kit';
 import { Icon } from './Icon';
+import { t } from '../i18n';
 
 /**
  * One image: picked or dropped from the device (uploaded to Firebase Storage),
@@ -12,8 +13,8 @@ export function ImageField({
   value,
   onChange,
   folder,
-  label = 'الصورة',
-  emptyText = 'لم تُضف صورة بعد',
+  label = t('الصورة'),
+  emptyText = t('لم تُضف صورة بعد'),
   round,
 }: {
   value: string;
@@ -65,17 +66,17 @@ export function ImageField({
           {value ? <img src={value} alt="" /> : <Icon name="image" size="lg" />}
         </div>
         <div className="imgbox-body">
-          <div className="b">{value ? 'الصورة الحالية' : emptyText}</div>
+          <div className="b">{value ? t('الصورة الحالية') : emptyText}</div>
           <ImageAdder
             uploading={uploading}
             progress={progress}
-            deviceLabel={value ? 'تغيير من الجهاز' : 'رفع من الجهاز'}
+            deviceLabel={value ? t('تغيير من الجهاز') : t('رفع من الجهاز')}
             onFiles={(files) => void pick(files[0])}
             onLink={onChange}
           >
-            {value && !uploading && <button type="button" className="btn g" onClick={() => onChange('')}>إزالة</button>}
+            {value && !uploading && <button type="button" className="btn g" onClick={() => onChange('')}>{t('إزالة')}</button>}
           </ImageAdder>
-          <div className="sub">JPG أو PNG أو WebP أو GIF، حتى 5MB. يمكنك أيضًا سحب الصورة وإفلاتها هنا.</div>
+          <div className="sub">{t('JPG أو PNG أو WebP أو GIF، حتى 5MB. يمكنك أيضًا سحب الصورة وإفلاتها هنا.')}</div>
         </div>
       </div>
       {error && <Banner tone="bad" icon="alert" tight>{error}</Banner>}

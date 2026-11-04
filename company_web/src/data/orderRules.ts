@@ -1,4 +1,5 @@
 import type { Order, OrderStatus } from './types';
+import { t } from '../i18n';
 
 /** The next step of a confirmed order: pickup orders complete directly, others go out for delivery first. */
 export function nextStatusOf(order: Pick<Order, 'paymentStatus' | 'orderStatus' | 'deliveryMethod'>): OrderStatus | null {
@@ -14,7 +15,7 @@ export const awaitsRefund = (o: Pick<Order, 'orderStatus' | 'paymentStatus' | 'r
 
 export function nextStatusLabel(order: Pick<Order, 'paymentStatus' | 'orderStatus' | 'deliveryMethod'>): string {
   const next = nextStatusOf(order);
-  if (next === 'out_for_delivery') return 'شحن: في الطريق';
-  if (next === 'completed') return order.deliveryMethod === 'pickup' ? 'تم التسليم للعميل' : 'تم التسليم';
+  if (next === 'out_for_delivery') return t('شحن: في الطريق');
+  if (next === 'completed') return order.deliveryMethod === 'pickup' ? t('تم التسليم للعميل') : t('تم التسليم');
   return '';
 }

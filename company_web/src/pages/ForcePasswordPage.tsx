@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { MIN_PASSWORD_LENGTH, authErrorText, useAuth } from '../auth/AuthProvider';
 import { Banner, Spinner } from '../ui/kit';
+import { t } from '../i18n';
 
 /** The first time in, a company admin created by Platform Admin must choose their own password. */
 export function ForcePasswordPage() {
@@ -13,11 +14,11 @@ export function ForcePasswordPage() {
 
   const problem =
     next.length > 0 && next.length < MIN_PASSWORD_LENGTH
-      ? `كلمة المرور الجديدة ${MIN_PASSWORD_LENGTH} أحرف على الأقل.`
+      ? t('كلمة المرور الجديدة {0} أحرف على الأقل.', MIN_PASSWORD_LENGTH)
       : confirm && next !== confirm
-        ? 'كلمتا المرور غير متطابقتين.'
+        ? t('كلمتا المرور غير متطابقتين.')
         : next && next === current
-          ? 'اختر كلمة مرور مختلفة عن المؤقتة.'
+          ? t('اختر كلمة مرور مختلفة عن المؤقتة.')
           : '';
 
   const submit = async (e: FormEvent) => {
@@ -37,30 +38,26 @@ export function ForcePasswordPage() {
     <div className="login">
       <form className="card login-card" onSubmit={submit}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 800 }}>اختر كلمة مرورك</h1>
-          <p className="sub">أُنشئ حسابك بكلمة مرور مؤقتة. اختر كلمة مرور خاصة بك لتتابع.</p>
+          <h1 style={{ fontSize: 20, fontWeight: 800 }}>{t('اختر كلمة مرورك')}</h1>
+          <p className="sub">{t('أُنشئ حسابك بكلمة مرور مؤقتة. اختر كلمة مرور خاصة بك لتتابع.')}</p>
         </div>
         {error && <Banner tone="bad" icon="alert">{error}</Banner>}
         <div className="fld">
-          <label htmlFor="cur">كلمة المرور المؤقتة</label>
+          <label htmlFor="cur">{t('كلمة المرور المؤقتة')}</label>
           <input id="cur" className="inp ltr" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} required />
         </div>
         <div className="fld">
-          <label htmlFor="nw">كلمة المرور الجديدة</label>
+          <label htmlFor="nw">{t('كلمة المرور الجديدة')}</label>
           <input id="nw" className="inp ltr" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} required />
         </div>
         <div className="fld">
-          <label htmlFor="cf">تأكيد كلمة المرور</label>
+          <label htmlFor="cf">{t('تأكيد كلمة المرور')}</label>
           <input id="cf" className={`inp ltr${problem ? ' err' : ''}`} type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
           {problem && <span className="errt">{problem}</span>}
         </div>
         <button className="btn p lg" type="submit" disabled={busy || !!problem || !current || !next || !confirm}>
-          {busy && <Spinner />}
-          حفظ ومتابعة
-        </button>
-        <button type="button" className="linkbtn" onClick={() => void signOut()}>
-          تسجيل الخروج
-        </button>
+          {busy && <Spinner />}{t('حفظ ومتابعة')}</button>
+        <button type="button" className="linkbtn" onClick={() => void signOut()}>{t('تسجيل الخروج')}</button>
       </form>
     </div>
   );

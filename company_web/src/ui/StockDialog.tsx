@@ -4,6 +4,7 @@ import { parseNumber, unitsText } from '../data/format';
 import type { Product } from '../data/types';
 import { Banner, Modal, Spinner } from './kit';
 import { useToast } from './toast';
+import { ARROW, t } from '../i18n';
 
 /**
  * Changes a product's stock from the number stored on the server right now, so
@@ -29,17 +30,17 @@ export function StockDialog({ product, demand, onClose }: { product: Product; de
     setError('');
     try {
       const { before, after } = await adjustStock(product.id, mode, amount);
-      toast(`تم تحديث المخزون: ${before} ← ${after}`, 'ok');
+      toast(t('تم تحديث المخزون: {0} ← {1}', before, after), 'ok');
       onClose();
     } catch (e) {
       setError(
         e instanceof StockError
           ? e.problem === 'negative'
-            ? 'لا يمكن أن ينزل المخزون عن صفر. المخزون الحالي على الخادم تغيّر، راجع الرقم.'
+            ? t('لا يمكن أن ينزل المخزون عن صفر. المخزون الحالي على الخادم تغيّر، راجع الرقم.')
             : e.problem === 'gone'
-              ? 'المنتج لم يعد موجودًا.'
-              : 'اكتب عددًا صحيحًا.'
-          : 'تعذّر حفظ المخزون، حاول مرة أخرى.',
+              ? t('المنتج لم يعد موجودًا.')
+              : t('اكتب عددًا صحيحًا.')
+          : t('تعذّر حفظ المخزون، حاول مرة أخرى.'),
       );
       setBusy(false);
     }
@@ -47,46 +48,40 @@ export function StockDialog({ product, demand, onClose }: { product: Product; de
 
   return (
     <Modal
-      title={`تعديل مخزون: ${product.name}`}
+      title={t('تعديل مخزون: {0}', product.name)}
       onClose={onClose}
       busy={busy}
       footer={
         <>
           <button type="button" className="btn p" disabled={!valid || negative || busy} onClick={() => void save()}>
-            {busy && <Spinner />}
-            حفظ
-          </button>
-          <button type="button" className="btn" disabled={busy} onClick={onClose}>
-            إلغاء
-          </button>
+            {busy && <Spinner />}{t('حفظ')}</button>
+          <button type="button" className="btn" disabled={busy} onClick={onClose}>{t('إلغاء')}</button>
         </>
       }
     >
-      <div className="seg full" role="group" aria-label="نوع التعديل">
-        {([['add', 'إضافة'], ['subtract', 'خصم'], ['set', 'ضبط الرقم (جرد)']] as const).map(([m, label]) => (
+      <div className="seg full" role="group" aria-label={t('نوع التعديل')}>
+        {([['add', t('إضافة')], ['subtract', t('خصم')], ['set', t('ضبط الرقم (جرد)')]] as const).map(([m, label]) => (
           <button key={m} type="button" className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>
             {label}
           </button>
         ))}
       </div>
       <div className="fld">
-        <label htmlFor="stock-amount">{mode === 'set' ? 'الكمية الفعلية في المخزن' : 'الكمية'}</label>
+        <label htmlFor="stock-amount">{mode === 'set' ? t('الكمية الفعلية في المخزن') : t('الكمية')}</label>
         <input id="stock-amount" className="inp ltr" inputMode="numeric" autoFocus value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && void save()} />
       </div>
       <div className="row" style={{ background: 'var(--brand-tint)', color: 'var(--brand-ink)', borderRadius: 10, padding: '10px 14px', justifyContent: 'space-between' }}>
-        <span>الناتج</span>
+        <span>{t('الناتج')}</span>
         <b style={{ fontSize: 18 }}>
-          <span className="num">{product.stockCount} ← {result === null ? '…' : result}</span>
+          <span className="num">{product.stockCount} {ARROW} {result === null ? '…' : result}</span>
         </b>
       </div>
-      {negative && <span className="errt">لا يمكن أن ينزل المخزون عن صفر.</span>}
+      {negative && <span className="errt">{t('لا يمكن أن ينزل المخزون عن صفر.')}</span>}
       {short && (
-        <Banner tone="warn" icon="alert" tight>
-          عليه {unitsText(demand)} مطلوبة في طلبات تنتظر تأكيد الدفع، والناتج لا يغطيها.
-        </Banner>
+        <Banner tone="warn" icon="alert" tight>{t('عليه {0} مطلوبة في طلبات تنتظر تأكيد الدفع، والناتج لا يغطيها.', unitsText(demand))}</Banner>
       )}
       {error && <Banner tone="bad" icon="alert" tight>{error}</Banner>}
-      <p className="hint">يُحسب على الرقم الموجود وقت الحفظ، فلا يضيع أي بيع تم أثناء تعديلك.</p>
+      <p className="hint">{t('يُحسب على الرقم الموجود وقت الحفظ، فلا يضيع أي بيع تم أثناء تعديلك.')}</p>
     </Modal>
   );
 }

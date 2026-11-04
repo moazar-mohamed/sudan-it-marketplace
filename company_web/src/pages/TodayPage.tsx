@@ -10,6 +10,7 @@ import { db } from '../firebase';
 import { Icon } from '../ui/Icon';
 import { Banner, Chip, Empty, Loading, PageHeader, useNow } from '../ui/kit';
 import { StockDialog } from '../ui/StockDialog';
+import { t } from '../i18n';
 
 const DAY = 86_400_000;
 
@@ -78,62 +79,62 @@ export function TodayPage() {
   return (
     <main className="page">
       <PageHeader
-        title={first ? `أهلًا يا ${first}` : 'أهلًا بك'}
-        subtitle={`${longDate(new Date())} · ${pendingPayment.length > 0 ? `${ordersText(pendingPayment.length)} ينتظر التحقق من الدفع` : 'لا إيصالات تنتظرك'}`}
+        title={first ? t('أهلًا يا {0}', first) : t('أهلًا بك')}
+        subtitle={`${longDate(new Date())} · ${pendingPayment.length > 0 ? t('{0} ينتظر التحقق من الدفع', ordersText(pendingPayment.length)) : t('لا إيصالات تنتظرك')}`}
         actions={
           <>
-            <Link to="/orders" className="btn"><Icon name="receipt" />كل الطلبات</Link>
-            <Link to="/products/new" className="btn p"><Icon name="plus" />منتج جديد</Link>
+            <Link to="/orders" className="btn"><Icon name="receipt" />{t('كل الطلبات')}</Link>
+            <Link to="/products/new" className="btn p"><Icon name="plus" />{t('منتج جديد')}</Link>
           </>
         }
       />
 
       {soon.length > 0 && oldest && (
         <div style={{ marginBottom: 20 }}>
-          <Banner tone="warn" icon="clock" action={<Link to={`/orders/${oldest.id}`} className="btn sm">راجع الأقدم الآن</Link>}>
-            <b>{ordersText(soon.length)} تنتهي مهلة التحقق منه خلال 6 ساعات.</b>
-            <div>إذا مرّت 24 ساعة على الطلب دون تأكيد الدفع يُلغى تلقائيًا.</div>
+          <Banner tone="warn" icon="clock" action={<Link to={`/orders/${oldest.id}`} className="btn sm">{t('راجع الأقدم الآن')}</Link>}>
+            <b>{t('{0} تنتهي مهلة التحقق منه خلال 6 ساعات.', ordersText(soon.length))}</b>
+            <div>{t('إذا مرّت 24 ساعة على الطلب دون تأكيد الدفع يُلغى تلقائيًا.')}</div>
           </Banner>
         </div>
       )}
 
       <div className="kpis" style={{ marginBottom: 20 }}>
         <Link to="/orders?tab=awaiting" className="card kpi">
-          <div className="lbl"><Icon name="receipt" />بانتظار تأكيد الدفع</div>
+          <div className="lbl"><Icon name="receipt" />{t('بانتظار تأكيد الدفع')}</div>
           <div className="val">{pendingPayment.length}</div>
-          <div className="sub">{oldest ? `أقدمها ${paymentAgeLabel(oldest, now)}` : 'لا شيء ينتظر'}</div>
+          <div className="sub">{oldest ? t('أقدمها {0}', paymentAgeLabel(oldest, now)) : t('لا شيء ينتظر')}</div>
         </Link>
         <Link to="/orders?tab=preparing" className="card kpi">
-          <div className="lbl"><Icon name="truck" />قيد التجهيز والتوصيل</div>
+          <div className="lbl"><Icon name="truck" />{t('قيد التجهيز والتوصيل')}</div>
           <div className="val">{inProgress.length}</div>
-          <div className="sub">منها {outForDelivery} في الطريق · دفعها مؤكد</div>
+          <div className="sub">{t('منها {0} في الطريق · دفعها مؤكد', outForDelivery)}</div>
         </Link>
         <div className="card kpi">
-          <div className="lbl"><Icon name="arrowUp" />مبيعات مؤكدة · 7 أيام</div>
+          <div className="lbl"><Icon name="arrowUp" />{t('مبيعات مؤكدة · 7 أيام')}</div>
           <div className="val">{recent === null ? '…' : <><span className="num">{money(week.thisWeek)}</span> <small>SDG</small></>}</div>
           <div className="sub" style={{ color: changePct !== null && changePct >= 0 ? 'var(--ok)' : changePct !== null ? 'var(--bad)' : undefined, fontWeight: 700 }}>
-            {changePct === null ? 'دفع مؤكد فقط · حسب تاريخ الطلب' : `${changePct >= 0 ? 'ارتفاع' : 'انخفاض'} ${Math.abs(changePct)}% عن الأسبوع السابق`}
+            {changePct === null ? t('دفع مؤكد فقط · حسب تاريخ الطلب') : t('{0} {1}% عن الأسبوع السابق', changePct >= 0 ? t('ارتفاع') : t('انخفاض'), Math.abs(changePct))}
           </div>
         </div>
         <Link to="/products" className="card kpi">
-          <div className="lbl"><Icon name="box" />منتجات تحتاج تعبئة</div>
+          <div className="lbl"><Icon name="box" />{t('منتجات تحتاج تعبئة')}</div>
           <div className="val">{lowStock.length}</div>
-          <div className="sub">منها {lowStock.filter((p) => p.stockCount === 0).length} نفدت</div>
+          <div className="sub">{t('منها {0} نفدت', lowStock.filter((p) => p.stockCount === 0).length)}</div>
         </Link>
       </div>
 
       <div className="g2">
-        <section className="card" aria-label="قائمة العمل">
-          <div className="card-h"><h2>قائمة العمل</h2><span className="sub">كل ما يحتاج قرارًا منك، الأقدم أولًا</span></div>
+        <section className="card" aria-label={t('قائمة العمل')}>
+          <div className="card-h"><h2>{t('قائمة العمل')}</h2><span className="sub">{t('كل ما يحتاج قرارًا منك، الأقدم أولًا')}</span></div>
           <div className="tabs" role="tablist">
-            {([['pay', 'تحقق الدفع', pendingPayment.length], ['ship', 'جاهزة للشحن أو التسليم', toShip.length], ['install', 'تركيب بلا فني', needsTech.length], ['refund', 'مبالغ تنتظر الرد', pendingRefunds.length]] as const).map(([t, label, n]) => (
+            {([['pay', t('تحقق الدفع'), pendingPayment.length], ['ship', t('جاهزة للشحن أو التسليم'), toShip.length], ['install', t('تركيب بلا فني'), needsTech.length], ['refund', t('مبالغ تنتظر الرد'), pendingRefunds.length]] as const).map(([t, label, n]) => (
               <button key={t} type="button" role="tab" aria-selected={tab === t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
                 {label}<span className={`n${t === 'pay' && n ? ' hot' : ''}`}>{n}</span>
               </button>
             ))}
           </div>
           {list.length === 0 ? (
-            <Empty icon="check" text="لا شيء هنا الآن." />
+            <Empty icon="check" text={t('لا شيء هنا الآن.')} />
           ) : (
             list.slice(0, 8).map((o) => {
               const left = paymentTimeLeft(o, now);
@@ -142,47 +143,47 @@ export function TodayPage() {
                 <div key={o.id} className="q">
                   <div>
                     <div className="b">{o.productName} <span className="muted">×{o.quantity}</span></div>
-                    <div className="sub"><span className="num">#{shortId(o.id)}</span> · {o.installationSelected ? 'تركيب' : o.deliveryMethod === 'pickup' ? 'استلام' : 'توصيل'}</div>
-                    {tab === 'pay' && short && <Chip tone="warn" small dot={false}>المخزون لا يكفي الطلبات المعلقة</Chip>}
+                    <div className="sub"><span className="num">#{shortId(o.id)}</span> · {o.installationSelected ? t('تركيب') : o.deliveryMethod === 'pickup' ? t('استلام') : t('توصيل')}</div>
+                    {tab === 'pay' && short && <Chip tone="warn" small dot={false}>{t('المخزون لا يكفي الطلبات المعلقة')}</Chip>}
                   </div>
-                  <div><div>{o.customerName || 'عميل'}</div><div className="sub num">{o.contactPhone}</div></div>
+                  <div><div>{o.customerName || t('عميل')}</div><div className="sub num">{o.contactPhone}</div></div>
                   <div className="b"><span className="num">{money(o.totalAmount)}</span> <span className="sub">SDG</span></div>
-                  {tab === 'pay' ? <Chip tone={urgencyOf(left)}><span className="num">{leftLabel(left)}</span> متبقية</Chip> : <span />}
-                  <Link to={`/orders/${o.id}`} className={`btn sm${tab === 'pay' ? ' p' : ''}`}>{tab === 'pay' ? 'راجع الإيصال' : tab === 'install' ? 'تعيين فني' : tab === 'refund' ? 'تسجيل الرد' : 'فتح'}</Link>
+                  {tab === 'pay' ? <Chip tone={urgencyOf(left)}><span className="num">{leftLabel(left)}</span>{' '}{t('متبقية')}</Chip> : <span />}
+                  <Link to={`/orders/${o.id}`} className={`btn sm${tab === 'pay' ? ' p' : ''}`}>{tab === 'pay' ? t('راجع الإيصال') : tab === 'install' ? t('تعيين فني') : tab === 'refund' ? t('تسجيل الرد') : t('فتح')}</Link>
                 </div>
               );
             })
           )}
-          <div className="foot"><span /><Link to="/orders" className="btn sm g">عرض كل الطلبات</Link></div>
+          <div className="foot"><span /><Link to="/orders" className="btn sm g">{t('عرض كل الطلبات')}</Link></div>
         </section>
 
         <div className="stack">
-          <section className="card" aria-label="مخزون يحتاج تعبئة">
-            <div className="card-h"><h3>مخزون يحتاج تعبئة</h3><span className="grow" /><Link to="/products" className="sub">كل المنتجات</Link></div>
-            {lowStock.length === 0 && <Empty icon="check" text="كل المنتجات بمخزون كافٍ." />}
+          <section className="card" aria-label={t('مخزون يحتاج تعبئة')}>
+            <div className="card-h"><h3>{t('مخزون يحتاج تعبئة')}</h3><span className="grow" /><Link to="/products" className="sub">{t('كل المنتجات')}</Link></div>
+            {lowStock.length === 0 && <Empty icon="check" text={t('كل المنتجات بمخزون كافٍ.')} />}
             {lowStock.slice(0, 5).map((p) => {
               const d = demand.get(p.id) ?? 0;
               return (
                 <div key={p.id} className="lr">
                   <div className="grow">
                     <div className="b ellipsis">{p.name}</div>
-                    <div className="sub">الحد {lowLevelOf(p)}{d > 0 ? ` · طلبات معلقة تحتاج ${unitsText(d)}` : ''}</div>
+                    <div className="sub">{t('الحد {0}{1}', lowLevelOf(p), d > 0 ? t(' · طلبات معلقة تحتاج {0}', unitsText(d)) : '')}</div>
                   </div>
                   <div className="b" style={{ fontSize: 22, color: p.stockCount === 0 ? 'var(--bad)' : 'var(--warn)' }}>{p.stockCount}</div>
-                  <button type="button" className="btn sm" onClick={() => setStockFor(p)}>تعديل</button>
+                  <button type="button" className="btn sm" onClick={() => setStockFor(p)}>{t('تعديل')}</button>
                 </div>
               );
             })}
           </section>
 
-          <section className="card" aria-label="المبيعات المؤكدة">
-            <div className="card-h"><h3>مبيعات مؤكدة · 7 أيام</h3></div>
+          <section className="card" aria-label={t('المبيعات المؤكدة')}>
+            <div className="card-h"><h3>{t('مبيعات مؤكدة · 7 أيام')}</h3></div>
             <div className="card-b">
-              <div className="bars" role="img" aria-label={`مبيعات مؤكدة يوميًا، المجموع ${money(week.thisWeek)} جنيه`}>
+              <div className="bars" role="img" aria-label={t('مبيعات مؤكدة يوميًا، المجموع {0} جنيه', money(week.thisWeek))}>
                 {week.days.map((d, i) => <div key={i} className={i === 6 ? 'dim' : ''} style={{ height: `${Math.max(4, (d.value / maxDay) * 100)}%` }} title={`${d.label}: ${money(d.value)}`} />)}
               </div>
               <div className="bl">{week.days.map((d, i) => <span key={i}>{d.label}</span>)}</div>
-              <p className="sub" style={{ marginTop: 12 }}>يُحتسب الدفع المؤكد فقط وغير الملغى، بتاريخ إنشاء الطلب. عمود اليوم ما زال جاريًا.</p>
+              <p className="sub" style={{ marginTop: 12 }}>{t('يُحتسب الدفع المؤكد فقط وغير الملغى، بتاريخ إنشاء الطلب. عمود اليوم ما زال جاريًا.')}</p>
             </div>
           </section>
         </div>
@@ -194,5 +195,5 @@ export function TodayPage() {
 
 function paymentAgeLabel(o: Order, now: number): string {
   const hours = Math.floor((now - o.createdAt.getTime()) / 3_600_000);
-  return hours < 1 ? 'منذ أقل من ساعة' : `منذ ${hours} ساعة`;
+  return hours < 1 ? t('منذ أقل من ساعة') : t('منذ {0} ساعة', hours);
 }

@@ -5,15 +5,16 @@ import { ago } from '../data/format';
 import type { Review } from '../data/types';
 import { Banner, Chip, Empty, Loading, PageHeader, Spinner } from '../ui/kit';
 import { useToast } from '../ui/toast';
+import { t } from '../i18n';
 
-const TAG_LABEL: Record<string, string> = { quality: 'جودة', delivery: 'توصيل', punctual: 'التزام بالموعد', service: 'خدمة', price: 'سعر' };
+const TAG_LABEL: Record<string, string> = { quality: t('جودة'), delivery: t('توصيل'), punctual: t('التزام بالموعد'), service: t('خدمة'), price: t('سعر') };
 
 export function ReviewsPage() {
   const { companyId } = useCompanyData();
   const reviews = useReviews(companyId);
   return (
     <main className="page">
-      <PageHeader title="التقييمات" subtitle="ما يقوله العملاء عن شركتك، ويمكنك الرد عليه" />
+      <PageHeader title={t('التقييمات')} subtitle={t('ما يقوله العملاء عن شركتك، ويمكنك الرد عليه')} />
       <ReviewsList reviews={reviews} />
     </main>
   );
@@ -31,25 +32,25 @@ function ReviewsList({ reviews }: { reviews: Review[] | null }) {
   const shown = stats.list.filter((r) => (filter === 'noReply' ? !r.reply : filter === 'low' ? r.stars <= 2 : true));
   return (
     <div className="g2">
-      <section className="card" aria-label="التقييمات">
+      <section className="card" aria-label={t('التقييمات')}>
         <div className="card-h">
-          <h2>التقييمات</h2><span className="grow" />
+          <h2>{t('التقييمات')}</h2><span className="grow" />
           <div className="pills">
-            <button type="button" className={`pill${filter === 'all' ? ' on' : ''}`} onClick={() => setFilter('all')}>الكل <span className="n">{stats.list.length}</span></button>
-            <button type="button" className={`pill${filter === 'noReply' ? ' on' : ''}`} onClick={() => setFilter('noReply')}>بلا رد <span className="n">{stats.list.filter((r) => !r.reply).length}</span></button>
-            <button type="button" className={`pill${filter === 'low' ? ' on' : ''}`} onClick={() => setFilter('low')}>1–2 نجوم <span className="n">{stats.list.filter((r) => r.stars <= 2).length}</span></button>
+            <button type="button" className={`pill${filter === 'all' ? ' on' : ''}`} onClick={() => setFilter('all')}>{t('الكل')}{' '}<span className="n">{stats.list.length}</span></button>
+            <button type="button" className={`pill${filter === 'noReply' ? ' on' : ''}`} onClick={() => setFilter('noReply')}>{t('بلا رد')}{' '}<span className="n">{stats.list.filter((r) => !r.reply).length}</span></button>
+            <button type="button" className={`pill${filter === 'low' ? ' on' : ''}`} onClick={() => setFilter('low')}>{t('1–2 نجوم')}{' '}<span className="n">{stats.list.filter((r) => r.stars <= 2).length}</span></button>
           </div>
         </div>
-        {shown.length === 0 ? <Empty icon="star" text="لا تقييمات هنا." /> : shown.map((r) => <ReviewRow key={r.id} review={r} />)}
+        {shown.length === 0 ? <Empty icon="star" text={t('لا تقييمات هنا.')} /> : shown.map((r) => <ReviewRow key={r.id} review={r} />)}
       </section>
-      <section className="card" aria-label="ملخص التقييم">
-        <div className="card-h"><h3>ملخص التقييم</h3></div>
+      <section className="card" aria-label={t('ملخص التقييم')}>
+        <div className="card-h"><h3>{t('ملخص التقييم')}</h3></div>
         <div className="card-b stack" style={{ gap: 12 }}>
-          <div className="row"><div style={{ fontSize: 44, fontWeight: 800, lineHeight: 1 }}>{stats.avg ? stats.avg.toFixed(1) : '—'}</div><div><Stars n={Math.round(stats.avg)} /><div className="sub">من {stats.list.length} تقييمًا</div></div></div>
+          <div className="row"><div style={{ fontSize: 44, fontWeight: 800, lineHeight: 1 }}>{stats.avg ? stats.avg.toFixed(1) : '—'}</div><div><Stars n={Math.round(stats.avg)} /><div className="sub">{t('من {0} تقييمًا', stats.list.length)}</div></div></div>
           {[5, 4, 3, 2, 1].map((s, i) => (
             <div key={s} className="row"><span style={{ width: 18 }}>{s}</span><div className={`prog grow${s <= 1 ? ' bad' : s === 2 ? ' warn' : ''}`}><i style={{ width: `${stats.list.length ? (stats.dist[i] / stats.list.length) * 100 : 0}%` }} /></div><span className="sub" style={{ width: 28 }}>{stats.dist[i]}</span></div>
           ))}
-          <Banner tone="info" icon="info" tight>تصل ردودك للعملاء كإشعار.</Banner>
+          <Banner tone="info" icon="info" tight>{t('تصل ردودك للعملاء كإشعار.')}</Banner>
         </div>
       </section>
     </div>
@@ -57,7 +58,7 @@ function ReviewsList({ reviews }: { reviews: Review[] | null }) {
 }
 
 const Stars = ({ n }: { n: number }) => (
-  <span className="stars" role="img" aria-label={`${n} من 5 نجوم`}>
+  <span className="stars" role="img" aria-label={t('{0} من 5 نجوم', n)}>
     {'★'.repeat(n)}<span style={{ color: 'var(--line-strong)' }}>{'★'.repeat(5 - n)}</span>
   </span>
 );
@@ -72,32 +73,32 @@ function ReviewRow({ review: r }: { review: Review }) {
     setBusy(true);
     try {
       const told = await replyToReview(r, text);
-      toast(told ? 'نُشر الرد' : 'نُشر الرد، لكن تعذّر إرسال الإشعار', told ? 'ok' : 'info');
+      toast(told ? t('نُشر الرد') : t('نُشر الرد، لكن تعذّر إرسال الإشعار'), told ? 'ok' : 'info');
       setOpen(false);
-    } catch { toast('تعذّر نشر الرد.', 'err'); } finally { setBusy(false); }
+    } catch { toast(t('تعذّر نشر الرد.'), 'err'); } finally { setBusy(false); }
   };
   return (
     <div className="lr" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: 8, padding: '16px 20px', background: !r.reply && r.stars <= 2 ? 'var(--warn-bg)' : undefined }}>
       <div className="row" style={{ width: '100%' }}>
-        <span className="av">{(r.authorName || 'ع').slice(0, 1)}</span>
-        <div className="grow"><b>{r.authorName || 'عميل'}</b><div className="sub">{r.targetName} · {ago(r.createdAt)}</div></div>
+        <span className="av">{(r.authorName || t('ع')).slice(0, 1)}</span>
+        <div className="grow"><b>{r.authorName || t('عميل')}</b><div className="sub">{r.targetName} · {ago(r.createdAt)}</div></div>
         <Stars n={r.stars} />
       </div>
       {r.tags.length > 0 && <div className="row wrap" style={{ gap: 6 }}>{r.tags.map((t) => <Chip key={t} tone={r.stars >= 4 ? 'ok' : 'n'} dot={false} small>{TAG_LABEL[t] ?? t}</Chip>)}</div>}
       {r.comment && <div>{r.comment}</div>}
       {r.reply && !open && (
         <div style={{ background: 'var(--bg)', borderRadius: 10, padding: '10px 14px', width: '100%' }}>
-          <div className="sub b">ردّك · {ago(r.replyAt)}</div><div>{r.reply}</div>
-          <button type="button" className="linkbtn" onClick={() => setOpen(true)}>تعديل الرد</button>
+          <div className="sub b">{t('ردّك · {0}', ago(r.replyAt))}</div><div>{r.reply}</div>
+          <button type="button" className="linkbtn" onClick={() => setOpen(true)}>{t('تعديل الرد')}</button>
         </div>
       )}
       {open ? (
         <div className="fld" style={{ width: '100%' }}>
-          <label htmlFor={`rp-${r.id}`}>اكتب ردًا يراه كل العملاء</label>
+          <label htmlFor={`rp-${r.id}`}>{t('اكتب ردًا يراه كل العملاء')}</label>
           <textarea id={`rp-${r.id}`} className="inp" rows={2} value={text} maxLength={500} onChange={(e) => setText(e.target.value)} autoFocus />
-          <div className="row"><button type="button" className="btn p sm" disabled={!text.trim() || busy} onClick={() => void save()}>{busy && <Spinner />}نشر الرد</button><button type="button" className="btn sm" onClick={() => setOpen(false)}>إلغاء</button></div>
+          <div className="row"><button type="button" className="btn p sm" disabled={!text.trim() || busy} onClick={() => void save()}>{busy && <Spinner />}{t('نشر الرد')}</button><button type="button" className="btn sm" onClick={() => setOpen(false)}>{t('إلغاء')}</button></div>
         </div>
-      ) : !r.reply && <button type="button" className="btn sm" onClick={() => setOpen(true)}>رد</button>}
+      ) : !r.reply && <button type="button" className="btn sm" onClick={() => setOpen(true)}>{t('رد')}</button>}
     </div>
   );
 }

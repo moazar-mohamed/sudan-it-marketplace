@@ -1,4 +1,8 @@
+import { language, t } from '../i18n';
 import { PAYMENT_WINDOW_MS, type Order, type Product } from './types';
+
+/** The locale for month and weekday names (digits stay 0-9 in both). */
+const LOCALE = language === 'en' ? 'en-GB' : 'ar-SD-u-nu-latn';
 
 /** 1465000 → "1,465,000" (whole numbers, as in the app). */
 export function money(value: number | null | undefined): string {
@@ -26,28 +30,28 @@ const sameDay = (a: Date, b: Date) =>
 export function dayTime(d: Date | null, now = new Date()): string {
   if (!d) return '—';
   const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  if (sameDay(d, now)) return `اليوم ${time}`;
+  if (sameDay(d, now)) return t('اليوم {0}', time);
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  if (sameDay(d, yesterday)) return `أمس ${time}`;
-  return d.toLocaleDateString('ar-SD-u-nu-latn', { day: 'numeric', month: 'long' });
+  if (sameDay(d, yesterday)) return t('أمس {0}', time);
+  return d.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' });
 }
 
 export function longDate(d: Date | null): string {
   if (!d) return '—';
-  return d.toLocaleDateString('ar-SD-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  return d.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 /** "قبل 12 د" / "قبل ساعتين" / "قبل 3 أيام". */
 export function ago(d: Date | null, now = new Date()): string {
   if (!d) return '';
   const minutes = Math.max(0, Math.floor((now.getTime() - d.getTime()) / 60000));
-  if (minutes < 1) return 'الآن';
-  if (minutes < 60) return `قبل ${minutes} د`;
+  if (minutes < 1) return t('الآن');
+  if (minutes < 60) return t('قبل {0} د', minutes);
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return hours === 1 ? 'قبل ساعة' : hours === 2 ? 'قبل ساعتين' : `قبل ${hours} ساعات`;
+  if (hours < 24) return hours === 1 ? t('قبل ساعة') : hours === 2 ? t('قبل ساعتين') : t('قبل {0} ساعات', hours);
   const days = Math.floor(hours / 24);
-  return days === 1 ? 'قبل يوم' : days === 2 ? 'قبل يومين' : `قبل ${days} أيام`;
+  return days === 1 ? t('قبل يوم') : days === 2 ? t('قبل يومين') : t('قبل {0} أيام', days);
 }
 
 /** The time left until the payment window of [order] closes, in ms (negative once it has). */
@@ -56,10 +60,10 @@ export const paymentTimeLeft = (order: Order, now = Date.now()): number =>
 
 /** "4س 20د" for a positive duration; "انتهت" when it ran out. */
 export function leftLabel(ms: number): string {
-  if (ms <= 0) return 'انتهت';
+  if (ms <= 0) return t('انتهت');
   const minutes = Math.floor(ms / 60000);
   const hours = Math.floor(minutes / 60);
-  return `${hours}س ${pad(minutes % 60)}د`;
+  return t('{0}س {1}د', hours, pad(minutes % 60));
 }
 
 export type Urgency = 'bad' | 'warn' | 'n';
@@ -104,10 +108,10 @@ export const isAvailable = (p: Pick<Product, 'stockCount' | 'inStock'>): boolean
 
 /** Arabic counted nouns: 0 → "لا …", 1, 2 (dual), 3–10 plural, 11+ singular accusative. */
 export const arCount = (n: number, one: string, two: string, few: string, many: string): string =>
-  n === 0 ? `لا ${few}` : n === 1 ? one : n === 2 ? two : n <= 10 ? `${n} ${few}` : `${n} ${many}`;
-export const unitsText = (n: number): string => arCount(n, 'وحدة واحدة', 'وحدتان', 'وحدات', 'وحدة');
-export const productsText = (n: number): string => arCount(n, 'منتج واحد', 'منتجان', 'منتجات', 'منتجًا');
-export const ordersText = (n: number): string => arCount(n, 'طلب واحد', 'طلبان', 'طلبات', 'طلبًا');
+  n === 0 ? t('لا {0}', few) : n === 1 ? one : n === 2 ? two : n <= 10 ? `${n} ${few}` : `${n} ${many}`;
+export const unitsText = (n: number): string => arCount(n, t('وحدة واحدة'), t('وحدتان'), t('وحدات'), t('وحدة'));
+export const productsText = (n: number): string => arCount(n, t('منتج واحد'), t('منتجان'), t('منتجات'), t('منتجًا'));
+export const ordersText = (n: number): string => arCount(n, t('طلب واحد'), t('طلبان'), t('طلبات'), t('طلبًا'));
 
 /** Arabic-Indic and Persian digits → 0-9 (people type either). */
 export const westernDigits = (s: string): string =>

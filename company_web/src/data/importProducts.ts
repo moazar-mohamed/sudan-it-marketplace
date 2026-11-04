@@ -2,6 +2,7 @@ import type { CategoryChoice } from './categories';
 import { parseCsv } from './csv';
 import { parseNumber } from './format';
 import { isImageUrl } from './images';
+import { t } from '../i18n';
 import { createProduct, type ProductDraft } from './products';
 import type { ProductStatus } from './types';
 
@@ -63,17 +64,17 @@ export function findCategory(text: string, choices: CategoryChoice[]): CategoryC
 /** Reads the file's text into rows ready to create, each with its own problems listed. */
 export function readImport(text: string, choices: CategoryChoice[]): ImportReading {
   const table = parseCsv(text);
-  if (table.length === 0) return { rows: [], problem: 'الملف فارغ.' };
+  if (table.length === 0) return { rows: [], problem: t('الملف فارغ.') };
   const columns = new Map<Header, number>();
   table[0].forEach((h, i) => {
     const key = h.trim();
     const header = (IMPORT_HEADERS as readonly string[]).includes(key) ? (key as Header) : ALIASES[key.toLowerCase()] ?? ALIASES[key];
     if (header && !columns.has(header)) columns.set(header, i);
   });
-  if (!columns.has('الاسم')) return { rows: [], problem: 'لم نجد عمود «الاسم» في السطر الأول. حمّل القالب واستعمل أسماء أعمدته.' };
+  if (!columns.has('الاسم')) return { rows: [], problem: t('لم نجد عمود «الاسم» في السطر الأول. حمّل القالب واستعمل أسماء أعمدته.') };
   const body = table.slice(1);
-  if (body.length === 0) return { rows: [], problem: 'الملف يحتوي على العناوين فقط، ولا منتجات فيه.' };
-  if (body.length > MAX_IMPORT_ROWS) return { rows: [], problem: `الملف فيه ${body.length} صفًا. الحد الأقصى ${MAX_IMPORT_ROWS} في المرة الواحدة، فقسّمه إلى ملفين.` };
+  if (body.length === 0) return { rows: [], problem: t('الملف يحتوي على العناوين فقط، ولا منتجات فيه.') };
+  if (body.length > MAX_IMPORT_ROWS) return { rows: [], problem: t('الملف فيه {0} صفًا. الحد الأقصى {1} في المرة الواحدة، فقسّمه إلى ملفين.', body.length, MAX_IMPORT_ROWS) };
 
   const cell = (row: string[], h: Header) => (columns.has(h) ? (row[columns.get(h) as number] ?? '').trim() : '');
   const seen = new Set<string>();
@@ -83,49 +84,49 @@ export function readImport(text: string, choices: CategoryChoice[]): ImportReadi
     const name = cell(row, 'الاسم');
     const brand = cell(row, 'العلامة');
     const sku = cell(row, 'رمز المنتج');
-    if (!name) errors.push('الاسم فارغ');
-    else if (name.length > 200) errors.push('الاسم أطول من 200 حرف');
-    else if (seen.has(norm(name))) errors.push('الاسم مكرر في الملف');
+    if (!name) errors.push(t('الاسم فارغ'));
+    else if (name.length > 200) errors.push(t('الاسم أطول من 200 حرف'));
+    else if (seen.has(norm(name))) errors.push(t('الاسم مكرر في الملف'));
     seen.add(norm(name));
-    if (brand.length > 60) errors.push('العلامة أطول من 60 حرفًا');
-    if (sku.length > 60) errors.push('رمز المنتج أطول من 60 حرفًا');
+    if (brand.length > 60) errors.push(t('العلامة أطول من 60 حرفًا'));
+    if (sku.length > 60) errors.push(t('رمز المنتج أطول من 60 حرفًا'));
 
     const categoryText = cell(row, 'التصنيف');
     const category = findCategory(categoryText, choices);
-    if (!categoryText) errors.push('التصنيف فارغ');
-    else if (!category) errors.push(`التصنيف «${categoryText}» غير موجود`);
+    if (!categoryText) errors.push(t('التصنيف فارغ'));
+    else if (!category) errors.push(t('التصنيف «{0}» غير موجود', categoryText));
 
     const priceText = cell(row, 'السعر');
     let price: number | null = null;
     if (priceText !== '') {
       price = parseNumber(priceText);
-      if (price === null || price <= 0) { errors.push('السعر يجب أن يكون أكبر من صفر (أو اتركه فارغًا لـ«عند الطلب»)'); price = null; }
+      if (price === null || price <= 0) { errors.push(t('السعر يجب أن يكون أكبر من صفر (أو اتركه فارغًا لـ«عند الطلب»)')); price = null; }
     }
 
     const stockText = cell(row, 'المخزون');
     let stock = 0;
     if (stockText !== '') {
       const n = parseNumber(stockText);
-      if (n === null || !Number.isInteger(n) || n < 0) errors.push('المخزون يجب أن يكون عددًا صحيحًا، صفرًا أو أكثر');
+      if (n === null || !Number.isInteger(n) || n < 0) errors.push(t('المخزون يجب أن يكون عددًا صحيحًا، صفرًا أو أكثر'));
       else stock = n;
     }
 
     const delivery = yesNo(cell(row, 'توصيل'), true);
-    if (delivery === null) errors.push('عمود «توصيل» يقبل نعم أو لا');
+    if (delivery === null) errors.push(t('عمود «توصيل» يقبل نعم أو لا'));
     const installation = yesNo(cell(row, 'تركيب'), false);
-    if (installation === null) errors.push('عمود «تركيب» يقبل نعم أو لا');
+    if (installation === null) errors.push(t('عمود «تركيب» يقبل نعم أو لا'));
     let installationPrice: number | null = null;
     if (installation) {
       installationPrice = parseNumber(cell(row, 'سعر التركيب'));
-      if (installationPrice === null || installationPrice <= 0) errors.push('اكتب «سعر التركيب» (أكبر من صفر) للمنتج الذي فيه تركيب');
+      if (installationPrice === null || installationPrice <= 0) errors.push(t('اكتب «سعر التركيب» (أكبر من صفر) للمنتج الذي فيه تركيب'));
     }
 
     const statusText = norm(cell(row, 'الحالة'));
     const status = statusText === '' ? 'draft' : STATUS[statusText];
-    if (!status) errors.push('الحالة تقبل: منشور أو مسودة أو مؤرشف');
+    if (!status) errors.push(t('الحالة تقبل: منشور أو مسودة أو مؤرشف'));
 
     const image = cell(row, 'رابط الصورة');
-    if (image !== '' && !isImageUrl(image)) errors.push('رابط الصورة غير صحيح (يبدأ بـ https://)');
+    if (image !== '' && !isImageUrl(image)) errors.push(t('رابط الصورة غير صحيح (يبدأ بـ https://)'));
 
     const ok = errors.length === 0;
     const draft: ProductDraft | null = ok

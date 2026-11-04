@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Spinner, Modal } from './kit';
+import { t } from '../i18n';
 
 // OpenStreetMap tiles need no key or billing, as in the app (map_config.dart).
 const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -65,7 +66,7 @@ export default function MapPicker({
 
   const useMyLocation = () => {
     if (!navigator.geolocation) {
-      setNote('متصفحك لا يدعم تحديد الموقع. اضغط على الخريطة.');
+      setNote(t('متصفحك لا يدعم تحديد الموقع. اضغط على الخريطة.'));
       return;
     }
     setLocating(true);
@@ -78,7 +79,7 @@ export default function MapPicker({
         setLocating(false);
       },
       (error) => {
-        setNote(error.code === 1 ? 'تم رفض إذن الموقع. يمكنك الضغط على الخريطة.' : 'تعذّر الحصول على موقعك الحالي. يمكنك الضغط على الخريطة.');
+        setNote(error.code === 1 ? t('تم رفض إذن الموقع. يمكنك الضغط على الخريطة.') : t('تعذّر الحصول على موقعك الحالي. يمكنك الضغط على الخريطة.'));
         setLocating(false);
       },
       { enableHighAccuracy: true, timeout: 15000 },
@@ -88,17 +89,17 @@ export default function MapPicker({
   return (
     <Modal
       xl
-      title="تحديد الموقع على الخريطة"
+      title={t('تحديد الموقع على الخريطة')}
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn p" disabled={!selected} onClick={() => selected && onConfirm(selected)}>تأكيد الموقع</button>
-          <button type="button" className="btn" disabled={locating} onClick={useMyLocation}>{locating && <Spinner />}استخدام موقعي الحالي</button>
-          <button type="button" className="btn g" onClick={onClose}>إلغاء</button>
+          <button type="button" className="btn p" disabled={!selected} onClick={() => selected && onConfirm(selected)}>{t('تأكيد الموقع')}</button>
+          <button type="button" className="btn" disabled={locating} onClick={useMyLocation}>{locating && <Spinner />}{t('استخدام موقعي الحالي')}</button>
+          <button type="button" className="btn g" onClick={onClose}>{t('إلغاء')}</button>
         </>
       }
     >
-      <p className="muted">اضغط على الخريطة لتحديد النقطة بدقة، واضغط مرة أخرى لتحريكها.</p>
+      <p className="muted">{t('اضغط على الخريطة لتحديد النقطة بدقة، واضغط مرة أخرى لتحريكها.')}</p>
       <div className="map-box" ref={box} dir="ltr" />
       {selected && <span className="sub num">{selected.latitude.toFixed(6)}, {selected.longitude.toFixed(6)}</span>}
       {note && <span className="errt">{note}</span>}

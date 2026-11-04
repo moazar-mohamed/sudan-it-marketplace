@@ -6,6 +6,7 @@ import { ForcePasswordPage } from './pages/ForcePasswordPage';
 import { LoginPage } from './pages/LoginPage';
 import { Empty, Loading } from './ui/kit';
 import { Shell } from './ui/Shell';
+import { t } from './i18n';
 
 // Each page is its own file, fetched when it is first opened.
 const page = <K extends string>(load: () => Promise<Record<K, React.ComponentType>>, name: K) =>
@@ -28,7 +29,7 @@ export default function App() {
   const { state } = useAuth();
 
   if (state.status === 'loading') {
-    return <Loading text="جارٍ التحقق من الحساب…" />;
+    return <Loading text={t('جارٍ التحقق من الحساب…')} />;
   }
   if (state.status === 'signedOut') {
     return <LoginPage notice={state.notice} />;
@@ -54,7 +55,7 @@ export default function App() {
           <Route path="reviews" element={<ReviewsPage />} />
           <Route path="chats" element={<ChatsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="*" element={<Empty text="الصفحة غير موجودة" />} />
+          <Route path="*" element={<Empty text={t('الصفحة غير موجودة')} />} />
         </Route>
       </Routes>
     </CompanyDataProvider>

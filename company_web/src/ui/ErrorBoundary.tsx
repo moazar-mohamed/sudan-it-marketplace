@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { t } from '../i18n';
 
 // Each deploy replaces the hashed page files, so a tab opened before it asks for
 // a file that no longer exists (the host answers with index.html instead).
@@ -45,11 +46,11 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
       <main className="page">
         <section className="card" role="alert">
           <div className="card-b stack" style={{ alignItems: 'center', textAlign: 'center', padding: '48px 24px', gap: 12 }}>
-            <h2>{stale ? 'صدر إصدار جديد من اللوحة' : 'تعذّر عرض هذه الصفحة'}</h2>
-            <p className="sub">{stale ? 'حدّث الصفحة لتحميل الإصدار الجديد.' : 'حدّث الصفحة، وإن تكرر الأمر فأخبرنا بما كنت تفعله.'}</p>
+            <h2>{stale ? t('صدر إصدار جديد من اللوحة') : t('تعذّر عرض هذه الصفحة')}</h2>
+            <p className="sub">{stale ? t('حدّث الصفحة لتحميل الإصدار الجديد.') : t('حدّث الصفحة، وإن تكرر الأمر فأخبرنا بما كنت تفعله.')}</p>
             <div className="row">
-              <button type="button" className="btn p" onClick={() => window.location.reload()}>تحديث الصفحة</button>
-              {!stale && <button type="button" className="btn" onClick={() => this.setState({ error: null })}>إعادة المحاولة</button>}
+              <button type="button" className="btn p" onClick={() => window.location.reload()}>{t('تحديث الصفحة')}</button>
+              {!stale && <button type="button" className="btn" onClick={() => this.setState({ error: null })}>{t('إعادة المحاولة')}</button>}
             </div>
           </div>
         </section>

@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { mapCatalogService, mapCompanyService, toDate } from './mappers';
 import { sendNotice } from './notify';
 import type { CatalogService, CompanyService, OfferBadge } from './types';
+import { t } from '../i18n';
 
 export type RequestStatus = 'pending' | 'accepted' | 'rejected' | 'in_progress' | 'completed' | 'cancelled';
 
@@ -184,12 +185,12 @@ const NEXT: Partial<Record<RequestStatus, RequestStatus[]>> = {
 export const nextRequestStatuses = (s: RequestStatus): RequestStatus[] => NEXT[s] ?? [];
 
 export const REQUEST_LABEL: Record<RequestStatus, string> = {
-  pending: 'جديد',
-  accepted: 'مقبول',
-  rejected: 'مرفوض',
-  in_progress: 'قيد التنفيذ',
-  completed: 'مكتمل',
-  cancelled: 'ألغاه العميل',
+  pending: t('جديد'),
+  accepted: t('مقبول'),
+  rejected: t('مرفوض'),
+  in_progress: t('قيد التنفيذ'),
+  completed: t('مكتمل'),
+  cancelled: t('ألغاه العميل'),
 };
 
 export async function setRequestStatus(request: ServiceRequest, status: RequestStatus): Promise<boolean> {

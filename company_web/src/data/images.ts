@@ -1,5 +1,6 @@
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { storage } from '../firebase';
+import { t } from '../i18n';
 
 /** The same limits as storage.rules. */
 export const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
@@ -17,7 +18,7 @@ export function imageProblem(file: File): ImageProblem | null {
 }
 
 export const imageProblemText = (p: ImageProblem): string =>
-  p === 'type' ? 'نوع الملف غير مدعوم. استخدم JPG أو PNG أو WebP أو GIF.' : 'الصورة أكبر من 5MB.';
+  p === 'type' ? t('نوع الملف غير مدعوم. استخدم JPG أو PNG أو WebP أو GIF.') : t('الصورة أكبر من 5MB.');
 
 export class UploadError extends Error {
   constructor(readonly code: string) {
@@ -57,7 +58,7 @@ export function uploadImage(file: File, folder: string, onProgress?: (percent: n
 
 export const uploadProblemText = (e: unknown): string => {
   const code = e instanceof UploadError ? e.code : '';
-  if (code === 'storage/unauthorized') return 'غير مسموح لك برفع هذه الصورة.';
-  if (code === 'storage/canceled') return 'أُلغي الرفع.';
-  return 'تعذّر رفع الصورة. الرفع من الجهاز يحتاج تفعيل التخزين في المشروع (الخطة المدفوعة)؛ يمكنك استخدام رابط الصورة في الوقت الحالي.';
+  if (code === 'storage/unauthorized') return t('غير مسموح لك برفع هذه الصورة.');
+  if (code === 'storage/canceled') return t('أُلغي الرفع.');
+  return t('تعذّر رفع الصورة. الرفع من الجهاز يحتاج تفعيل التخزين في المشروع (الخطة المدفوعة)؛ يمكنك استخدام رابط الصورة في الوقت الحالي.');
 };

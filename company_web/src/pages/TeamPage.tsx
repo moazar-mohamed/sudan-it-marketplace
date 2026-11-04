@@ -7,6 +7,7 @@ import { useTechnicians } from '../data/technicians';
 import type { Technician } from '../data/types';
 import { Banner, Chip, Empty, Loading, Modal, PageHeader, Spinner, Switch } from '../ui/kit';
 import { useToast } from '../ui/toast';
+import { t } from '../i18n';
 
 function randomPassword(): string {
   const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -19,7 +20,7 @@ export function TeamPage() {
   const technicians = useTechnicians(companyId);
   return (
     <main className="page">
-      <PageHeader title="الفريق" subtitle="فنيو التركيب في شركتك" />
+      <PageHeader title={t('الفريق')} subtitle={t('فنيو التركيب في شركتك')} />
       <div className="g2">
         <TechniciansCard technicians={technicians} />
         <AddTechnicianCard companyId={companyId} />
@@ -31,25 +32,25 @@ export function TeamPage() {
 function TechniciansCard({ technicians }: { technicians: Technician[] | null }) {
   const toast = useToast();
   const [editing, setEditing] = useState<Technician | null>(null);
-  const toggle = async (t: Technician, on: boolean) => {
-    try { await setTechnicianActive(t, on); toast(on ? 'فُعّل الفني' : 'عُطّل الفني ولن يستطيع الدخول', 'ok'); } catch { toast('تعذّر التحديث.', 'err'); }
+  const toggle = async (tech: Technician, on: boolean) => {
+    try { await setTechnicianActive(tech, on); toast(on ? t('فُعّل الفني') : t('عُطّل الفني ولن يستطيع الدخول'), 'ok'); } catch { toast(t('تعذّر التحديث.'), 'err'); }
   };
   if (technicians === null) return <section className="card"><Loading /></section>;
-  const active = technicians.filter((t) => t.isActive).length;
+  const active = technicians.filter((tech) => tech.isActive).length;
   return (
-    <section className="card" aria-label="الفنيون">
-      <div className="card-h"><h2>الفنيون</h2><span className="sub">{arCount(technicians.length, 'فني واحد', 'فنيان', 'فنيين', 'فنيًا')} · {arCount(active, 'نشط واحد', 'نشطان', 'نشطون', 'نشطًا')}</span></div>
-      {technicians.length === 0 ? <Empty icon="users" text="لا فنيين بعد. أضف أول فني من النموذج المجاور." /> : (
+    <section className="card" aria-label={t('الفنيون')}>
+      <div className="card-h"><h2>{t('الفنيون')}</h2><span className="sub">{arCount(technicians.length, t('فني واحد'), t('فنيان'), t('فنيين'), t('فنيًا'))} · {arCount(active, t('نشط واحد'), t('نشطان'), t('نشطون'), t('نشطًا'))}</span></div>
+      {technicians.length === 0 ? <Empty icon="users" text={t('لا فنيين بعد. أضف أول فني من النموذج المجاور.')} /> : (
         <div className="scroll">
           <table className="tbl">
-            <thead><tr><th>الفني</th><th>الحالة</th><th>نشط</th><th /></tr></thead>
+            <thead><tr><th>{t('الفني')}</th><th>{t('الحالة')}</th><th>{t('نشط')}</th><th /></tr></thead>
             <tbody>
-              {technicians.map((t) => (
-                <tr key={t.id}>
-                  <td><div className="row"><span className="av">{t.fullName.slice(0, 1)}</span><div><div className="b">{t.fullName}</div><div className="sub num">{displayPhone(t.phone)}</div><div className="sub num">{t.email}</div></div></div></td>
-                  <td>{!t.isActive ? <Chip tone="n">معطّل</Chip> : t.isAvailable ? <Chip tone="ok">متاح</Chip> : <Chip tone="n">غير متاح</Chip>}</td>
-                  <td><Switch on={t.isActive} onChange={(v) => void toggle(t, v)} label={`تفعيل ${t.fullName}`} /></td>
-                  <td><button type="button" className="btn sm" onClick={() => setEditing(t)}>تعديل</button></td>
+              {technicians.map((tech) => (
+                <tr key={tech.id}>
+                  <td><div className="row"><span className="av">{tech.fullName.slice(0, 1)}</span><div><div className="b">{tech.fullName}</div><div className="sub num">{displayPhone(tech.phone)}</div><div className="sub num">{tech.email}</div></div></div></td>
+                  <td>{!tech.isActive ? <Chip tone="n">{t('معطّل')}</Chip> : tech.isAvailable ? <Chip tone="ok">{t('متاح')}</Chip> : <Chip tone="n">{t('غير متاح')}</Chip>}</td>
+                  <td><Switch on={tech.isActive} onChange={(v) => void toggle(tech, v)} label={t('تفعيل {0}', tech.fullName)} /></td>
+                  <td><button type="button" className="btn sm" onClick={() => setEditing(tech)}>{t('تعديل')}</button></td>
                 </tr>
               ))}
             </tbody>
@@ -68,14 +69,14 @@ function EditTechnician({ technician, onClose }: { technician: Technician; onClo
   const [busy, setBusy] = useState(false);
   const save = async () => {
     setBusy(true);
-    try { await updateTechnician(technician, { fullName: name, phone }); toast('تم الحفظ', 'ok'); onClose(); } catch { toast('تعذّر الحفظ.', 'err'); setBusy(false); }
+    try { await updateTechnician(technician, { fullName: name, phone }); toast(t('تم الحفظ'), 'ok'); onClose(); } catch { toast(t('تعذّر الحفظ.'), 'err'); setBusy(false); }
   };
   return (
-    <Modal title="تعديل الفني" onClose={onClose} busy={busy}
-      footer={<><button type="button" className="btn p" disabled={!name.trim() || busy} onClick={() => void save()}>{busy && <Spinner />}حفظ</button><button type="button" className="btn" disabled={busy} onClick={onClose}>إلغاء</button></>}>
-      <div className="fld"><label htmlFor="et-name">الاسم الكامل</label><input id="et-name" className="inp" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} autoFocus /></div>
-      <div className="fld"><label htmlFor="et-phone">الهاتف</label><input id="et-phone" className="inp ltr" value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
-      <p className="hint">البريد الإلكتروني لا يتغير لأنه اسم الدخول.</p>
+    <Modal title={t('تعديل الفني')} onClose={onClose} busy={busy}
+      footer={<><button type="button" className="btn p" disabled={!name.trim() || busy} onClick={() => void save()}>{busy && <Spinner />}{t('حفظ')}</button><button type="button" className="btn" disabled={busy} onClick={onClose}>{t('إلغاء')}</button></>}>
+      <div className="fld"><label htmlFor="et-name">{t('الاسم الكامل')}</label><input id="et-name" className="inp" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} autoFocus /></div>
+      <div className="fld"><label htmlFor="et-phone">{t('الهاتف')}</label><input id="et-phone" className="inp ltr" value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
+      <p className="hint">{t('البريد الإلكتروني لا يتغير لأنه اسم الدخول.')}</p>
     </Modal>
   );
 }
@@ -101,32 +102,31 @@ function AddTechnicianCard({ companyId }: { companyId: string }) {
       await createTechnician(companyId, { fullName: name, phone, email, password });
       setCreated({ email: email.trim().toLowerCase(), password });
       setName(''); setPhone(''); setEmail(''); setPassword(randomPassword());
-      toast('أُنشئ حساب الفني', 'ok');
+      toast(t('أُنشئ حساب الفني'), 'ok');
     } catch (e) {
       const p = e instanceof TechnicianError ? e.problem : 'failed';
-      setError(p === 'email-in-use' ? 'هذا البريد مسجَّل من قبل.' : p === 'weak-password' ? 'كلمة المرور ضعيفة.' : p === 'invalid-email' ? 'البريد غير صحيح.' : 'تعذّر إنشاء الحساب، حاول مرة أخرى.');
+      setError(p === 'email-in-use' ? t('هذا البريد مسجَّل من قبل.') : p === 'weak-password' ? t('كلمة المرور ضعيفة.') : p === 'invalid-email' ? t('البريد غير صحيح.') : t('تعذّر إنشاء الحساب، حاول مرة أخرى.'));
     } finally { setBusy(false); }
   };
 
   return (
-    <section className="card" aria-label="إضافة فني">
-      <div className="card-h"><h2>إضافة فني</h2></div>
+    <section className="card" aria-label={t('إضافة فني')}>
+      <div className="card-h"><h2>{t('إضافة فني')}</h2></div>
       <div className="card-b stack" style={{ gap: 14 }}>
         {created && (
           <Banner tone="ok" icon="check">
-            <b>أُنشئ الحساب.</b> أبلغ الفني بهذه البيانات الآن، فلن تظهر كلمة المرور مرة أخرى:
-            <div className="num b" style={{ marginTop: 4 }}>{created.email}</div>
+            <b>{t('أُنشئ الحساب.')}</b>{' '}{t('أبلغ الفني بهذه البيانات الآن، فلن تظهر كلمة المرور مرة أخرى:')}<div className="num b" style={{ marginTop: 4 }}>{created.email}</div>
             <div className="num b">{created.password}</div>
           </Banner>
         )}
         {error && <Banner tone="bad" icon="alert" tight>{error}</Banner>}
-        <div className="fld"><label htmlFor="t-name">الاسم الكامل</label><input id="t-name" className="inp" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} placeholder="عبدالرحمن علي" /></div>
-        <div className="fld"><label htmlFor="t-phone">الهاتف</label><input id="t-phone" className="inp ltr" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+249…" /></div>
-        <div className="fld"><label htmlFor="t-email">البريد الإلكتروني للدخول</label><input id="t-email" className="inp ltr" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" /></div>
-        <div className="fld"><label htmlFor="t-pass">كلمة مرور مؤقتة</label>
-          <div className="row"><input id="t-pass" className="inp ltr" value={password} onChange={(e) => setPassword(e.target.value)} /><button type="button" className="btn" onClick={() => setPassword(randomPassword())}>توليد</button></div>
-          <span className="hint">أبلغ بها الفني بنفسك. يُطلب منه تغييرها عند أول دخول، ولا نحفظها.</span></div>
-        <button type="button" className="btn p lg" disabled={!valid || busy} onClick={() => void submit()}>{busy && <Spinner />}إنشاء حساب الفني</button>
+        <div className="fld"><label htmlFor="t-name">{t('الاسم الكامل')}</label><input id="t-name" className="inp" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} placeholder={t('عبدالرحمن علي')} /></div>
+        <div className="fld"><label htmlFor="t-phone">{t('الهاتف')}</label><input id="t-phone" className="inp ltr" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+249…" /></div>
+        <div className="fld"><label htmlFor="t-email">{t('البريد الإلكتروني للدخول')}</label><input id="t-email" className="inp ltr" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" /></div>
+        <div className="fld"><label htmlFor="t-pass">{t('كلمة مرور مؤقتة')}</label>
+          <div className="row"><input id="t-pass" className="inp ltr" value={password} onChange={(e) => setPassword(e.target.value)} /><button type="button" className="btn" onClick={() => setPassword(randomPassword())}>{t('توليد')}</button></div>
+          <span className="hint">{t('أبلغ بها الفني بنفسك. يُطلب منه تغييرها عند أول دخول، ولا نحفظها.')}</span></div>
+        <button type="button" className="btn p lg" disabled={!valid || busy} onClick={() => void submit()}>{busy && <Spinner />}{t('إنشاء حساب الفني')}</button>
       </div>
     </section>
   );

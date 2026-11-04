@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, type IconName } from './Icon';
 import type { CancelReason, Order, OrderStatus, PaymentStatus } from '../data/types';
+import { t } from '../i18n';
 
 export type Tone = 'ok' | 'warn' | 'bad' | 'info' | 'n';
 
@@ -38,10 +39,10 @@ export function Switch({ on, onChange, label, disabled }: { on: boolean; onChang
 }
 
 export function Spinner() {
-  return <span className="spinner" role="status" aria-label="جارٍ التحميل" />;
+  return <span className="spinner" role="status" aria-label={t('جارٍ التحميل')} />;
 }
 
-export function Loading({ text = 'جارٍ التحميل…' }: { text?: string }) {
+export function Loading({ text = t('جارٍ التحميل…') }: { text?: string }) {
   return (
     <div className="center">
       <Spinner />
@@ -155,7 +156,7 @@ export function ConfirmDialog({
   title,
   body,
   confirmLabel,
-  cancelLabel = 'تراجع',
+  cancelLabel = t('تراجع'),
   danger,
   busy,
   onConfirm,
@@ -210,30 +211,30 @@ export function useNow(ms = 30_000): number {
 // ── Labels ─────────────────────────────────────────────────────────────────
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
-  processing: 'معالجة',
-  out_for_delivery: 'في الطريق',
-  completed: 'مكتمل',
-  cancelled: 'ملغى',
+  processing: t('معالجة'),
+  out_for_delivery: t('في الطريق'),
+  completed: t('مكتمل'),
+  cancelled: t('ملغى'),
 };
 export const PAYMENT_LABEL: Record<PaymentStatus, string> = {
-  pending_verification: 'بانتظار التحقق',
-  confirmed: 'مؤكد',
+  pending_verification: t('بانتظار التحقق'),
+  confirmed: t('مؤكد'),
 };
 export const CANCEL_REASON_LABEL: Record<CancelReason, string> = {
-  company: 'ألغته الشركة',
-  expired: 'انتهت مهلة الدفع',
-  out_of_stock: 'نفد المخزون',
-  admin: 'ألغته المنصة',
+  company: t('ألغته الشركة'),
+  expired: t('انتهت مهلة الدفع'),
+  out_of_stock: t('نفد المخزون'),
+  admin: t('ألغته المنصة'),
 };
 
 export function OrderStatusChip({ order }: { order: Order }) {
   const tone: Tone = order.orderStatus === 'completed' ? 'ok' : order.orderStatus === 'cancelled' ? 'n' : 'info';
   const readyToHandOver = order.orderStatus === 'processing' && order.paymentStatus === 'confirmed' && order.deliveryMethod === 'pickup';
-  return <Chip tone={tone} dot={false}>{readyToHandOver ? 'جاهز للتسليم' : ORDER_STATUS_LABEL[order.orderStatus]}</Chip>;
+  return <Chip tone={tone} dot={false}>{readyToHandOver ? t('جاهز للتسليم') : ORDER_STATUS_LABEL[order.orderStatus]}</Chip>;
 }
 
 export function PaymentChip({ order }: { order: Order }) {
-  if (order.orderStatus === 'cancelled' && order.paymentStatus === 'pending_verification') return <Chip tone="n">لم يؤكَّد</Chip>;
+  if (order.orderStatus === 'cancelled' && order.paymentStatus === 'pending_verification') return <Chip tone="n">{t('لم يؤكَّد')}</Chip>;
   return <Chip tone={order.paymentStatus === 'confirmed' ? 'ok' : 'warn'}>{PAYMENT_LABEL[order.paymentStatus]}</Chip>;
 }
 
@@ -243,7 +244,7 @@ export const DELIVERY_ICON: Record<'delivery' | 'pickup' | 'install', IconName> 
 export function orderKind(o: Order): 'delivery' | 'pickup' | 'install' {
   return o.installationSelected ? 'install' : o.deliveryMethod === 'pickup' ? 'pickup' : 'delivery';
 }
-export const KIND_LABEL = { delivery: 'توصيل', pickup: 'استلام', install: 'تركيب' } as const;
+export const KIND_LABEL = { delivery: t('توصيل'), pickup: t('استلام'), install: t('تركيب') } as const;
 
 export function KindCell({ order }: { order: Order }) {
   const k = orderKind(order);

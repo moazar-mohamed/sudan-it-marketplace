@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { language } from '../i18n';
 import type { Category } from './types';
 
 export interface CategoryIndex {
@@ -7,7 +8,8 @@ export interface CategoryIndex {
 
 export const buildCategoryIndex = (all: readonly Category[]): CategoryIndex => ({ byId: new Map(all.map((c) => [c.id, c])) });
 
-export const categoryName = (c: Category): string => c.nameAr.trim() || c.name || c.nameEn;
+export const categoryName = (c: Category): string =>
+  language === 'en' ? c.nameEn.trim() || c.name || c.nameAr : c.nameAr.trim() || c.name || c.nameEn;
 
 /** The categories from the top of the tree down to [id] (a broken cycle cannot hang this). */
 export function pathOf(index: CategoryIndex, id: string): Category[] {

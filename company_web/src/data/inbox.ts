@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { mapChat, toDate } from './mappers';
 import type { Chat } from './types';
+import { t } from '../i18n';
 
 // ── Notifications ──────────────────────────────────────────────────────────
 
@@ -61,18 +62,18 @@ export function describeNotice(n: Notice): NoticeView {
   const name = n.productName;
   const order = n.orderId ? `/orders/${n.orderId}` : '/orders';
   switch (n.type) {
-    case 'new_order': return { title: 'طلب جديد', body: `وصلك طلب جديد على «${name}». راجع الإيصال.`, to: order };
-    case 'new_review': return { title: 'تقييم جديد', body: `قيّم عميل «${name}».`, to: '/reviews' };
-    case 'new_service_request': return { title: 'طلب خدمة جديد', body: `طلب عميل الخدمة «${name}».`, to: '/services' };
-    case 'service_request_cancelled': return { title: 'أُلغي طلب خدمة', body: `ألغى عميل طلبه للخدمة «${name}».`, to: '/services' };
-    case 'job_completed': return { title: 'اكتملت مهمة تركيب', body: `أنهى الفني تركيب «${name}».`, to: order };
-    case 'order_cancelled_by_admin_company': return { title: 'ألغت المنصة طلبًا', body: `ألغت المنصة الطلب الخاص بـ«${name}».`, to: order };
-    case 'product_hidden': return { title: 'أُخفي منتج', body: `أُخفي «${name}» عن العملاء. افتحه لمعرفة السبب.`, to: n.productId ? `/products/${n.productId}` : '/products' };
-    case 'product_shown': return { title: 'عاد المنتج ظاهرًا', body: `«${name}» ظاهر للعملاء من جديد.`, to: n.productId ? `/products/${n.productId}` : '/products' };
-    case 'account_converted_to_company': return { title: 'أصبح حسابك حساب شركة', body: `شركة «${name}» جاهزة.`, to: '/' };
-    case 'report_in_progress': return { title: 'بلاغك قيد المعالجة', body: `بدأنا العمل على «${name}».`, to: '/' };
-    case 'report_closed': return { title: 'أُغلق بلاغك', body: `أُغلق بلاغك «${name}». اقرأ ردّنا من «بلاغاتي» في التطبيق.`, to: '/' };
-    default: return { title: 'إشعار', body: 'يوجد تحديث على أحد طلباتك.', to: n.orderId ? order : '/' };
+    case 'new_order': return { title: t('طلب جديد'), body: t('وصلك طلب جديد على «{0}». راجع الإيصال.', name), to: order };
+    case 'new_review': return { title: t('تقييم جديد'), body: t('قيّم عميل «{0}».', name), to: '/reviews' };
+    case 'new_service_request': return { title: t('طلب خدمة جديد'), body: t('طلب عميل الخدمة «{0}».', name), to: '/services' };
+    case 'service_request_cancelled': return { title: t('أُلغي طلب خدمة'), body: t('ألغى عميل طلبه للخدمة «{0}».', name), to: '/services' };
+    case 'job_completed': return { title: t('اكتملت مهمة تركيب'), body: t('أنهى الفني تركيب «{0}».', name), to: order };
+    case 'order_cancelled_by_admin_company': return { title: t('ألغت المنصة طلبًا'), body: t('ألغت المنصة الطلب الخاص بـ«{0}».', name), to: order };
+    case 'product_hidden': return { title: t('أُخفي منتج'), body: t('أُخفي «{0}» عن العملاء. افتحه لمعرفة السبب.', name), to: n.productId ? `/products/${n.productId}` : '/products' };
+    case 'product_shown': return { title: t('عاد المنتج ظاهرًا'), body: t('«{0}» ظاهر للعملاء من جديد.', name), to: n.productId ? `/products/${n.productId}` : '/products' };
+    case 'account_converted_to_company': return { title: t('أصبح حسابك حساب شركة'), body: t('شركة «{0}» جاهزة.', name), to: '/' };
+    case 'report_in_progress': return { title: t('بلاغك قيد المعالجة'), body: t('بدأنا العمل على «{0}».', name), to: '/' };
+    case 'report_closed': return { title: t('أُغلق بلاغك'), body: t('أُغلق بلاغك «{0}». اقرأ ردّنا من «بلاغاتي» في التطبيق.', name), to: '/' };
+    default: return { title: t('إشعار'), body: t('يوجد تحديث على أحد طلباتك.'), to: n.orderId ? order : '/' };
   }
 }
 
@@ -118,7 +119,7 @@ export const isUnreadChat = (c: Chat): boolean =>
   (c.companyLastReadAt === null || c.lastMessageAt.getTime() > c.companyLastReadAt.getTime());
 
 /** What the conversation is about, for its row. */
-export const chatSubject = (c: Chat): string => c.serviceName || c.productName || 'محادثة';
+export const chatSubject = (c: Chat): string => c.serviceName || c.productName || t('محادثة');
 
 export async function markChatRead(chatId: string): Promise<void> {
   try {

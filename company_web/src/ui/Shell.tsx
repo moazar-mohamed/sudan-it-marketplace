@@ -6,6 +6,7 @@ import { useTheme } from '../theme';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Banner, Loading } from './kit';
 import { Icon, type IconName } from './Icon';
+import { applyLanguage, language, t } from '../i18n';
 
 interface Item {
   to: string;
@@ -42,26 +43,26 @@ export function Shell() {
 
   const groups: { label: string; items: Item[] }[] = [
     {
-      label: 'التشغيل',
+      label: t('التشغيل'),
       items: [
-        { to: '/', label: 'اليوم', icon: 'home', end: true },
-        { to: '/orders', label: 'الطلبات', icon: 'receipt', badge: pendingPayment.length },
+        { to: '/', label: t('اليوم'), icon: 'home', end: true },
+        { to: '/orders', label: t('الطلبات'), icon: 'receipt', badge: pendingPayment.length },
       ],
     },
     {
-      label: 'الكتالوج',
+      label: t('الكتالوج'),
       items: [
-        { to: '/products', label: 'المنتجات', icon: 'box' },
-        { to: '/offers', label: 'العروض', icon: 'tag' },
-        { to: '/services', label: 'الخدمات', icon: 'tool' },
+        { to: '/products', label: t('المنتجات'), icon: 'box' },
+        { to: '/offers', label: t('العروض'), icon: 'tag' },
+        { to: '/services', label: t('الخدمات'), icon: 'tool' },
       ],
     },
     {
-      label: 'الشركة',
+      label: t('الشركة'),
       items: [
-        { to: '/company', label: 'ملف الشركة', icon: 'building' },
-        { to: '/team', label: 'الفريق', icon: 'users' },
-        { to: '/reviews', label: 'التقييمات', icon: 'star' },
+        { to: '/company', label: t('ملف الشركة'), icon: 'building' },
+        { to: '/team', label: t('الفريق'), icon: 'users' },
+        { to: '/reviews', label: t('التقييمات'), icon: 'star' },
       ],
     },
   ];
@@ -77,12 +78,12 @@ export function Shell() {
 
   return (
     <div className="app">
-      <aside className="side" aria-label="القائمة الرئيسية">
+      <aside className="side" aria-label={t('القائمة الرئيسية')}>
         <div className="brand">
-          <div className="logo">{company?.logoUrl ? <img src={company.logoUrl} alt="" /> : (company?.name || 'ش').slice(0, 1)}</div>
+          <div className="logo">{company?.logoUrl ? <img src={company.logoUrl} alt="" /> : (company?.name || t('ش')).slice(0, 1)}</div>
           <div>
             <b>{company?.name || '…'}</b>
-            <span>لوحة الشركة</span>
+            <span>{t('لوحة الشركة')}</span>
           </div>
         </div>
         <nav className="nav">
@@ -100,10 +101,8 @@ export function Shell() {
           ))}
         </nav>
         <div className="side-foot">
-          {failed && <div className="live off">الاتصال متقطع</div>}
-          <button type="button" className="linkbtn" onClick={() => void signOut()}>
-            تسجيل الخروج
-          </button>
+          {failed && <div className="live off">{t('الاتصال متقطع')}</div>}
+          <button type="button" className="linkbtn" onClick={() => void signOut()}>{t('تسجيل الخروج')}</button>
         </div>
       </aside>
 
@@ -111,26 +110,29 @@ export function Shell() {
         <header className="top">
           <form className="search" onSubmit={onSearch} role="search">
             <Icon name="search" />
-            <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث برقم الطلب أو اسم العميل أو رقم الهاتف…" aria-label="بحث في الطلبات" />
+            <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('ابحث برقم الطلب أو اسم العميل أو رقم الهاتف…')} aria-label={t('بحث في الطلبات')} />
             <kbd>Ctrl K</kbd>
           </form>
           <span className="grow" />
-          <button type="button" className="icon-btn" onClick={toggleTheme} aria-label={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'} title={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'}>
+          <button type="button" className="icon-btn" onClick={() => applyLanguage(language === 'ar' ? 'en' : 'ar')} aria-label={language === 'ar' ? 'English' : 'العربية'} title={language === 'ar' ? 'English' : 'العربية'} lang={language === 'ar' ? 'en' : 'ar'}>
+            <b>{language === 'ar' ? 'EN' : 'ع'}</b>
+          </button>
+          <button type="button" className="icon-btn" onClick={toggleTheme} aria-label={theme === 'dark' ? t('الوضع الفاتح') : t('الوضع الداكن')} title={theme === 'dark' ? t('الوضع الفاتح') : t('الوضع الداكن')}>
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
           </button>
-          <NavLink to="/chats" className="icon-btn" aria-label={unreadChats ? `المحادثات، ${unreadChats} تنتظر ردك` : 'المحادثات'}>
+          <NavLink to="/chats" className="icon-btn" aria-label={unreadChats ? t('المحادثات، {0} تنتظر ردك', unreadChats) : t('المحادثات')}>
             <Icon name="chat" />
             {unreadChats > 0 && <span className="bdg">{unreadChats}</span>}
           </NavLink>
-          <NavLink to="/notifications" className="icon-btn" aria-label={unreadNotices ? `التنبيهات، ${unreadNotices} غير مقروءة` : 'التنبيهات'}>
+          <NavLink to="/notifications" className="icon-btn" aria-label={unreadNotices ? t('التنبيهات، {0} غير مقروءة', unreadNotices) : t('التنبيهات')}>
             <Icon name="bell" />
             {unreadNotices > 0 && <span className="bdg">{unreadNotices}</span>}
           </NavLink>
           <div className="user">
-            <span className="av">{name.slice(0, 1) || 'م'}</span>
+            <span className="av">{name.slice(0, 1) || t('م')}</span>
             <div>
               <b>{name}</b>
-              <div className="sub">مدير الشركة</div>
+              <div className="sub">{t('مدير الشركة')}</div>
             </div>
           </div>
         </header>
@@ -138,17 +140,15 @@ export function Shell() {
           <div style={{ padding: '16px 32px 0' }}>
             <Banner tone="warn" icon="alert">
               <b>
-                {company.status === 'pending' ? 'شركتك قيد المراجعة' : company.status === 'rejected' ? 'تم رفض طلب تسجيل شركتك' : 'شركتك موقوفة'}
+                {company.status === 'pending' ? t('شركتك قيد المراجعة') : company.status === 'rejected' ? t('تم رفض طلب تسجيل شركتك') : t('شركتك موقوفة')}
               </b>
-              <div>لا تظهر منتجاتك ولا خدماتك للعملاء حاليًا. للاستفسار تواصل مع إدارة المنصة.</div>
+              <div>{t('لا تظهر منتجاتك ولا خدماتك للعملاء حاليًا. للاستفسار تواصل مع إدارة المنصة.')}</div>
             </Banner>
           </div>
         )}
         {failed && (
           <div style={{ padding: '16px 32px 0' }}>
-            <Banner tone="warn" icon="alert" tight>
-              تعذّر الاتصال بالخادم، وقد تكون الأرقام المعروضة قديمة. سنحدّثها تلقائيًا عند عودة الاتصال.
-            </Banner>
+            <Banner tone="warn" icon="alert" tight>{t('تعذّر الاتصال بالخادم، وقد تكون الأرقام المعروضة قديمة. سنحدّثها تلقائيًا عند عودة الاتصال.')}</Banner>
           </div>
         )}
         <ErrorBoundary key={pathname}>
