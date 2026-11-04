@@ -185,8 +185,13 @@ textarea.inp{height:auto;padding:10px 12px;resize:vertical}
 .sticky-bar{position:sticky;bottom:0;z-index:4;background:#fff;border-top:1px solid var(--line-strong);padding:12px 32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 -6px 18px rgba(15,27,45,.08)}
 .dz{border-color:#E4B3B2}
 .ico-c{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none}
-.dropzone{border:2px dashed var(--line-strong);border-radius:12px;padding:18px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#FAFBFD}
-.dropzone.over{border-color:var(--brand);background:var(--brand-tint)}
+.imgbox{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border:1px solid var(--line-strong);border-radius:12px;padding:16px;background:#fff}
+.imgbox.over{border-color:var(--brand);border-style:dashed;background:var(--brand-tint)}
+.imgbox .imgslot{width:88px;height:88px;flex:none;outline:0;border:1px solid var(--line)}
+.imgslot.round{border-radius:50%}
+.imgbox-body{flex:1;min-width:240px;display:flex;flex-direction:column;gap:10px}
+.adder{display:flex;flex-direction:column;gap:10px}
+.linkrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.linkrow .inp{flex:1;min-width:200px}
 .imgs{display:flex;gap:12px;flex-wrap:wrap}
 .imgslot{width:120px;height:120px;border-radius:12px;background:var(--neutral-bg);position:relative;overflow:hidden;display:grid;place-items:center;color:var(--muted)}
 .imgslot img{width:100%;height:100%;object-fit:cover}

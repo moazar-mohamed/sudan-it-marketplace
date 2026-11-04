@@ -1,7 +1,8 @@
-import { useRef, useState, type DragEvent } from 'react';
-import { imageProblem, imageProblemText, isImageUrl, uploadImage, uploadProblemText } from '../data/images';
+import { useState, type DragEvent } from 'react';
+import { imageProblem, imageProblemText, uploadImage, uploadProblemText } from '../data/images';
 import { Icon } from './Icon';
-import { Banner, Chip, Spinner } from './kit';
+import { ImageAdder } from './ImageAdder';
+import { Banner, Chip } from './kit';
 
 /**
  * Up to [max] pictures of a product. The first one is the main picture (also
@@ -18,12 +19,9 @@ export function GalleryField({
   folder: string;
   max?: number;
 }) {
-  const input = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [over, setOver] = useState(false);
   const [error, setError] = useState('');
-  const [link, setLink] = useState('');
-  const [linkError, setLinkError] = useState('');
   const room = max - urls.length;
 
   const addFiles = async (files: File[]) => {
@@ -51,13 +49,6 @@ export function GalleryField({
     void addFiles([...e.dataTransfer.files]);
   };
 
-  const addLink = () => {
-    if (!isImageUrl(link)) { setLinkError('اكتب رابطًا صحيحًا يبدأ بـ https://'); return; }
-    setLinkError('');
-    onChange([...urls, link.trim()]);
-    setLink('');
-  };
-
   const uploading = progress !== null;
   const makeMain = (i: number) => onChange([urls[i], ...urls.filter((_, k) => k !== i)]);
 
@@ -77,28 +68,24 @@ export function GalleryField({
       </div>
 
       {room > 0 && (
-        <>
-          <div
-            className={`dropzone${over ? ' over' : ''}`}
-            onDragOver={(e) => { e.preventDefault(); setOver(true); }}
-            onDragLeave={() => setOver(false)}
-            onDrop={onDrop}
-          >
-            <div className="ico-c" style={{ background: 'var(--brand-tint)', color: 'var(--brand-ink)' }}>{uploading ? <Spinner /> : <Icon name="upload" size="lg" />}</div>
-            <div className="grow">
-              <div className="b">{uploading ? `جارٍ الرفع… ${progress}%` : 'اسحب الصور هنا أو اختر من جهازك'}</div>
-              <div className="sub">JPG أو PNG أو WebP أو GIF · حتى 5MB للصورة · يمكنك رفع عدة صور معًا</div>
-              {uploading && <div className="prog" style={{ marginTop: 6 }}><i style={{ width: `${progress}%` }} /></div>}
-            </div>
-            <input ref={input} type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" hidden onChange={(e) => { void addFiles([...(e.target.files ?? [])]); e.target.value = ''; }} />
-            <button type="button" className="btn p" disabled={uploading} onClick={() => input.current?.click()}>اختيار من الجهاز</button>
+        <div
+          className={`imgbox${over ? ' over' : ''}`}
+          onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+          onDragLeave={() => setOver(false)}
+          onDrop={onDrop}
+        >
+          <div className="imgbox-body">
+            <ImageAdder
+              multiple
+              uploading={uploading}
+              progress={progress}
+              deviceLabel="رفع صور من الجهاز"
+              onFiles={(files) => void addFiles(files)}
+              onLink={(url) => onChange([...urls, url])}
+            />
+            <div className="sub">JPG أو PNG أو WebP أو GIF، حتى 5MB للصورة. يمكنك رفع عدة صور معًا أو سحبها وإفلاتها هنا.</div>
           </div>
-          <div className="row">
-            <input className="inp ltr" placeholder="أو الصق رابط صورة https://…" aria-label="رابط صورة" value={link} onChange={(e) => setLink(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addLink(); } }} />
-            <button type="button" className="btn" onClick={addLink}><Icon name="link" />إضافة بالرابط</button>
-          </div>
-          {linkError && <span className="errt">{linkError}</span>}
-        </>
+        </div>
       )}
       {error && <Banner tone="bad" icon="alert" tight>{error}</Banner>}
     </div>

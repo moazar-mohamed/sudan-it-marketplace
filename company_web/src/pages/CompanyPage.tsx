@@ -59,7 +59,7 @@ function ProfileCard({ company }: { company: Company }) {
     <section className="card" aria-label="الملف التعريفي">
       <div className="card-h"><h2>الملف التعريفي والموقع</h2></div>
       <div className="card-b stack" style={{ gap: 16 }}>
-        <ImageField value={logoUrl} onChange={setLogoUrl} folder={`company-logos/${company.id}`} label="شعار الشركة" round />
+        <ImageField value={logoUrl} onChange={setLogoUrl} folder={`company-logos/${company.id}`} label="شعار الشركة" emptyText="لم تضف شعارًا بعد" round />
         <div className="row wrap" style={{ alignItems: 'flex-start' }}>
           <div className="fld grow"><label htmlFor="c-name">اسم الشركة</label><input id="c-name" className={`inp${name.trim() ? '' : ' err'}`} value={name} maxLength={120} onChange={(e) => setName(e.target.value)} /></div>
           <div className="fld grow"><label htmlFor="c-phone">هاتف الشركة</label><input id="c-phone" className="inp ltr" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+249…" /></div>
