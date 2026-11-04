@@ -3476,6 +3476,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get notifOrderCancelledByCompanyTitle => 'تم إلغاء طلبك';
+
+  @override
+  String notifOrderCancelledByCompanyBody(String product) {
+    return 'ألغت الشركة طلبك «$product». افتحه لمعرفة السبب.';
+  }
+
+  @override
   String get notifProductHiddenTitle => 'تم إخفاء منتج';
 
   @override

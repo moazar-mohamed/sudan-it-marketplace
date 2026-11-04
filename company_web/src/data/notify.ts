@@ -1,11 +1,13 @@
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { pushToPhone } from './pushRelay';
 
 export type NotificationType =
   | 'payment_confirmed'
   | 'out_for_delivery'
   | 'order_completed'
   | 'review_reply'
+  | 'order_cancelled_by_company'
   | 'technician_assigned'
   | 'job_ready'
   | 'job_cancelled'
@@ -48,6 +50,8 @@ export async function sendNotice(notice: Notice): Promise<boolean> {
       createdAt: serverTimestamp(),
       senderId: auth.currentUser?.uid ?? '',
     });
+    // The phone push is best effort; the notification is stored either way.
+    void pushToPhone(id);
     return true;
   } catch {
     // Refused (also when the same notice already exists): the action it follows stands.

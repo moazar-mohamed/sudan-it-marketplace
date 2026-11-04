@@ -20,6 +20,7 @@ const TEXTS: Record<string, Text> = {
   report_in_progress: { title: t('بلاغك قيد المعالجة'), body: (n) => t('بدأنا العمل على «{0}».', n) },
   report_closed: { title: t('تم إغلاق بلاغك'), body: (n) => t('تم إغلاق بلاغك «{0}». افتح «بلاغاتي» لقراءة ردّنا.', n) },
   order_cancelled_by_admin: { title: t('تم إلغاء طلبك'), body: (n) => t('ألغت المنصة طلبك «{0}».', n) },
+  order_cancelled_by_company: { title: t('تم إلغاء طلبك'), body: (n) => t('ألغت الشركة طلبك «{0}». افتحه لمعرفة السبب.', n) },
 };
 
 const GENERIC_TITLE = t('إشعار');

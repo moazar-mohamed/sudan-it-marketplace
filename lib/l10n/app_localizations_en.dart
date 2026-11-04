@@ -3480,6 +3480,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notifOrderCancelledByCompanyTitle => 'Your order was cancelled';
+
+  @override
+  String notifOrderCancelledByCompanyBody(String product) {
+    return 'The company cancelled your order \"$product\". Open it to see why.';
+  }
+
+  @override
   String get notifProductHiddenTitle => 'A product was hidden';
 
   @override

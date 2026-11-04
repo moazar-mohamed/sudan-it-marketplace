@@ -451,6 +451,7 @@ export const EN: Record<string, string> = {
   "بدأنا العمل على «{0}».": "We started working on \"{0}\".",
   "تم إغلاق بلاغك «{0}». افتح «بلاغاتي» لقراءة ردّنا.": "Your report \"{0}\" was closed. Open My reports to read our reply.",
   "ألغت المنصة طلبك «{0}».": "The platform cancelled your order \"{0}\".",
+  "ألغت الشركة طلبك «{0}». افتحه لمعرفة السبب.": "The company cancelled your order \"{0}\". Open it to see why.",
   "قدّمت {0} طلبات خلال آخر 24 ساعة، وهذا هو الحد الأقصى. يمكنك الطلب مرة أخرى بعد {1}.": "You placed {0} orders in the last 24 hours, which is the limit. You can order again after {1}.",
   "قدّمت {0} طلبات خلال آخر 24 ساعة، وهذا هو الحد الأقصى. يُرجى المحاولة لاحقاً.": "You placed {0} orders in the last 24 hours, which is the limit. Please try again later.",
   "لا يوجد سعر معلن لـ {0} حتى الآن. يرجى التواصل مع الشركة لطلبه.": "There is no listed price for {0} yet. Please contact the company to order it.",

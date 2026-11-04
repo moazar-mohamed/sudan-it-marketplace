@@ -92,6 +92,12 @@ const ORDER_TEXTS = {
     en: ['An order was cancelled', (p) => `The platform cancelled the order for "${p}".`],
     ar: ['تم إلغاء طلب', (p) => `ألغت المنصة الطلب الخاص بـ«${p}».`],
   },
+  // The company cancelled the customer's order (written by its admin in the same
+  // write that cancels it; firestore.rules checks it is true).
+  order_cancelled_by_company: {
+    en: ['Your order was cancelled', (p) => `The company cancelled your order "${p}". Open it to see why.`],
+    ar: ['تم إلغاء طلبك', (p) => `ألغت الشركة طلبك «${p}». افتحه لمعرفة السبب.`],
+  },
   product_hidden: {
     en: ['A product was hidden', (p) => `"${p}" was hidden from customers. Open it to see why.`],
     ar: ['تم إخفاء منتج', (p) => `أُخفي «${p}» عن العملاء. افتحه لمعرفة السبب.`],
@@ -122,6 +128,7 @@ const CATEGORY_OF_TYPE = {
   review_reply: 'orders',
   order_cancelled_by_admin: 'orders',
   order_cancelled_by_admin_company: 'orders',
+  order_cancelled_by_company: 'orders',
   new_service_request: 'serviceRequests',
   service_request_accepted: 'serviceRequests',
   service_request_rejected: 'serviceRequests',

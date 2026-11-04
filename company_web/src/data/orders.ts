@@ -11,7 +11,8 @@ import {
   where,
   type Query,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
+import { pushToPhone } from './pushRelay';
 import { sendChatMessage } from './chat';
 import { mapOrder } from './mappers';
 import { sendNotice } from './notify';
@@ -119,6 +120,23 @@ export async function confirmPayment(orderId: string): Promise<Order> {
  * took some, in ONE transaction (so stock can never go back twice).
  */
 export async function cancelOrder(orderId: string, reason: CancelReason, note = ''): Promise<void> {
+  try {
+    await runCancel(orderId, reason, note, true);
+  } catch (error) {
+    // While the rules that accept the customer's notice are not live yet, the
+    // cancellation still has to work: try again without the notice.
+    if (error instanceof OrderError && error.problem === 'denied') {
+      await runCancel(orderId, reason, note, false);
+      return;
+    }
+    throw error;
+  }
+}
+
+/** The id of the notice that tells the customer their order was cancelled by the company. */
+export const cancelNoticeId = (orderId: string) => `${orderId}_order_cancelled_by_company`;
+
+async function runCancel(orderId: string, reason: CancelReason, note: string, withNotice: boolean): Promise<void> {
   const cancelNote = note.trim().slice(0, 300);
   const orderRef = doc(db, 'orders', orderId);
   try {
@@ -158,7 +176,22 @@ export async function cancelOrder(orderId: string, reason: CancelReason, note = 
         ...(cancelNote ? { cancelNote } : {}),
         updatedAt: serverTimestamp(),
       });
+      // The customer is told in the same write, and the rules check it is true.
+      if (withNotice && order.customerId) {
+        tx.set(doc(db, 'notifications', cancelNoticeId(orderId)), {
+          id: cancelNoticeId(orderId),
+          recipientType: 'customer',
+          recipientId: order.customerId,
+          orderId,
+          type: 'order_cancelled_by_company',
+          productName: order.productName,
+          isRead: false,
+          createdAt: serverTimestamp(),
+          senderId: auth.currentUser?.uid ?? '',
+        });
+      }
     });
+    if (withNotice) void pushToPhone(cancelNoticeId(orderId));
   } catch (error) {
     if (error instanceof OrderError) throw error;
     if ((error as { code?: string }).code === 'permission-denied') throw new OrderError('denied');

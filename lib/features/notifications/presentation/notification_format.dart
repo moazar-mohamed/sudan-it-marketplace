@@ -42,6 +42,8 @@ class NotificationFormat {
         l10n.notifOrderCancelledByAdminTitle,
       NotificationTypes.orderCancelledByAdminCompany =>
         l10n.notifOrderCancelledByAdminCompanyTitle,
+      NotificationTypes.orderCancelledByCompany =>
+        l10n.notifOrderCancelledByCompanyTitle,
       NotificationTypes.productHidden => l10n.notifProductHiddenTitle,
       NotificationTypes.productShown => l10n.notifProductShownTitle,
       NotificationTypes.accountConvertedToCompany =>
@@ -93,6 +95,8 @@ class NotificationFormat {
         l10n.notifOrderCancelledByAdminBody(product),
       NotificationTypes.orderCancelledByAdminCompany when named =>
         l10n.notifOrderCancelledByAdminCompanyBody(product),
+      NotificationTypes.orderCancelledByCompany when named =>
+        l10n.notifOrderCancelledByCompanyBody(product),
       NotificationTypes.productHidden when named =>
         l10n.notifProductHiddenBody(product),
       NotificationTypes.productShown when named =>
@@ -185,7 +189,8 @@ class NotificationFormat {
           tone: AppTone.success,
         ),
       NotificationTypes.orderCancelledByAdmin ||
-      NotificationTypes.orderCancelledByAdminCompany => (
+      NotificationTypes.orderCancelledByAdminCompany ||
+      NotificationTypes.orderCancelledByCompany => (
           icon: Icons.cancel_outlined,
           tone: AppTone.error,
         ),

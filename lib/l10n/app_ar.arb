@@ -1009,6 +1009,8 @@
   "notifOrderCancelledByAdminBody": "ألغت المنصة طلبك «{product}».",
   "notifOrderCancelledByAdminCompanyTitle": "تم إلغاء طلب",
   "notifOrderCancelledByAdminCompanyBody": "ألغت المنصة الطلب الخاص بـ«{product}».",
+  "notifOrderCancelledByCompanyTitle": "تم إلغاء طلبك",
+  "notifOrderCancelledByCompanyBody": "ألغت الشركة طلبك «{product}». افتحه لمعرفة السبب.",
   "notifProductHiddenTitle": "تم إخفاء منتج",
   "notifProductHiddenBody": "أُخفي «{product}» عن العملاء. افتحه لمعرفة السبب.",
   "notifProductShownTitle": "المنتج ظاهر من جديد",

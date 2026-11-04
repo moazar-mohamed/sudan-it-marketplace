@@ -37,6 +37,10 @@ abstract final class NotificationTypes {
   /// product (for its company). Never created by the app itself.
   static const orderCancelledByAdmin = 'order_cancelled_by_admin';
   static const orderCancelledByAdminCompany = 'order_cancelled_by_admin_company';
+
+  /// Written by the company's admin in the write that cancels the customer's
+  /// order (by hand, as out of stock, or as expired).
+  static const orderCancelledByCompany = 'order_cancelled_by_company';
   static const productHidden = 'product_hidden';
   static const productShown = 'product_shown';
 

@@ -307,6 +307,7 @@ void main() {
       for (final type in [
         NotificationTypes.orderCancelledByAdmin,
         NotificationTypes.orderCancelledByAdminCompany,
+        NotificationTypes.orderCancelledByCompany,
         NotificationTypes.productHidden,
         NotificationTypes.productShown,
         NotificationTypes.accountConvertedToCompany,

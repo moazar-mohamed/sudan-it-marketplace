@@ -27,6 +27,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
   type Firestore,
 } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
@@ -339,5 +340,85 @@ describe('cancelling an order with a note, and the refund mark', () => {
   it('refuses a refund time that is not the server time', async () => {
     await seed('paid', { paymentStatus: 'confirmed', orderStatus: 'cancelled', cancelReason: 'company', cancelledAt: new Date(), stockReleased: false });
     await assertFails(updateDoc(doc(as('ca1'), 'orders', 'paid'), { refundedAt: new Date(2020, 1, 1), updatedAt: serverTimestamp() }));
+  });
+});
+
+describe('telling the customer the company cancelled their order', () => {
+  const order = (id: string, extra: Data = {}): Data => ({
+    id, customerId: 'cust1', companyId: 'c1', companyName: 'Alpha Tech', productId: 'old', productName: 'Router', quantity: 1,
+    unitPrice: 100, productSubtotal: 100, installationSelected: false, installationFee: 0, deliveryFee: DELIVERY_FEE,
+    totalAmount: 100 + DELIVERY_FEE, deliveryAddress: 'Street', contactPhone: '0911111111', deliveryMethod: 'delivery',
+    customerName: 'Customer', paymentStatus: 'pending_verification', orderStatus: 'processing', receiptFileName: 'receipt.jpg',
+    stockReserved: false, createdAt: new Date(), updatedAt: new Date(), ...extra,
+  });
+  const notice = (id: string, extra: Data = {}): Data => ({
+    id: `${id}_order_cancelled_by_company`, recipientType: 'customer', recipientId: 'cust1', orderId: id,
+    type: 'order_cancelled_by_company', productName: 'Router', isRead: false, createdAt: serverTimestamp(), senderId: 'ca1', ...extra,
+  });
+  const cancelWithNotice = (uid: string, id: string, cancel: Data = {}, n: Data = {}, noticeId = `${id}_order_cancelled_by_company`) => {
+    const db = as(uid);
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'orders', id), { orderStatus: 'cancelled', cancelReason: 'company', cancelledAt: serverTimestamp(), stockReleased: false, updatedAt: serverTimestamp(), ...cancel });
+    batch.set(doc(db, 'notifications', noticeId), { ...notice(id), ...n, id: noticeId });
+    return batch.commit();
+  };
+  const seed = (id: string, extra: Data = {}) => raw((db) => setDoc(doc(db, 'orders', id), order(id, extra)));
+
+  it('is written with the cancellation, by hand or as expired', async () => {
+    await seed('o1');
+    await seed('o2', { createdAt: new Date(Date.now() - 25 * 3600_000) });
+    await assertSucceeds(cancelWithNotice('ca1', 'o1'));
+    await assertSucceeds(cancelWithNotice('ca1', 'o2', { cancelReason: 'expired' }));
+  });
+
+  it('is written for a paid order too', async () => {
+    await seed('o1', { paymentStatus: 'confirmed' });
+    await assertSucceeds(cancelWithNotice('ca1', 'o1'));
+  });
+
+  it('is refused on its own while the order is not cancelled', async () => {
+    await seed('o1');
+    await assertFails(setDoc(doc(as('ca1'), 'notifications', 'o1_order_cancelled_by_company'), notice('o1')));
+  });
+
+  it('is refused when the order was cancelled by someone else', async () => {
+    await seed('o1');
+    await assertFails(cancelWithNotice('ca1', 'o1', { cancelReason: 'admin' }));
+  });
+
+  it('goes only to the order customer, with the order product name', async () => {
+    await seed('o1');
+    await seed('o2');
+    await seed('o3');
+    await assertFails(cancelWithNotice('ca1', 'o1', {}, { recipientId: 'cust2' }));
+    await assertFails(cancelWithNotice('ca1', 'o2', {}, { productName: 'Something else' }));
+    await assertFails(cancelWithNotice('ca1', 'o3', {}, { recipientType: 'company_admin' }));
+  });
+
+  it('is the order company only, and signed as its sender', async () => {
+    await seed('o1');
+    await seed('o2');
+    await assertFails(cancelWithNotice('ca2', 'o1'));
+    await assertFails(cancelWithNotice('ca1', 'o2', {}, { senderId: 'ca2' }));
+  });
+
+  it('has one fixed id and holds no other field', async () => {
+    await seed('o1');
+    await seed('o2');
+    await assertFails(cancelWithNotice('ca1', 'o1', {}, {}, 'anything-else'));
+    await assertFails(cancelWithNotice('ca1', 'o2', {}, { text: 'free text' }));
+  });
+
+  it('cannot be written twice', async () => {
+    await seed('o1');
+    await assertSucceeds(cancelWithNotice('ca1', 'o1'));
+    await assertFails(setDoc(doc(as('ca1'), 'notifications', 'o1_order_cancelled_by_company'), notice('o1')));
+  });
+
+  it('is read by the customer it was written for', async () => {
+    await seed('o1');
+    await assertSucceeds(cancelWithNotice('ca1', 'o1'));
+    const { getDoc } = await import('firebase/firestore');
+    await assertSucceeds(getDoc(doc(as('cust1'), 'notifications', 'o1_order_cancelled_by_company')));
   });
 });

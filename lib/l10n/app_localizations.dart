@@ -6072,6 +6072,18 @@ abstract class AppLocalizations {
   /// **'The platform cancelled the order for \"{product}\".'**
   String notifOrderCancelledByAdminCompanyBody(String product);
 
+  /// No description provided for @notifOrderCancelledByCompanyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order was cancelled'**
+  String get notifOrderCancelledByCompanyTitle;
+
+  /// No description provided for @notifOrderCancelledByCompanyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The company cancelled your order \"{product}\". Open it to see why.'**
+  String notifOrderCancelledByCompanyBody(String product);
+
   /// No description provided for @notifProductHiddenTitle.
   ///
   /// In en, this message translates to:

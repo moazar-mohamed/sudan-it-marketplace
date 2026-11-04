@@ -2008,6 +2008,35 @@ service cloud.firestore {
         && adminOrderNotificationMatchesOrder();
     }
 
+    // The company tells the customer it cancelled their order, in the same
+    // write that cancels it: the order must really be cancelled by the company
+    // (by hand, as out of stock, or as expired) in that write, the notice goes
+    // to the order's customer, and it carries the order's own product name.
+    // One per order: the id is fixed.
+    function isValidCompanyCancelNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      let order = getAfter(/databases/$(database)/documents/orders/$(data.orderId)).data;
+      return isSignedIn()
+        && data.keys().hasAny(['orderId'])
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'orderId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'orderId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.type == 'order_cancelled_by_company'
+        && data.recipientType == 'customer'
+        && data.orderId is string
+        && data.orderId.size() > 0
+        && data.orderId.size() <= 128
+        && data.id == notificationId
+        && notificationId == data.orderId + '_' + data.type
+        && data.senderId == request.auth.uid
+        && data.isRead == false
+        && data.createdAt == request.time
+        && isCompanyAdminOf(order.companyId)
+        && order.orderStatus == 'cancelled'
+        && order.get('cancelReason', '') in ['company', 'out_of_stock', 'expired']
+        && data.recipientId == order.customerId
+        && data.productName == order.productName;
+    }
+
     function adminOrderNotificationMatchesOrder() {
       let data = request.resource.data;
       let order = getAfter(/databases/$(database)/documents/orders/$(data.orderId)).data;
@@ -2519,6 +2548,7 @@ service cloud.firestore {
       // A deactivated account can no longer send notifications.
       allow create: if isValidReportNotificationCreate(notificationId)
         || isValidAdminOrderNotificationCreate(notificationId)
+        || isValidCompanyCancelNotificationCreate(notificationId)
         || isValidAdminProductNotificationCreate(notificationId)
         || isValidAdminAccountNotificationCreate(notificationId)
         || isSignedIn()

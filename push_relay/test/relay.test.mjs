@@ -469,7 +469,7 @@ describe('what the platform did', () => {
   });
 
   it('every one has words in both languages that name the product', () => {
-    for (const type of ['order_cancelled_by_admin', 'order_cancelled_by_admin_company', 'product_hidden', 'product_shown', 'account_converted_to_company']) {
+    for (const type of ['order_cancelled_by_admin', 'order_cancelled_by_admin_company', 'order_cancelled_by_company', 'product_hidden', 'product_shown', 'account_converted_to_company']) {
       for (const language of ['en', 'ar']) {
         const text = orderNotificationText({ type, productName: 'Router', title: 'stored' }, language);
         assert.ok(text.title && text.title !== 'stored', `${type}/${language}`);
