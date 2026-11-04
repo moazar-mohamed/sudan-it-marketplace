@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '../components/feedback';
@@ -7,6 +7,7 @@ import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
 import { saveLanguage } from '../i18n/saveLanguage';
 import { setTheme, THEME_STORAGE_KEY } from '../theme/theme';
+import { setUi } from '../theme/ui';
 import { SettingsPage } from './SettingsPage';
 
 const auth = vi.hoisted(() => ({
@@ -35,6 +36,8 @@ const radio = (name: string) => {
 };
 
 beforeEach(() => {
+  // These tests are about the current look; the redesign has its own in SettingsPageV2.test.tsx.
+  act(() => setUi('v1'));
   localStorage.clear();
   vi.mocked(saveLanguage).mockReset().mockResolvedValue(true);
   auth.state = { status: 'authorized', profile: { uid: 'admin-1' } };

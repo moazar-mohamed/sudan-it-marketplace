@@ -6,6 +6,8 @@ export interface DashboardValue {
   snapshot: DashboardSnapshot | null;
   refreshing: boolean;
   refresh: () => Promise<void>;
+  /** Reads again only if the figures are older than the given age (the free plan's daily read budget is small). */
+  refreshIfStale?: (maxAgeMs: number) => void;
 }
 
 export const DashboardContext = createContext<DashboardValue | null>(null);

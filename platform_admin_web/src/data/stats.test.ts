@@ -67,7 +67,7 @@ describe('dashboard source', () => {
     expect(links.length).toBeGreaterThanOrEqual(7); // seven cards (+ the two "view all" links)
     for (const link of links) {
       const url = new URL(link, 'http://x');
-      expect(['/companies', '/customers', '/products', '/orders', '/analytics']).toContain(url.pathname);
+      expect(['/companies', '/customers', '/products', '/orders', '/analytics', '/categories']).toContain(url.pathname);
       const status = url.searchParams.get('status');
       if (status === null) continue;
       const allowed: readonly string[] =

@@ -6,18 +6,36 @@ import { CustomerConvertModal } from '../components/CustomerConvertModal';
 import { CustomerDeleteModal } from '../components/CustomerDeleteModal';
 import { ActiveBadge, OrderStatusBadge, PaymentBadge } from '../components/StatusBadges';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
+import { ActionGroup } from '../components/v2';
 import { cityNames, useCities } from '../data/cities';
 import { isOpenOrderStatus, isOpenRequestStatus } from '../data/convertCustomer';
 import { useCustomers, useServiceRequests } from '../data/hooks';
 import { useOrdersOf } from '../data/orderHooks';
 import { displayPhone } from '../data/phone';
 import { useI18n } from '../i18n/I18nProvider';
+import { useUi } from '../theme/ui';
 import { shortId } from '../utils';
 
 export function CustomerDetailsPage() {
   const { id = '' } = useParams();
+  const { t } = useI18n();
+  const customer = useCustomers().data.find((c) => c.id === id);
+  return (
+    <CustomerDetails id={id} header={(actions) => <PageHeader title={customer?.fullName || t('customer.details')} back={{ to: '/customers', label: t('customers.title') }} actions={actions} />} />
+  );
+}
+
+/**
+ * Everything about one customer and what can be done to the account. It is the body of
+ * the full page and, in the redesign, of the side panel beside the customer list. The
+ * current look keeps the actions in the page header; the redesign groups them in the
+ * body: the everyday ones, then a quiet red group for converting and deleting.
+ */
+export function CustomerDetails({ id, header }: { id: string; header?: (actions: React.ReactNode) => React.ReactNode }) {
   useCities();
   const { t, money, date, dateTime, locale } = useI18n();
+  const { ui } = useUi();
+  const v2 = ui === 'v2';
   const customers = useCustomers();
   const serviceRequests = useServiceRequests();
   // Only this customer's orders are read, not every order there is.
@@ -32,51 +50,54 @@ export function CustomerDetailsPage() {
   const history = orders.orders;
   // What still keeps the account a customer's: it is converted once these end.
   const openOrders = history.filter((o) => isOpenOrderStatus(o.orderStatus));
-  const openRequests = serviceRequests.data.filter(
-    (r) => r.customerId === id && isOpenRequestStatus(r.status),
+  const openRequests = serviceRequests.data.filter((r) => r.customerId === id && isOpenRequestStatus(r.status));
+
+  const activityLink = customer ? (
+    <Link to={`/activity?target=${customer.id}`} className="btn">
+      {t('activity.onRecord')}
+    </Link>
+  ) : null;
+  const editButton = (
+    <button className="btn" onClick={() => setEditing(true)}>
+      {t('common.edit')}
+    </button>
   );
+  const convertButton = (
+    <button className="btn" onClick={() => setConverting(true)}>
+      {t('customer.convert')}
+    </button>
+  );
+  const deleteButton = (
+    <button className="btn btn--danger-ghost" onClick={() => setDeleting(true)}>
+      {t('customer.delete')}
+    </button>
+  );
+  const toggleButton = customer ? (
+    <button
+      className={customer.isActive ? 'btn btn--danger-ghost' : 'btn btn--primary'}
+      disabled={busyId === customer.id}
+      onClick={() => void toggle(customer)}
+    >
+      {customer.isActive ? t('customer.deactivate') : t('customer.activate')}
+    </button>
+  ) : null;
 
   return (
     <>
-      <PageHeader
-        title={customer?.fullName || t('customer.details')}
-        back={{ to: '/customers', label: t('customers.title') }}
-        actions={
-          customer ? (
-            <>
-              <Link to={`/activity?target=${customer.id}`} className="btn">
-                {t('activity.onRecord')}
-              </Link>
-              <button className="btn" onClick={() => setEditing(true)}>
-                {t('common.edit')}
-              </button>
-              <button className="btn" onClick={() => setConverting(true)}>
-                {t('customer.convert')}
-              </button>
-              <button className="btn btn--danger-ghost" onClick={() => setDeleting(true)}>
-                {t('customer.delete')}
-              </button>
-              <button
-                className={customer.isActive ? 'btn btn--danger-ghost' : 'btn btn--primary'}
-                disabled={busyId === customer.id}
-                onClick={() => void toggle(customer)}
-              >
-                {customer.isActive ? t('customer.deactivate') : t('customer.activate')}
-              </button>
-            </>
-          ) : undefined
-        }
-      />
-      {editing && customer && (
-        <CustomerEditModal customer={customer} onClose={() => setEditing(false)} />
+      {header?.(
+        customer && !v2 ? (
+          <>
+            {activityLink}
+            {editButton}
+            {convertButton}
+            {deleteButton}
+            {toggleButton}
+          </>
+        ) : undefined,
       )}
+      {editing && customer && <CustomerEditModal customer={customer} onClose={() => setEditing(false)} />}
       {converting && customer && (
-        <CustomerConvertModal
-          customer={customer}
-          openOrders={openOrders}
-          openRequests={openRequests}
-          onClose={() => setConverting(false)}
-        />
+        <CustomerConvertModal customer={customer} openOrders={openOrders} openRequests={openRequests} onClose={() => setConverting(false)} />
       )}
       {deleting && customer && (
         <CustomerDeleteModal
@@ -92,6 +113,23 @@ export function CustomerDetailsPage() {
           <EmptyState message={t('common.notFound')} />
         ) : (
           <>
+            {v2 && (
+              <>
+                <ActionGroup title={t('customer.section.profile')}>
+                  <div className="btn-group">
+                    {editButton}
+                    {activityLink}
+                    {toggleButton}
+                  </div>
+                </ActionGroup>
+                <ActionGroup title={t('common.actions')} danger>
+                  <div className="btn-group">
+                    {convertButton}
+                    {deleteButton}
+                  </div>
+                </ActionGroup>
+              </>
+            )}
             <Card title={t('customer.section.profile')}>
               <dl className="kv-list">
                 <KeyValue label={t('col.name')}>

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DashboardSnapshot } from '../data/dashboardData';
@@ -7,6 +7,7 @@ import { failed, makeSnapshot, ok } from '../data/dashboardTestkit';
 import { mapCustomer, mapOrder } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
+import { setUi } from '../theme/ui';
 import { DashboardPage } from './DashboardPage';
 
 const hours = (h: number) => new Date(Date.now() - h * 3_600_000);
@@ -39,6 +40,8 @@ const tile = (label: string) => screen.getByText(label).closest('.stat') as HTML
 const period = (name: string) => screen.getByRole('button', { name });
 
 beforeEach(() => {
+  // These tests are about the current look; the redesign has its own in DashboardV2.test.tsx.
+  act(() => setUi('v1'));
   localStorage.clear();
   mock.profile = { uid: 'a', fullName: 'Mona Ali', email: 'm@x.test' };
 });

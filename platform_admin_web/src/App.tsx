@@ -22,6 +22,7 @@ const CompanyDetailsPage = page(() => import('./pages/CompanyDetailsPage'), 'Com
 const CustomerDetailsPage = page(() => import('./pages/CustomerDetailsPage'), 'CustomerDetailsPage');
 const CustomersPage = page(() => import('./pages/CustomersPage'), 'CustomersPage');
 const DashboardPage = page(() => import('./pages/DashboardPage'), 'DashboardPage');
+const DesignSystemPage = page(() => import('./pages/DesignSystemPage'), 'DesignSystemPage');
 const OffersPage = page(() => import('./pages/OffersPage'), 'OffersPage');
 const OrderDetailsPage = page(() => import('./pages/OrderDetailsPage'), 'OrderDetailsPage');
 const OrdersPage = page(() => import('./pages/OrdersPage'), 'OrdersPage');
@@ -77,6 +78,7 @@ export function App() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="trash" element={<TrashPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="design-system" element={<DesignSystemPage />} />
         <Route path="*" element={<EmptyState message={t('common.notFound')} />} />
       </Route>
     </Routes>

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { setUi } from '../theme/ui';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mapCustomer } from '../data/mappers';
@@ -36,6 +37,8 @@ const show = () =>
   );
 
 beforeEach(() => {
+  // These tests are about the current look; the redesign has its own in CustomersPageV2.test.tsx.
+  act(() => setUi('v1'));
   localStorage.setItem('platform_admin_locale', 'en');
   mock.customers = [
     mapCustomer('u1', { role: 'customer', fullName: 'Amna Customer', email: 'amna@x.test', createdAt: new Date(2026, 0, 1) }),

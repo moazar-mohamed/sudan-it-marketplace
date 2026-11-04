@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { setUi } from '../theme/ui';
 import { mapOrder } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
@@ -72,6 +73,10 @@ const tile = (label: string) => {
   };
 };
 
+// These tests are about the current look (every part on one page); the redesign has its own in AnalyticsPageV2.test.tsx.
+beforeEach(() => {
+  act(() => setUi('v1'));
+});
 afterEach(() => {
   cleanup();
   mock.orders = { status: 'ready', data: [] };

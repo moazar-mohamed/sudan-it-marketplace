@@ -6,8 +6,10 @@ import { Badge, Chips, DataGate, EmptyState, Modal, PageHeader, SearchInput, Tex
 import { setReportStatus } from '../data/actions';
 import { useReports } from '../data/hooks';
 import { REPORT_STATUSES, type Report, type ReportStatus } from '../data/types';
+import { SidePanel, SplitView } from '../components/v2';
 import { useI18n } from '../i18n/I18nProvider';
 import { en, type TranslationKey } from '../i18n/dictionary';
+import { useUi } from '../theme/ui';
 import { matchesQuery } from '../utils';
 
 const STATUS_TONE: Record<ReportStatus, Tone> = {
@@ -31,6 +33,7 @@ function ReportDialog({ report, onClose }: { report: Report; onClose: () => void
   const { t, dateTime } = useI18n();
   const label = useLabel();
   const { busy, run } = useRunner();
+  const v2 = useUi().ui === 'v2';
   const replyId = useId();
   const [status, setStatus] = useState<ReportStatus>(report.status);
   const [resolution, setResolution] = useState(report.resolution);
@@ -41,8 +44,8 @@ function ReportDialog({ report, onClose }: { report: Report; onClose: () => void
     if (ok) onClose();
   };
 
-  return (
-    <Modal title={t('reports.detailsTitle')} onClose={onClose} wide>
+  const body = (
+    <>
       <h3 className="report__subject">
         <Text>{report.subject}</Text>
       </h3>
@@ -129,6 +132,17 @@ function ReportDialog({ report, onClose }: { report: Report; onClose: () => void
           {busy === 'save' ? t('common.saving') : t('common.save')}
         </button>
       </div>
+    </>
+  );
+
+  // The redesign reads a report beside the list, like an inbox; the current look keeps the dialog.
+  return v2 ? (
+    <SidePanel title={report.subject || t('reports.detailsTitle')} subtitle={t('reports.detailsTitle')} closeLabel={t('common.close')} onClose={onClose}>
+      {body}
+    </SidePanel>
+  ) : (
+    <Modal title={t('reports.detailsTitle')} onClose={onClose} wide>
+      {body}
     </Modal>
   );
 }
@@ -158,6 +172,10 @@ export function ReportsPage() {
   const { rows, sort, toggle } = useSortedRows(visible, SORTS);
   const opened = reports.data.find((r) => r.id === openId) ?? null;
   const count = (s: ReportStatus) => reports.data.filter((r) => r.status === s).length;
+  const v2 = useUi().ui === 'v2';
+  const reportView = opened ? (
+    <ReportDialog key={`${opened.id}-${opened.status}-${opened.resolution}`} report={opened} onClose={() => setOpenId(null)} />
+  ) : null;
 
   return (
     <>
@@ -184,6 +202,7 @@ export function ReportsPage() {
                 <SearchInput value={query} onChange={setQuery} placeholder={t('reports.search')} />
               </div>
             </div>
+            <SplitView panel={v2 ? reportView : null}>
             {rows.length === 0 ? (
               <EmptyState message={t('common.noResults')} />
             ) : (
@@ -229,10 +248,11 @@ export function ReportsPage() {
                 </div>
               </div>
             )}
+            </SplitView>
           </>
         )}
       </DataGate>
-      {opened && <ReportDialog key={`${opened.id}-${opened.status}-${opened.resolution}`} report={opened} onClose={() => setOpenId(null)} />}
+      {!v2 && reportView}
     </>
   );
 }

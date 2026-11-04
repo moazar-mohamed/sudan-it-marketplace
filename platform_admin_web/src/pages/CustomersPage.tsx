@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   CustomerCreateModal,
   CustomerEditModal,
@@ -8,13 +8,16 @@ import {
 import { SortTh, useSortedRows } from '../components/sort';
 import { ActiveBadge } from '../components/StatusBadges';
 import { Chips, DataGate, EmptyState, PageHeader, SearchInput, Text } from '../components/ui';
+import { ExportAction, SidePanel, SplitView } from '../components/v2';
 import { csvFilename, customersToCsv, downloadCsv } from '../data/csv';
 import { useCustomers } from '../data/hooks';
 import { useCustomerOrderCounts } from '../data/orderHooks';
 import { displayPhone, phoneSearchForms } from '../data/phone';
 import type { Customer } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
+import { useUi } from '../theme/ui';
 import { matchesQuery } from '../utils';
+import { CustomerDetails } from './CustomerDetailsPage';
 
 /** How many customers one page shows (and so how many order counts are read at a time). */
 export const CUSTOMERS_PER_PAGE = 25;
@@ -31,6 +34,20 @@ export function CustomersPage() {
   const { t, number, date } = useI18n();
   const customers = useCustomers();
   const navigate = useNavigate();
+  // In the redesign a row opens the customer in a panel beside the list (?open=<id>); the full page stays one click away.
+  const [params, setParams] = useSearchParams();
+  const v2 = useUi().ui === 'v2';
+  const openId = v2 ? params.get('open') : null;
+  const setOpen = (id: string | null) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (id) next.set('open', id);
+        else next.delete('open');
+        return next;
+      },
+      { replace: true },
+    );
   const { toggle, busyId } = useToggleCustomerActive();
   const [filter, setFilter] = useState<'active' | 'inactive' | 'all'>('all');
   const [query, setQuery] = useState('');
@@ -56,8 +73,18 @@ export function CustomersPage() {
   // inside it (the name link, View, Edit, Deactivate) are theirs, not the row's.
   const openCustomer = (id: string) => (e: MouseEvent<HTMLTableRowElement>) => {
     if ((e.target as HTMLElement).closest('a, button')) return;
-    navigate(`/customers/${id}`);
+    if (v2) setOpen(id);
+    else navigate(`/customers/${id}`);
   };
+  const openName = openId ? customers.data.find((c) => c.id === openId)?.fullName : undefined;
+  const panel = openId ? (
+    <SidePanel title={openName || t('customer.details')} subtitle={t('customers.title')} closeLabel={t('common.close')} onClose={() => setOpen(null)}>
+      <Link to={`/customers/${openId}`} className="link-sm">
+        {t('common.openDetails')}
+      </Link>
+      <CustomerDetails id={openId} />
+    </SidePanel>
+  ) : null;
 
   return (
     <>
@@ -67,13 +94,11 @@ export function CustomersPage() {
         back={{ to: '/', label: t('nav.dashboard') }}
         actions={
           <>
-            <button
-              className="btn btn--sm"
+            <ExportAction
+              label={t('common.exportCsv')}
               disabled={visible.length === 0}
-              onClick={() => downloadCsv(csvFilename('customers', Date.now()), customersToCsv(visible))}
-            >
-              {t('common.exportCsv')}
-            </button>
+              onExport={() => downloadCsv(csvFilename('customers', Date.now()), customersToCsv(visible))}
+            />
             <button className="btn btn--primary" onClick={() => setAdding(true)}>
               + {t('customers.add')}
             </button>
@@ -115,6 +140,7 @@ export function CustomersPage() {
         </div>
         <p className="note">{t('customers.deleteNote')}</p>
 
+        <SplitView panel={panel}>
         {customers.data.length === 0 ? (
           <EmptyState message={t('customers.empty')} />
         ) : visible.length === 0 ? (
@@ -136,7 +162,7 @@ export function CustomersPage() {
                 </thead>
                 <tbody>
                   {shown.map((c) => (
-                    <tr key={c.id} className="row--clickable" onClick={openCustomer(c.id)}>
+                    <tr key={c.id} className={openId === c.id ? 'row--clickable is-open' : 'row--clickable'} onClick={openCustomer(c.id)}>
                       <td>
                         <Link to={`/customers/${c.id}`} className="strong">
                           <Text>{c.fullName || '—'}</Text>
@@ -196,6 +222,7 @@ export function CustomersPage() {
             </div>
           </div>
         )}
+        </SplitView>
       </DataGate>
     </>
   );

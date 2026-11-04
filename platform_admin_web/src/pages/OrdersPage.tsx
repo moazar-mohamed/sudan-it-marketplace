@@ -5,6 +5,7 @@ import { useRunner } from '../components/feedback';
 import { SortTh, useSortedRows } from '../components/sort';
 import { OrderStatusBadge, PaymentBadge } from '../components/StatusBadges';
 import { Chips, EmptyState, ErrorState, LoadingState, PageHeader, SearchInput, Text } from '../components/ui';
+import { ExportAction, FilterGroup, SidePanel, SplitView } from '../components/v2';
 import { ordersToCsv } from '../data/analytics';
 import { csvFilename, downloadCsv } from '../data/csv';
 import { useCompanies } from '../data/hooks';
@@ -14,7 +15,9 @@ import { matchesOrderAttention, ORDER_ATTENTIONS, STUCK_ORDER_DAYS, UNVERIFIED_P
 import { ORDER_STATUSES, type Order, type OrderStatus } from '../data/types';
 import { useDashboard } from '../data/useDashboard';
 import { useI18n } from '../i18n/I18nProvider';
+import { useUi } from '../theme/ui';
 import { customerLabel, matchesQuery, shortId } from '../utils';
+import { OrderDetailsById } from './OrderDetailsPage';
 
 const SORTS = {
   id: (o: Order) => o.id,
@@ -75,6 +78,20 @@ export function OrdersPage() {
   };
   const [query, setQuery] = useState('');
   const { busy, run } = useRunner();
+  // In the redesign a row opens its details in a panel beside the list (?open=<id>); the full page stays one click away.
+  const { ui } = useUi();
+  const v2 = ui === 'v2';
+  const openId = v2 ? params.get('open') : null;
+  const setOpen = (id: string | null) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (id) next.set('open', id);
+        else next.delete('open');
+        return next;
+      },
+      { replace: true },
+    );
 
   // The server sends a page at a time; the dashboard's own read answers the "needs attention" lists.
   const paged = usePagedOrders(
@@ -135,6 +152,58 @@ export function OrdersPage() {
     ).then(() => undefined);
   const hasFilters = status !== 'all' || companyId !== '' || fromParam !== '' || toParam !== '' || attention !== null;
 
+  const statusChips = (
+    <Chips
+      value={status}
+      onChange={(next) => updateFilters({ status: next })}
+      options={[
+        { value: 'all', label: t('common.all'), count: allCount },
+        ...ORDER_STATUSES.map((s) => ({ value: s, label: t(`order.status.${s}`), count: statusCount(s) })),
+      ]}
+    />
+  );
+  const companySelect = (
+    <select className="select" value={companyId} aria-label={t('col.company')} onChange={(e) => updateFilters({ company: e.target.value })}>
+      <option value="">{t('products.allCompanies')}</option>
+      {companies.data.map((c) => (
+        <option key={c.id} value={c.id}>
+          {c.name}
+        </option>
+      ))}
+    </select>
+  );
+  const dateFields = (
+    <>
+      <label className="inline-field">
+        <span>{t('orders.from')}</span>
+        <input type="date" value={fromParam} max={toParam || undefined} onChange={(e) => updateFilters({ from: e.target.value })} />
+      </label>
+      <label className="inline-field">
+        <span>{t('orders.to')}</span>
+        <input type="date" value={toParam} min={fromParam || undefined} onChange={(e) => updateFilters({ to: e.target.value })} />
+      </label>
+      {(fromParam || toParam) && (
+        <button className="btn btn--ghost btn--sm" onClick={() => updateFilters({ from: '', to: '' })}>
+          {t('orders.clearDates')}
+        </button>
+      )}
+    </>
+  );
+  // The order opened from a row (redesign): its details beside the list.
+  const panel = openId ? (
+    <SidePanel
+      title={`${t('order.details')} #${shortId(openId)}`}
+      subtitle={t('orders.title')}
+      closeLabel={t('common.close')}
+      onClose={() => setOpen(null)}
+    >
+      <Link to={`/orders/${openId}`} className="link-sm">
+        {t('common.openDetails')}
+      </Link>
+      <OrderDetailsById id={openId} />
+    </SidePanel>
+  ) : null;
+
   return (
     <>
       <PageHeader
@@ -143,14 +212,12 @@ export function OrdersPage() {
         back={{ to: '/', label: t('nav.dashboard') }}
         actions={
           <>
-            <button
-              className="btn btn--sm"
+            <ExportAction
+              label={busy === 'export' ? t('orders.exporting') : t('common.exportCsv')}
               disabled={busy === 'export' || badRange || (attention ? visible.length === 0 : paged.status !== 'ready')}
               title={t('orders.exportHint', { max: number(ORDER_EXPORT_MAX) })}
-              onClick={() => void exportCsv()}
-            >
-              {busy === 'export' ? t('orders.exporting') : t('common.exportCsv')}
-            </button>
+              onExport={() => void exportCsv()}
+            />
           </>
         }
       />
@@ -164,51 +231,36 @@ export function OrdersPage() {
           onClear={() => updateFilters({ attention: null })}
         />
       )}
-      <div className="toolbar">
-        <Chips
-          value={status}
-          onChange={(next) => updateFilters({ status: next })}
-          options={[
-            { value: 'all', label: t('common.all'), count: allCount },
-            ...ORDER_STATUSES.map((s) => ({ value: s, label: t(`order.status.${s}`), count: statusCount(s) })),
-          ]}
-        />
-        <div className="toolbar__end">
-          <select
-            className="select"
-            value={companyId}
-            aria-label={t('col.company')}
-            onChange={(e) => updateFilters({ company: e.target.value })}
-          >
-            <option value="">{t('products.allCompanies')}</option>
-            {companies.data.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <SearchInput value={query} onChange={setQuery} placeholder={t('orders.search')} />
+      {v2 ? (
+        // The redesign keeps to the status chips and the search; the company and the dates fold into one "Filters" button.
+        <div className="toolbar">
+          {statusChips}
+          <div className="toolbar__end">
+            <SearchInput value={query} onChange={setQuery} placeholder={t('orders.search')} />
+            <FilterGroup count={(companyId ? 1 : 0) + (fromParam || toParam ? 1 : 0)} onClear={() => updateFilters({ company: '', from: '', to: '' })}>
+              {companySelect}
+              {dateFields}
+              <p className="muted toolbar__note">{t('orders.searchHint')}</p>
+            </FilterGroup>
+          </div>
         </div>
-      </div>
-      <div className="toolbar">
-        <div className="toolbar__end">
-          <label className="inline-field">
-            <span>{t('orders.from')}</span>
-            <input type="date" value={fromParam} max={toParam || undefined} onChange={(e) => updateFilters({ from: e.target.value })} />
-          </label>
-          <label className="inline-field">
-            <span>{t('orders.to')}</span>
-            <input type="date" value={toParam} min={fromParam || undefined} onChange={(e) => updateFilters({ to: e.target.value })} />
-          </label>
-          {(fromParam || toParam) && (
-            <button className="btn btn--ghost btn--sm" onClick={() => updateFilters({ from: '', to: '' })}>
-              {t('orders.clearDates')}
-            </button>
-          )}
-        </div>
-        <p className="muted toolbar__note">{t('orders.searchHint')}</p>
-      </div>
+      ) : (
+        <>
+          <div className="toolbar">
+            {statusChips}
+            <div className="toolbar__end">
+              {companySelect}
+              <SearchInput value={query} onChange={setQuery} placeholder={t('orders.search')} />
+            </div>
+          </div>
+          <div className="toolbar">
+            <div className="toolbar__end">{dateFields}</div>
+            <p className="muted toolbar__note">{t('orders.searchHint')}</p>
+          </div>
+        </>
+      )}
 
+      <SplitView panel={panel}>
       {badRange ? (
         <p className="field__error" role="alert">
           {t('orders.badRange')}
@@ -245,7 +297,11 @@ export function OrdersPage() {
               </thead>
               <tbody>
                 {sortedRows.map((o) => (
-                  <tr key={o.id}>
+                  <tr
+                    key={o.id}
+                    className={v2 ? (openId === o.id ? 'row--clickable is-open' : 'row--clickable') : undefined}
+                    onClick={v2 ? () => setOpen(o.id) : undefined}
+                  >
                     <td>
                       <Link to={`/orders/${o.id}`} className="mono" dir="ltr">
                         #{shortId(o.id)}
@@ -293,6 +349,7 @@ export function OrdersPage() {
           </div>
         </div>
       )}
+      </SplitView>
     </>
   );
 }

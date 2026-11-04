@@ -3,12 +3,15 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { AttentionBanner } from '../components/AttentionBanner';
 import { ServiceRequestStatusBadge } from '../components/StatusBadges';
 import { Chips, DataGate, EmptyState, PageHeader, SearchInput, Text } from '../components/ui';
+import { FilterGroup, SidePanel, SplitView } from '../components/v2';
 import { useServiceRequests } from '../data/hooks';
 import { isStaleServiceRequest, STALE_REQUEST_HOURS } from '../data/stats';
 import { SERVICE_REQUEST_STATUSES, type ServiceRequestStatus } from '../data/types';
 import { useNow } from '../data/useNow';
 import { useI18n } from '../i18n/I18nProvider';
+import { useUi } from '../theme/ui';
 import { customerLabel, matchesQuery, shortId } from '../utils';
+import { ServiceRequestDetails } from './ServiceRequestDetailsPage';
 
 /** Every service request across the marketplace, read-only (like orders). */
 export function ServiceRequestsPage() {
@@ -40,6 +43,27 @@ export function ServiceRequestsPage() {
     );
   };
   const [query, setQuery] = useState('');
+  // In the redesign a row opens its details in a panel beside the list (?open=<id>); the full page stays one click away.
+  const v2 = useUi().ui === 'v2';
+  const openId = v2 ? params.get('open') : null;
+  const setOpen = (id: string | null) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (id) next.set('open', id);
+        else next.delete('open');
+        return next;
+      },
+      { replace: true },
+    );
+  const panel = openId ? (
+    <SidePanel title={`${t('serviceRequest.details')} #${shortId(openId)}`} subtitle={t('serviceRequests.title')} closeLabel={t('common.close')} onClose={() => setOpen(null)}>
+      <Link to={`/service-requests/${openId}`} className="link-sm">
+        {t('common.openDetails')}
+      </Link>
+      <ServiceRequestDetails id={openId} />
+    </SidePanel>
+  ) : null;
 
   const companyOptions = useMemo(() => {
     const byId = new Map<string, string>();
@@ -87,19 +111,21 @@ export function ServiceRequestsPage() {
             ]}
           />
           <div className="toolbar__end">
-            <select
-              className="select"
-              value={companyId}
-              aria-label={t('col.company')}
-              onChange={(e) => updateFilters({ company: e.target.value })}
-            >
-              <option value="">{t('products.allCompanies')}</option>
-              {companyOptions.map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
+            <FilterGroup count={companyId ? 1 : 0} onClear={() => updateFilters({ company: '' })}>
+              <select
+                className="select"
+                value={companyId}
+                aria-label={t('col.company')}
+                onChange={(e) => updateFilters({ company: e.target.value })}
+              >
+                <option value="">{t('products.allCompanies')}</option>
+                {companyOptions.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </FilterGroup>
             <SearchInput
               value={query}
               onChange={setQuery}
@@ -108,6 +134,7 @@ export function ServiceRequestsPage() {
           </div>
         </div>
 
+        <SplitView panel={panel}>
         {requests.data.length === 0 ? (
           <EmptyState message={t('serviceRequests.empty')} />
         ) : visible.length === 0 ? (
@@ -130,7 +157,17 @@ export function ServiceRequestsPage() {
                 </thead>
                 <tbody>
                   {visible.map((r) => (
-                    <tr key={r.id}>
+                    <tr
+                      key={r.id}
+                      className={v2 ? (openId === r.id ? 'row--clickable is-open' : 'row--clickable') : undefined}
+                      onClick={
+                        v2
+                          ? (e) => {
+                              if (!(e.target as HTMLElement).closest('a, button')) setOpen(r.id);
+                            }
+                          : undefined
+                      }
+                    >
                       <td>
                         <Link to={`/service-requests/${r.id}`} className="mono" dir="ltr">
                           #{shortId(r.id)}
@@ -162,6 +199,7 @@ export function ServiceRequestsPage() {
             </div>
           </div>
         )}
+        </SplitView>
       </DataGate>
     </>
   );
