@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Suspense, useEffect, useRef, useState, type FormEvent } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useCompanyData } from '../data/CompanyData';
-import { Banner } from './kit';
+import { ErrorBoundary } from './ErrorBoundary';
+import { Banner, Loading } from './kit';
 import { Icon, type IconName } from './Icon';
 
 interface Item {
@@ -17,6 +18,7 @@ export function Shell() {
   const { state, signOut } = useAuth();
   const { company, pendingPayment, failed, unreadChats, unreadNotices } = useCompanyData();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const searchRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState('');
 
@@ -143,7 +145,11 @@ export function Shell() {
             </Banner>
           </div>
         )}
-        <Outlet />
+        <ErrorBoundary key={pathname}>
+          <Suspense fallback={<Loading />}>
+            <Outlet />
+          </Suspense>
+        </ErrorBoundary>
       </div>
     </div>
   );

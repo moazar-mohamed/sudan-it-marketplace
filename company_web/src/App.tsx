@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useAuth } from './auth/AuthProvider';
 import { CompanyDataProvider } from './data/CompanyData';
@@ -38,25 +38,23 @@ export default function App() {
 
   return (
     <CompanyDataProvider companyId={state.profile.companyId}>
-      <Suspense fallback={<Loading />}>
-        <Routes>
-          <Route element={<Shell />}>
-            <Route index element={<TodayPage />} />
-            <Route path="orders" element={<OrdersPage />} />
-            <Route path="orders/:id" element={<OrderDetailsPage />} />
-            <Route path="products" element={<ProductsPage />} />
-            <Route path="products/new" element={<ProductEditPage />} />
-            <Route path="products/:id" element={<ProductEditPage />} />
-            <Route path="offers" element={<OffersPage />} />
-            <Route path="services" element={<ServicesPage />} />
-            <Route path="company" element={<CompanyPage />} />
-            <Route path="team" element={<TeamPage />} />
-            <Route path="chats" element={<ChatsPage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="*" element={<Empty text="الصفحة غير موجودة" />} />
-          </Route>
-        </Routes>
-      </Suspense>
+      <Routes>
+        <Route element={<Shell />}>
+          <Route index element={<TodayPage />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="orders/:id" element={<OrderDetailsPage />} />
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="products/new" element={<ProductEditPage />} />
+          <Route path="products/:id" element={<ProductEditPage />} />
+          <Route path="offers" element={<OffersPage />} />
+          <Route path="services" element={<ServicesPage />} />
+          <Route path="company" element={<CompanyPage />} />
+          <Route path="team" element={<TeamPage />} />
+          <Route path="chats" element={<ChatsPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="*" element={<Empty text="الصفحة غير موجودة" />} />
+        </Route>
+      </Routes>
     </CompanyDataProvider>
   );
 }

@@ -21,10 +21,13 @@ import { StockDialog } from '../ui/StockDialog';
 import { useToast } from '../ui/toast';
 
 type Tab = 'all' | 'published' | 'draft' | 'archived' | 'hidden';
-type Pill = 'low' | 'out' | 'noPrice' | 'noImage' | 'offer';
+type Pill = 'restock' | 'noPrice' | 'noImage' | 'offer';
 type Sort = 'newest' | 'name' | 'stockAsc' | 'priceDesc';
 
 const PAGE = 50;
+
+/** Out of stock, or at or under the product's own low-stock limit. */
+const needsRestock = (p: Product): boolean => p.stockCount === 0 || isLowStock(p);
 
 export function ProductsPage() {
   const { products, pendingPayment, categories, companyId } = useCompanyData();
@@ -57,8 +60,7 @@ export function ProductsPage() {
       draft: list.filter((p) => p.status === 'draft').length,
       archived: list.filter((p) => p.status === 'archived').length,
       hidden: list.filter((p) => p.hidden).length,
-      low: list.filter((p) => p.stockCount > 0 && isLowStock(p)).length,
-      out: list.filter((p) => p.stockCount === 0).length,
+      restock: list.filter(needsRestock).length,
       noPrice: list.filter((p) => p.price === null).length,
       noImage: list.filter((p) => !p.imageUrl).length,
       offer: list.filter((p) => hasActiveOffer(p)).length,
@@ -71,8 +73,7 @@ export function ProductsPage() {
       if ((tab === 'published' || tab === 'draft' || tab === 'archived') && p.status !== tab) return false;
       if (tab === 'hidden' && !p.hidden) return false;
       if (category && p.categoryId !== category) return false;
-      if (pills.has('low') && !(p.stockCount > 0 && isLowStock(p))) return false;
-      if (pills.has('out') && p.stockCount !== 0) return false;
+      if (pills.has('restock') && !needsRestock(p)) return false;
       if (pills.has('noPrice') && p.price !== null) return false;
       if (pills.has('noImage') && p.imageUrl) return false;
       if (pills.has('offer') && !hasActiveOffer(p)) return false;
@@ -117,16 +118,32 @@ export function ProductsPage() {
     <main className="page">
       <PageHeader
         title="المنتجات"
-        subtitle={`${productsText(counts.all)} · ${counts.low + counts.out} تحتاج تعبئة · عدّل السعر والمخزون من الجدول مباشرة`}
+        subtitle={`${productsText(counts.all)} · اضغط على السعر أو المخزون لتعديله من الجدول مباشرة`}
         actions={
-          <>
-            <Link to="/products/new" className="btn p">
-              <Icon name="plus" />
-              منتج جديد
-            </Link>
-          </>
+          <Link to="/products/new" className="btn p">
+            <Icon name="plus" />
+            منتج جديد
+          </Link>
         }
       />
+
+      {products.length > 0 && (
+        <div className="attn" role="group" aria-label="ما يحتاج انتباهك">
+          {([['restock', 'تحتاج تعبئة', 'box'], ['noImage', 'بلا صورة', 'image'], ['noPrice', 'السعر عند الطلب', 'tag'], ['offer', 'عليها عرض', 'tag']] as const).map(([k, label, icon]) => (
+            <button
+              key={k}
+              type="button"
+              aria-pressed={pills.has(k)}
+              className={`${pills.has(k) ? 'on' : ''}${counts[k] === 0 ? ' zero' : k === 'restock' ? ' hot' : ''}`}
+              onClick={() => { togglePill(k); setShown(PAGE); }}
+            >
+              <span className="ic"><Icon name={icon} /></span>
+              <span className="v num">{counts[k]}</span>
+              <span className="t">{label}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <section className="card" aria-label="جدول المنتجات">
         <div className="tabs" role="tablist">
@@ -138,23 +155,15 @@ export function ProductsPage() {
           ))}
         </div>
         <div className="tools">
-          <div className="pills" role="group" aria-label="مرشحات سريعة">
-            {([['low', 'مخزون منخفض'], ['out', 'نفد'], ['noPrice', 'السعر عند الطلب'], ['noImage', 'بلا صورة'], ['offer', 'عليه عرض']] as const).map(([p, label]) => (
-              <button key={p} type="button" className={`pill${pills.has(p) ? ' on' : ''}`} aria-pressed={pills.has(p)} onClick={() => { togglePill(p); setShown(PAGE); }}>
-                {label} <span className="n">{counts[p]}</span>
-              </button>
-            ))}
-          </div>
-          <span className="grow" />
-          <label className="search" style={{ flex: '0 1 240px', height: 38 }}>
+          <label className="search" style={{ flex: '1 1 260px', maxWidth: 'none', height: 40 }}>
             <Icon name="search" />
-            <input value={query} onChange={(e) => { setQuery(e.target.value); setShown(PAGE); }} placeholder="اسم المنتج أو العلامة" aria-label="بحث في المنتجات" />
+            <input value={query} onChange={(e) => { setQuery(e.target.value); setShown(PAGE); }} placeholder="ابحث باسم المنتج أو العلامة أو التصنيف" aria-label="بحث في المنتجات" />
           </label>
-          <select className="inp sm" style={{ width: 'auto' }} value={category} onChange={(e) => { setCategory(e.target.value); setShown(PAGE); }} aria-label="التصنيف">
+          <select className="inp" style={{ width: 'auto', height: 40 }} value={category} onChange={(e) => { setCategory(e.target.value); setShown(PAGE); }} aria-label="التصنيف">
             <option value="">كل التصنيفات</option>
             {usedCategories.map((id) => <option key={id} value={id}>{lookup.label(id)}</option>)}
           </select>
-          <select className="inp sm" style={{ width: 'auto' }} value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="الترتيب">
+          <select className="inp" style={{ width: 'auto', height: 40 }} value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="الترتيب">
             <option value="newest">الأحدث</option>
             <option value="name">الاسم</option>
             <option value="stockAsc">الأقل مخزونًا</option>
@@ -190,7 +199,6 @@ export function ProductsPage() {
                   <th>السعر (SDG)</th>
                   <th>المخزون</th>
                   <th>الحالة</th>
-                  <th>التوصيل والتركيب</th>
                   <th />
                 </tr>
               </thead>
@@ -265,10 +273,16 @@ function ProductRow({
       <td><input type="checkbox" checked={selected} onChange={onToggle} aria-label={`تحديد ${p.name}`} /></td>
       <td>
         <div className="row">
-          <div className="thumb">{p.imageUrl ? <img src={p.imageUrl} alt="" loading="lazy" /> : <Icon name="image" />}</div>
+          <div className="thumb md">{p.imageUrl ? <img src={p.imageUrl} alt="" loading="lazy" /> : <Icon name="image" />}</div>
           <div style={{ minWidth: 0 }}>
-            <Link to={`/products/${p.id}`} className="b">{p.name}</Link>
+            <Link to={`/products/${p.id}`} className="b pname">{p.name}</Link>
             <div className="sub">{[p.brand, categoryLabel].filter(Boolean).join(' · ') || <span style={{ color: 'var(--warn)', fontWeight: 700 }}>بلا تصنيف</span>}</div>
+            {(!p.isDeliveryAvailable || p.isInstallationAvailable) && (
+              <div className="row wrap" style={{ gap: 6, marginTop: 6 }}>
+                {!p.isDeliveryAvailable && <Chip tone="info" dot={false} small>استلام فقط</Chip>}
+                {p.isInstallationAvailable && <Chip tone="n" dot={false} small>تركيب {money(p.installationPrice)}</Chip>}
+              </div>
+            )}
           </div>
         </div>
       </td>
@@ -303,22 +317,16 @@ function ProductRow({
         {p.hidden ? (
           <><Chip tone="bad">مخفي من المنصة</Chip><div className="sub">السبب: {p.hiddenReason || 'غير مذكور'}</div></>
         ) : p.status === 'draft' ? (
-          <><Chip tone="n">مسودة</Chip><div className="sub">لا يراه العملاء</div></>
+          <Chip tone="n">مسودة</Chip>
         ) : p.status === 'archived' ? (
-          <><Chip tone="n">مؤرشف</Chip><div className="sub">مخفي، ويمكن إرجاعه</div></>
+          <Chip tone="n">مؤرشف</Chip>
         ) : out ? (
-          <><Chip tone="bad">نفد</Chip><div className="sub">لا يظهر للعملاء</div></>
+          <Chip tone="bad">نفد</Chip>
         ) : p.inStock ? (
           <Chip tone="ok">متاح للشراء</Chip>
         ) : (
           <><Chip tone="n">غير متاح</Chip><div className="sub">يظهر ولا يُشترى</div></>
         )}
-      </td>
-      <td>
-        <div className="row wrap" style={{ gap: 6 }}>
-          {p.isDeliveryAvailable ? <Chip tone="n" dot={false}>توصيل</Chip> : <Chip tone="info" dot={false}>استلام فقط</Chip>}
-          {p.isInstallationAvailable && <Chip tone="n" dot={false}>تركيب {money(p.installationPrice)}</Chip>}
-        </div>
       </td>
       <td>
         <div className="row" style={{ gap: 2 }}>
