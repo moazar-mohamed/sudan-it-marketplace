@@ -58,3 +58,7 @@ app.*.map.json
 
 # Cloudflare wrangler local cache
 .wrangler/
+
+# Public catalog pages written by `npm run seo` (customer_web/scripts/seo)
+customer_web/public/catalog/
+customer_web/public/sitemap.xml
