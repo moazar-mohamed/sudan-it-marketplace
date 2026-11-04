@@ -136,8 +136,8 @@ textarea.inp{height:auto;padding:10px 12px;resize:vertical}
 .fld>label,.fld>.lab{font-weight:700;font-size:13px}
 .hint{font-size:12px;color:var(--muted)}
 .errt{font-size:12px;color:var(--bad);font-weight:600;display:flex;gap:6px;align-items:center}
-.sfx{position:relative}.sfx>span{position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;font-weight:700;pointer-events:none}
-.sfx .inp{padding-inline-end:52px}
+.sfx{position:relative}.sfx>span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;font-weight:700;pointer-events:none}
+.sfx .inp{padding-left:52px;padding-right:12px;text-align:right}
 .tbl{width:100%;border-collapse:separate;border-spacing:0}
 .tbl th{font-size:12px;font-weight:700;color:var(--muted);text-align:start;padding:10px 14px;background:#F7F9FB;border-bottom:1px solid var(--line);white-space:nowrap}
 .tbl td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}

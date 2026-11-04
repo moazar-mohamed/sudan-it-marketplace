@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCompanyData } from '../data/CompanyData';
+import { downloadCsv } from '../data/csv';
 import { useCategoryLookup } from '../data/categories';
 import { hasActiveOffer, hasEndedOffer, discountPercent, isLowStock, money, ordersText, parseNumber, productsText } from '../data/format';
 import {
@@ -95,6 +96,16 @@ export function ProductsPage() {
   const togglePill = (p: Pill) => setPills((now) => { const n = new Set(now); if (n.has(p)) n.delete(p); else n.add(p); return n; });
   const toggleRow = (id: string) => setSelected((now) => { const n = new Set(now); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const selectedProducts = products.filter((p) => selected.has(p.id));
+
+  const exportCsv = () => {
+    downloadCsv('products.csv', [
+      ['الاسم', 'العلامة', 'التصنيف', 'السعر', 'سعر العرض', 'المخزون', 'متاح للبيع', 'توصيل', 'تركيب', 'سعر التركيب'],
+      ...rows.map((p) => [
+        p.name, p.brand, lookup.label(p.categoryId), p.price, hasActiveOffer(p) ? p.offerPrice : '', p.stockCount,
+        p.inStock ? 'نعم' : 'لا', p.isDeliveryAvailable ? 'نعم' : 'لا', p.isInstallationAvailable ? 'نعم' : 'لا', p.installationPrice,
+      ]),
+    ]);
+  };
 
   const moveTo = async (status: ProductStatus) => {
     const { ok, failed } = await setProductsStatus(selectedProducts.map((p) => p.id), status);
@@ -202,7 +213,10 @@ export function ProductsPage() {
         )}
         <div className="foot">
           <span className="sub">عرض {Math.min(shown, rows.length)} من {rows.length}</span>
-          {rows.length > shown && <button type="button" className="btn sm" onClick={() => setShown((s) => s + PAGE)}>عرض {PAGE} أخرى</button>}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button type="button" className="btn sm g" onClick={exportCsv} disabled={rows.length === 0}><Icon name="download" />تنزيل الجدول كملف CSV</button>
+            {rows.length > shown && <button type="button" className="btn sm" onClick={() => setShown((s) => s + PAGE)}>عرض {PAGE} أخرى</button>}
+          </span>
         </div>
       </section>
 

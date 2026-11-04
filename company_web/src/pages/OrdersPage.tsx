@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '../auth/AuthProvider';
 import { useCompanyData } from '../data/CompanyData';
+import { downloadCsv } from '../data/csv';
 import { db } from '../firebase';
 import {
   dayTime,
@@ -200,6 +201,12 @@ export function OrdersPage() {
     }
   };
 
+  const exportCsv = () =>
+    downloadCsv('orders.csv', [
+      ['رقم الطلب', 'التاريخ', 'العميل', 'الهاتف', 'المنتج', 'الكمية', 'النوع', 'الإجمالي', 'الدفع', 'الحالة'],
+      ...rows.map((o) => [shortId(o.id), o.createdAt.toISOString(), o.customerName, o.contactPhone, o.productName, o.quantity, o.installationSelected ? 'تركيب' : o.deliveryMethod === 'pickup' ? 'استلام' : 'توصيل', o.totalAmount, o.paymentStatus === 'confirmed' ? 'مؤكد' : 'بانتظار التحقق', o.orderStatus]),
+    ]);
+
   return (
     <main className="page">
       <PageHeader
@@ -289,7 +296,10 @@ export function OrdersPage() {
         )}
         <div className="foot">
           <span className="sub">عرض {ordersText(rows.length)} من المحمّل · تُقرأ {PAGE} طلبًا في كل مرة لتبقى الصفحة سريعة</span>
-          {more && <button type="button" className="btn sm" onClick={() => void loadMore()} disabled={loadingMore}>{loadingMore && <Spinner />}تحميل {PAGE} أخرى</button>}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button type="button" className="btn sm g" onClick={exportCsv} disabled={rows.length === 0}><Icon name="download" />تنزيل الجدول كملف CSV</button>
+            {more && <button type="button" className="btn sm" onClick={() => void loadMore()} disabled={loadingMore}>{loadingMore && <Spinner />}تحميل {PAGE} أخرى</button>}
+          </span>
         </div>
       </section>
 
