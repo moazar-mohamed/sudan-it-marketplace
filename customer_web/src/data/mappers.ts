@@ -240,6 +240,7 @@ export function mapReview(id: string, d: DocumentData): Review {
     companyName: str(d.companyName),
     targetType: str(d.targetType),
     targetId: str(d.targetId),
+    targetName: str(d.targetName),
     hidden: d.hidden === true,
     stars: Math.min(5, Math.max(0, Math.trunc(num(d.stars)))),
     tags: Array.isArray(d.tags) ? d.tags.filter((x: unknown): x is string => typeof x === 'string') : [],
@@ -261,6 +262,11 @@ export function mapProfile(id: string, d: DocumentData): UserProfile {
     photoUrl: str(d.photoUrl).trim(),
     isActive: typeof d.isActive === 'boolean' ? d.isActive : true,
     cityId: typeof d.cityId === 'string' && d.cityId.trim() ? d.cityId.trim() : null,
+    termsVersion: typeof d.termsVersion === 'number' ? d.termsVersion : null,
+    pushPrefs:
+      d.pushPrefs && typeof d.pushPrefs === 'object'
+        ? Object.fromEntries(Object.entries(d.pushPrefs as Record<string, unknown>).filter((e): e is [string, boolean] => typeof e[1] === 'boolean'))
+        : {},
   };
 }
 

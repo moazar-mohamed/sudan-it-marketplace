@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Breadcrumbs, EmptyState, ErrorState, Skeleton } from '../components/Bits';
+import { CategoryGlyph } from '../components/CategoryGlyph';
 import { Icon, PATHS } from '../components/Icon';
 import { ProductCard } from '../components/ProductCard';
 import { ServiceCard } from '../components/ServiceCard';
@@ -14,7 +15,7 @@ import {
 } from '../data/browse';
 import type { BrowseFilters, BrowseKind, ProductSort } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
-import { categoryColor, categoryName, iconPath, productsCount, servicesCount } from '../data/format';
+import { categoryColor, categoryName, productsCount, servicesCount } from '../data/format';
 import type { Product, ServiceListing } from '../data/types';
 import { t } from '../i18n';
 
@@ -166,7 +167,7 @@ export function BrowsePage() {
           const color = categoryColor(c);
           return (
             <Link key={c.id} to={`/category/${c.id}`} className={`cat${on ? ' on' : ''}`} style={on ? undefined : { background: `${color}1f` }}>
-              <span style={{ color }}><Icon d={iconPath(c.iconName)} size={24} /></span>
+              <CategoryGlyph category={c} size={26} />
               <span>{categoryName(c)}</span>
             </Link>
           );

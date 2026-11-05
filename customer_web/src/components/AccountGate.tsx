@@ -4,10 +4,12 @@ import { useAuth } from '../auth';
 import { ensureCustomerProfile, isAccountDeleted, isSigningUp, refreshVerification, resendVerification, saveLanguage } from '../data/account';
 import { CatalogProvider } from '../data/DataProvider';
 import { useProfile } from '../data/hooks';
+import { needsTerms, useTerms } from '../data/terms';
 import { recordActiveDay } from '../data/usage';
 import { signOutHere } from '../firebase';
 import { AuthCard } from './AuthCard';
 import { CityPicker } from './CityPicker';
+import { TermsGate } from './TermsGate';
 import { applyLanguage, hasChosenLanguage, language, languageIsPending, markLanguagePending, t } from '../i18n';
 
 function AccessMessage({ title, message }: { title: string; message: string }) {
@@ -74,6 +76,7 @@ export function AccountGate({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const uid = user!.uid;
   const { profile, loaded, failed } = useProfile(uid);
+  const { terms, loaded: termsLoaded } = useTerms();
   const [missing, setMissing] = useState<'checking' | 'deleted' | 'failed' | 'noEmail'>('checking');
 
   useEffect(() => {
@@ -139,6 +142,9 @@ export function AccountGate({ children }: { children: ReactNode }) {
   }
   // Google accounts come back already verified: this only stops e-mail sign-ups.
   if (!user!.emailVerified) return <VerifyEmail email={user!.email ?? ''} />;
+  // Published terms must be accepted (once per version) before the shop.
+  if (!termsLoaded) return <Splash />;
+  if (needsTerms(terms, profile.termsVersion)) return <TermsGate uid={uid} terms={terms!} />;
 
   return (
     <CatalogProvider profile={profile}>

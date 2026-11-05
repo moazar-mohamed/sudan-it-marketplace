@@ -59,7 +59,8 @@ export async function signIn(email: string, password: string): Promise<void> {
   await signInWithEmailAndPassword(auth, email.trim(), password);
 }
 
-async function createCustomerProfile(uid: string, fullName: string, email: string): Promise<void> {
+/** [termsVersion]: the version accepted on the sign-up form, recorded with the profile. */
+async function createCustomerProfile(uid: string, fullName: string, email: string, termsVersion?: number): Promise<void> {
   await setDoc(doc(db, 'users', uid), {
     id: uid,
     fullName,
@@ -67,18 +68,19 @@ async function createCustomerProfile(uid: string, fullName: string, email: strin
     role: 'customer',
     isActive: true,
     createdAt: serverTimestamp(),
+    ...(termsVersion === undefined ? {} : { termsVersion, termsAcceptedAt: serverTimestamp() }),
   });
 }
 
 /** Creates the account and its profile; a failed profile takes the account back. */
-export async function signUp(fullName: string, email: string, password: string): Promise<void> {
+export async function signUp(fullName: string, email: string, password: string, termsVersion?: number): Promise<void> {
   signingUp = true;
   try {
     const { user } = await createUserWithEmailAndPassword(auth, email.trim(), password);
     // The verification screen offers a resend, so a failed send does not fail sign-up.
     await sendEmailVerification(user).catch(() => undefined);
     try {
-      await createCustomerProfile(user.uid, fullName.trim(), user.email ?? email.trim());
+      await createCustomerProfile(user.uid, fullName.trim(), user.email ?? email.trim(), termsVersion);
     } catch {
       await deleteUser(user).catch(() => undefined);
       throw new FirebaseError('profile-create-failed', 'profile-create-failed');

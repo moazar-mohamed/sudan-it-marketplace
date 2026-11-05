@@ -1,7 +1,8 @@
 import { doc, increment, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore';
 import type { WriteBatch } from 'firebase/firestore';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
 import { notifyCompany } from './orders';
+import { LOW_REVIEW_MAX_STARS, notifyPlatformAdmins } from './platformNotice';
 import type { Order, Review, ServiceRequest } from './types';
 import { t } from '../i18n';
 
@@ -120,6 +121,9 @@ export async function rateSubject(subject: ReviewSubject, customerId: string, fu
   if (subject.sourceType === 'order') {
     await notifyCompany({ id: subject.id, companyId: subject.companyId, productName: subject.targetName }, 'new_review').catch(() => undefined);
   }
+  if (draft.stars <= LOW_REVIEW_MAX_STARS) {
+    await notifyPlatformAdmins({ type: 'low_review', reviewId: subject.id }, customerId, subject.targetName);
+  }
 }
 
 export async function editReview(review: Review, draft: ReviewDraft): Promise<void> {
@@ -133,4 +137,9 @@ export async function editReview(review: Review, draft: ReviewDraft): Promise<vo
   batch.update(doc(db, 'reviews', review.id), fields);
   moveRatings(batch, { id: review.id, companyId: review.companyId, targetKey: `${review.targetType}_${review.targetId}` }, delta, 0);
   await batch.commit();
+  // Only a change down to a low rating is news (the notice is sent once).
+  const customerId = auth.currentUser?.uid;
+  if (review.stars > LOW_REVIEW_MAX_STARS && draft.stars <= LOW_REVIEW_MAX_STARS && customerId && review.targetName) {
+    await notifyPlatformAdmins({ type: 'low_review', reviewId: review.id }, customerId, review.targetName);
+  }
 }

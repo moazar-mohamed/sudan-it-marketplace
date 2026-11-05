@@ -22,6 +22,8 @@ interface CatalogValue {
   ratings: Ratings;
   /** Null until the catalogue has loaded, so categories never look empty. */
   counts: Map<string, CategoryCount> | null;
+  /** How many products and services each visible company offers. */
+  itemCounts: Map<string, number>;
   /** The names people can search for: what a "did you mean" is built from. */
   vocabulary: string[];
   cities: City[];
@@ -86,6 +88,13 @@ export function CatalogProvider({ profile, children }: { profile: UserProfile; c
       categories.items !== null && rawProducts.items !== null && rawCompanies.items !== null &&
       rawServices.items !== null && rawLinks.items !== null;
 
+    const itemCounts = new Map<string, number>();
+    const addItem = (companyId: string) => {
+      if (companyId !== '') itemCounts.set(companyId, (itemCounts.get(companyId) ?? 0) + 1);
+    };
+    products.forEach((p) => addItem(p.companyId));
+    listings.forEach((l) => l.offers.forEach((o) => addItem(o.companyId)));
+
     return {
       tree,
       products,
@@ -94,6 +103,7 @@ export function CatalogProvider({ profile, children }: { profile: UserProfile; c
       listings,
       links,
       ratings: new Map(rawRatings.items ?? []),
+      itemCounts,
       counts: loaded
         ? countByCategory(tree, products.map((p) => p.categoryId), listings.map((l) => l.service.categoryId))
         : null,

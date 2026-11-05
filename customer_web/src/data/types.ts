@@ -187,6 +187,8 @@ export interface Review {
   companyName: string;
   targetType: string;
   targetId: string;
+  /** The rated product's or service's name (a low rating tells the Platform Admins with it). */
+  targetName?: string;
   stars: number;
   tags: string[];
   comment: string;
@@ -294,6 +296,10 @@ export interface UserProfile {
   cityId: string | null;
   /** null when they never chose one. */
   language: 'ar' | 'en' | null;
+  /** The terms version they accepted; null when they never did. */
+  termsVersion: number | null;
+  /** The kinds of push they switched off ({ orders: false, ... }); the app and this site share them. */
+  pushPrefs?: Record<string, boolean>;
 }
 
 export interface AppNotification {

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthCard } from '../components/AuthCard';
 import { authErrorMessage, EMAIL_PATTERN, NAME_PATTERN, PASSWORD_MIN, signUp } from '../data/account';
+import { useTerms } from '../data/terms';
 import { t } from '../i18n';
 
 function problemOf(name: string, email: string, password: string, confirm: string): string | null {
@@ -22,6 +23,8 @@ export function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [agreed, setAgreed] = useState(false);
+  const { terms } = useTerms();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -32,10 +35,14 @@ export function RegisterPage() {
       setError(problem);
       return;
     }
+    if (terms !== null && !agreed) {
+      setError(t('يجب الموافقة على الشروط والأحكام لإنشاء الحساب.'));
+      return;
+    }
     setBusy(true);
     setError('');
     try {
-      await signUp(name, email, password);
+      await signUp(name, email, password, terms?.version);
     } catch (err) {
       setError(authErrorMessage(err));
       setBusy(false);
@@ -62,6 +69,15 @@ export function RegisterPage() {
           {t('تأكيد كلمة المرور')}
           <input type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} dir="ltr" />
         </label>
+        {terms !== null && (
+          <label className="check terms-check">
+            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+            <span>
+              {t('أوافق على')}{' '}
+              <Link to="/terms" target="_blank" className="auth-link">{t('الشروط والأحكام')}</Link>
+            </span>
+          </label>
+        )}
         {error && <div className="error" role="alert">{error}</div>}
         <button className="btn" type="submit" disabled={busy}>{busy ? t('جارٍ الإنشاء...') : t('إنشاء حساب')}</button>
       </form>

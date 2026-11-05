@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Breadcrumbs, CityTag, EmptyState, ErrorState, OfferPill, PriceText, RatingLine, Skeleton } from '../components/Bits';
+import { CategoryGlyph } from '../components/CategoryGlyph';
 import { CompanyLogo } from '../components/CompanyCard';
 import { Icon, PATHS } from '../components/Icon';
 import { ReviewsSection } from '../components/ReviewsSection';
@@ -11,7 +12,6 @@ import {
   formatDate,
   formatPrice,
   hasActiveOffer,
-  iconPath,
   isAvailable,
   maxOrderQuantity,
   ratingKey,
@@ -20,6 +20,7 @@ import {
 import { useProductDoc } from '../data/hooks';
 import { isOnSale } from '../data/mappers';
 import { recordProductView } from '../data/usage';
+import { CompareButton } from '../components/Compare';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { t } from '../i18n';
 
@@ -82,7 +83,7 @@ export function ProductPage() {
       <div className="product-grid">
         <div className="product-media-col">
           <div className="product-media" style={mainImage ? undefined : { background: `${color}1f`, color }}>
-            {mainImage ? <img src={mainImage} alt={product.name} /> : <Icon d={category ? iconPath(category.iconName) : PATHS.box} size={120} />}
+            {mainImage ? <img src={mainImage} alt={product.name} /> : category ? <CategoryGlyph category={category} size={110} /> : <Icon d={PATHS.box} size={120} />}
             {hasActiveOffer(product) && <OfferPill item={product} />}
           </div>
           {images.length > 1 && (
@@ -105,6 +106,7 @@ export function ProductPage() {
             <FavoriteButton kind="product" targetId={product.id} name={product.name} />
           </div>
           <RatingLine ratingsFor={ratingKey('product', product.id)} />
+          <CompareButton productId={product.id} label className="inline" />
           {(product.brand || path.length > 0) && (
             <div className="ptags">
               {product.brand && <span>{product.brand}</span>}

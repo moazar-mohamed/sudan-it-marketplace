@@ -5,6 +5,8 @@ import { AccountGate } from './components/AccountGate';
 import { AutoUpdate } from './components/AutoUpdate';
 import { NoticeGate } from './components/NoticeGate';
 import { Shell } from './components/Shell';
+import { CompareProvider } from './data/compare';
+import { PublicTermsPage } from './pages/TermsPage';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 
@@ -12,6 +14,7 @@ import { LoginPage } from './pages/LoginPage';
 const BrowsePage = lazy(() => import('./pages/BrowsePage').then((m) => ({ default: m.BrowsePage })));
 const ChatsPage = lazy(() => import('./pages/ChatsPage').then((m) => ({ default: m.ChatsPage })));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage').then((m) => ({ default: m.CheckoutPage })));
+const ComparePage = lazy(() => import('./pages/ComparePage').then((m) => ({ default: m.ComparePage })));
 const CompaniesPage = lazy(() => import('./pages/CompaniesPage').then((m) => ({ default: m.CompaniesPage })));
 const CompanyPage = lazy(() => import('./pages/CompanyPage').then((m) => ({ default: m.CompanyPage })));
 const FavoritesPage = lazy(() => import('./pages/FavoritesPage').then((m) => ({ default: m.FavoritesPage })));
@@ -28,6 +31,7 @@ const RequestDetailsPage = lazy(() => import('./pages/RequestDetailsPage').then(
 const SearchPage = lazy(() => import('./pages/SearchPage').then((m) => ({ default: m.SearchPage })));
 const ServicePage = lazy(() => import('./pages/ServicePage').then((m) => ({ default: m.ServicePage })));
 const ServiceRequestPage = lazy(() => import('./pages/ServiceRequestPage').then((m) => ({ default: m.ServiceRequestPage })));
+const TermsPage = lazy(() => import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 
 export default function App() {
@@ -39,6 +43,7 @@ export default function App() {
       <NoticeGate>
       {user ? (
         <AccountGate>
+          <CompareProvider>
           <Routes>
             <Route element={<Shell />}>
               <Route index element={<HomePage />} />
@@ -48,10 +53,12 @@ export default function App() {
               <Route path="product/:id" element={<ProductPage />} />
               <Route path="company/:id" element={<CompanyPage />} />
               <Route path="companies" element={<CompaniesPage />} />
+              <Route path="compare" element={<ComparePage />} />
               <Route path="service/:id" element={<ServicePage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="favorites" element={<FavoritesPage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="terms" element={<TermsPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="reports" element={<MyReportsPage />} />
               <Route path="reports/new" element={<ReportFormPage />} />
@@ -65,12 +72,14 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
+          </CompareProvider>
         </AccountGate>
       ) : (
         <Suspense fallback={null}>
           <Routes>
             <Route path="register" element={<RegisterPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="terms" element={<PublicTermsPage />} />
             <Route path="*" element={<LoginPage />} />
           </Routes>
         </Suspense>

@@ -20,6 +20,7 @@ export const PATHS = {
   lock: 'M6 11h12v10H6z M8.5 11V7a3.5 3.5 0 0 1 7 0v4',
   gear: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M12 3v3 M12 18v3 M3 12h3 M18 12h3 M5.6 5.6l2.1 2.1 M16.3 16.3l2.1 2.1 M5.6 18.4l2.1-2.1 M16.3 7.7l2.1-2.1',
   flag: 'M5 21V4 M5 4h12l-2 4 2 4H5',
+  compare: 'M12 3v17 M7 20h10 M5 7h14 M5 7l-2.5 6a3 3 0 0 0 5 0z M19 7l-2.5 6a3 3 0 0 0 5 0z',
 } as const;
 
 export function Icon({ d, size = 22 }: { d: string; size?: number }) {

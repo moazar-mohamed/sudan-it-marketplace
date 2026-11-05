@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import { bestDiscount, startsFrom } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
-import { categoryColor, categoryName, countText, formatPrice, iconPath } from '../data/format';
+import { categoryColor, categoryName, countText, formatPrice } from '../data/format';
+import { CategoryGlyph } from './CategoryGlyph';
 import type { CatalogService } from '../data/types';
 import { Highlighted } from './Bits';
 import { FavoriteButton } from './FavoriteButton';
-import { Icon } from './Icon';
 import { t } from '../i18n';
 
 /** A service: its category's look, the company to start from and what it asks. */
@@ -22,7 +22,7 @@ export function ServiceCard({ service, highlight }: { service: CatalogService; h
   return (
     <Link to={`/service/${service.id}`} className="scard">
       <span className="sicon" style={{ background: `${color}1f`, color }}>
-        <Icon d={iconPath(category?.iconName ?? 'service')} size={28} />
+        <CategoryGlyph category={category} fallbackKey="service" size={28} />
       </span>
       <span className="grow">
         <span className="pname" style={{ display: 'block' }}><Highlighted text={service.name} query={highlight} /></span>

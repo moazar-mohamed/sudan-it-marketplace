@@ -1,5 +1,6 @@
 import { collection, doc, getDoc, serverTimestamp, Timestamp, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
+import { notifyPlatformAdmins } from './platformNotice';
 import type { UserProfile } from './types';
 import { t } from '../i18n';
 
@@ -84,4 +85,6 @@ export async function submitReport(profile: UserProfile, draft: ReportDraft): Pr
     batch.set(quotaRef, { t0: serverTimestamp(), next: 1, lastReportId: reportRef.id });
   }
   await batch.commit();
+  // The report is sent: the Platform Admins are told (best effort).
+  await notifyPlatformAdmins({ type: 'new_report', reportId: reportRef.id }, profile.id, draft.subject.trim());
 }

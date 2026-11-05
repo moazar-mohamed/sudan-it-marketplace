@@ -547,6 +547,10 @@ final _iconsByName = <String, IconData>{
   'tools': Icons.build_outlined,
   'game': Icons.sports_esports_outlined,
   'accessory': Icons.usb,
+  'video': Icons.videocam_outlined,
+  'lock': Icons.lock_outline,
+  'gear': Icons.settings_outlined,
+  'education': Icons.school_outlined,
 };
 
 /// Words that hint at an icon, checked in order against the category name

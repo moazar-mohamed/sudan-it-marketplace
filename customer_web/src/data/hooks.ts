@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
 import type { DocumentData, Query } from 'firebase/firestore';
 import { db } from '../firebase';
 import { BUILT_IN_CITIES, citiesFromDocument } from './cities';
@@ -159,19 +159,36 @@ export function useReview(id: string): Review | null {
   return review;
 }
 
-/** The customer's notifications, newest first (sorted here: no composite index). */
+/** How many notifications are read and shown: the newest ones (each read spends the free quota). */
+export const NOTIFICATIONS_SHOWN = 50;
+
+const newestFirst = (list: AppNotification[]) => [...list].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+/**
+ * The customer's newest notifications, newest first, live. It reads only the
+ * newest [NOTIFICATIONS_SHOWN] (firestore.indexes.json has the index); while
+ * that index is not ready on the server it reads them all, as before, and
+ * keeps the newest. Null until the first answer.
+ */
 export function useNotifications(uid: string): AppNotification[] | null {
-  const { items } = useCollection<AppNotification>(
-    () =>
-      query(
-        collection(db, 'notifications'),
-        where('recipientType', '==', 'customer'),
-        where('recipientId', '==', uid),
-      ),
-    mapNotification,
-    uid,
-  );
-  return items ? [...items].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) : null;
+  const [items, setItems] = useState<AppNotification[] | null>(null);
+  useEffect(() => {
+    const base = [where('recipientType', '==', 'customer'), where('recipientId', '==', uid)] as const;
+    const map = (docs: { id: string; data: () => DocumentData }[]) => docs.map((d) => mapNotification(d.id, d.data()));
+    let stop = onSnapshot(
+      query(collection(db, 'notifications'), ...base, orderBy('createdAt', 'desc'), limit(NOTIFICATIONS_SHOWN)),
+      (snap) => setItems(newestFirst(map(snap.docs))),
+      () => {
+        stop = onSnapshot(
+          query(collection(db, 'notifications'), ...base),
+          (snap) => setItems(newestFirst(map(snap.docs)).slice(0, NOTIFICATIONS_SHOWN)),
+          () => setItems([]),
+        );
+      },
+    );
+    return () => stop();
+  }, [uid]);
+  return items;
 }
 
 /** The person's own reports, newest first. */

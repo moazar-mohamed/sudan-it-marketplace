@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Icon, PATHS } from '../components/Icon';
-import { LANGUAGES } from '../components/LanguageSwitch';
-import { saveLanguage } from '../data/account';
+import { LANGUAGES, switchLanguage } from '../components/LanguageSwitch';
+import { PushSettings } from '../components/PushSettings';
 import { useCatalog } from '../data/DataProvider';
 import { useTheme } from '../theme';
 import type { ThemeChoice } from '../theme';
-import { applyLanguage, language, markLanguagePending, t } from '../i18n';
+import { language, t } from '../i18n';
 import type { Language } from '../i18n';
 
 const THEMES: { value: ThemeChoice; label: string; hint?: string }[] = [
@@ -18,11 +18,7 @@ export function SettingsPage() {
   const { choice, pick } = useTheme();
   const { profile } = useCatalog();
 
-  async function changeLanguage(next: Language) {
-    // Changed on this device either way; a failed save is sent again on the next visit.
-    markLanguagePending(!(await saveLanguage(profile.id, next)));
-    applyLanguage(next);
-  }
+  const changeLanguage = (next: Language) => switchLanguage(profile.id, next);
 
   return (
     <main className="stack narrow">
@@ -48,6 +44,7 @@ export function SettingsPage() {
           </label>
         ))}
       </section>
+      <PushSettings profile={profile} />
       <h2 className="group-title">{t('المساعدة')}</h2>
       <section className="rows" aria-label={t('المساعدة')}>
         <Link className="row" to="/reports/new">

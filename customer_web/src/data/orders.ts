@@ -10,7 +10,8 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import type { DocumentData } from 'firebase/firestore';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
+import { pushNotification } from './pushRelay';
 import { formatDateTime, isAvailable, salePrice } from './format';
 import { mapOrder, mapProduct } from './mappers';
 import type { Company, Order, OrderDraft, OrderStatus, PickupPoint, Product, ReceiptImage } from './types';
@@ -214,10 +215,14 @@ export async function placeOrder(draft: OrderDraft, receipt: ReceiptImage): Prom
   return order;
 }
 
-/** To the order's company; the rules allow exactly this id and these fields. */
-export function notifyCompany(order: Pick<Order, 'id' | 'companyId' | 'productName'>, type: 'new_order' | 'new_review'): Promise<void> {
+/**
+ * To the order's company; the rules allow exactly this id and these fields.
+ * It names its sender so the relay may push it to the company's phones and
+ * browsers right after (best effort: the notice is stored either way).
+ */
+export async function notifyCompany(order: Pick<Order, 'id' | 'companyId' | 'productName'>, type: 'new_order' | 'new_review'): Promise<void> {
   const id = `${order.id}_${type}`;
-  return setDoc(doc(db, 'notifications', id), {
+  await setDoc(doc(db, 'notifications', id), {
     id,
     recipientType: 'company_admin',
     recipientId: order.companyId,
@@ -226,7 +231,9 @@ export function notifyCompany(order: Pick<Order, 'id' | 'companyId' | 'productNa
     productName: order.productName,
     isRead: false,
     createdAt: serverTimestamp(),
+    ...(auth.currentUser ? { senderId: auth.currentUser.uid } : {}),
   });
+  void pushNotification(id);
 }
 
 /** The stored image of one order, read on demand: every read spends the free quota. */

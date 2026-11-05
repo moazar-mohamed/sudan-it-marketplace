@@ -1,155 +1,175 @@
-import { Link } from 'react-router-dom';
-import { EmptyState, ErrorState, PriceText, RatingLine, Skeleton } from '../components/Bits';
-import { CompanyLogo } from '../components/CompanyCard';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { EmptyState, ErrorState, Skeleton } from '../components/Bits';
+import { CategoryGlyph } from '../components/CategoryGlyph';
+import { CompanyCard } from '../components/CompanyCard';
 import { Icon, PATHS } from '../components/Icon';
 import { ProductCard } from '../components/ProductCard';
-import { openPalette } from '../components/Shell';
 import { companyRating, countTotal, sortProducts } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
-import { categoryColor, categoryName, hasActiveOffer, iconPath, offerLabel, productsCount, ratingKey } from '../data/format';
+import { categoryColor, categoryName, hasActiveOffer } from '../data/format';
+import { siteStats } from '../data/homeStats';
+import type { StatKey } from '../data/homeStats';
 import type { Product } from '../data/types';
 import { t } from '../i18n';
 
+const STAT_LABELS: Record<StatKey, () => string> = {
+  companies: () => t('شركات'),
+  items: () => t('منتجات وخدمات'),
+  cities: () => t('مدن'),
+  reviews: () => t('تقييمات العملاء'),
+};
+
+/** What the hero offers to search for in one press. */
+const quickWords = (): string[] => ['Cisco', t('راوتر'), t('كاميرات'), 'UPS', t('سيرفر')];
+
+const searchPath = (q: string): string => (q.trim() === '' ? '/search' : `/search?q=${encodeURIComponent(q.trim())}`);
+
 export function HomePage() {
-  const { tree, products, companies, ratings, counts, servingIds, loading, error } = useCatalog();
+  const { tree, products, listings, companies, ratings, counts, servingIds, loading, error } = useCatalog();
+  const navigate = useNavigate();
+  const [query, setQuery] = useState('');
   if (error) return <main className="stack"><ErrorState /></main>;
 
-  const roots = tree.activeChildrenOf(null);
-  const offers = products.filter((p) => hasActiveOffer(p));
+  // A category with nothing in it is not shown.
+  const roots = tree.activeChildrenOf(null).filter((c) => counts === null || countTotal(counts.get(c.id)) > 0);
+  const offers = products.filter((p) => hasActiveOffer(p)).slice(0, 4);
   const serves = servingIds ? (p: Product) => p.companyId === '' || servingIds.has(p.companyId) : undefined;
-  const newest = sortProducts(products, 'newest', ratings, serves);
-  const featured = offers[0] ?? newest[0];
-  const fresh = newest.filter((p) => p.id !== featured?.id).slice(0, 8);
+  const shownOffers = new Set(offers.map((p) => p.id));
+  const fresh = sortProducts(products, 'newest', ratings, serves).filter((p) => !shownOffers.has(p.id)).slice(0, 8);
   const topCompanies = [...companies]
     .sort((a, b) => {
       const ra = companyRating(a, ratings);
       const rb = companyRating(b, ratings);
       return rb.average - ra.average || rb.count - ra.count;
     })
-    .slice(0, 4);
+    .slice(0, 6);
+  const stats = loading ? [] : siteStats(companies, products.length + listings.length, ratings);
+
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    navigate(searchPath(query));
+  }
 
   return (
-    <main className="bento">
-      <section className="tile hero s8 r2">
+    <main className="home">
+      <section className="home-hero">
         <span className="orb" style={{ insetInlineEnd: -80, top: -60, width: 360, height: 360, background: '#1565C0' }} />
         <span className="orb" style={{ insetInlineEnd: 60, bottom: -110, width: 280, height: 280, background: '#00A8E8' }} />
-        <div style={{ position: 'relative', maxWidth: 520 }}>
+        <div className="hero-inner">
           <span className="chip">{t('سوق السودان للتقنية')}</span>
           <h1>{t('كل التقنية')}<br />{t('في مكان واحد')}</h1>
-        </div>
-        <div style={{ position: 'relative' }}>
-          <p style={{ margin: '0 0 16px', opacity: 0.92, fontSize: 17 }}>{t('منتجات وشركات وخدمات في مدينتك. اطلب مباشرة وتواصل مع الشركة.')}</p>
-          <button className="hero-search" onClick={openPalette}>
+          <p>{t('منتجات وشركات وخدمات في مدينتك. اطلب مباشرة وتواصل مع الشركة.')}</p>
+          <form className="hero-search" role="search" onSubmit={submit}>
             <Icon d={PATHS.search} />
-            <span className="grow" style={{ textAlign: 'start' }}>{t('ابحث عن منتجات وخدمات وشركات')}</span>
-          </button>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('ابحث عن منتجات وخدمات وشركات')}
+              aria-label={t('بحث')}
+              autoComplete="off"
+              enterKeyHint="search"
+            />
+            <button type="submit" className="hero-search-btn">{t('بحث')}</button>
+          </form>
+          <div className="hero-chips">
+            {quickWords().map((w) => (
+              <Link key={w} to={searchPath(w)} className="chip chip-quick">{w}</Link>
+            ))}
+          </div>
         </div>
       </section>
 
-      <Link to="/browse?kind=services" className="tile s4 tile-services">
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#005F80' }}>{t('خدمات')}</div>
-          <div style={{ fontSize: 26, fontWeight: 800, marginTop: 6, lineHeight: 1.3 }}>{t('اطلب فنيًا')}<br />{t('لخدمتك')}</div>
-        </div>
-        <span className="icon-btn" style={{ background: '#101828', color: '#fff', border: 0 }}><Icon d={PATHS.arrow} /></span>
-      </Link>
-
-      <Link to="/orders" className="tile s4 tile-orders">
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#7BD3F2' }}>{t('طلباتي')}</div>
-          <div style={{ fontSize: 24, fontWeight: 800, marginTop: 6, lineHeight: 1.3 }}>{t('تابع حالة طلباتك')}<br />{t('ومحادثاتك')}</div>
-        </div>
-        <span className="icon-btn" style={{ background: '#00A8E8', color: '#06263A', border: 0 }}><Icon d={PATHS.arrow} /></span>
-      </Link>
-
-      <section className="tile s8">
-        <div className="tile-head">
-          <h2>{t('الأقسام')}</h2>
-          <Link to="/browse" className="more">{t('الكل ←')}</Link>
-        </div>
-        {loading ? (
-          <Skeleton height={120} />
-        ) : roots.length === 0 ? (
-          <div className="empty">{t('لا أقسام بعد')}</div>
-        ) : (
-          <div className="cat-grid">
-            {roots.map((c) => {
-              const color = categoryColor(c);
-              const count = counts ? countTotal(counts.get(c.id)) : null;
-              return (
-                <Link key={c.id} to={`/category/${c.id}`} className="cat" style={{ background: `${color}1f` }}>
-                  <span style={{ color }}><Icon d={iconPath(c.iconName)} size={30} /></span>
-                  <span>{categoryName(c)}</span>
-                  {count !== null && count > 0 && <span className="pmeta">{count}{' '}{t('عنصر')}</span>}
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {featured && (
-        <Link to={`/product/${featured.id}`} className="tile s4 r2 tile-featured">
-          <div className="pimg" style={{ flex: 1, minHeight: 280, borderRadius: 0 }}>
-            {featured.imageUrl ? <img src={featured.imageUrl} alt="" /> : <Icon d={PATHS.box} size={110} />}
-            <span className="badge">{hasActiveOffer(featured) ? offerLabel(featured) : t('جديد')}</span>
-          </div>
-          <div style={{ padding: '22px 26px 26px' }}>
-            <div style={{ fontWeight: 800, fontSize: 20 }}>{featured.name}</div>
-            <div className="pmeta">{featured.companyName}</div>
-            <div className="prow">
-              <PriceText item={featured} currency={featured.currency} big />
-              <span className="pill">{t('عرض')}</span>
+      {stats.length > 0 && (
+        <section className="stat-band" aria-label={t('أرقام السوق')}>
+          {stats.map((s) => (
+            <div key={s.key}>
+              <b>{s.value}</b>
+              <span>{STAT_LABELS[s.key]()}</span>
             </div>
-          </div>
-        </Link>
+          ))}
+        </section>
       )}
 
-      <section className="tile s4">
-        <div className="tile-head">
+      {(loading || roots.length > 0) && (
+        <section>
+          <div className="section-title">
+            <h2>{t('الأقسام الرئيسية')}</h2>
+            <Link to="/browse" className="more">{t('عرض الكل ←')}</Link>
+          </div>
+          {loading ? (
+            <Skeleton height={120} />
+          ) : (
+            <div className="cat-grid">
+              {roots.map((c) => {
+                const color = categoryColor(c);
+                const count = counts ? countTotal(counts.get(c.id)) : 0;
+                return (
+                  <Link key={c.id} to={`/category/${c.id}`} className="cat" style={{ background: `${color}1f` }}>
+                    <CategoryGlyph category={c} size={38} />
+                    <span>{categoryName(c)}</span>
+                    {count > 0 && <span className="pmeta">{count}{' '}{t('عنصر')}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
+
+      <Link to="/browse?kind=services" className="promo">
+        <span className="promo-icon"><Icon d={PATHS.wrench} size={26} /></span>
+        <span className="grow">
+          <span className="promo-kicker">{t('خدمات')}</span>
+          <span className="promo-title">{t('اطلب فنيًا')} {t('لخدمتك')}</span>
+        </span>
+        <span className="icon-btn promo-go"><Icon d={PATHS.arrow} /></span>
+      </Link>
+
+      {offers.length > 0 && (
+        <section>
+          <div className="section-title">
+            <h2>{t('عروض مميزة')}</h2>
+            <Link to="/browse?offers=1" className="more">{t('عرض الكل ←')}</Link>
+          </div>
+          <div className="pcards">
+            {offers.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </section>
+      )}
+
+      {(loading || fresh.length > 0 || offers.length === 0) && (
+        <section>
+          <div className="section-title">
+            <h2>{t('أحدث المنتجات')}</h2>
+            <Link to="/browse" className="more">{t('عرض الكل ←')}</Link>
+          </div>
+          {loading ? (
+            <Skeleton height={260} />
+          ) : fresh.length === 0 ? (
+            <EmptyState title={t('لا منتجات بعد')} />
+          ) : (
+            <div className="pcards">
+              {fresh.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
+          )}
+        </section>
+      )}
+
+      <section>
+        <div className="section-title">
           <h2>{t('أفضل الشركات')}</h2>
-          <Link to="/companies" className="more">{t('الكل ←')}</Link>
+          <Link to="/companies" className="more">{t('عرض الكل ←')}</Link>
         </div>
         {loading ? (
           <Skeleton height={120} />
         ) : topCompanies.length === 0 ? (
           <div className="empty">{t('لا شركات بعد')}</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {topCompanies.map((co) => (
-              <Link key={co.id} to={`/company/${co.id}`} className="company-row">
-                <CompanyLogo company={co} />
-                <span className="grow">
-                  <span style={{ display: 'block', fontWeight: 700 }}>{co.name}</span>
-                  <span className="pmeta">{co.city}</span>
-                </span>
-                <RatingLine ratingsFor={ratingKey('company', co.id)} fallbackAverage={co.rating} fallbackCount={co.reviewCount} showCount={false} />
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {offers.length > 0 && (
-        <section className="tile s4" style={{ background: 'var(--warn-bg)', border: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--warn)' }}>{t('عروض الآن')}</div>
-          <div style={{ fontSize: 24, fontWeight: 800, margin: '6px 0 18px', lineHeight: 1.3 }}>{productsCount(offers.length)}{' '}{t('بأسعار مخفضة')}</div>
-          <Link to="/browse?offers=1" className="pill">{t('شاهد العروض')}</Link>
-        </section>
-      )}
-
-      <section className="s12">
-        <div className="section-title">
-          <h2>{t('أحدث المنتجات')}</h2>
-          <Link to="/browse" className="more">{t('عرض الكل ←')}</Link>
-        </div>
-        {loading ? (
-          <Skeleton height={260} />
-        ) : fresh.length === 0 ? (
-          <EmptyState title={t('لا منتجات بعد')} />
-        ) : (
-          <div className="pcards">
-            {fresh.map((p) => <ProductCard key={p.id} product={p} />)}
+          <div className="ccards">
+            {topCompanies.map((co) => <CompanyCard key={co.id} company={co} />)}
           </div>
         )}
       </section>

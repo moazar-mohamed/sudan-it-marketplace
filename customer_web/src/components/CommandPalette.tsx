@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCatalog } from '../data/DataProvider';
-import { categoryName, iconPath, salePrice, formatPrice } from '../data/format';
+import { categoryEmoji } from '../data/categoryEmoji';
+import { categoryName, categorySearchText, salePrice, formatPrice } from '../data/format';
 import { matchingCategories, marketplaceSearch } from '../data/marketplaceSearch';
 import { addRecentSearch, readRecentSearches } from '../data/recentSearches';
 import { normalizeSearchText, suggestCorrection } from '../data/searchRanking';
@@ -17,6 +18,8 @@ interface Entry {
   hint: string;
   icon: string;
   image?: string;
+  /** A colourful shape shown instead of the line icon (categories). */
+  glyph?: string;
   run: () => void;
 }
 
@@ -71,7 +74,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
       }
     }
     for (const c of categories) {
-      out.push({ key: `c-${c.id}`, group: t('أقسام'), title: categoryName(c), hint: t('قسم'), icon: iconPath(c.iconName), run: go(`/category/${c.id}`) });
+      out.push({ key: `c-${c.id}`, group: t('أقسام'), title: categoryName(c), hint: t('قسم'), icon: PATHS.grid, glyph: categoryEmoji(c.iconName, categorySearchText(c)), run: go(`/category/${c.id}`) });
     }
     for (const p of results.products.slice(0, 3)) {
       const price = salePrice(p);
@@ -131,7 +134,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
                   onClick={e.run}
                 >
                   <span className="thumb">
-                    {e.image ? <img src={e.image} alt="" /> : <Icon d={e.icon} size={20} />}
+                    {e.image ? <img src={e.image} alt="" /> : e.glyph ? <span className="glyph" style={{ fontSize: 22 }} aria-hidden="true">{e.glyph}</span> : <Icon d={e.icon} size={20} />}
                   </span>
                   <span className="grow">
                     <span style={{ display: 'block', fontWeight: 700 }}>

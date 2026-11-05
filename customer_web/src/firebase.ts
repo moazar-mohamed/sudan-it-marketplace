@@ -21,7 +21,7 @@ const firebaseConfig = {
   appId: '1:442723121540:web:afaed35b4677c5d0aa05d1',
 };
 
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 // What was read stays in this browser, so a return visit shows at once and then
@@ -32,6 +32,9 @@ export const db = initializeFirestore(app, {
 
 /** Signs out and clears what this browser saved, so the next person on a shared computer finds nothing. */
 export async function signOutHere(): Promise<void> {
+  // This browser stops getting the person's pushes (best effort).
+  const uid = auth.currentUser?.uid ?? null;
+  await import('./data/webPush').then((m) => m.turnPushOff(uid)).catch(() => undefined);
   await signOut(auth);
   await terminate(db);
   await clearIndexedDbPersistence(db).catch(() => undefined);

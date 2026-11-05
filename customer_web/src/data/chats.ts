@@ -21,6 +21,7 @@ import { db } from '../firebase';
 import { useCollection } from './hooks';
 import type { Loaded } from './hooks';
 import { mapConversation, mapMessage } from './mappers';
+import { pushChatMessage } from './pushRelay';
 import { useRetryKey } from './retry';
 import type { ChatMessage, Conversation, Order, Product } from './types';
 import { t } from '../i18n';
@@ -197,6 +198,8 @@ export async function sendMessage(conversation: Conversation, senderId: string, 
         : t('تعذر إرسال الرسالة. يرجى المحاولة مرة أخرى.'),
     );
   }
+  // The company's admins get it on their phones and browsers (best effort).
+  void pushChatMessage(conversation.id, messageRef.id);
 }
 
 /** Best effort: a failure only leaves the unread mark until it is opened again. */

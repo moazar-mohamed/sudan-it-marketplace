@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { FirebaseError } from 'firebase/app';
 import { collection, doc, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
 import { useCollection } from './hooks';
 import type { Loaded } from './hooks';
 import { mapServiceRequest } from './mappers';
+import { pushNotification } from './pushRelay';
 import type { ServiceRequest, ServiceRequestDraft, ServiceRequestStatus } from './types';
 import { t } from '../i18n';
 
@@ -37,9 +38,10 @@ export const isFinished = (r: ServiceRequest): boolean =>
 
 export const newRequestId = (): string => doc(collection(db, 'service_requests')).id;
 
-function notify(request: Pick<ServiceRequest, 'id' | 'companyId' | 'serviceName'>, type: 'new_service_request' | 'service_request_cancelled'): Promise<void> {
+/** To the request's company, naming its sender so the relay may push it right after (best effort). */
+async function notify(request: Pick<ServiceRequest, 'id' | 'companyId' | 'serviceName'>, type: 'new_service_request' | 'service_request_cancelled'): Promise<void> {
   const id = `${request.id}_${type}`;
-  return setDoc(doc(db, 'notifications', id), {
+  await setDoc(doc(db, 'notifications', id), {
     id,
     recipientType: 'company_admin',
     recipientId: request.companyId,
@@ -48,7 +50,9 @@ function notify(request: Pick<ServiceRequest, 'id' | 'companyId' | 'serviceName'
     productName: request.serviceName,
     isRead: false,
     createdAt: serverTimestamp(),
+    ...(auth.currentUser ? { senderId: auth.currentUser.uid } : {}),
   });
+  void pushNotification(id);
 }
 
 export async function sendRequest(draft: ServiceRequestDraft): Promise<void> {

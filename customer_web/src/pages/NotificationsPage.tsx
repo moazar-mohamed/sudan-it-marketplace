@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { EmptyState, Skeleton } from '../components/Bits';
+import { PushSwitch } from '../components/PushSettings';
 import { useCatalog } from '../data/DataProvider';
 import {
   deleteNotification,
@@ -18,7 +19,7 @@ function when(value: Date): string {
 
 export function NotificationsPage() {
   const nav = useNavigate();
-  const { notifications } = useCatalog();
+  const { notifications, profile } = useCatalog();
 
   function open(n: AppNotification) {
     if (!n.isRead) void markNotificationRead(n.id).catch(() => undefined);
@@ -33,6 +34,8 @@ export function NotificationsPage() {
   return (
     <main className="stack narrow">
       <h1 className="page-title">{t('الإشعارات')}</h1>
+      {/* Only while this browser can take pushes and does not yet. */}
+      <PushSwitch profile={profile} compact />
       {notifications === null ? (
         <Skeleton height={240} />
       ) : notifications.length === 0 ? (
