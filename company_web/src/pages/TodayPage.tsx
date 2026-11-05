@@ -10,6 +10,7 @@ import { db } from '../firebase';
 import { Icon } from '../ui/Icon';
 import { Banner, Chip, Empty, Loading, PageHeader, useNow } from '../ui/kit';
 import { StockDialog } from '../ui/StockDialog';
+import { UsdRateCard } from '../ui/UsdRate';
 import { t } from '../i18n';
 
 const DAY = 86_400_000;
@@ -33,7 +34,7 @@ const isSale = (o: Order) => o.paymentStatus === 'confirmed' && o.orderStatus !=
 
 export function TodayPage() {
   const { state } = useAuth();
-  const { companyId, products, openOrders, pendingPayment, pendingRefunds } = useCompanyData();
+  const { company, companyId, products, openOrders, pendingPayment, pendingRefunds } = useCompanyData();
   const recent = useRecentOrders(companyId);
   const now = useNow();
   const [stockFor, setStockFor] = useState<Product | null>(null);
@@ -88,6 +89,9 @@ export function TodayPage() {
           </>
         }
       />
+
+      {/* The dollar rate comes first: the one place it is kept. */}
+      {company && <UsdRateCard company={company} products={products} />}
 
       {soon.length > 0 && oldest && (
         <div style={{ marginBottom: 20 }}>

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/error_messages.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/push/push_relay.dart';
 import '../../auth/domain/entities/user_role.dart';
 import '../../chats/presentation/chat_providers.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
@@ -10,7 +11,7 @@ import '../domain/report.dart';
 import '../domain/reports_repository.dart';
 
 final reportsRepositoryProvider = Provider<ReportsRepository>((ref) {
-  return FirestoreReportsRepository();
+  return FirestoreReportsRepository(pushRelay: ref.watch(pushRelayProvider));
 });
 
 /// The signed-in person's own reports, newest first.

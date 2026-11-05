@@ -1,15 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../core/push/push_relay.dart';
+import '../../notifications/data/platform_notice.dart';
 import '../domain/report.dart';
 import '../domain/reports_repository.dart';
 
 /// Reports in `reports/{id}`. The sender writes one and reads only their own
-/// (firestore.rules); Platform Admin handles them from the web panel.
+/// (firestore.rules); Platform Admin handles them from the web panel, and is
+/// told of each new one.
 class FirestoreReportsRepository implements ReportsRepository {
-  FirestoreReportsRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirestoreReportsRepository({
+    FirebaseFirestore? firestore,
+    PushRelay? pushRelay,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _pushRelay = pushRelay ?? const NoPushRelay();
 
   final FirebaseFirestore _firestore;
+  final PushRelay _pushRelay;
 
   CollectionReference<Map<String, dynamic>> get _reports =>
       _firestore.collection('reports');
@@ -84,6 +91,15 @@ class FirestoreReportsRepository implements ReportsRepository {
       });
     }
     await batch.commit();
+    // The report is sent: the Platform Admins are told (best effort).
+    await notifyPlatformAdmins(
+      firestore: _firestore,
+      pushRelay: _pushRelay,
+      type: PlatformNoticeType.newReport,
+      subjectId: ref.id,
+      senderId: reporterId,
+      name: draft.subject.trim(),
+    );
   }
 }
 

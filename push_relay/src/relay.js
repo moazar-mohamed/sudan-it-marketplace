@@ -17,14 +17,46 @@ import {
   languageOf,
   orderNotificationText,
   pushCategoryOf,
+  usdRateReminderText,
   wantsPush,
 } from './texts.js';
 
 /** How long after it was written something may still be pushed. */
 const MAX_AGE_MS = 10 * 60 * 1000;
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The reminder runs every hour, so "24 hours since the last reminder" allows a
+ * few minutes of slack: it then comes at the same hour each day instead of
+ * creeping an hour later.
+ */
+const REMINDER_SLACK_MS = 10 * 60 * 1000;
+
+/** Sudan is UTC+2 all year; no reminder between 22:00 and 08:00 there. */
+export function isNightInSudan(ms) {
+  const hour = (new Date(ms).getUTCHours() + 2) % 24;
+  return hour >= 22 || hour < 8;
+}
+
 /** The Android channel the app creates (MainActivity.kt). */
 const ANDROID_CHANNEL = 'general';
+
+/** The picture a browser shows with a push (the app's emblem, on the customer site). */
+const WEB_ICON = 'https://sudan-it-market.web.app/favicon-mark.png';
+
+/**
+ * What a browser needs on top of the phone fields: an icon, delivery at once,
+ * kept for a day if the computer is off, and (with a tag) one notice per
+ * conversation that a newer message replaces. The page's service worker shows
+ * it and opens the right page when it is pressed.
+ */
+export function webpushOf(tag) {
+  return {
+    headers: { Urgency: 'high', TTL: '86400' },
+    notification: { icon: WEB_ICON, ...(tag ? { tag, renotify: true } : {}) },
+  };
+}
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -82,12 +114,21 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
     return admins.map((user) => ({ uid: user.id, ...user }));
   }
 
+  /** Every Platform Admin whose account is on. */
+  async function platformAdmins() {
+    const admins = await db.where('users', { role: 'platform_admin', isActive: true });
+    return admins.map((user) => ({ uid: user.id, ...user }));
+  }
+
   async function recipientsOf(notification) {
     switch (notification.recipientType) {
       case 'customer':
         return usersByIds([notification.recipientId]);
       case 'company_admin':
         return companyAdmins(notification.recipientId);
+      // A notice for the whole platform team (a new report, a low rating).
+      case 'platform_admin':
+        return notification.recipientId === 'platform' ? platformAdmins() : [];
       case 'technician': {
         const technician = await db.get(`technicians/${notification.recipientId}`);
         if (!technician) return [];
@@ -141,6 +182,7 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
                   },
                 },
                 apns: { payload: { aps: { sound: 'default' } } },
+                webpush: webpushOf(tag),
               },
             }),
           },
@@ -179,6 +221,7 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
             data,
             android: { priority: 'HIGH', notification: { channel_id: ANDROID_CHANNEL } },
             apns: { payload: { aps: { sound: 'default' } } },
+            webpush: webpushOf(null),
           },
         }),
       },
@@ -213,14 +256,16 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
       data: {
         type: String(notification.type ?? ''),
         notificationId,
-        // About a report, a product, a service request or an order, as the app opens it.
+        // About a report, a review, a product, a service request or an order, as the app opens it.
         ...(notification.reportId
           ? { reportId: String(notification.reportId) }
-          : notification.productId
-            ? { productId: String(notification.productId) }
-            : notification.serviceRequestId
-              ? { serviceRequestId: String(notification.serviceRequestId) }
-              : { orderId: String(notification.orderId ?? '') }),
+          : notification.reviewId
+            ? { reviewId: String(notification.reviewId) }
+            : notification.productId
+              ? { productId: String(notification.productId) }
+              : notification.serviceRequestId
+                ? { serviceRequestId: String(notification.serviceRequestId) }
+                : { orderId: String(notification.orderId ?? '') }),
         recipientType: String(notification.recipientType ?? ''),
       },
     }));
@@ -343,7 +388,55 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
     return reply(200, result);
   }
 
-  return async function handle(request) {
+  /**
+   * Runs every hour (a Cron Trigger): a company whose dollar rate has gone 24
+   * hours without being set or confirmed has its admins reminded on their
+   * phones, then again every 24 hours until it is. Never at night in Sudan,
+   * only while the company prices products in dollars, and only for admins who
+   * left the reminder on (pushPrefs.usdRate). The time of each reminder is kept
+   * on the company (usdRateRemindedAt, written only here) before it is sent,
+   * so two runs never send it twice.
+   */
+  async function remindUsdRates() {
+    const at = now();
+    const result = { companies: 0, sent: 0, failed: 0 };
+    if (isNightInSudan(at)) return result;
+    const due = await db.query('companies', [
+      { field: 'usdRateUpdatedAt', op: 'LESS_THAN_OR_EQUAL', value: new Date(at - DAY_MS) },
+    ]);
+    for (const company of due) {
+      const updatedAt = company.usdRateUpdatedAt;
+      if (!(updatedAt instanceof Date) || typeof company.usdRate !== 'number') continue;
+      if ((company.status ?? 'active') !== 'active') continue;
+      const reminded = company.usdRateRemindedAt;
+      if (reminded instanceof Date && reminded > updatedAt && at - reminded.getTime() < DAY_MS - REMINDER_SLACK_MS) {
+        continue;
+      }
+      // Only a company that sells in dollars: one of its products uses this rate.
+      const dollarProducts = await db.where(
+        'products',
+        { companyId: company.id, usdRateApplied: company.usdRate },
+        { limit: 1 },
+      );
+      if (dollarProducts.length === 0) continue;
+      await db.merge(`companies/${company.id}`, { usdRateRemindedAt: new Date(at) });
+      const days = Math.floor((at - updatedAt.getTime()) / DAY_MS);
+      const recipients = (await companyAdmins(company.id)).filter((r) => wantsPush(r, 'usdRate'));
+      const sent = await sendTo(recipients, (recipient) => ({
+        ...usdRateReminderText(company.usdRate, days, languageOf(recipient)),
+        data: { type: 'usd_rate_reminder', companyId: String(company.id) },
+        // Today's reminder replaces yesterday's.
+        tag: 'usd_rate',
+      }));
+      result.companies++;
+      result.sent += sent.sent;
+      result.failed += sent.failed;
+    }
+    log(`usd rate reminders: ${JSON.stringify(result)}`);
+    return result;
+  }
+
+  async function handle(request) {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
     const url = new URL(request.url);
     if (request.method !== 'POST' || url.pathname !== '/push') {
@@ -378,5 +471,8 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
       log(`relay error: ${error?.message ?? error}`);
       return reply(502, { error: 'upstream' });
     }
-  };
+  }
+
+  handle.remindUsdRates = remindUsdRates;
+  return handle;
 }

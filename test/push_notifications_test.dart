@@ -196,11 +196,20 @@ void main() {
       expect(nextPushTokens(['a', 'b'], 'b'), ['a', 'b']);
     });
 
-    test('only the newest five are kept', () {
+    test('only the newest eight are kept (phones and browsers together)', () {
+      expect(maxPushTokens, 8);
       expect(
-        nextPushTokens(['1', '2', '3', '4', '5'], '6'),
-        ['2', '3', '4', '5', '6'],
+        nextPushTokens(['1', '2', '3', '4', '5', '6', '7'], '8'),
+        ['1', '2', '3', '4', '5', '6', '7', '8'],
       );
+      expect(
+        nextPushTokens(['1', '2', '3', '4', '5', '6', '7', '8'], '9'),
+        ['2', '3', '4', '5', '6', '7', '8', '9'],
+      );
+    });
+
+    test('stays within what the security rules allow', () {
+      expect(maxPushTokens, lessThanOrEqualTo(10));
     });
   });
 
@@ -231,6 +240,31 @@ void main() {
       expect(
         pushDestination(
           {'type': 'new_order', 'orderId': 'o1', 'recipientType': 'company_admin'},
+          _profile(UserRole.customer),
+        ),
+        isNull,
+      );
+    });
+
+    test("the dollar rate reminder opens the company's own Home", () {
+      expect(
+        pushDestination(
+          {'type': 'usd_rate_reminder', 'companyId': 'c1'},
+          _profile(UserRole.companyAdmin, companyId: 'c1'),
+        ),
+        isA<CompanyHomeDestination>(),
+      );
+      // Another company's reminder, or anyone else, opens nothing.
+      expect(
+        pushDestination(
+          {'type': 'usd_rate_reminder', 'companyId': 'c2'},
+          _profile(UserRole.companyAdmin, companyId: 'c1'),
+        ),
+        isNull,
+      );
+      expect(
+        pushDestination(
+          {'type': 'usd_rate_reminder', 'companyId': 'c1'},
           _profile(UserRole.customer),
         ),
         isNull,

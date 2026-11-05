@@ -7079,6 +7079,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load your favorites.'**
   String get favoritesLoadFailed;
+
+  /// No description provided for @usdRateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dollar rate'**
+  String get usdRateTitle;
+
+  /// No description provided for @usdRateValue.
+  ///
+  /// In en, this message translates to:
+  /// **'\$1 = {rate} SDG'**
+  String usdRateValue(String rate);
+
+  /// No description provided for @usdRateNotSetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your dollar rate'**
+  String get usdRateNotSetTitle;
+
+  /// No description provided for @usdRateNotSetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Price your products in dollars. Whenever you change the rate here, all their SDG prices update.'**
+  String get usdRateNotSetBody;
+
+  /// No description provided for @usdRateSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the rate'**
+  String get usdRateSet;
+
+  /// No description provided for @usdRateSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Same rate'**
+  String get usdRateSame;
+
+  /// No description provided for @usdRateEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get usdRateEdit;
+
+  /// No description provided for @usdRateUpdatedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated today at {time}'**
+  String usdRateUpdatedToday(String time);
+
+  /// No description provided for @usdRateUpdatedYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated yesterday at {time}'**
+  String usdRateUpdatedYesterday(String time);
+
+  /// No description provided for @usdRateUpdatedDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated {days, plural, =1{1 day} other{{days} days}} ago'**
+  String usdRateUpdatedDaysAgo(int days);
+
+  /// No description provided for @usdRateDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to update the dollar rate'**
+  String get usdRateDue;
+
+  /// No description provided for @usdRateStale.
+  ///
+  /// In en, this message translates to:
+  /// **'The dollar rate is old: your dollar prices may be wrong'**
+  String get usdRateStale;
+
+  /// No description provided for @usdRateProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No products in dollars yet} =1{1 product in dollars} other{{count} products in dollars}}'**
+  String usdRateProducts(int count);
+
+  /// No description provided for @usdRateConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dollar rate confirmed.'**
+  String get usdRateConfirmed;
+
+  /// No description provided for @usdRateSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Dollar rate saved.'**
+  String get usdRateSaved;
+
+  /// No description provided for @usdRateSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the dollar rate. Please try again.'**
+  String get usdRateSaveFailed;
+
+  /// No description provided for @usdRateFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'How many SDG is one dollar?'**
+  String get usdRateFieldLabel;
+
+  /// No description provided for @usdRateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a rate between 1 and 1,000,000.'**
+  String get usdRateInvalid;
+
+  /// No description provided for @usdRatePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 product price will change.} other{{count} product prices will change.}} For example {name}: {from} → {to}'**
+  String usdRatePreview(int count, String name, String from, String to);
+
+  /// No description provided for @usdRateNoProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No products in dollars yet: choose “In dollars” on a product.'**
+  String get usdRateNoProducts;
+
+  /// No description provided for @usdRateBigChangeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this rate right?'**
+  String get usdRateBigChangeTitle;
+
+  /// No description provided for @usdRateBigChangeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The new rate {to} is {percent}% away from {from}.'**
+  String usdRateBigChangeBody(String to, String from, int percent);
+
+  /// No description provided for @usdRateBigChangeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, save it'**
+  String get usdRateBigChangeConfirm;
+
+  /// No description provided for @usdRateSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the rate'**
+  String get usdRateSave;
+
+  /// No description provided for @usdRateReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me to update the dollar rate'**
+  String get usdRateReminder;
+
+  /// No description provided for @usdRateReminderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A phone notification every 24 hours while the rate is not updated'**
+  String get usdRateReminderHint;
+
+  /// No description provided for @pushKindUsdRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dollar rate reminder'**
+  String get pushKindUsdRate;
+
+  /// No description provided for @pushKindUsdRateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Every 24 hours while your dollar rate is not updated'**
+  String get pushKindUsdRateHint;
+
+  /// No description provided for @formPriceCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Price in'**
+  String get formPriceCurrency;
+
+  /// No description provided for @formPriceInSdg.
+  ///
+  /// In en, this message translates to:
+  /// **'SDG'**
+  String get formPriceInSdg;
+
+  /// No description provided for @formPriceInUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'Dollars'**
+  String get formPriceInUsd;
+
+  /// No description provided for @formPriceUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'Price (\$)'**
+  String get formPriceUsd;
+
+  /// No description provided for @formPriceUsdRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the price in dollars.'**
+  String get formPriceUsdRequired;
+
+  /// No description provided for @formInstallationPriceUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation price (\$)'**
+  String get formInstallationPriceUsd;
+
+  /// No description provided for @formUsdEquals.
+  ///
+  /// In en, this message translates to:
+  /// **'= {price} SDG at \$1 = {rate}'**
+  String formUsdEquals(String price, String rate);
+
+  /// No description provided for @formUsdNeedsRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your dollar rate first.'**
+  String get formUsdNeedsRate;
+
+  /// No description provided for @offerModePriceUsd.
+  ///
+  /// In en, this message translates to:
+  /// **'New price (\$)'**
+  String get offerModePriceUsd;
+
+  /// No description provided for @usdPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{usd} \$ at \$1 = {rate} SDG'**
+  String usdPriceLabel(String usd, String rate);
 }
 
 class _AppLocalizationsDelegate

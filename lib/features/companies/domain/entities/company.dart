@@ -21,6 +21,8 @@ class Company {
     this.status = 'active',
     this.paymentAccounts = const [],
     this.serviceCityIds = const [],
+    this.usdRate,
+    this.usdRateUpdatedAt,
   });
 
   final String id;
@@ -69,6 +71,13 @@ class Company {
   /// has not said (companies that predate the setting): such a company is
   /// shown in every city.
   final List<String> serviceCityIds;
+
+  /// How many Sudanese pounds one US dollar costs this company: its products
+  /// priced in dollars are worked out from it. Null until it sets one.
+  final double? usdRate;
+
+  /// When [usdRate] was last set or confirmed.
+  final DateTime? usdRateUpdatedAt;
 
   /// Whether a customer in [cityId] can order from this company. A customer
   /// who has not chosen a city, or a company that has not listed any, is not
@@ -124,6 +133,8 @@ class Company {
       status: status,
       paymentAccounts: paymentAccounts,
       serviceCityIds: serviceCityIds ?? this.serviceCityIds,
+      usdRate: usdRate,
+      usdRateUpdatedAt: usdRateUpdatedAt,
     );
   }
 }

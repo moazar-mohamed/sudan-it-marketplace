@@ -1,4 +1,5 @@
-import { collection, doc, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { collection, doc, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from 'firebase/firestore';
+import type { DocumentData } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { mapChat, toDate } from './mappers';
@@ -20,33 +21,46 @@ export interface Notice {
 
 const s = (v: unknown) => (typeof v === 'string' ? v : '');
 
-/** The company's notifications (newest first, the latest 100), live. Null while they load. */
+/** How many notifications are read and shown: the newest ones (each read spends the free quota). */
+export const NOTICES_SHOWN = 50;
+
+const toNotice = (d: { id: string; data: () => DocumentData }): Notice => ({
+  id: d.id,
+  type: s(d.data().type),
+  orderId: s(d.data().orderId),
+  serviceRequestId: s(d.data().serviceRequestId),
+  productId: s(d.data().productId),
+  productName: s(d.data().productName),
+  isRead: d.data().isRead === true,
+  createdAt: toDate(d.data().createdAt),
+});
+
+const newestFirst = (list: Notice[]) =>
+  [...list].sort((a, b) => (b.createdAt?.getTime() ?? Infinity) - (a.createdAt?.getTime() ?? Infinity));
+
+/**
+ * The company's newest notifications, newest first, live. Null while they
+ * load. It reads only the newest [NOTICES_SHOWN] (firestore.indexes.json has
+ * the index); while that index is not ready on the server it reads them all,
+ * as before, and keeps the newest.
+ */
 export function useNotices(companyId: string): Notice[] | null {
   const [list, setList] = useState<Notice[] | null>(null);
-  useEffect(
-    () =>
-      onSnapshot(
-        query(collection(db, 'notifications'), where('recipientType', '==', 'company_admin'), where('recipientId', '==', companyId)),
-        (snap) =>
-          setList(
-            snap.docs
-              .map<Notice>((d) => ({
-                id: d.id,
-                type: s(d.data().type),
-                orderId: s(d.data().orderId),
-                serviceRequestId: s(d.data().serviceRequestId),
-                productId: s(d.data().productId),
-                productName: s(d.data().productName),
-                isRead: d.data().isRead === true,
-                createdAt: toDate(d.data().createdAt),
-              }))
-              .sort((a, b) => (b.createdAt?.getTime() ?? Infinity) - (a.createdAt?.getTime() ?? Infinity))
-              .slice(0, 100),
-          ),
-        () => setList([]),
-      ),
-    [companyId],
-  );
+  useEffect(() => {
+    const base = [where('recipientType', '==', 'company_admin'), where('recipientId', '==', companyId)] as const;
+    let stop = onSnapshot(
+      query(collection(db, 'notifications'), ...base, orderBy('createdAt', 'desc'), limit(NOTICES_SHOWN)),
+      (snap) => setList(newestFirst(snap.docs.map(toNotice))),
+      () => {
+        stop = onSnapshot(
+          query(collection(db, 'notifications'), ...base),
+          (snap) => setList(newestFirst(snap.docs.map(toNotice)).slice(0, NOTICES_SHOWN)),
+          () => setList([]),
+        );
+      },
+    );
+    return () => stop();
+  }, [companyId]);
   return list;
 }
 

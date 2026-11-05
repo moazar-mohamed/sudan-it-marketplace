@@ -11,8 +11,10 @@ import {
   ProductHasOpenOrders,
   setPrice,
   setProductsStatus,
+  setUsdPrice,
   updateProductFields,
 } from '../data/products';
+import { usdPrice, usdText } from '../data/usdPricing';
 import type { Order, Product, ProductStatus } from '../data/types';
 import { shortId } from '../data/format';
 import { Icon } from '../ui/Icon';
@@ -23,7 +25,7 @@ import { useToast } from '../ui/toast';
 import { ARROW, t } from '../i18n';
 
 type Tab = 'all' | 'published' | 'draft' | 'archived' | 'hidden';
-type Pill = 'restock' | 'noPrice' | 'noImage' | 'offer';
+type Pill = 'restock' | 'noPrice' | 'noImage' | 'offer' | 'usd';
 type Sort = 'newest' | 'name' | 'stockAsc' | 'priceDesc';
 
 const PAGE = 50;
@@ -67,6 +69,7 @@ export function ProductsPage() {
       noPrice: list.filter((p) => p.price === null).length,
       noImage: list.filter((p) => !p.imageUrl).length,
       offer: list.filter((p) => hasActiveOffer(p)).length,
+      usd: list.filter((p) => p.priceUsd !== null).length,
     };
   }, [products]);
 
@@ -80,6 +83,7 @@ export function ProductsPage() {
       if (pills.has('noPrice') && p.price !== null) return false;
       if (pills.has('noImage') && p.imageUrl) return false;
       if (pills.has('offer') && !hasActiveOffer(p)) return false;
+      if (pills.has('usd') && p.priceUsd === null) return false;
       if (!needle) return true;
       return [p.name, p.brand, lookup.label(p.categoryId), p.id].some((t) => t.toLowerCase().includes(needle));
     });
@@ -103,9 +107,9 @@ export function ProductsPage() {
 
   const exportCsv = () => {
     downloadCsv('products.csv', [
-      [t('الاسم'), t('العلامة'), t('التصنيف'), t('السعر'), t('سعر العرض'), t('المخزون'), t('متاح للبيع'), t('توصيل'), t('تركيب'), t('سعر التركيب')],
+      [t('الاسم'), t('العلامة'), t('التصنيف'), t('السعر'), t('السعر بالدولار'), t('سعر العرض'), t('المخزون'), t('متاح للبيع'), t('توصيل'), t('تركيب'), t('سعر التركيب')],
       ...rows.map((p) => [
-        p.name, p.brand, lookup.label(p.categoryId), p.price, hasActiveOffer(p) ? p.offerPrice : '', p.stockCount,
+        p.name, p.brand, lookup.label(p.categoryId), p.price, p.priceUsd ?? '', hasActiveOffer(p) ? p.offerPrice : '', p.stockCount,
         p.inStock ? t('نعم') : t('لا'), p.isDeliveryAvailable ? t('نعم') : t('لا'), p.isInstallationAvailable ? t('نعم') : t('لا'), p.installationPrice,
       ]),
     ]);
@@ -134,7 +138,7 @@ export function ProductsPage() {
 
       {products.length > 0 && (
         <div className="attn" role="group" aria-label={t('ما يحتاج انتباهك')}>
-          {([['restock', t('تحتاج تعبئة'), 'box'], ['noImage', t('بلا صورة'), 'image'], ['noPrice', t('السعر عند الطلب'), 'tag'], ['offer', t('عليها عرض'), 'tag']] as const).map(([k, label, icon]) => (
+          {([['restock', t('تحتاج تعبئة'), 'box'], ['noImage', t('بلا صورة'), 'image'], ['noPrice', t('السعر عند الطلب'), 'tag'], ['offer', t('عليها عرض'), 'tag'], ['usd', t('بالدولار'), 'dollar']] as const).map(([k, label, icon]) => (
             <button
               key={k}
               type="button"
@@ -213,6 +217,7 @@ export function ProductsPage() {
                     key={p.id}
                     p={p}
                     categoryLabel={lookup.label(p.categoryId)}
+                    usdRate={company?.usdRate ?? null}
                     demand={demand.get(p.id) ?? 0}
                     selected={selected.has(p.id)}
                     onToggle={() => toggleRow(p.id)}
@@ -234,17 +239,17 @@ export function ProductsPage() {
       </section>
 
       {stockFor && <StockDialog product={products.find((p) => p.id === stockFor.id) ?? stockFor} demand={demand.get(stockFor.id) ?? 0} onClose={() => setStockFor(null)} />}
-      {importing && <ImportProductsDialog companyId={companyId} companyName={company?.name ?? ''} choices={lookup.choices} onClose={() => setImporting(false)} />}
+      {importing && <ImportProductsDialog companyId={companyId} companyName={company?.name ?? ''} choices={lookup.choices} usdRate={company?.usdRate ?? null} onClose={() => setImporting(false)} />}
       {deleting && <DeleteDialog companyId={companyId} product={deleting} onClose={() => setDeleting(null)} />}
-      {bulkPrice && <BulkPriceDialog items={selectedProducts} onClose={(done) => { setBulkPrice(false); if (done) setSelected(new Set()); }} />}
+      {bulkPrice && <BulkPriceDialog items={selectedProducts} usdRate={company?.usdRate ?? null} onClose={(done) => { setBulkPrice(false); if (done) setSelected(new Set()); }} />}
     </main>
   );
 }
 
 function ProductRow({
-  p, categoryLabel, demand, selected, onToggle, onStock, onDelete,
+  p, categoryLabel, usdRate, demand, selected, onToggle, onStock, onDelete,
 }: {
-  p: Product; categoryLabel: string; demand: number; selected: boolean;
+  p: Product; categoryLabel: string; usdRate: number | null; demand: number; selected: boolean;
   onToggle: () => void; onStock: () => void; onDelete: () => void;
 }) {
   const toast = useToast();
@@ -257,14 +262,18 @@ function ProductRow({
   const low = !out && isLowStock(p);
   const short = demand > p.stockCount;
 
-  const startEdit = () => { setText(p.price === null ? '' : String(p.price)); setEditing(true); };
+  // A product priced in dollars is edited in dollars, its pounds worked out at the company's rate.
+  const inUsd = p.priceUsd !== null;
+  const startEdit = () => { setText(inUsd ? String(p.priceUsd) : p.price === null ? '' : String(p.price)); setEditing(true); };
   const savePrice = async () => {
     const value = parseNumber(text);
     if (value === null || value <= 0) { toast(t('اكتب سعرًا أكبر من صفر.'), 'err'); return; }
-    if (value === p.price) { setEditing(false); return; }
+    if (value === (inUsd ? p.priceUsd : p.price)) { setEditing(false); return; }
+    if (inUsd && usdRate === null) { toast(t('حدّد سعر الدولار أولًا من بطاقة «سعر الدولار» في صفحة اليوم.'), 'err'); return; }
     setBusy(true);
     try {
-      await setPrice(p, value);
+      if (inUsd) await setUsdPrice(p, value, usdRate as number);
+      else await setPrice(p, value);
       toast(t('تم تحديث السعر'), 'ok');
       setEditing(false);
     } catch (e) {
@@ -297,7 +306,8 @@ function ProductRow({
           <button type="button" className="edit" onClick={startEdit}><Chip tone="info" dot={false}>{t('السعر عند الطلب')}</Chip></button>
         ) : editing ? (
           <span className="row" style={{ gap: 6 }}>
-            <input className="inp sm ltr" style={{ width: 120 }} autoFocus inputMode="decimal" value={text} aria-label={t('السعر الجديد')} disabled={busy}
+            {inUsd && <span aria-hidden="true">$</span>}
+            <input className="inp sm ltr" style={{ width: 120 }} autoFocus inputMode="decimal" value={text} aria-label={inUsd ? t('السعر الجديد بالدولار') : t('السعر الجديد')} disabled={busy}
               onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void savePrice(); if (e.key === 'Escape') setEditing(false); }} />
             <button type="button" className="icon-btn flat" aria-label={t('حفظ السعر')} disabled={busy} onClick={() => void savePrice()}>{busy ? <Spinner /> : <Icon name="check" />}</button>
             <button type="button" className="icon-btn flat" aria-label={t('إلغاء')} disabled={busy} onClick={() => setEditing(false)}><Icon name="x" /></button>
@@ -307,6 +317,7 @@ function ProductRow({
             <button type="button" className="edit" onClick={startEdit} aria-label={t('تعديل سعر {0}', p.name)}>
               <span className="num">{money(active ? p.offerPrice : p.price)}</span><Icon name="edit" size="sm" />
             </button>
+            {inUsd && <div className="sub num" dir="ltr" style={{ textAlign: 'start' }}>{usdText(p.priceUsd)} $</div>}
             {active && <div className="sub"><s className="num">{money(p.price)}</s> · <span style={{ color: 'var(--ok)', fontWeight: 700 }}>{t('عرض {0}%', discountPercent(p))}</span></div>}
             {hasEndedOffer(p) && <div className="sub" style={{ color: 'var(--warn)' }}>{t('عرض منتهٍ')}</div>}
           </>
@@ -426,20 +437,26 @@ function DeleteDialog({ companyId, product, onClose }: { companyId: string; prod
   );
 }
 
-function BulkPriceDialog({ items, onClose }: { items: Product[]; onClose: (done: boolean) => void }) {
+function BulkPriceDialog({ items, usdRate, onClose }: { items: Product[]; usdRate: number | null; onClose: (done: boolean) => void }) {
   const toast = useToast();
   const [text, setText] = useState('10');
   const [dir, setDir] = useState<'up' | 'down'>('up');
   const [busy, setBusy] = useState(false);
   const percent = parseNumber(text);
   const ok = percent !== null && percent > 0 && percent <= 90;
-  const priced = items.filter((p) => p.price !== null);
-  const next = (p: Product) => Math.max(1, Math.round((p.price as number) * (1 + (dir === 'up' ? 1 : -1) * ((percent ?? 0) / 100))));
+  // A product priced in dollars moves by the same share in dollars (it needs the company's rate).
+  const priced = items.filter((p) => p.price !== null && (p.priceUsd === null || usdRate !== null));
+  const factor = 1 + (dir === 'up' ? 1 : -1) * ((percent ?? 0) / 100);
+  const nextUsd = (p: Product) => Math.max(0.01, Math.round((p.priceUsd as number) * factor * 100) / 100);
+  const next = (p: Product) =>
+    p.priceUsd !== null ? usdPrice(nextUsd(p), usdRate as number) : Math.max(1, Math.round((p.price as number) * factor));
 
   const apply = async () => {
     if (!ok) return;
     setBusy(true);
-    const results = await Promise.allSettled(priced.map((p) => setPrice(p, next(p))));
+    const results = await Promise.allSettled(
+      priced.map((p) => (p.priceUsd !== null ? setUsdPrice(p, nextUsd(p), usdRate as number) : setPrice(p, next(p)))),
+    );
     const failed = results.filter((r) => r.status === 'rejected').length;
     toast(failed ? t('تم تعديل {0} وتعذّر {1} (عليها عرض جارٍ أو رُفض الحفظ)', results.length - failed, failed) : t('تم تعديل سعر {0} منتج', results.length), failed ? 'err' : 'ok');
     onClose(true);

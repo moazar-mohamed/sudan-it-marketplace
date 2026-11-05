@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/error_messages.dart';
 import '../../../core/localization/locale_controller.dart';
+import '../../../core/push/push_relay.dart';
 import '../../chats/presentation/chat_providers.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
 import '../../notifications/domain/entities/app_notification.dart';
@@ -14,7 +15,7 @@ import '../domain/review.dart';
 import '../domain/reviews_repository.dart';
 
 final reviewsRepositoryProvider = Provider<ReviewsRepository>((ref) {
-  return FirestoreReviewsRepository();
+  return FirestoreReviewsRepository(pushRelay: ref.watch(pushRelayProvider));
 });
 
 /// Every running average, keyed as in [RatingStats.keyFor]. One small

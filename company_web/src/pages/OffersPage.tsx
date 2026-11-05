@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useCompanyData } from '../data/CompanyData';
 import { discountPercent, hasActiveOffer, hasEndedOffer, hasOffer, lowLevelOf, money, parseNumber, longDate } from '../data/format';
 import { setProductOffer } from '../data/products';
+import { usdOffer, usdText } from '../data/usdPricing';
 import { setServiceOffer, useCatalogServices, useCompanyServices } from '../data/services';
 import type { OfferBadge } from '../data/types';
 import { Banner, Chip, ConfirmDialog, Empty, Loading, PageHeader, Spinner } from '../ui/kit';
@@ -20,6 +21,9 @@ interface Item {
   stock: number | null;
   /** The stock level the company wants a warning at (a product's own, or the default). */
   low: number;
+  /** A product priced in dollars: its dollar price and the rate its pounds use (its offer is typed in dollars). */
+  priceUsd: number | null;
+  usdRate: number | null;
 }
 
 const BADGES: { value: OfferBadge; label: string }[] = [
@@ -44,8 +48,8 @@ export function OffersPage() {
   const items = useMemo<Item[]>(() => {
     const names = new Map((catalog ?? []).map((s) => [s.id, s.name]));
     return [
-      ...(products ?? []).map<Item>((p) => ({ key: `p:${p.id}`, kind: 'product', id: p.id, name: p.name, price: p.price, offerPrice: p.offerPrice, offerEndsAt: p.offerEndsAt, offerBadge: p.offerBadge, stock: p.stockCount, low: lowLevelOf(p) })),
-      ...(links ?? []).filter((l) => l.isActive).map<Item>((l) => ({ key: `s:${l.id}`, kind: 'service', id: l.id, name: names.get(l.serviceId) ?? t('خدمة'), price: l.price, offerPrice: l.offerPrice, offerEndsAt: l.offerEndsAt, offerBadge: l.offerBadge, stock: null, low: 0 })),
+      ...(products ?? []).map<Item>((p) => ({ key: `p:${p.id}`, kind: 'product', id: p.id, name: p.name, price: p.price, offerPrice: p.offerPrice, offerEndsAt: p.offerEndsAt, offerBadge: p.offerBadge, stock: p.stockCount, low: lowLevelOf(p), priceUsd: p.priceUsd, usdRate: p.usdRateApplied })),
+      ...(links ?? []).filter((l) => l.isActive).map<Item>((l) => ({ key: `s:${l.id}`, kind: 'service', id: l.id, name: names.get(l.serviceId) ?? t('خدمة'), price: l.price, offerPrice: l.offerPrice, offerEndsAt: l.offerEndsAt, offerBadge: l.offerBadge, stock: null, low: 0, priceUsd: null, usdRate: null })),
     ];
   }, [products, links, catalog]);
 
@@ -136,7 +140,12 @@ function OfferForm({ items, initial, onDone }: { items: Item[]; initial: Item | 
 
   const num = parseNumber(value);
   const price = item?.price ?? null;
-  const offer = price !== null && num !== null ? (mode === 'percent' ? Math.round(price * (1 - num / 100)) : num) : null;
+  // On a product priced in dollars the offer is worked out in dollars, then in pounds at the product's rate.
+  const usd = item && item.priceUsd !== null && item.usdRate !== null ? { price: item.priceUsd, rate: item.usdRate } : null;
+  const offerUsd = usd && num !== null ? (mode === 'percent' ? Math.round(usd.price * (1 - num / 100) * 100) / 100 : num) : null;
+  const offer = usd
+    ? offerUsd !== null && offerUsd > 0 && offerUsd < usd.price ? usdOffer(offerUsd, usd.rate) : null
+    : price !== null && num !== null ? (mode === 'percent' ? Math.round(price * (1 - num / 100)) : num) : null;
   const offerOk = offer !== null && price !== null && offer > 0 && offer < price;
   const ends = until === 'date' ? endOfDay(date) : null;
   const dateOk = until === 'manual' || (ends !== null && !Number.isNaN(ends.getTime()) && ends.getTime() > Date.now());
@@ -146,7 +155,7 @@ function OfferForm({ items, initial, onDone }: { items: Item[]; initial: Item | 
     if (!item || !offerOk || !dateOk || offer === null) return;
     setBusy(true);
     try {
-      const payload = { offerPrice: offer, offerEndsAt: ends, offerBadge: badge };
+      const payload = { offerPrice: offer, offerEndsAt: ends, offerBadge: badge, offerPriceUsd: usd ? offerUsd : null };
       if (item.kind === 'product') await setProductOffer(item.id, payload); else await setServiceOffer(item.id, payload);
       toast(t('تم حفظ العرض'), 'ok');
       onDone();
@@ -170,7 +179,7 @@ function OfferForm({ items, initial, onDone }: { items: Item[]; initial: Item | 
           <div className="seg full" role="group"><button type="button" className={mode === 'percent' ? 'on' : ''} onClick={() => setMode('percent')}>{t('نسبة %')}</button><button type="button" className={mode === 'price' ? 'on' : ''} onClick={() => setMode('price')}>{t('سعر مباشر')}</button></div>
         </div>
         <div className="row" style={{ alignItems: 'flex-start' }}>
-          <div className="fld grow"><label htmlFor="of-val">{mode === 'percent' ? t('نسبة الخصم') : t('سعر العرض')}</label><div className="sfx"><input id="of-val" className="inp ltr" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} /><span>{mode === 'percent' ? '%' : 'SDG'}</span></div></div>
+          <div className="fld grow"><label htmlFor="of-val">{mode === 'percent' ? t('نسبة الخصم') : t('سعر العرض')}</label><div className="sfx"><input id="of-val" className="inp ltr" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} /><span>{mode === 'percent' ? '%' : usd ? '$' : 'SDG'}</span></div>{usd && <span className="hint num">{t('السعر بالدولار: {0} $', usdText(usd.price))}</span>}</div>
           <div className="fld grow"><span className="lab">{mode === 'percent' ? t('سعر العرض') : t('نسبة الخصم')}</span><div className="inp row" style={{ background: 'var(--bg)' }}><b className="num">{offer === null || price === null ? '—' : mode === 'percent' ? money(offer) : `${Math.round((1 - offer / price) * 100)}%`}</b></div></div>
         </div>
         {num !== null && item && !offerOk && <span className="errt">{t('سعر العرض يجب أن يكون أكبر من صفر وأقل من السعر العادي ({0}).', money(price))}</span>}

@@ -2,6 +2,7 @@ import { collection, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, w
 import { useEffect, useState } from 'react';
 import { auth, db } from '../firebase';
 import { mapMessage } from './mappers';
+import { pushChatMessage } from './pushRelay';
 import type { ChatMessage } from './types';
 
 /** The order's conversation: null while loading, false when the order has none. */
@@ -55,6 +56,8 @@ export async function sendChatMessage(chatId: string, text: string, senderName: 
       companyLastReadAt: serverTimestamp(),
     });
     await batch.commit();
+    // The customer gets it on their phones and browsers (best effort).
+    void pushChatMessage(chatId, messageRef.id);
     return true;
   } catch {
     return false;

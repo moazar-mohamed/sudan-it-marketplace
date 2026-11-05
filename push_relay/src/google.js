@@ -132,9 +132,22 @@ export function createFirestore({ projectId, emulatorHost, accessToken, fetch })
     },
 
     /** Documents of [collection] whose fields equal every value in [equals]. */
-    async where(collection, equals) {
-      const filters = Object.entries(equals).map(([field, value]) => ({
-        fieldFilter: { field: { fieldPath: field }, op: 'EQUAL', value: encodeValue(value) },
+    async where(collection, equals, options = {}) {
+      return this.query(
+        collection,
+        Object.entries(equals).map(([field, value]) => ({ field, op: 'EQUAL', value })),
+        options,
+      );
+    },
+
+    /**
+     * Documents of [collection] that pass every filter ({ field, op, value },
+     * op as Firestore names it: EQUAL, LESS_THAN_OR_EQUAL, ...), at most
+     * [limit] of them when it is given.
+     */
+    async query(collection, filterList, { limit } = {}) {
+      const filters = filterList.map(({ field, op, value }) => ({
+        fieldFilter: { field: { fieldPath: field }, op, value: encodeValue(value) },
       }));
       const response = await fetch(`${documents}:runQuery`, {
         method: 'POST',
@@ -145,6 +158,7 @@ export function createFirestore({ projectId, emulatorHost, accessToken, fetch })
             where: filters.length === 1
               ? filters[0]
               : { compositeFilter: { op: 'AND', filters } },
+            ...(limit ? { limit } : {}),
           },
         }),
       });

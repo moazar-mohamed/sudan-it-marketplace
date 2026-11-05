@@ -5,6 +5,7 @@ import { useCategoryLookup } from '../data/categories';
 import { discountPercent, hasActiveOffer, hasEndedOffer, LOW_STOCK_THRESHOLD, money, parseNumber, unitsText } from '../data/format';
 import { createProduct, productImageFolder, updateProductFields, type ProductDraft } from '../data/products';
 import type { Product, ProductStatus } from '../data/types';
+import { usdPrice, usdText } from '../data/usdPricing';
 import { CategorySelect } from '../ui/CategorySelect';
 import { GalleryField } from '../ui/GalleryField';
 import { Icon } from '../ui/Icon';
@@ -27,13 +28,16 @@ interface FormState {
   sku: string;
   threshold: string;
   categoryId: string | null;
-  priceMode: 'fixed' | 'onRequest';
+  /** In pounds, in dollars (worked out from the company's rate), or on request. */
+  priceMode: 'fixed' | 'usd' | 'onRequest';
   price: string;
+  usd: string;
   description: string;
   specs: SpecRow[];
   delivery: boolean;
   installation: boolean;
   installationPrice: string;
+  installationUsd: string;
   inStock: boolean;
   stock: string; // only when creating
 }
@@ -50,33 +54,46 @@ function toForm(p?: Product): FormState {
     sku: p?.sku ?? '',
     threshold: numText(p?.lowStockThreshold ?? null),
     categoryId: p?.categoryId ?? null,
-    priceMode: p && p.price === null ? 'onRequest' : 'fixed',
+    priceMode: p?.priceUsd != null ? 'usd' : p && p.price === null ? 'onRequest' : 'fixed',
     price: numText(p?.price ?? null),
+    usd: numText(p?.priceUsd ?? null),
     description: p?.description ?? '',
     specs: Object.entries(p?.specifications ?? {}).map(([key, value]) => ({ id: ++rowId, key, value })),
     delivery: p?.isDeliveryAvailable ?? true,
     installation: p?.isInstallationAvailable ?? false,
     installationPrice: numText(p?.installationPrice ?? null),
+    installationUsd: numText(p?.installationPriceUsd ?? null),
     inStock: p?.inStock ?? true,
     stock: '',
   };
 }
 
-function toDraft(f: FormState): ProductDraft {
+/** [rate] is the company's dollar rate: in dollars the pounds are worked out from it. */
+function toDraft(f: FormState, rate: number | null): ProductDraft {
   const specifications: Record<string, string> = {};
   for (const r of f.specs) if (r.key.trim() && r.value.trim()) specifications[r.key.trim()] = r.value.trim();
+  const inUsd = f.priceMode === 'usd' && rate !== null;
+  const usd = inUsd ? parseNumber(f.usd) : null;
+  const installationUsd = inUsd && f.installation ? parseNumber(f.installationUsd) : null;
   return {
     name: f.name.trim(),
     brand: f.brand.trim(),
     imageUrl: f.imageUrls[0] ?? '',
     imageUrls: f.imageUrls,
     categoryId: f.categoryId,
-    price: f.priceMode === 'onRequest' ? null : parseNumber(f.price),
+    price: f.priceMode === 'onRequest' ? null : inUsd ? (usd === null ? null : usdPrice(usd, rate)) : parseNumber(f.price),
     description: f.description.trim(),
     specifications,
     isDeliveryAvailable: f.delivery,
     isInstallationAvailable: f.installation,
-    installationPrice: f.installation ? parseNumber(f.installationPrice) : null,
+    installationPrice: !f.installation
+      ? null
+      : inUsd
+        ? (installationUsd === null ? null : usdPrice(installationUsd, rate))
+        : parseNumber(f.installationPrice),
+    priceUsd: usd,
+    installationPriceUsd: installationUsd,
+    usdRateApplied: inUsd ? rate : null,
     inStock: f.inStock,
     status: f.status,
     sku: f.sku.trim(),
@@ -100,6 +117,9 @@ const LABELS: Record<keyof ProductDraft, string> = {
   isInstallationAvailable: t('التركيب'),
   installationPrice: t('سعر التركيب'),
   inStock: t('متاح للشراء'),
+  priceUsd: t('السعر بالدولار'),
+  installationPriceUsd: t('سعر التركيب بالدولار'),
+  usdRateApplied: t('سعر الدولار'),
 };
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -120,7 +140,14 @@ interface Errors {
   specs: Record<number, string>;
 }
 
-function validate(f: FormState, creating: boolean, offerPrice: number | null, offerActive: boolean): Errors {
+function validate(
+  f: FormState,
+  creating: boolean,
+  offerPrice: number | null,
+  offerActive: boolean,
+  rate: number | null,
+  offerPriceUsd: number | null,
+): Errors {
   const e: Errors = { specs: {} };
   if (!f.name.trim()) e.name = t('اكتب اسم المنتج.');
   else if (f.name.trim().length > 200) e.name = t('الاسم أطول من 200 حرف.');
@@ -131,7 +158,14 @@ function validate(f: FormState, creating: boolean, offerPrice: number | null, of
     const limit = parseNumber(f.threshold);
     if (limit === null || !Number.isInteger(limit) || limit < 0 || limit > 100000) e.threshold = t('اكتب عددًا صحيحًا من 0 إلى 100000، أو اتركه فارغًا لاستعمال الحد العام.');
   }
-  if (f.priceMode === 'fixed') {
+  if (f.priceMode === 'usd') {
+    const usd = parseNumber(f.usd);
+    if (rate === null) e.price = t('حدّد سعر الدولار أولًا من بطاقة «سعر الدولار» في صفحة اليوم.');
+    else if (usd === null || usd <= 0) e.price = t('اكتب السعر بالدولار (أكبر من صفر).');
+    else if (offerPrice !== null && offerActive && ((offerPriceUsd !== null && usd <= offerPriceUsd) || usdPrice(usd, rate) <= offerPrice)) {
+      e.price = t('السعر يجب أن يبقى أعلى من سعر العرض الجاري ({0}). أنهِ العرض أولًا.', money(offerPrice));
+    }
+  } else if (f.priceMode === 'fixed') {
     const price = parseNumber(f.price);
     if (price === null || price <= 0) e.price = t('اكتب سعرًا أكبر من صفر، أو اختر «السعر عند الطلب».');
     else if (offerPrice !== null && offerActive && price <= offerPrice) e.price = t('السعر يجب أن يبقى أعلى من سعر العرض الجاري ({0}). أنهِ العرض أولًا.', money(offerPrice));
@@ -139,7 +173,7 @@ function validate(f: FormState, creating: boolean, offerPrice: number | null, of
     e.price = t('لا يمكن جعل السعر «عند الطلب» والمنتج عليه عرض جارٍ. أنهِ العرض أولًا.');
   }
   if (f.installation) {
-    const ip = parseNumber(f.installationPrice);
+    const ip = parseNumber(f.priceMode === 'usd' ? f.installationUsd : f.installationPrice);
     if (ip === null || ip <= 0) e.installationPrice = t('اكتب سعر التركيب (أكبر من صفر).');
   }
   if (creating) {
@@ -164,6 +198,7 @@ export function ProductEditPage() {
   const { id } = useParams();
   const creating = id === undefined;
   const { products, company, companyId, categories, pendingPayment } = useCompanyData();
+  const usdRate = company?.usdRate ?? null;
   const lookup = useCategoryLookup(categories);
   const product = creating ? undefined : products?.find((p) => p.id === id);
 
@@ -177,6 +212,7 @@ export function ProductEditPage() {
       product={product}
       companyId={companyId}
       companyName={company?.name ?? ''}
+      usdRate={usdRate}
       lookup={lookup}
       brands={[...new Set(products.map((p) => p.brand).filter(Boolean))]}
       demand={pendingPayment.filter((o) => o.productId === product?.id && !o.stockReserved).reduce((n, o) => n + o.quantity, 0)}
@@ -185,11 +221,13 @@ export function ProductEditPage() {
 }
 
 function Editor({
-  product, companyId, companyName, lookup, brands, demand,
+  product, companyId, companyName, usdRate, lookup, brands, demand,
 }: {
   product: Product | undefined;
   companyId: string;
   companyName: string;
+  /** The company's dollar rate; null until it sets one (on Today). */
+  usdRate: number | null;
   lookup: ReturnType<typeof useCategoryLookup>;
   brands: string[];
   demand: number;
@@ -208,9 +246,12 @@ function Editor({
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   const offerActive = !!product && hasActiveOffer(product);
-  const errors = useMemo(() => validate(form, creating, product?.offerPrice ?? null, offerActive), [form, creating, product?.offerPrice, offerActive]);
-  const baseDraft = useMemo(() => toDraft(base), [base]);
-  const draft = useMemo(() => toDraft(form), [form]);
+  const errors = useMemo(
+    () => validate(form, creating, product?.offerPrice ?? null, offerActive, usdRate, product?.offerPriceUsd ?? null),
+    [form, creating, product?.offerPrice, product?.offerPriceUsd, offerActive, usdRate],
+  );
+  const baseDraft = useMemo(() => toDraft(base, usdRate), [base, usdRate]);
+  const draft = useMemo(() => toDraft(form, usdRate), [form, usdRate]);
   const changes = creating ? [] : changedKeys(draft, baseDraft);
   const dirty = creating ? form.name.trim() !== '' || form.imageUrls.length > 0 : changes.length > 0;
 
@@ -238,8 +279,11 @@ function Editor({
         toast(t('تمت إضافة المنتج'), 'ok');
         navigate('/products');
       } else {
-        const offerStays = product.offerPrice !== null && draft.price !== null && draft.price > product.offerPrice;
-        const clearOffer = changes.includes('price') && product.offerPrice !== null && !offerStays;
+        // A dollar offer must also stay below the dollar price (the rules check both).
+        const offerStays =
+          product.offerPrice !== null && draft.price !== null && draft.price > product.offerPrice &&
+          (draft.priceUsd == null || product.offerPriceUsd === null || draft.priceUsd > product.offerPriceUsd);
+        const clearOffer = (changes.includes('price') || changes.includes('priceUsd')) && product.offerPrice !== null && !offerStays;
         const patch: Partial<ProductDraft> = {};
         for (const k of changes) Object.assign(patch, { [k]: draft[k] });
         await updateProductFields(product.id, patch, { clearOffer });
@@ -343,11 +387,24 @@ function Editor({
               <div className="card-b stack" style={{ gap: 16 }}>
                 <div className="row wrap">
                   <div className="seg" role="group" aria-label={t('طريقة التسعير')}>
-                    <button type="button" className={form.priceMode === 'fixed' ? 'on' : ''} onClick={() => set('priceMode', 'fixed')}>{t('سعر ثابت')}</button>
+                    <button type="button" className={form.priceMode === 'fixed' ? 'on' : ''} onClick={() => set('priceMode', 'fixed')}>{t('سعر بالجنيه')}</button>
+                    <button type="button" className={form.priceMode === 'usd' ? 'on' : ''} onClick={() => set('priceMode', 'usd')}>{t('سعر بالدولار')}</button>
                     <button type="button" className={form.priceMode === 'onRequest' ? 'on' : ''} onClick={() => set('priceMode', 'onRequest')}>{t('السعر عند الطلب')}</button>
                   </div>
                   <span className="hint">{t('«عند الطلب»: يتواصل العميل معك بدل الشراء المباشر.')}</span>
                 </div>
+                {form.priceMode === 'usd' && usdRate === null && (
+                  <Banner tone="warn" icon="alert" tight action={<Link to="/" className="btn sm">{t('إلى صفحة اليوم')}</Link>}>
+                    {t('حدّد سعر الدولار أولًا من بطاقة «سعر الدولار» في صفحة اليوم.')}
+                  </Banner>
+                )}
+                {form.priceMode === 'usd' && usdRate !== null && (
+                  <div className="fld" style={{ maxWidth: 320 }}>
+                    <label htmlFor="p-usd">{t('السعر بالدولار')}</label>
+                    <div className="sfx"><input id="p-usd" className={`inp ltr${showErr(errors.price) ? ' err' : ''}`} inputMode="decimal" value={form.usd} onChange={(e) => set('usd', e.target.value)} /><span>$</span></div>
+                    {draft.price !== null && <span className="hint num">{t('= {0} SDG بسعر 1$ = {1}', money(draft.price), usdText(usdRate))}</span>}
+                  </div>
+                )}
                 {form.priceMode === 'fixed' && (
                   <div className="fld" style={{ maxWidth: 320 }}>
                     <label htmlFor="p-price">{t('السعر')}</label>
@@ -375,7 +432,13 @@ function Editor({
                 <div className="row wrap">
                   <Switch on={form.installation} onChange={(v) => set('installation', v)} label={t('التركيب متاح')} />
                   <div className="grow"><div className="b">{t('التركيب متاح')}</div><div className="sub">{t('يظهر خيار التركيب للعميل ويحتاج فنيًا بعد تأكيد الدفع')}</div></div>
-                  {form.installation && (
+                  {form.installation && form.priceMode === 'usd' && (
+                    <div className="fld" style={{ width: 200 }}>
+                      <div className="sfx"><input className={`inp ltr${showErr(errors.installationPrice) ? ' err' : ''}`} inputMode="decimal" aria-label={t('سعر التركيب بالدولار')} value={form.installationUsd} onChange={(e) => set('installationUsd', e.target.value)} /><span>$</span></div>
+                      {draft.installationPrice !== null && usdRate !== null && <span className="hint num">{t('= {0} SDG', money(draft.installationPrice))}</span>}
+                    </div>
+                  )}
+                  {form.installation && form.priceMode !== 'usd' && (
                     <div className="fld" style={{ width: 200 }}>
                       <div className="sfx"><input className={`inp ltr${showErr(errors.installationPrice) ? ' err' : ''}`} inputMode="decimal" aria-label={t('سعر التركيب')} value={form.installationPrice} onChange={(e) => set('installationPrice', e.target.value)} /><span>SDG</span></div>
                     </div>

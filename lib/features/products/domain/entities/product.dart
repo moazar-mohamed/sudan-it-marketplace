@@ -26,6 +26,10 @@ class Product with OfferPricing {
     this.hidden = false,
     this.hiddenReason = '',
     this.status = 'published',
+    this.priceUsd,
+    this.offerPriceUsd,
+    this.installationPriceUsd,
+    this.usdRateApplied,
   });
 
   final String id;
@@ -79,6 +83,17 @@ class Product with OfferPricing {
   /// web panel does), so an edit here leaves it as it is.
   final String status;
 
+  /// What the company typed in US dollars, for a product it prices in dollars
+  /// (null otherwise). [price], [offerPrice] and [installationPrice] stay in
+  /// Sudanese pounds, worked out from the company's dollar rate
+  /// ([usdRateApplied]), so customers and orders read pounds as before.
+  final double? priceUsd;
+  final double? offerPriceUsd;
+  final double? installationPriceUsd;
+  final double? usdRateApplied;
+
+  bool get isPricedInUsd => priceUsd != null;
+
   /// The company has not taken this product off sale (a draft or an archived
   /// product is kept from customers).
   bool get isPublished => status == 'published';
@@ -122,14 +137,20 @@ class Product with OfferPricing {
     hidden: hidden,
     hiddenReason: hiddenReason,
     status: status,
+    priceUsd: priceUsd,
+    offerPriceUsd: offerPriceUsd,
+    installationPriceUsd: installationPriceUsd,
+    usdRateApplied: usdRateApplied,
   );
 
   /// This product with [offerPrice] until [offerEndsAt] under [badge]; a
-  /// `null` offer price removes the offer.
+  /// `null` offer price removes the offer. On a product priced in dollars,
+  /// [offerPriceUsd] is the offer as the company typed it.
   Product withOffer(
     double? offerPrice,
     DateTime? offerEndsAt, [
     OfferBadge? badge,
+    double? offerPriceUsd,
   ]) => Product(
     id: id,
     name: name,
@@ -155,5 +176,9 @@ class Product with OfferPricing {
     hidden: hidden,
     hiddenReason: hiddenReason,
     status: status,
+    priceUsd: priceUsd,
+    offerPriceUsd: offerPrice == null || priceUsd == null ? null : offerPriceUsd,
+    installationPriceUsd: installationPriceUsd,
+    usdRateApplied: usdRateApplied,
   );
 }

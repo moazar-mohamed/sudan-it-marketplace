@@ -18,7 +18,11 @@ enum PushCategory {
   platform,
 
   /// "A company now serves your city" (a customer only; a topic push).
-  cityAnnouncements;
+  cityAnnouncements,
+
+  /// "Your dollar rate is a day old", every 24 hours while a company with
+  /// dollar-priced products leaves its rate as it is (a company only).
+  usdRate;
 
   /// The key in `pushPrefs`.
   String get key => name;
@@ -38,6 +42,7 @@ enum PushCategory {
             serviceRequests,
             reports,
             platform,
+            usdRate,
           ],
         UserRole.technician => const [orders, chat],
         UserRole.platformAdmin => const [],

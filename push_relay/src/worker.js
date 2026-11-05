@@ -9,4 +9,10 @@ export default {
     relay ??= createRelay(env, { log: (line) => console.log(line) });
     return relay(request);
   },
+
+  // Every hour (wrangler.toml [triggers]): the 24-hour dollar rate reminders.
+  async scheduled(event, env, ctx) {
+    relay ??= createRelay(env, { log: (line) => console.log(line) });
+    ctx.waitUntil(relay.remindUsdRates());
+  },
 };

@@ -321,6 +321,9 @@ void main() {
       await tester.pumpWidget(_shell(orders: _orders));
       await tester.pumpAndSettle();
 
+      // The dollar rate card comes first on Home, so the tile may be lower.
+      await tester.ensureVisible(find.text('Installation Jobs'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Installation Jobs'));
       await tester.pumpAndSettle();
       expect(_barIndex(tester), 1);
@@ -353,6 +356,8 @@ void main() {
       expect(recorder.companies, hasLength(1));
 
       // Opening Orders from a dashboard tile runs it too.
+      await tester.ensureVisible(find.text('Installation Jobs'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Installation Jobs'));
       await tester.pumpAndSettle();
       expect(recorder.companies, [_companyId, _companyId]);

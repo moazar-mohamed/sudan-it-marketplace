@@ -56,7 +56,16 @@ class ProductModel {
       status: map['status'] == 'draft' || map['status'] == 'archived'
           ? map['status'] as String
           : 'published',
+      priceUsd: _positive(map['priceUsd']),
+      offerPriceUsd: _positive(map['offerPriceUsd']),
+      installationPriceUsd: _positive(map['installationPriceUsd']),
+      usdRateApplied: _positive(map['usdRateApplied']),
     );
+  }
+
+  static double? _positive(Object? value) {
+    final number = value is num ? value.toDouble() : null;
+    return number != null && number > 0 ? number : null;
   }
 
   /// Fields shared by create and update. Installation price is stored only
@@ -92,6 +101,17 @@ class ProductModel {
       'offerBadge': product.offerPrice == null
           ? null
           : product.offerBadge?.name,
+      // A product priced in dollars keeps what the company typed, beside the
+      // pounds above (worked out from usdRateApplied); null in pounds.
+      'priceUsd': product.priceUsd,
+      'offerPriceUsd': product.offerPrice == null || product.priceUsd == null
+          ? null
+          : product.offerPriceUsd,
+      'installationPriceUsd':
+          product.isInstallationAvailable && product.priceUsd != null
+              ? product.installationPriceUsd
+              : null,
+      'usdRateApplied': product.priceUsd == null ? null : product.usdRateApplied,
     };
   }
 }

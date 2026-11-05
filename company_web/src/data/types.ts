@@ -42,6 +42,15 @@ export interface Product {
   imageUrls: string[];
   /** The order the specifications are shown in (Firestore keeps map keys alphabetically). */
   specificationsOrder: string[];
+  /**
+   * What the company typed in US dollars, for a product it prices in dollars
+   * (null otherwise). price, offerPrice and installationPrice stay in pounds,
+   * worked out from the company's dollar rate (usdRateApplied).
+   */
+  priceUsd: number | null;
+  offerPriceUsd: number | null;
+  installationPriceUsd: number | null;
+  usdRateApplied: number | null;
 }
 
 export type ProductStatus = 'published' | 'draft' | 'archived';
@@ -117,6 +126,10 @@ export interface Company {
   serviceCityIds: string[];
   rating: number;
   reviewCount: number;
+  /** How many pounds one US dollar costs the company; null until it sets one. */
+  usdRate: number | null;
+  /** When usdRate was last set or confirmed. */
+  usdRateUpdatedAt: Date | null;
 }
 
 export interface Category {

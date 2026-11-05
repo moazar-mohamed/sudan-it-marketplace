@@ -3,8 +3,8 @@
 import assert from 'node:assert/strict';
 import { beforeEach, describe, it } from 'node:test';
 
-import { createRelay } from '../src/relay.js';
-import { chatMessageText, orderNotificationText } from '../src/texts.js';
+import { createRelay, isNightInSudan } from '../src/relay.js';
+import { chatMessageText, orderNotificationText, usdRateReminderText } from '../src/texts.js';
 
 const NOW = Date.parse('2026-09-29T12:00:00Z');
 const PROJECT = 'demo-project';
@@ -85,9 +85,18 @@ function fakeGoogle() {
       const where = body.structuredQuery.where;
       const filters = where.compositeFilter ? where.compositeFilter.filters : [where];
       const collection = body.structuredQuery.from[0].collectionId;
+      const passes = (data, f) => {
+        const field = data[f.fieldFilter.field.fieldPath];
+        const value = fromValue(f.fieldFilter.value);
+        if (f.fieldFilter.op === 'LESS_THAN_OR_EQUAL') {
+          return field instanceof Date && value instanceof Date ? field <= value : typeof field === 'number' && field <= value;
+        }
+        return field === value;
+      };
       const rows = [...docs.entries()]
         .filter(([key]) => key.split('/').length === 2 && key.startsWith(`${collection}/`))
-        .filter(([, data]) => filters.every((f) => data[f.fieldFilter.field.fieldPath] === fromValue(f.fieldFilter.value)))
+        .filter(([, data]) => filters.every((f) => passes(data, f)))
+        .slice(0, body.structuredQuery.limit ?? Infinity)
         .map(([key, data]) => ({ document: { name: `projects/x${prefix.slice(3)}/${key}`, fields: toValue(data).mapValue.fields } }));
       return json(200, rows.length ? rows : [{ readTime: 'now' }]);
     }
@@ -698,5 +707,176 @@ describe('the technician job notifications', () => {
     assert.equal(orderNotificationText({ type: 'job_cancelled', productName: 'Router' }, 'ar').title, 'تم إلغاء المهمة');
     assert.equal(orderNotificationText({ type: 'job_completed', productName: 'Router' }, 'en').title, 'Installation completed');
     assert.equal(orderNotificationText({ type: 'job_completed' }, 'en'), null);
+  });
+});
+
+describe('the 24-hour dollar rate reminder', () => {
+  const hoursAgo = (n, from = NOW) => new Date(from - n * 3600 * 1000);
+  const relayAt = (ms) =>
+    createRelay(
+      { PROJECT_ID: PROJECT, FIREBASE_API_KEY: 'k', SERVICE_ACCOUNT_JSON: JSON.stringify(serviceAccount) },
+      { fetch: google.fetch, now: () => ms },
+    );
+
+  beforeEach(() => {
+    google.docs.set('companies/c1', { status: 'active', usdRate: 3000, usdRateUpdatedAt: hoursAgo(25) });
+    google.docs.set('products/p1', { companyId: 'c1', price: 750000, priceUsd: 250, usdRateApplied: 3000 });
+  });
+
+  it("reminds every admin of a company whose rate is a day old, in their language, opening Home", async () => {
+    const result = await relay.remindUsdRates();
+    assert.deepEqual(result, { companies: 1, sent: 3, failed: 0 });
+    const toCa1 = google.sent.find((m) => m.token === 'phone-ca1');
+    assert.equal(toCa1.data.type, 'usd_rate_reminder');
+    assert.equal(toCa1.data.companyId, 'c1');
+    assert.equal(toCa1.android.notification.tag, 'usd_rate');
+    assert.match(toCa1.notification.body, /3,000/);
+    assert.equal(toCa1.notification.title, 'سعر الدولار');
+    assert.equal(google.sent.find((m) => m.token === 'phone-ca1b').notification.title, 'Dollar rate');
+    assert.ok(google.docs.get('companies/c1').usdRateRemindedAt instanceof Date);
+  });
+
+  it('comes once every 24 hours, not every hour', async () => {
+    await relay.remindUsdRates();
+    google.sent.length = 0;
+    assert.equal((await relayAt(NOW + 3600 * 1000).remindUsdRates()).sent, 0);
+    assert.equal((await relayAt(NOW + 24 * 3600 * 1000).remindUsdRates()).sent, 3);
+  });
+
+  it('a rate set or confirmed in the last 24 hours is not reminded', async () => {
+    google.docs.get('companies/c1').usdRateUpdatedAt = hoursAgo(23);
+    assert.equal((await relay.remindUsdRates()).companies, 0);
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('confirming the rate after a reminder starts the 24 hours again', async () => {
+    const company = google.docs.get('companies/c1');
+    company.usdRateRemindedAt = hoursAgo(30);
+    company.usdRateUpdatedAt = hoursAgo(26);
+    assert.equal((await relay.remindUsdRates()).sent, 3);
+  });
+
+  it('never at night in Sudan (22:00 to 08:00)', async () => {
+    // 21:00 UTC is 23:00 in Sudan.
+    const night = Date.parse('2026-09-29T21:00:00Z');
+    google.docs.get('companies/c1').usdRateUpdatedAt = hoursAgo(25, night);
+    assert.equal((await relayAt(night).remindUsdRates()).sent, 0);
+    assert.equal(isNightInSudan(Date.parse('2026-09-29T05:59:00Z')), true);
+    assert.equal(isNightInSudan(Date.parse('2026-09-29T06:00:00Z')), false);
+  });
+
+  it('only a company that prices products in dollars', async () => {
+    google.docs.delete('products/p1');
+    assert.equal((await relay.remindUsdRates()).companies, 0);
+  });
+
+  it('only an active company', async () => {
+    google.docs.get('companies/c1').status = 'inactive';
+    assert.equal((await relay.remindUsdRates()).companies, 0);
+  });
+
+  it('leaves out the admins who switched the reminder off', async () => {
+    google.docs.get('users/ca1').pushPrefs = { usdRate: false };
+    const result = await relay.remindUsdRates();
+    assert.equal(result.sent, 2);
+    assert.ok(!google.sent.some((m) => m.token === 'phone-ca1'));
+  });
+
+  it('from two days on it warns that the dollar prices may be wrong', () => {
+    assert.match(usdRateReminderText(3000, 3, 'en').body, /3 days old/);
+    assert.match(usdRateReminderText(3000, 3, 'ar').body, /ممكن تكون غلط/);
+    assert.match(usdRateReminderText(3250.5, 1, 'en').body, /3,250.5 SDG from yesterday/);
+  });
+});
+
+describe('notices to the Platform Admins', () => {
+  beforeEach(() => {
+    const put = (key, data) => google.docs.set(key, data);
+    put('users/admin1', { role: 'platform_admin', isActive: true, language: 'ar', fcmTokens: ['browser-admin1'] });
+    put('users/admin2', { role: 'platform_admin', isActive: true, fcmTokens: ['browser-admin2'] });
+    put('users/adminOff', { role: 'platform_admin', isActive: false, fcmTokens: ['browser-adminOff'] });
+    put('notifications/r1_new_report', {
+      recipientType: 'platform_admin', recipientId: 'platform', reportId: 'r1', type: 'new_report',
+      productName: 'Late delivery', senderId: 'cust1', createdAt: minutesAgo(1),
+    });
+    put('notifications/v1_low_review', {
+      recipientType: 'platform_admin', recipientId: 'platform', reviewId: 'v1', type: 'low_review',
+      productName: 'Printer X', senderId: 'cust1', createdAt: minutesAgo(1),
+    });
+  });
+
+  it('a new report reaches every Platform Admin whose account is on, in their language, and opens the report', async () => {
+    const result = await call({ notificationId: 'r1_new_report' });
+    assert.deepEqual(result.body, { sent: 2, failed: 0 });
+    const byToken = Object.fromEntries(google.sent.map((m) => [m.token, m]));
+    assert.deepEqual(Object.keys(byToken).sort(), ['browser-admin1', 'browser-admin2']);
+    assert.equal(byToken['browser-admin1'].notification.title, 'بلاغ جديد');
+    assert.match(byToken['browser-admin1'].notification.body, /Late delivery/);
+    assert.equal(byToken['browser-admin2'].notification.title, 'New report');
+    assert.deepEqual(byToken['browser-admin2'].data, {
+      type: 'new_report', notificationId: 'r1_new_report', reportId: 'r1', recipientType: 'platform_admin',
+    });
+  });
+
+  it('a low rating names what was rated and opens the review', async () => {
+    const result = await call({ notificationId: 'v1_low_review' });
+    assert.equal(result.body.sent, 2);
+    const message = google.sent.find((m) => m.token === 'browser-admin2');
+    assert.equal(message.notification.title, 'Low rating');
+    assert.match(message.notification.body, /Printer X/);
+    assert.equal(message.data.reviewId, 'v1');
+  });
+
+  it('only for the person who wrote it, and only once', async () => {
+    assert.equal((await call({ notificationId: 'r1_new_report' }, 'token-cust2')).status, 403);
+    await call({ notificationId: 'r1_new_report' });
+    assert.deepEqual((await call({ notificationId: 'r1_new_report' })).body, { skipped: 'already_sent' });
+    assert.equal(google.sent.length, 2);
+  });
+
+  it('goes to nobody when it is not addressed to the whole team', async () => {
+    google.docs.get('notifications/r1_new_report').recipientId = 'admin1';
+    assert.deepEqual((await call({ notificationId: 'r1_new_report' })).body, { sent: 0, failed: 0 });
+  });
+
+  it('follows the reports and platform switches', async () => {
+    google.docs.get('users/admin1').pushPrefs = { reports: false };
+    google.docs.get('users/admin2').pushPrefs = { platform: false };
+    await call({ notificationId: 'r1_new_report' });
+    await call({ notificationId: 'v1_low_review' });
+    assert.deepEqual(google.sent.map((m) => `${m.token}:${m.data.type}`).sort(), [
+      'browser-admin1:low_review',
+      'browser-admin2:new_report',
+    ]);
+  });
+
+  it('both kinds have words in both languages that name the subject', () => {
+    for (const type of ['new_report', 'low_review']) {
+      for (const language of ['ar', 'en']) {
+        const text = orderNotificationText({ type, productName: 'Subject' }, language);
+        assert.ok(text?.title, `${type} ${language}`);
+        assert.match(text.body, /Subject/);
+      }
+    }
+  });
+});
+
+describe('the browser part of every push', () => {
+  it('carries the icon and asks for delivery at once', async () => {
+    await call({ notificationId: 'n1' });
+    for (const message of google.sent) {
+      assert.equal(message.webpush.headers.Urgency, 'high');
+      assert.match(message.webpush.notification.icon, /^https:\/\/.+\.png$/);
+      assert.equal(message.webpush.notification.tag, undefined);
+    }
+  });
+
+  it('keeps one notice per conversation, which a newer message replaces', async () => {
+    await call({ chatId: 'chat1', messageId: 'm1' });
+    assert.ok(google.sent.length > 0);
+    for (const message of google.sent) {
+      assert.equal(message.webpush.notification.tag, 'chat_chat1');
+      assert.equal(message.webpush.notification.renotify, true);
+    }
   });
 });

@@ -111,6 +111,16 @@ const ORDER_TEXTS = {
     en: ['Your account is now a company account', (p) => `"${p}" is ready. Sign in again to manage your company.`],
     ar: ['أصبح حسابك حساب شركة', (p) => `شركة «${p}» جاهزة. سجّل الدخول من جديد لإدارتها.`],
   },
+  // To the Platform Admins: a new report (the quoted name is its subject) and
+  // a 1 or 2 star rating (the quoted name is what was rated).
+  new_report: {
+    en: ['New report', (p) => `A new report arrived: "${p}".`],
+    ar: ['بلاغ جديد', (p) => `وصل بلاغ جديد: «${p}».`],
+  },
+  low_review: {
+    en: ['Low rating', (p) => `A customer gave "${p}" a low rating.`],
+    ar: ['تقييم ضعيف', (p) => `أعطى عميل «${p}» تقييماً ضعيفاً.`],
+  },
 };
 
 // The kinds of phone notification a person can switch off (users/{uid}.pushPrefs,
@@ -140,6 +150,10 @@ const CATEGORY_OF_TYPE = {
   product_hidden: 'platform',
   product_shown: 'platform',
   account_converted_to_company: 'platform',
+  usd_rate_reminder: 'usdRate',
+  // A Platform Admin switches these off as "reports" and "platform".
+  new_report: 'reports',
+  low_review: 'platform',
 };
 
 /** The switchable kind a notification type belongs to, or null. */
@@ -217,6 +231,35 @@ export function cityAnnouncementText(companyName, cityNameText, language) {
   return language === 'ar'
     ? { title: 'شركة جديدة في مدينتك', body: `أصبحت «${company}» تخدم ${cityNameText}.` }
     : { title: 'A new company in your city', body: `"${company}" now serves ${cityNameText}.` };
+}
+
+/**
+ * "Your dollar rate is a day old": the company's own rate and how many whole
+ * days ago it was set or confirmed. From two days on it warns that the dollar
+ * prices may be wrong.
+ */
+export function usdRateReminderText(rate, days, language) {
+  const value = Number(rate).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  if (language === 'ar') {
+    return days >= 2
+      ? {
+          title: 'سعر الدولار قديم',
+          body: `سعر الدولار عندك ${value} SDG من ${days} أيام، أسعار منتجاتك بالدولار ممكن تكون غلط. حدّثه من الرئيسية.`,
+        }
+      : {
+          title: 'سعر الدولار',
+          body: `سعر الدولار عندك ${value} SDG من أمس. لسه نفسو؟ حدّثه أو أكّده من الرئيسية.`,
+        };
+  }
+  return days >= 2
+    ? {
+        title: 'Your dollar rate is old',
+        body: `Your dollar rate of ${value} SDG is ${days} days old: your dollar prices may be wrong. Update it on Home.`,
+      }
+    : {
+        title: 'Dollar rate',
+        body: `Your dollar rate is still ${value} SDG from yesterday. Same today? Update or confirm it on Home.`,
+      };
 }
 
 /** 'ar' or 'en'; anything else falls back to English, like the app. */

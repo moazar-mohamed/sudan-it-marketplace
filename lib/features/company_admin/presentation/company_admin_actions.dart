@@ -16,6 +16,7 @@ import '../../orders/domain/entities/order_entity.dart';
 import '../../orders/presentation/order_error_message.dart';
 import '../../orders/presentation/orders_providers.dart';
 import '../../products/domain/entities/product.dart';
+import '../../products/domain/usd_pricing.dart';
 import '../../products/presentation/products_providers.dart';
 import '../../services/domain/exceptions/service_exception.dart';
 import '../../services/presentation/service_providers.dart';
@@ -163,6 +164,44 @@ class CompanyAdminActions {
       () => _ref.read(companiesRepositoryProvider).updateCompanyProfile(company),
     );
   }
+
+  /// Sets the company's dollar rate (confirming the one it has when [rate]
+  /// is the same) and works out again, in the same writes, the pounds of
+  /// every product of [products] priced in dollars that does not use it yet.
+  Future<String?> setUsdRate(
+    String companyId,
+    double rate,
+    List<Product> products,
+  ) {
+    return _guard(
+      () => _ref
+          .read(companiesRepositoryProvider)
+          .setUsdRate(companyId, rate, _repricing(products, rate)),
+    );
+  }
+
+  /// Brings to [rate] the dollar-priced products an earlier rewrite missed
+  /// (the connection dropped half way). A best-effort background step: it
+  /// never throws; whatever it misses is tried again next time.
+  Future<void> repriceStaleProducts(double rate, List<Product> products) async {
+    final repricing = _repricing(products, rate);
+    if (repricing.isEmpty) return;
+    try {
+      await _ref.read(companiesRepositoryProvider).repriceProducts(repricing);
+    } catch (error) {
+      debugLog('CompanyAdminActions', 'repriceStaleProducts failed: $error');
+    }
+  }
+
+  static Map<String, Map<String, Object?>> _repricing(
+    List<Product> products,
+    double rate,
+  ) =>
+      {
+        for (final product in products)
+          if (UsdPricing.needsRepricing(product, rate))
+            product.id: UsdPricing.repricedFields(product, rate),
+      };
 
   Future<String?> updatePaymentAccounts(
     String companyId,

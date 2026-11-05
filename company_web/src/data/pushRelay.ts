@@ -11,7 +11,23 @@ import { auth } from '../firebase';
 export const PUSH_RELAY_URL: string =
   (import.meta.env.VITE_PUSH_RELAY_URL as string | undefined) ?? 'https://sudan-it-push.moazermohamed528.workers.dev';
 
-/** Asks the relay to push [notificationId] to the recipient's phones. Never throws. */
+/** Asks the relay to push a chat message this person just sent (to the customer's phones and browsers). Never throws. */
+export async function pushChatMessage(chatId: string, messageId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> {
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) return false;
+    const response = await fetchImpl(`${PUSH_RELAY_URL}/push`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatId, messageId }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Asks the relay to push [notificationId] to the recipient's phones and browsers. Never throws. */
 export async function pushToPhone(notificationId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> {
   try {
     const token = await auth.currentUser?.getIdToken();

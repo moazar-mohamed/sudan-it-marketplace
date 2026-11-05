@@ -71,8 +71,17 @@ export function mapProduct(id: string, d: DocumentData): Product {
     createdAt: toDate(d.createdAt),
     hidden: d.hidden === true,
     hiddenReason: str(d.hiddenReason),
+    priceUsd: positiveOrNull(d.priceUsd),
+    offerPriceUsd: positiveOrNull(d.offerPriceUsd),
+    installationPriceUsd: positiveOrNull(d.installationPriceUsd),
+    usdRateApplied: positiveOrNull(d.usdRateApplied),
   };
 }
+
+const positiveOrNull = (v: unknown): number | null => {
+  const value = numOrNull(v);
+  return value !== null && value > 0 ? value : null;
+};
 
 const orderStatus = (v: unknown): OrderStatus =>
   v === 'out_for_delivery' || v === 'completed' || v === 'cancelled' ? v : 'processing';
@@ -170,6 +179,8 @@ export function mapCompany(id: string, d: DocumentData): Company {
     serviceCityIds: strList(d.serviceCityIds),
     rating: n(d.rating, 0),
     reviewCount: Math.trunc(n(d.reviewCount, 0)),
+    usdRate: positiveOrNull(d.usdRate),
+    usdRateUpdatedAt: toDate(d.usdRateUpdatedAt),
   };
 }
 

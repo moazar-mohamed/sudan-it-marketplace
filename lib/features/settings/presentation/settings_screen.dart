@@ -147,6 +147,7 @@ class SettingsScreen extends ConsumerWidget {
         PushCategory.reports => Icons.flag_outlined,
         PushCategory.platform => Icons.campaign_outlined,
         PushCategory.cityAnnouncements => Icons.location_city_outlined,
+        PushCategory.usdRate => Icons.currency_exchange_rounded,
       };
 
   String _pushKindTitle(AppLocalizations l10n, PushCategory kind) => switch (kind) {
@@ -156,6 +157,7 @@ class SettingsScreen extends ConsumerWidget {
         PushCategory.reports => l10n.pushKindReports,
         PushCategory.platform => l10n.pushKindPlatform,
         PushCategory.cityAnnouncements => l10n.pushKindCity,
+        PushCategory.usdRate => l10n.pushKindUsdRate,
       };
 
   String _pushKindHint(AppLocalizations l10n, PushCategory kind) => switch (kind) {
@@ -165,6 +167,7 @@ class SettingsScreen extends ConsumerWidget {
         PushCategory.reports => l10n.pushKindReportsHint,
         PushCategory.platform => l10n.pushKindPlatformHint,
         PushCategory.cityAnnouncements => l10n.pushKindCityHint,
+        PushCategory.usdRate => l10n.pushKindUsdRateHint,
       };
 
   Future<void> _pickLanguage(

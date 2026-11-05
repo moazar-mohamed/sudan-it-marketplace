@@ -127,6 +127,17 @@ h1,h2,h3,p{margin:0}
 .kpi .lbl{color:var(--muted);font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px}
 .kpi .val{font-size:30px;font-weight:800;line-height:1.25}
 .kpi .val small{font-size:13px;font-weight:600;color:var(--muted)}
+/* The dollar rate card, first on Today: its colour follows the rate's age. */
+.usd-card{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;padding:18px 20px;margin-bottom:20px}
+.usd-card .grow{min-width:240px}
+.usd-card .lbl{color:var(--muted);font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px}
+.usd-card .rate{font-size:30px;font-weight:800;line-height:1.25;text-align:start}
+.usd-card .say{display:flex;align-items:center;gap:8px;margin-top:6px;font-weight:700}
+.usd-card.ok{background:var(--ok-bg);border-color:var(--ok)}
+.usd-card.warn{background:var(--warn-bg);border-color:var(--warn)}
+.usd-card.warn .say{color:var(--warn)}
+.usd-card.bad{background:var(--bad-bg);border-color:var(--bad)}
+.usd-card.bad .say{color:var(--bad);font-size:16px}
 .banner{display:flex;gap:12px;padding:14px 16px;border-radius:12px;align-items:flex-start;flex-wrap:wrap}
 .banner.tight{padding:10px 14px}
 .banner .i{margin-top:3px}

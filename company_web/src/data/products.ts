@@ -16,6 +16,7 @@ import { db } from '../firebase';
 import { mapOrder } from './mappers';
 import { nextStock, type StockMode } from './stock';
 import type { OfferBadge, Order, Product, ProductStatus } from './types';
+import { usdPrice } from './usdPricing';
 
 export interface ProductDraft {
   name: string;
@@ -35,12 +36,22 @@ export interface ProductDraft {
   status: ProductStatus;
   sku: string;
   lowStockThreshold: number | null;
+  /**
+   * A product priced in dollars: what the company typed, beside the pounds in
+   * price / installationPrice, and the rate those were worked out with. All
+   * null (or left out) for a product priced in pounds.
+   */
+  priceUsd?: number | null;
+  installationPriceUsd?: number | null;
+  usdRateApplied?: number | null;
 }
 
 export interface OfferDraft {
   offerPrice: number | null;
   offerEndsAt: Date | null;
   offerBadge: OfferBadge | null;
+  /** The offer in dollars, on a product priced in dollars. */
+  offerPriceUsd?: number | null;
 }
 
 const cleanSpecs = (specs: Record<string, string>): Record<string, string> => {
@@ -57,6 +68,7 @@ const offerFields = (offer: OfferDraft) => ({
   offerPrice: offer.offerPrice,
   offerEndsAt: offer.offerPrice === null || !offer.offerEndsAt ? null : Timestamp.fromDate(offer.offerEndsAt),
   offerBadge: offer.offerPrice === null ? null : offer.offerBadge,
+  offerPriceUsd: offer.offerPrice === null ? null : offer.offerPriceUsd ?? null,
 });
 
 /** A new product, with the exact set of fields the security rules accept. */
@@ -90,6 +102,9 @@ export async function createProduct(
     isInstallationAvailable: draft.isInstallationAvailable,
     installationPrice: draft.isInstallationAvailable ? draft.installationPrice : null,
     ...offerFields({ offerPrice: null, offerEndsAt: null, offerBadge: null }),
+    priceUsd: draft.priceUsd ?? null,
+    installationPriceUsd: draft.isInstallationAvailable && draft.priceUsd != null ? draft.installationPriceUsd ?? null : null,
+    usdRateApplied: draft.priceUsd != null ? draft.usdRateApplied ?? null : null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -136,6 +151,14 @@ export async function updateProductFields(
   if (changes.installationPrice !== undefined && changes.isInstallationAvailable !== false) {
     fields.installationPrice = changes.installationPrice;
   }
+  if (changes.priceUsd !== undefined) {
+    fields.priceUsd = changes.priceUsd;
+    // Back to pounds: nothing in dollars stays behind.
+    if (changes.priceUsd === null) Object.assign(fields, { offerPriceUsd: null, installationPriceUsd: null, usdRateApplied: null });
+  }
+  if (changes.usdRateApplied !== undefined && changes.priceUsd !== null) fields.usdRateApplied = changes.usdRateApplied;
+  if (changes.installationPriceUsd !== undefined && changes.priceUsd !== null) fields.installationPriceUsd = changes.installationPriceUsd;
+  if (changes.isInstallationAvailable === false) fields.installationPriceUsd = null;
   if (changes.inStock !== undefined) fields.inStock = changes.inStock;
   if (Object.keys(fields).length === 0) return;
   await updateDoc(doc(db, 'products', id), { ...fields, updatedAt: serverTimestamp() });
@@ -154,6 +177,29 @@ export async function setPrice(product: Pick<Product, 'id' | 'offerPrice' | 'off
   await updateDoc(doc(db, 'products', product.id), {
     price,
     ...(clearOffer ? { offerPrice: null, offerEndsAt: null, offerBadge: null } : {}),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Changes the dollar price of a product priced in dollars, with its pounds
+ * worked out at the company's [rate]. A running offer must stay below it, in
+ * dollars and in pounds; an offer that already ended is cleared with it.
+ */
+export async function setUsdPrice(
+  product: Pick<Product, 'id' | 'offerPrice' | 'offerEndsAt' | 'offerPriceUsd'>,
+  usd: number,
+  rate: number,
+): Promise<void> {
+  const price = usdPrice(usd, rate);
+  const below = product.offerPrice !== null && (price <= product.offerPrice || (product.offerPriceUsd !== null && usd <= product.offerPriceUsd));
+  const offerStillRuns = product.offerPrice !== null && (product.offerEndsAt === null || Date.now() < product.offerEndsAt.getTime());
+  if (below && offerStillRuns) throw new PriceBelowOffer(product.offerPrice as number);
+  await updateDoc(doc(db, 'products', product.id), {
+    priceUsd: usd,
+    price,
+    usdRateApplied: rate,
+    ...(below ? { offerPrice: null, offerEndsAt: null, offerBadge: null, offerPriceUsd: null } : {}),
     updatedAt: serverTimestamp(),
   });
 }

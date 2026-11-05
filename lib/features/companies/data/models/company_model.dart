@@ -39,6 +39,12 @@ class CompanyModel {
             ? map['serviceCityIds'] as List
             : const <Object?>[],
       ),
+      usdRate: map['usdRate'] is num && (map['usdRate'] as num) > 0
+          ? (map['usdRate'] as num).toDouble()
+          : null,
+      usdRateUpdatedAt: map['usdRateUpdatedAt'] is Timestamp
+          ? (map['usdRateUpdatedAt'] as Timestamp).toDate()
+          : null,
     );
   }
 

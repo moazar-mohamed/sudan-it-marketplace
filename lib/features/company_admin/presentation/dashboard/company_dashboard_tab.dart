@@ -21,6 +21,7 @@ import '../profile/edit_company_profile_screen.dart';
 import '../products/company_product_details_screen.dart';
 import '../reviews/company_reviews_screen.dart';
 import '../widgets/company_order_tile.dart';
+import 'usd_rate_card.dart';
 
 /// A product with this many units or fewer counts as low on stock.
 const lowStockThreshold = 3;
@@ -126,6 +127,13 @@ class CompanyDashboardTab extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // The dollar rate comes first: the one place it is kept.
+                  UsdRateCard(
+                    companyId: companyId,
+                    company: company,
+                    products: productsAsync.asData?.value,
+                  ),
+                  if (company != null) const SizedBox(height: AppSpacing.s16),
                   if (needsCities) ...[
                     AppBanner(
                       key: const ValueKey('company-needs-cities'),

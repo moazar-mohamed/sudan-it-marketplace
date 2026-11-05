@@ -2105,5 +2105,127 @@
   "favoriteRemove": "Remove from favorites",
   "favoriteUnavailable": "Not available right now",
   "favoriteSaveFailed": "Could not save the change. Please try again.",
-  "favoritesLoadFailed": "Could not load your favorites."
+  "favoritesLoadFailed": "Could not load your favorites.",
+  "usdRateTitle": "Dollar rate",
+  "usdRateValue": "$1 = {rate} SDG",
+  "@usdRateValue": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "usdRateNotSetTitle": "Set your dollar rate",
+  "usdRateNotSetBody": "Price your products in dollars. Whenever you change the rate here, all their SDG prices update.",
+  "usdRateSet": "Set the rate",
+  "usdRateSame": "Same rate",
+  "usdRateEdit": "Change",
+  "usdRateUpdatedToday": "Updated today at {time}",
+  "@usdRateUpdatedToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "usdRateUpdatedYesterday": "Last updated yesterday at {time}",
+  "@usdRateUpdatedYesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "usdRateUpdatedDaysAgo": "Last updated {days, plural, =1{1 day} other{{days} days}} ago",
+  "@usdRateUpdatedDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "usdRateDue": "Time to update the dollar rate",
+  "usdRateStale": "The dollar rate is old: your dollar prices may be wrong",
+  "usdRateProducts": "{count, plural, =0{No products in dollars yet} =1{1 product in dollars} other{{count} products in dollars}}",
+  "@usdRateProducts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "usdRateConfirmed": "Dollar rate confirmed.",
+  "usdRateSaved": "Dollar rate saved.",
+  "usdRateSaveFailed": "Could not save the dollar rate. Please try again.",
+  "usdRateFieldLabel": "How many SDG is one dollar?",
+  "usdRateInvalid": "Enter a rate between 1 and 1,000,000.",
+  "usdRatePreview": "{count, plural, =1{1 product price will change.} other{{count} product prices will change.}} For example {name}: {from} → {to}",
+  "@usdRatePreview": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "usdRateNoProducts": "No products in dollars yet: choose “In dollars” on a product.",
+  "usdRateBigChangeTitle": "Is this rate right?",
+  "usdRateBigChangeBody": "The new rate {to} is {percent}% away from {from}.",
+  "@usdRateBigChangeBody": {
+    "placeholders": {
+      "to": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "usdRateBigChangeConfirm": "Yes, save it",
+  "usdRateSave": "Save the rate",
+  "usdRateReminder": "Remind me to update the dollar rate",
+  "usdRateReminderHint": "A phone notification every 24 hours while the rate is not updated",
+  "pushKindUsdRate": "Dollar rate reminder",
+  "pushKindUsdRateHint": "Every 24 hours while your dollar rate is not updated",
+  "formPriceCurrency": "Price in",
+  "formPriceInSdg": "SDG",
+  "formPriceInUsd": "Dollars",
+  "formPriceUsd": "Price ($)",
+  "formPriceUsdRequired": "Enter the price in dollars.",
+  "formInstallationPriceUsd": "Installation price ($)",
+  "formUsdEquals": "= {price} SDG at $1 = {rate}",
+  "@formUsdEquals": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "formUsdNeedsRate": "Set your dollar rate first.",
+  "offerModePriceUsd": "New price ($)",
+  "usdPriceLabel": "{usd} $ at $1 = {rate} SDG",
+  "@usdPriceLabel": {
+    "placeholders": {
+      "usd": {
+        "type": "String"
+      },
+      "rate": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -151,6 +151,9 @@ void main() {
       ]);
       expect(PushCategory.forRole(UserRole.companyAdmin), contains(PushCategory.platform));
       expect(PushCategory.forRole(UserRole.companyAdmin), isNot(contains(PushCategory.cityAnnouncements)));
+      // The dollar-rate reminder is for companies only.
+      expect(PushCategory.forRole(UserRole.companyAdmin), contains(PushCategory.usdRate));
+      expect(PushCategory.forRole(UserRole.customer), isNot(contains(PushCategory.usdRate)));
       expect(PushCategory.forRole(UserRole.technician), [PushCategory.orders, PushCategory.chat]);
       expect(PushCategory.forRole(UserRole.platformAdmin), isEmpty);
     });
@@ -158,7 +161,7 @@ void main() {
     test('the keys are the ones the rules and the relay know', () {
       expect(
         PushCategory.values.map((c) => c.key).toSet(),
-        {'orders', 'chat', 'serviceRequests', 'reports', 'platform', 'cityAnnouncements'},
+        {'orders', 'chat', 'serviceRequests', 'reports', 'platform', 'cityAnnouncements', 'usdRate'},
       );
     });
 

@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
-/// How many of a user's phones are remembered (the newest ones).
-const maxPushTokens = 5;
+/// How many of a user's devices are remembered (the newest ones): their
+/// phones and, since the web sites send pushes too, their browsers.
+/// firestore.rules allows at most 10.
+const maxPushTokens = 8;
 
 /// [existing] with [token] moved (or added) last, keeping the newest
 /// [maxPushTokens]. A phone that is used again stays; one never seen again

@@ -4052,4 +4052,168 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get favoritesLoadFailed => 'تعذر تحميل المفضلة.';
+
+  @override
+  String get usdRateTitle => 'سعر الدولار';
+
+  @override
+  String usdRateValue(String rate) {
+    return '1\$ = $rate جنيه';
+  }
+
+  @override
+  String get usdRateNotSetTitle => 'حدّد سعر الدولار';
+
+  @override
+  String get usdRateNotSetBody =>
+      'سعّر منتجاتك بالدولار. كل مرة تغيّر السعر هنا، تتحدّث أسعارها كلها بالجنيه.';
+
+  @override
+  String get usdRateSet => 'حدّد السعر';
+
+  @override
+  String get usdRateSame => 'السعر نفسه';
+
+  @override
+  String get usdRateEdit => 'تعديل';
+
+  @override
+  String usdRateUpdatedToday(String time) {
+    return 'محدّث اليوم $time';
+  }
+
+  @override
+  String usdRateUpdatedYesterday(String time) {
+    return 'آخر تحديث أمس $time';
+  }
+
+  @override
+  String usdRateUpdatedDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم',
+    );
+    return 'آخر تحديث قبل $_temp0';
+  }
+
+  @override
+  String get usdRateDue => 'حان وقت تحديث سعر الدولار';
+
+  @override
+  String get usdRateStale =>
+      'سعر الدولار قديم، أسعار منتجاتك بالدولار ممكن تكون غلط';
+
+  @override
+  String usdRateProducts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج بالدولار',
+      many: '$count منتجًا بالدولار',
+      few: '$count منتجات بالدولار',
+      two: 'منتجان بالدولار',
+      one: 'منتج واحد بالدولار',
+      zero: 'لا توجد منتجات بالدولار بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get usdRateConfirmed => 'تم تأكيد سعر الدولار.';
+
+  @override
+  String get usdRateSaved => 'تم حفظ سعر الدولار.';
+
+  @override
+  String get usdRateSaveFailed => 'تعذّر حفظ سعر الدولار. حاول مرة أخرى.';
+
+  @override
+  String get usdRateFieldLabel => 'كم جنيه في الدولار الواحد؟';
+
+  @override
+  String get usdRateInvalid => 'أدخل سعرًا بين 1 و1,000,000.';
+
+  @override
+  String usdRatePreview(int count, String name, String from, String to) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيتغير سعر $count منتج.',
+      many: 'سيتغير سعر $count منتجًا.',
+      few: 'سيتغير سعر $count منتجات.',
+      two: 'سيتغير سعر منتجين.',
+      one: 'سيتغير سعر منتج واحد.',
+    );
+    return '$_temp0 مثلًا $name: $from ← $to';
+  }
+
+  @override
+  String get usdRateNoProducts =>
+      'لا توجد منتجات بالدولار بعد: اختر «بالدولار» في نموذج المنتج.';
+
+  @override
+  String get usdRateBigChangeTitle => 'متأكد من السعر؟';
+
+  @override
+  String usdRateBigChangeBody(String to, String from, int percent) {
+    return 'السعر الجديد $to يبعد عن $from بنسبة $percent%.';
+  }
+
+  @override
+  String get usdRateBigChangeConfirm => 'نعم، احفظه';
+
+  @override
+  String get usdRateSave => 'حفظ السعر';
+
+  @override
+  String get usdRateReminder => 'ذكّرني بتحديث سعر الدولار';
+
+  @override
+  String get usdRateReminderHint =>
+      'إشعار على الهاتف كل 24 ساعة ما دام السعر لم يُحدَّث';
+
+  @override
+  String get pushKindUsdRate => 'تذكير سعر الدولار';
+
+  @override
+  String get pushKindUsdRateHint => 'كل 24 ساعة ما دام سعر الدولار لم يُحدَّث';
+
+  @override
+  String get formPriceCurrency => 'السعر بـ';
+
+  @override
+  String get formPriceInSdg => 'الجنيه';
+
+  @override
+  String get formPriceInUsd => 'الدولار';
+
+  @override
+  String get formPriceUsd => 'السعر (\$)';
+
+  @override
+  String get formPriceUsdRequired => 'أدخل السعر بالدولار.';
+
+  @override
+  String get formInstallationPriceUsd => 'سعر التركيب (\$)';
+
+  @override
+  String formUsdEquals(String price, String rate) {
+    return '= $price SDG بسعر 1\$ = $rate';
+  }
+
+  @override
+  String get formUsdNeedsRate => 'حدّد سعر الدولار أولًا.';
+
+  @override
+  String get offerModePriceUsd => 'سعر جديد (\$)';
+
+  @override
+  String usdPriceLabel(String usd, String rate) {
+    return '$usd \$ بسعر 1\$ = $rate SDG';
+  }
 }

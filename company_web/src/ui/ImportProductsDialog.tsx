@@ -8,7 +8,7 @@ import { Banner, Chip, Modal, Spinner } from './kit';
 import { useToast } from './toast';
 import { language, t } from '../i18n';
 
-const EN_HEADERS = ['name', 'brand', 'category', 'price', 'stock', 'description', 'delivery', 'installation', 'installation_price', 'status', 'sku', 'image'];
+const EN_HEADERS = ['name', 'brand', 'category', 'price', 'stock', 'description', 'delivery', 'installation', 'installation_price', 'status', 'sku', 'image', 'price_usd'];
 
 const STATUS_LABEL = { published: t('منشور'), draft: t('مسودة'), archived: t('مؤرشف') } as const;
 
@@ -21,11 +21,14 @@ export function ImportProductsDialog({
   companyId,
   companyName,
   choices,
+  usdRate,
   onClose,
 }: {
   companyId: string;
   companyName: string;
   choices: CategoryChoice[];
+  /** The company's dollar rate, for rows priced in dollars. */
+  usdRate: number | null;
   onClose: () => void;
 }) {
   const toast = useToast();
@@ -42,7 +45,7 @@ export function ImportProductsDialog({
     if (!file) return;
     setFileName(file.name);
     try {
-      setReading(readImport(await file.text(), choices));
+      setReading(readImport(await file.text(), choices, usdRate));
     } catch {
       setReading({ rows: [], problem: t('تعذّرت قراءة الملف.') });
     }
@@ -55,8 +58,8 @@ export function ImportProductsDialog({
     downloadCsv('products-template.csv', [
       headers,
       language === 'en'
-        ? ['TP-Link AX55 router', 'TP-Link', example, 186000, 24, 'Wi-Fi 6 router', 'yes', 'no', '', 'draft', 'TP-AX55', '']
-        : ['راوتر TP-Link AX55', 'TP-Link', example, 186000, 24, 'راوتر واي فاي 6', 'نعم', 'لا', '', 'مسودة', 'TP-AX55', ''],
+        ? ['TP-Link AX55 router', 'TP-Link', example, 186000, 24, 'Wi-Fi 6 router', 'yes', 'no', '', 'draft', 'TP-AX55', '', '']
+        : ['راوتر TP-Link AX55', 'TP-Link', example, 186000, 24, 'راوتر واي فاي 6', 'نعم', 'لا', '', 'مسودة', 'TP-AX55', '', ''],
     ]);
   };
 

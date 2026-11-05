@@ -28,6 +28,18 @@ class CompanyAdminShell extends ConsumerStatefulWidget {
   ConsumerState<CompanyAdminShell> createState() => _CompanyAdminShellState();
 }
 
+/// Asks the company shell to show its Home tab (a tapped dollar-rate
+/// reminder): each request bumps the number.
+final companyHomeRequestProvider =
+    NotifierProvider<CompanyHomeRequest, int>(CompanyHomeRequest.new);
+
+class CompanyHomeRequest extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void request() => state++;
+}
+
 /// Tabs of the shell, in bottom-bar order. The bar's last slot is the Add
 /// button, which opens a sheet instead of a tab.
 enum _Tab { home, orders, catalog, account }
@@ -77,6 +89,10 @@ class _CompanyAdminShellState extends ConsumerState<CompanyAdminShell> {
         ref.watch(companyPendingServiceRequestsCountProvider(companyId));
     final companyName =
         ref.watch(companyStreamProvider(companyId)).asData?.value?.name ?? '';
+    ref.listen<int>(
+      companyHomeRequestProvider,
+      (_, _) => setState(() => _tab = _Tab.home),
+    );
 
     return Scaffold(
       appBar: AppBar(

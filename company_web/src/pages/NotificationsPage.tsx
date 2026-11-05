@@ -55,7 +55,7 @@ export function NotificationsPage() {
             );
           })
         )}
-        <div className="foot"><span className="sub">{t('يظهر آخر 100 تنبيه.')}</span><Link to="/" className="btn sm g">{t('اليوم')}</Link></div>
+        <div className="foot"><span className="sub">{t('يظهر آخر 50 تنبيه.')}</span><Link to="/" className="btn sm g">{t('اليوم')}</Link></div>
       </section>
     </main>
   );

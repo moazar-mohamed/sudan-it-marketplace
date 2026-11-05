@@ -1,17 +1,37 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../core/errors/app_exception.dart';
+import '../../../core/push/push_relay.dart';
+import '../../notifications/data/platform_notice.dart';
 import '../domain/review.dart';
 import '../domain/reviews_repository.dart';
 
 /// Reviews in `reviews/{orderOrRequestId}` and their running averages in
 /// `ratings/{key}`. There is no server: each batch that changes a review's
 /// stars moves the averages too, and firestore.rules checks both match.
+/// A rating of 1 or 2 stars also tells the Platform Admins.
 class FirestoreReviewsRepository implements ReviewsRepository {
-  FirestoreReviewsRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirestoreReviewsRepository({
+    FirebaseFirestore? firestore,
+    PushRelay? pushRelay,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _pushRelay = pushRelay ?? const NoPushRelay();
 
   final FirebaseFirestore _firestore;
+  final PushRelay _pushRelay;
+
+  /// Tells the Platform Admins when [stars] is a low rating (best effort).
+  Future<void> _tellAboutLowRating(Review review, int stars) async {
+    if (stars > lowReviewMaxStars) return;
+    await notifyPlatformAdmins(
+      firestore: _firestore,
+      pushRelay: _pushRelay,
+      type: PlatformNoticeType.lowReview,
+      subjectId: review.id,
+      senderId: review.customerId,
+      name: review.targetName,
+    );
+  }
 
   CollectionReference<Map<String, dynamic>> get _reviews =>
       _firestore.collection('reviews');
@@ -91,6 +111,7 @@ class FirestoreReviewsRepository implements ReviewsRepository {
     });
     _moveRatings(batch, review, starsBy: review.stars, countBy: 1);
     await _commit(batch);
+    await _tellAboutLowRating(review, review.stars);
   }
 
   @override
@@ -105,6 +126,10 @@ class FirestoreReviewsRepository implements ReviewsRepository {
     final delta = draft.stars - review.stars;
     if (delta != 0) _moveRatings(batch, review, starsBy: delta);
     await _commit(batch);
+    // Only a change down to a low rating is news (the notice is sent once).
+    if (review.stars > lowReviewMaxStars) {
+      await _tellAboutLowRating(review, draft.stars);
+    }
   }
 
   @override

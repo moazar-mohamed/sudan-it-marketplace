@@ -26,4 +26,16 @@ class CompaniesRepositoryImpl implements CompaniesRepository {
     List<PaymentAccount> accounts,
   ) =>
       _remoteDataSource.updatePaymentAccounts(companyId, accounts);
+
+  @override
+  Future<void> setUsdRate(
+    String companyId,
+    double rate,
+    Map<String, Map<String, Object?>> repricing,
+  ) =>
+      _remoteDataSource.setUsdRate(companyId, rate, repricing);
+
+  @override
+  Future<void> repriceProducts(Map<String, Map<String, Object?>> repricing) =>
+      _remoteDataSource.repriceProducts(repricing);
 }

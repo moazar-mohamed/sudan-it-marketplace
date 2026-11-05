@@ -55,6 +55,11 @@ class CompanyProductDestination extends PushDestination {
   final String productId;
 }
 
+/// The company's Home, where its dollar rate is kept (the 24-hour reminder).
+class CompanyHomeDestination extends PushDestination {
+  const CompanyHomeDestination();
+}
+
 /// A company that now serves the customer's city (a city announcement).
 class CompanyDestination extends PushDestination {
   const CompanyDestination(this.companyId);
@@ -92,6 +97,15 @@ PushDestination? pushDestination(Map<String, dynamic> data, UserProfile profile)
       ('technician', UserRole.technician) => TechnicianJobDestination(orderId),
       _ => null,
     };
+  }
+
+  if (text('type') == 'usd_rate_reminder') {
+    final own = profile.companyId?.trim() ?? '';
+    return profile.role == UserRole.companyAdmin &&
+            own.isNotEmpty &&
+            own == text('companyId')
+        ? const CompanyHomeDestination()
+        : null;
   }
 
   if (text('type') == 'city_announcement') {

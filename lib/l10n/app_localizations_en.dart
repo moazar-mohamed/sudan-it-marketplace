@@ -4063,4 +4063,161 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get favoritesLoadFailed => 'Could not load your favorites.';
+
+  @override
+  String get usdRateTitle => 'Dollar rate';
+
+  @override
+  String usdRateValue(String rate) {
+    return '\$1 = $rate SDG';
+  }
+
+  @override
+  String get usdRateNotSetTitle => 'Set your dollar rate';
+
+  @override
+  String get usdRateNotSetBody =>
+      'Price your products in dollars. Whenever you change the rate here, all their SDG prices update.';
+
+  @override
+  String get usdRateSet => 'Set the rate';
+
+  @override
+  String get usdRateSame => 'Same rate';
+
+  @override
+  String get usdRateEdit => 'Change';
+
+  @override
+  String usdRateUpdatedToday(String time) {
+    return 'Updated today at $time';
+  }
+
+  @override
+  String usdRateUpdatedYesterday(String time) {
+    return 'Last updated yesterday at $time';
+  }
+
+  @override
+  String usdRateUpdatedDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'Last updated $_temp0 ago';
+  }
+
+  @override
+  String get usdRateDue => 'Time to update the dollar rate';
+
+  @override
+  String get usdRateStale =>
+      'The dollar rate is old: your dollar prices may be wrong';
+
+  @override
+  String usdRateProducts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products in dollars',
+      one: '1 product in dollars',
+      zero: 'No products in dollars yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get usdRateConfirmed => 'Dollar rate confirmed.';
+
+  @override
+  String get usdRateSaved => 'Dollar rate saved.';
+
+  @override
+  String get usdRateSaveFailed =>
+      'Could not save the dollar rate. Please try again.';
+
+  @override
+  String get usdRateFieldLabel => 'How many SDG is one dollar?';
+
+  @override
+  String get usdRateInvalid => 'Enter a rate between 1 and 1,000,000.';
+
+  @override
+  String usdRatePreview(int count, String name, String from, String to) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count product prices will change.',
+      one: '1 product price will change.',
+    );
+    return '$_temp0 For example $name: $from → $to';
+  }
+
+  @override
+  String get usdRateNoProducts =>
+      'No products in dollars yet: choose “In dollars” on a product.';
+
+  @override
+  String get usdRateBigChangeTitle => 'Is this rate right?';
+
+  @override
+  String usdRateBigChangeBody(String to, String from, int percent) {
+    return 'The new rate $to is $percent% away from $from.';
+  }
+
+  @override
+  String get usdRateBigChangeConfirm => 'Yes, save it';
+
+  @override
+  String get usdRateSave => 'Save the rate';
+
+  @override
+  String get usdRateReminder => 'Remind me to update the dollar rate';
+
+  @override
+  String get usdRateReminderHint =>
+      'A phone notification every 24 hours while the rate is not updated';
+
+  @override
+  String get pushKindUsdRate => 'Dollar rate reminder';
+
+  @override
+  String get pushKindUsdRateHint =>
+      'Every 24 hours while your dollar rate is not updated';
+
+  @override
+  String get formPriceCurrency => 'Price in';
+
+  @override
+  String get formPriceInSdg => 'SDG';
+
+  @override
+  String get formPriceInUsd => 'Dollars';
+
+  @override
+  String get formPriceUsd => 'Price (\$)';
+
+  @override
+  String get formPriceUsdRequired => 'Enter the price in dollars.';
+
+  @override
+  String get formInstallationPriceUsd => 'Installation price (\$)';
+
+  @override
+  String formUsdEquals(String price, String rate) {
+    return '= $price SDG at \$1 = $rate';
+  }
+
+  @override
+  String get formUsdNeedsRate => 'Set your dollar rate first.';
+
+  @override
+  String get offerModePriceUsd => 'New price (\$)';
+
+  @override
+  String usdPriceLabel(String usd, String rate) {
+    return '$usd \$ at \$1 = $rate SDG';
+  }
 }

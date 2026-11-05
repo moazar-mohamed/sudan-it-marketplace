@@ -5,15 +5,21 @@ import { isImageUrl } from './images';
 import { t } from '../i18n';
 import { createProduct, type ProductDraft } from './products';
 import type { ProductStatus } from './types';
+import { usdPrice } from './usdPricing';
 
-/** The columns of the import file, in the order of the template. */
-export const IMPORT_HEADERS = ['الاسم', 'العلامة', 'التصنيف', 'السعر', 'المخزون', 'الوصف', 'توصيل', 'تركيب', 'سعر التركيب', 'الحالة', 'رمز المنتج', 'رابط الصورة'] as const;
+/**
+ * The columns of the import file, in the order of the template. A row priced
+ * in dollars fills «السعر بالدولار» instead of «السعر»; its «سعر التركيب» is
+ * then in dollars too, and the pounds come from the company's dollar rate.
+ */
+export const IMPORT_HEADERS = ['الاسم', 'العلامة', 'التصنيف', 'السعر', 'المخزون', 'الوصف', 'توصيل', 'تركيب', 'سعر التركيب', 'الحالة', 'رمز المنتج', 'رابط الصورة', 'السعر بالدولار'] as const;
 type Header = (typeof IMPORT_HEADERS)[number];
 
 /** Other names a column may carry (an English sheet, or the export's own headers). */
 const ALIASES: Record<string, Header> = {
   name: 'الاسم', brand: 'العلامة', category: 'التصنيف', price: 'السعر', stock: 'المخزون', description: 'الوصف',
   delivery: 'توصيل', installation: 'تركيب', installation_price: 'سعر التركيب', status: 'الحالة', sku: 'رمز المنتج', image: 'رابط الصورة',
+  price_usd: 'السعر بالدولار', usd: 'السعر بالدولار',
   'العلامة التجارية': 'العلامة', 'اسم المنتج': 'الاسم', 'الكمية': 'المخزون',
 };
 
@@ -61,8 +67,11 @@ export function findCategory(text: string, choices: CategoryChoice[]): CategoryC
   return byName.length === 1 ? byName[0] : null;
 }
 
-/** Reads the file's text into rows ready to create, each with its own problems listed. */
-export function readImport(text: string, choices: CategoryChoice[]): ImportReading {
+/**
+ * Reads the file's text into rows ready to create, each with its own problems
+ * listed. [usdRate] is the company's dollar rate, for rows priced in dollars.
+ */
+export function readImport(text: string, choices: CategoryChoice[], usdRate: number | null = null): ImportReading {
   const table = parseCsv(text);
   if (table.length === 0) return { rows: [], problem: t('الملف فارغ.') };
   const columns = new Map<Header, number>();
@@ -97,8 +106,17 @@ export function readImport(text: string, choices: CategoryChoice[]): ImportReadi
     else if (!category) errors.push(t('التصنيف «{0}» غير موجود', categoryText));
 
     const priceText = cell(row, 'السعر');
+    const usdText = cell(row, 'السعر بالدولار');
     let price: number | null = null;
-    if (priceText !== '') {
+    let priceUsd: number | null = null;
+    if (usdText !== '') {
+      priceUsd = parseNumber(usdText);
+      if (priceText !== '') errors.push(t('اكتب «السعر» أو «السعر بالدولار»، لا الاثنين'));
+      else if (usdRate === null) errors.push(t('حدّد سعر الدولار في صفحة اليوم قبل استيراد أسعار بالدولار'));
+      else if (priceUsd === null || priceUsd <= 0) errors.push(t('السعر بالدولار يجب أن يكون أكبر من صفر'));
+      else price = usdPrice(priceUsd, usdRate);
+      if (price === null) priceUsd = null;
+    } else if (priceText !== '') {
       price = parseNumber(priceText);
       if (price === null || price <= 0) { errors.push(t('السعر يجب أن يكون أكبر من صفر (أو اتركه فارغًا لـ«عند الطلب»)')); price = null; }
     }
@@ -116,9 +134,15 @@ export function readImport(text: string, choices: CategoryChoice[]): ImportReadi
     const installation = yesNo(cell(row, 'تركيب'), false);
     if (installation === null) errors.push(t('عمود «تركيب» يقبل نعم أو لا'));
     let installationPrice: number | null = null;
+    let installationPriceUsd: number | null = null;
     if (installation) {
       installationPrice = parseNumber(cell(row, 'سعر التركيب'));
       if (installationPrice === null || installationPrice <= 0) errors.push(t('اكتب «سعر التركيب» (أكبر من صفر) للمنتج الذي فيه تركيب'));
+      else if (priceUsd !== null && usdRate !== null) {
+        // In a row priced in dollars, the installation price is in dollars too.
+        installationPriceUsd = installationPrice;
+        installationPrice = usdPrice(installationPriceUsd, usdRate);
+      }
     }
 
     const statusText = norm(cell(row, 'الحالة'));
@@ -135,6 +159,7 @@ export function readImport(text: string, choices: CategoryChoice[]): ImportReadi
           description: cell(row, 'الوصف'), specifications: {},
           isDeliveryAvailable: delivery as boolean, isInstallationAvailable: installation as boolean, installationPrice,
           inStock: true, status: status as ProductStatus, sku, lowStockThreshold: null,
+          priceUsd, installationPriceUsd, usdRateApplied: priceUsd !== null ? usdRate : null,
         }
       : null;
     return { line: i + 2, name, categoryLabel: category?.label ?? categoryText, price, stock, status: (status ?? 'draft') as ProductStatus, draft, errors };

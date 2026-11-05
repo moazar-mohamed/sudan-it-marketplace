@@ -14,14 +14,21 @@ import '../../../categories/presentation/category_providers.dart';
 import '../../../companies/presentation/companies_providers.dart';
 import '../../../customer_dashboard/presentation/widgets/category_browse.dart'
     show brandsOf;
+import '../../../offers/presentation/offer_price.dart';
 import '../../../products/domain/entities/product.dart';
+import '../../../products/domain/usd_pricing.dart';
 import '../../../products/presentation/products_providers.dart';
+import '../../../products/presentation/usd_format.dart';
 import '../company_admin_actions.dart';
 import '../company_admin_format.dart';
+import '../dashboard/usd_rate_card.dart';
 import '../../../../core/localization/l10n_extension.dart';
 
 /// Add Product and Edit Product share this form and its rules:
 /// installation price is only shown and required when installation is on.
+/// The prices are typed in pounds, or in dollars: the pounds are then worked
+/// out from the company's dollar rate (kept on its Home), shown under each
+/// field, and saved beside the dollars.
 class ProductFormScreen extends ConsumerStatefulWidget {
   const ProductFormScreen.add({super.key, required this.companyId})
     : product = null;
@@ -66,6 +73,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   late bool _inStock;
   late bool _deliveryAvailable;
   late bool _installationAvailable;
+
+  /// The prices are typed in US dollars.
+  late bool _inUsd;
   late String? _categoryId;
   bool _isSaving = false;
 
@@ -77,8 +87,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     _nameController = TextEditingController(text: product?.name ?? '');
     _brandController = TextEditingController(text: product?.brand ?? '');
     _imageController = ImagePickerController(url: product?.imageUrl);
+    _inUsd = product?.isPricedInUsd ?? false;
+    final typedPrice = _inUsd ? product!.priceUsd : product?.price;
     _priceController = TextEditingController(
-      text: product?.price == null ? '' : _numberText(product!.price!),
+      text: typedPrice == null ? '' : _numberText(typedPrice),
     );
     _stockController = TextEditingController(
       text: product == null ? '' : '${product.stockCount}',
@@ -86,10 +98,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     _descriptionController = TextEditingController(
       text: product?.description ?? '',
     );
+    final typedInstallation =
+        _inUsd ? product!.installationPriceUsd : product?.installationPrice;
     _installationPriceController = TextEditingController(
-      text: product?.installationPrice == null
-          ? ''
-          : _numberText(product!.installationPrice!),
+      text: typedInstallation == null ? '' : _numberText(typedInstallation),
     );
     _inStock = product?.inStock ?? true;
     _deliveryAvailable = product?.isDeliveryAvailable ?? true;
@@ -142,9 +154,36 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     return null;
   }
 
+  /// The company's dollar rate; null until it sets one.
+  double? get _usdRate =>
+      ref.read(companyStreamProvider(widget.companyId)).asData?.value?.usdRate;
+
+  /// The pounds the dollars in [text] come to at the company's rate, or null.
+  double? _inPounds(String text) {
+    final usd = double.tryParse(text.trim());
+    final rate = _usdRate;
+    return usd == null || usd <= 0 || rate == null
+        ? null
+        : UsdPricing.price(usd, rate);
+  }
+
+  /// What a field typed in dollars comes to in pounds, under the field.
+  String? _poundsHelper(String text) {
+    final pounds = _inPounds(text);
+    final rate = _usdRate;
+    return !_inUsd || pounds == null || rate == null
+        ? null
+        : context.l10n.formUsdEquals(
+            formatProductPrice(pounds),
+            formatUsdAmount(rate),
+          );
+  }
+
   /// The price may be left empty; when given it must still be greater than 0,
-  /// and above the price of an offer that is running on the product.
+  /// and above the price of an offer that is running on the product. In
+  /// dollars it is needed, and so is the company's rate.
   String? _validateOptionalPrice(String? value) {
+    if (_inUsd) return _validateUsdPrice(value);
     final existing = widget.product;
     final offer = existing != null && existing.hasActiveOffer
         ? existing.offerPrice
@@ -164,6 +203,34 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       invalidMessage: context.l10n.formPriceInvalid,
     );
   }
+
+  String? _validateUsdPrice(String? value) {
+    if (_usdRate == null) return context.l10n.formUsdNeedsRate;
+    final usd = double.tryParse(value?.trim() ?? '');
+    if (usd == null || usd <= 0) return context.l10n.formPriceUsdRequired;
+    final existing = widget.product;
+    if (existing != null && existing.hasActiveOffer) {
+      final offerUsd = existing.offerPriceUsd;
+      final offer = existing.offerPrice!;
+      if ((offerUsd != null && usd <= offerUsd) || _inPounds(value!)! <= offer) {
+        return context.l10n.formPriceBelowOffer(
+          offerUsd != null
+              ? '${formatUsdAmount(offerUsd)} \$'
+              : CompanyAdminFormat.price(offer),
+        );
+      }
+    }
+    return null;
+  }
+
+  void _setUsdRate() => showUsdRateSheet(
+        context,
+        companyId: widget.companyId,
+        currentRate: _usdRate,
+        products:
+            ref.read(companyProductsStreamProvider(widget.companyId)).asData?.value ??
+                const [],
+      );
 
   void _addSpecRow() {
     setState(() => _specRows.add(_SpecRow()));
@@ -221,6 +288,16 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         ref.read(companyStreamProvider(widget.companyId)).asData?.value?.name ??
         '';
 
+    // In dollars, the pounds are worked out from the company's rate (the
+    // validators made sure there is one) and saved beside the dollars.
+    final rate = _inUsd ? _usdRate! : null;
+    final typedPrice = double.tryParse(_priceController.text.trim());
+    final typedInstallation = _installationAvailable
+        ? double.parse(_installationPriceController.text.trim())
+        : null;
+    final keepsOffer = existing != null && existing.hasActiveOffer;
+    final offerUsd = keepsOffer && rate != null ? existing.offerPriceUsd : null;
+
     final product = Product(
       id: existing?.id ?? actions.newProductId(),
       companyId: widget.companyId,
@@ -230,7 +307,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       imageUrl: imageUrl,
       categoryId: _categoryId,
       // Optional: an empty field saves no price (null), never 0.
-      price: double.tryParse(_priceController.text.trim()),
+      price: rate == null ? typedPrice : UsdPricing.price(typedPrice!, rate),
       currency: existing?.currency ?? 'SDG',
       stockCount: int.parse(_stockController.text.trim()),
       inStock: _inStock,
@@ -238,15 +315,21 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       specifications: specifications,
       isDeliveryAvailable: _deliveryAvailable,
       isInstallationAvailable: _installationAvailable,
-      installationPrice: _installationAvailable
-          ? double.parse(_installationPriceController.text.trim())
-          : null,
+      installationPrice: rate == null || typedInstallation == null
+          ? typedInstallation
+          : UsdPricing.price(typedInstallation, rate),
       // Editing keeps a running offer; one that has ended is cleared.
-      offerPrice: existing != null && existing.hasActiveOffer
-          ? existing.offerPrice
-          : null,
+      offerPrice: !keepsOffer
+          ? null
+          : offerUsd != null
+              ? UsdPricing.offer(offerUsd, rate!)
+              : existing.offerPrice,
       offerEndsAt: existing?.offerEndsAt,
       offerBadge: existing?.offerBadge,
+      priceUsd: rate == null ? null : typedPrice,
+      offerPriceUsd: offerUsd,
+      installationPriceUsd: rate == null ? null : typedInstallation,
+      usdRateApplied: rate,
     );
 
     final error = existing == null
@@ -277,6 +360,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     // The product tree, as Platform Admin has it right now: nothing about it
     // is stored in the app, so new and moved categories appear straight away.
     final categoriesLoaded = ref.watch(allCategoriesProvider).hasValue;
+    // Watched so the pounds under the dollar fields follow a new rate.
+    final usdRate =
+        ref.watch(companyStreamProvider(widget.companyId)).asData?.value?.usdRate;
     final categoryTree = ref.watch(categoryTreeProvider);
 
     Widget sectionTitle(String title) => Padding(
@@ -350,15 +436,60 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     value == null ? context.l10n.formCategoryRequired : null,
               ),
               const SizedBox(height: AppSpacing.s16),
+              Text(
+                context.l10n.formPriceCurrency,
+                style: AppTextStyles.bodyStrong,
+              ),
+              const SizedBox(height: AppSpacing.s8),
+              SegmentedButton<bool>(
+                key: const ValueKey('price-currency'),
+                segments: [
+                  ButtonSegment(
+                    value: false,
+                    label: Text(context.l10n.formPriceInSdg),
+                  ),
+                  ButtonSegment(
+                    value: true,
+                    icon: const Icon(Icons.attach_money_rounded),
+                    label: Text(context.l10n.formPriceInUsd),
+                  ),
+                ],
+                selected: {_inUsd},
+                showSelectedIcon: false,
+                onSelectionChanged: _isSaving
+                    ? null
+                    : (value) => setState(() => _inUsd = value.first),
+              ),
+              if (_inUsd && usdRate == null) ...[
+                const SizedBox(height: AppSpacing.s12),
+                AppBanner(
+                  key: const ValueKey('price-needs-rate'),
+                  tone: AppTone.warning,
+                  message: context.l10n.formUsdNeedsRate,
+                  action: AppButton.text(
+                    label: context.l10n.usdRateSet,
+                    size: AppButtonSize.small,
+                    onPressed: _setUsdRate,
+                  ),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.s12),
               AppTextField(
-                label: context.l10n.formPriceOptional,
+                key: const ValueKey('price-field'),
+                label: _inUsd
+                    ? context.l10n.formPriceUsd
+                    : context.l10n.formPriceOptional,
                 controller: _priceController,
                 enabled: !_isSaving,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 inputFormatters: [_decimalFormatter],
-                prefixIcon: Icons.payments_outlined,
+                prefixIcon: _inUsd
+                    ? Icons.attach_money_rounded
+                    : Icons.payments_outlined,
+                helperText: _poundsHelper(_priceController.text),
+                onChanged: (_) => setState(() {}),
                 validator: _validateOptionalPrice,
               ),
               sectionTitle(context.l10n.formStockSection),
@@ -471,7 +602,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               if (_installationAvailable) ...[
                 const SizedBox(height: 8),
                 AppTextField(
-                  label: context.l10n.formInstallationPrice,
+                  label: _inUsd
+                      ? context.l10n.formInstallationPriceUsd
+                      : context.l10n.formInstallationPrice,
                   controller: _installationPriceController,
                   enabled: !_isSaving,
                   keyboardType: const TextInputType.numberWithOptions(
@@ -479,6 +612,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   ),
                   inputFormatters: [_decimalFormatter],
                   prefixIcon: Icons.handyman_outlined,
+                  helperText: _poundsHelper(_installationPriceController.text),
+                  onChanged: (_) => setState(() {}),
                   validator: (value) => _validatePositiveNumber(
                     value,
                     requiredMessage: context.l10n.formInstallationPriceRequired,

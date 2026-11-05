@@ -7,6 +7,10 @@ name = "sudan-it-push"
 main = "src/worker.js"
 compatibility_date = "2026-09-01"
 
+# Every hour: the 24-hour dollar rate reminders (relay.js remindUsdRates).
+[triggers]
+crons = ["0 * * * *"]
+
 [vars]
 PROJECT_ID = "sudan-it-marketplace"
 # The project's public web API key (the same one inside the app).

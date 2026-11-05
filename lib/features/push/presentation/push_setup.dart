@@ -19,6 +19,7 @@ import '../../auth/presentation/auth_state.dart';
 import '../../chats/presentation/chat_screen.dart';
 import '../../companies/presentation/companies_providers.dart';
 import '../../companies/presentation/company_details_screen.dart';
+import '../../company_admin/presentation/company_admin_shell.dart';
 import '../../company_admin/presentation/orders/company_order_details_screen.dart';
 import '../../company_admin/presentation/products/company_product_details_screen.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
@@ -204,6 +205,12 @@ void _open(Ref ref, Map<String, dynamic> data) {
   final destination = _destinationFor(ref, data);
   final navigator = appNavigatorKey.currentState;
   if (destination == null || navigator == null) return;
+  // The company's Home is the shell itself: back to it, on its Home tab.
+  if (destination is CompanyHomeDestination) {
+    navigator.popUntil((route) => route.isFirst);
+    ref.read(companyHomeRequestProvider.notifier).request();
+    return;
+  }
   navigator.push(
     MaterialPageRoute<void>(builder: (_) => pushDestinationScreen(destination)),
   );
@@ -226,6 +233,8 @@ Widget pushDestinationScreen(PushDestination destination) {
     CompanyDestination(:final companyId) => _CompanyLoader(companyId: companyId),
     TechnicianJobDestination(:final orderId) =>
       _TechnicianJobLoader(orderId: orderId),
+    // Never pushed as a screen: _open goes back to the shell's Home instead.
+    CompanyHomeDestination() => const SizedBox.shrink(),
   };
 }
 

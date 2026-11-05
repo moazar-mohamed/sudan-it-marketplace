@@ -309,6 +309,17 @@ class _FakeDocumentReference extends Fake
   Future<void> update(Map<Object, Object?> data) => _store._update(path, {
         for (final entry in data.entries) entry.key as String: entry.value,
       });
+
+  /// A single write outside a transaction; [FakeFirestore.rejectCommit]
+  /// refuses it the same way it refuses a commit.
+  @override
+  Future<void> set(Map<String, dynamic> data, [SetOptions? options]) async {
+    final refusal = _store.rejectCommit?.call(path);
+    if (refusal != null) {
+      throw FirebaseException(plugin: 'cloud_firestore', code: refusal);
+    }
+    _store.put(path, data);
+  }
 }
 
 class _FakeDocumentSnapshot extends Fake

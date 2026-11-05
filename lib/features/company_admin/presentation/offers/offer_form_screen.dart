@@ -10,6 +10,8 @@ import '../../../../core/widgets/app_widgets.dart';
 import '../../../company_services/domain/entities/company_service.dart';
 import '../../../company_services/presentation/company_service_providers.dart';
 import '../../../products/domain/entities/product.dart';
+import '../../../products/domain/usd_pricing.dart';
+import '../../../products/presentation/usd_format.dart';
 import '../../../products/presentation/products_providers.dart';
 import '../../../services/domain/entities/catalog_service.dart';
 import '../../../services/presentation/service_providers.dart';
@@ -82,7 +84,8 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
       final pricing = item.pricing;
       if (pricing.hasOffer) {
         _mode = _Mode.price;
-        final offer = pricing.offerPrice!;
+        // A product priced in dollars has its offer typed in dollars.
+        final offer = _usdProductOf(item)?.offerPriceUsd ?? pricing.offerPrice!;
         _valueController.text = offer == offer.roundToDouble()
             ? offer.toStringAsFixed(0)
             : offer.toString();
@@ -129,8 +132,39 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
     }
   }
 
-  /// The offer price from what is typed, or null while it is not valid.
-  double? _offerPrice(double? normal) {
+  /// The product of [item] when it is priced in dollars: its offer is then
+  /// typed in dollars and the pounds worked out at the product's rate.
+  static Product? _usdProductOf(OfferItem? item) => switch (item) {
+        ProductOfferItem(:final product)
+            when product.isPricedInUsd && product.usdRateApplied != null =>
+          product,
+        _ => null,
+      };
+
+  /// The offer in dollars from what is typed, or null while it is not valid.
+  double? _offerUsd(Product product) {
+    final value = double.tryParse(_valueController.text.trim());
+    final normal = product.priceUsd!;
+    if (value == null) return null;
+    final usd = _mode == _Mode.percent
+        ? (value >= 1 && value <= 99
+            ? ((normal * (1 - value / 100)) * 100).round() / 100
+            : null)
+        : value;
+    return usd != null && usd > 0 && usd < normal ? usd : null;
+  }
+
+  /// The offer price (in pounds) from what is typed, or null while it is not
+  /// valid.
+  double? _offerPrice(OfferItem? item) {
+    final usdProduct = _usdProductOf(item);
+    if (usdProduct != null) {
+      final usd = _offerUsd(usdProduct);
+      if (usd == null) return null;
+      final pounds = UsdPricing.offer(usd, usdProduct.usdRateApplied!);
+      return pounds < usdProduct.price! ? pounds : null;
+    }
+    final normal = item?.pricing.price;
     final value = double.tryParse(_valueController.text.trim());
     if (normal == null || value == null) return null;
     final price = _mode == _Mode.percent
@@ -141,8 +175,8 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
     return price != null && price > 0 && price < normal ? price : null;
   }
 
-  String? _valueError(double? normal) {
-    if (_offerPrice(normal) != null) return null;
+  String? _valueError(OfferItem? item) {
+    if (_offerPrice(item) != null) return null;
     final l10n = context.l10n;
     return _mode == _Mode.percent
         ? l10n.offerPercentInvalid
@@ -169,7 +203,12 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
   /// [item] with the offer being entered, for the preview and for saving.
   OfferItem _withOffer(OfferItem item, double? offerPrice) => switch (item) {
         ProductOfferItem(:final product) => ProductOfferItem(
-            product.withOffer(offerPrice, _endsAt, _badge),
+            product.withOffer(
+              offerPrice,
+              _endsAt,
+              _badge,
+              _usdProductOf(item) == null ? null : _offerUsd(product),
+            ),
           ),
         ServiceOfferItem(:final link, :final service, :final companyName) =>
           ServiceOfferItem(
@@ -260,7 +299,7 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
   Future<void> _save(OfferItem item, {required bool end}) async {
     if (_saving) return;
     FocusScope.of(context).unfocus();
-    final offerPrice = end ? null : _offerPrice(item.pricing.price);
+    final offerPrice = end ? null : _offerPrice(item);
     if (!end) {
       setState(() => _submitted = true);
       if (offerPrice == null || _endIsPast) return;
@@ -313,7 +352,8 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
     ref.watch(allServicesProvider(null));
     final item = _live;
     final normal = item?.pricing.price;
-    final offerPrice = _offerPrice(normal);
+    final offerPrice = _offerPrice(item);
+    final usdProduct = _usdProductOf(item);
     // From the item as it was chosen, so the page does not turn into
     // "Edit offer" while the new offer is being saved.
     final editing = _selected?.pricing.hasOffer ?? false;
@@ -417,9 +457,16 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
                     // Carry the same discount over to the other way of
                     // entering it.
                     final price = offerPrice;
+                    final usd = usdProduct == null ? null : _offerUsd(usdProduct);
                     setState(() {
                       _mode = value.first;
-                      if (price != null && normal != null) {
+                      if (usd != null) {
+                        _valueController.text = _mode == _Mode.percent
+                            ? ((1 - usd / usdProduct!.priceUsd!) * 100)
+                                .round()
+                                .toString()
+                            : usdAmountInputText(usd);
+                      } else if (price != null && normal != null) {
                         _valueController.text = _mode == _Mode.percent
                             ? ((1 - price / normal) * 100).round().toString()
                             : price.toStringAsFixed(0);
@@ -432,7 +479,9 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
             key: const ValueKey('offer-value'),
             label: _mode == _Mode.percent
                 ? l10n.offerPercentLabel
-                : '${l10n.offerModePrice} (SDG)',
+                : usdProduct != null
+                    ? l10n.offerModePriceUsd
+                    : '${l10n.offerModePrice} (SDG)',
             controller: _valueController,
             enabled: !_saving,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -455,7 +504,7 @@ class _OfferFormScreenState extends ConsumerState<OfferFormScreen> {
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.s4),
               child: Text(
-                _valueError(normal)!,
+                _valueError(item)!,
                 style: AppTextStyles.caption.copyWith(color: colors.errorText),
               ),
             ),

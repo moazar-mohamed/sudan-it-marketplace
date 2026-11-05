@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_widgets.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/products_providers.dart';
 import '../../../products/presentation/product_price_strings.dart';
+import '../../../products/presentation/usd_format.dart';
 import '../company_admin_actions.dart';
 import '../company_admin_format.dart';
 import '../offers/offer_form_screen.dart';
@@ -150,6 +151,16 @@ class _ProductDetailsBody extends StatelessWidget {
               ? AppTextStyles.h2.copyWith(color: context.colors.textSecondary)
               : AppTextStyles.stat.copyWith(color: context.colors.textBrand),
         ),
+        // What the company typed, for a product priced in dollars.
+        if (product.priceUsd != null)
+          Text(
+            l10n.usdPriceLabel(
+              formatUsdAmount(product.priceUsd!),
+              formatUsdAmount(product.usdRateApplied ?? 0),
+            ),
+            key: const ValueKey('product-usd-price'),
+            style: AppTextStyles.body.copyWith(color: context.colors.textSecondary),
+          ),
         const SizedBox(height: AppSpacing.s16),
         ProductOfferSection(product: product),
         const SizedBox(height: AppSpacing.s12),
@@ -204,10 +215,13 @@ class _ProductDetailsBody extends StatelessWidget {
             if (product.isInstallationAvailable)
               AdminInfoRow(
                 label: l10n.adminInstallationPrice,
-                value: CompanyAdminFormat.price(
-                  product.installationPrice ?? 0,
-                  product.currency,
-                ),
+                value: product.installationPriceUsd != null
+                    ? '${formatUsdAmount(product.installationPriceUsd!)} \$ · '
+                        '${CompanyAdminFormat.price(product.installationPrice ?? 0, product.currency)}'
+                    : CompanyAdminFormat.price(
+                        product.installationPrice ?? 0,
+                        product.currency,
+                      ),
               ),
           ],
         ),
