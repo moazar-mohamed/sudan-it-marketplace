@@ -12,10 +12,8 @@ import {
 } from '../data/globalSearch';
 import { useI18n } from '../i18n/I18nProvider';
 import type { TranslationKey } from '../i18n/dictionary';
-import { useUi } from '../theme/ui';
 import { customerLabel, matchesQuery, shortId } from '../utils';
 import { Icon, type IconName } from './Icon';
-import { NAV } from './navItems';
 import { NAV_V2 } from './navItemsV2';
 
 /** How long the admin must pause typing before records are searched. */
@@ -94,18 +92,8 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
     };
   }, [trimmed, wantsRecords]);
 
-  const v2 = useUi().ui === 'v2';
-
   const pages: Row[] = useMemo(() => {
-    if (!v2) {
-      return NAV.filter((n) => matchesQuery(trimmed, t(n.key))).map((n) => ({
-        key: `page:${n.to}`,
-        to: n.to,
-        icon: n.icon,
-        title: t(n.key),
-      }));
-    }
-    // The redesign names the eight sections first, then their parts (shown as "part, in section").
+    // The eight sections first, then their parts (shown as "part, in section").
     const all: Row[] = NAV_V2.flatMap((s) => [
       { key: `page:${s.to}`, to: s.to, icon: s.icon, title: t(s.key) },
       ...(s.children ?? [])
@@ -115,11 +103,11 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
     const matched = all.filter((r) => matchesQuery(trimmed, r.title, r.subtitle ?? ''));
     // With nothing typed, only the sections; the parts appear as you type.
     return trimmed ? matched : matched.filter((r) => !r.subtitle);
-  }, [trimmed, t, v2]);
+  }, [trimmed, t]);
 
   const quick: Row[] = useMemo(
-    () => (v2 && !trimmed ? QUICK_LINKS.map((q) => ({ key: `quick:${q.to}`, to: q.to, icon: q.icon, title: t(q.key) })) : []),
-    [trimmed, t, v2],
+    () => (!trimmed ? QUICK_LINKS.map((q) => ({ key: `quick:${q.to}`, to: q.to, icon: q.icon, title: t(q.key) })) : []),
+    [trimmed, t],
   );
 
   const describe = (hit: SearchHit): Row => {
@@ -157,19 +145,18 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
         const piece = current[kind];
         if (!piece.ok) records.push({ id: kind, title: t(KIND_TITLE[kind]), rows: [], unavailable: true });
         else if (piece.value.length > 0) {
-          records.push({ id: kind, title: t(KIND_TITLE[kind]), rows: piece.value.map((h) => ({ ...describe(h), tag: v2 ? t(KIND_TITLE[kind]) : undefined })) });
+          records.push({ id: kind, title: t(KIND_TITLE[kind]), rows: piece.value.map((h) => ({ ...describe(h), tag: t(KIND_TITLE[kind]) })) });
         }
       }
     }
     if (quick.length > 0) out.push({ id: 'quick', title: t('search.quick'), rows: quick });
-    // In the redesign what you are looking for (a record) comes before the pages.
-    if (v2) out.push(...records);
+    // What you are looking for (a record) comes before the pages.
+    out.push(...records);
     if (pages.length > 0) out.push({ id: 'pages', title: t('search.pages'), rows: pages });
-    if (!v2) out.push(...records);
     return out;
     // `describe` only reads the language through t and money.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pages, quick, current, t, money, v2]);
+  }, [pages, quick, current, t, money]);
 
   const rows = groups.flatMap((g) => g.rows);
   const activeIndex = Math.min(active, Math.max(rows.length - 1, 0));
@@ -243,36 +230,20 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                     onMouseMove={() => setActive(mine)}
                     onClick={() => go(row)}
                   >
-                    {v2 ? (
-                      <>
-                        <span className="palette__tile">
-                          <Icon name={row.icon} size={18} />
-                        </span>
-                        <span className="palette__text">
-                          <strong>
-                            <bdi>{row.title}</bdi>
-                          </strong>
-                          {row.subtitle && (
-                            <small>
-                              <bdi>{row.subtitle}</bdi>
-                            </small>
-                          )}
-                        </span>
-                        {row.tag && <span className="palette__tag">{row.tag}</span>}
-                      </>
-                    ) : (
-                      <>
-                        <Icon name={row.icon} size={16} />
-                        <span className="palette__title">
-                          <bdi>{row.title}</bdi>
-                        </span>
-                        {row.subtitle && (
-                          <span className="palette__sub muted">
-                            <bdi>{row.subtitle}</bdi>
-                          </span>
-                        )}
-                      </>
-                    )}
+                    <span className="palette__tile">
+                      <Icon name={row.icon} size={18} />
+                    </span>
+                    <span className="palette__text">
+                      <strong>
+                        <bdi>{row.title}</bdi>
+                      </strong>
+                      {row.subtitle && (
+                        <small>
+                          <bdi>{row.subtitle}</bdi>
+                        </small>
+                      )}
+                    </span>
+                    {row.tag && <span className="palette__tag">{row.tag}</span>}
                   </div>
                 );
               })}

@@ -13,7 +13,6 @@ import { useCustomers, useServiceRequests } from '../data/hooks';
 import { useOrdersOf } from '../data/orderHooks';
 import { displayPhone } from '../data/phone';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 import { shortId } from '../utils';
 
 export function CustomerDetailsPage() {
@@ -27,15 +26,12 @@ export function CustomerDetailsPage() {
 
 /**
  * Everything about one customer and what can be done to the account. It is the body of
- * the full page and, in the redesign, of the side panel beside the customer list. The
- * current look keeps the actions in the page header; the redesign groups them in the
- * body: the everyday ones, then a quiet red group for converting and deleting.
+ * the full page and of the side panel beside the customer list. The actions are grouped in
+ * the body: the everyday ones, then a quiet red group for converting and deleting.
  */
 export function CustomerDetails({ id, header }: { id: string; header?: (actions: React.ReactNode) => React.ReactNode }) {
   useCities();
   const { t, money, date, dateTime, locale } = useI18n();
-  const { ui } = useUi();
-  const v2 = ui === 'v2';
   const customers = useCustomers();
   const serviceRequests = useServiceRequests();
   // Only this customer's orders are read, not every order there is.
@@ -84,17 +80,7 @@ export function CustomerDetails({ id, header }: { id: string; header?: (actions:
 
   return (
     <>
-      {header?.(
-        customer && !v2 ? (
-          <>
-            {activityLink}
-            {editButton}
-            {convertButton}
-            {deleteButton}
-            {toggleButton}
-          </>
-        ) : undefined,
-      )}
+      {header?.(undefined)}
       {editing && customer && <CustomerEditModal customer={customer} onClose={() => setEditing(false)} />}
       {converting && customer && (
         <CustomerConvertModal customer={customer} openOrders={openOrders} openRequests={openRequests} onClose={() => setConverting(false)} />
@@ -113,23 +99,19 @@ export function CustomerDetails({ id, header }: { id: string; header?: (actions:
           <EmptyState message={t('common.notFound')} />
         ) : (
           <>
-            {v2 && (
-              <>
-                <ActionGroup title={t('customer.section.profile')}>
-                  <div className="btn-group">
-                    {editButton}
-                    {activityLink}
-                    {toggleButton}
-                  </div>
-                </ActionGroup>
-                <ActionGroup title={t('common.actions')} danger>
-                  <div className="btn-group">
-                    {convertButton}
-                    {deleteButton}
-                  </div>
-                </ActionGroup>
-              </>
-            )}
+            <ActionGroup title={t('customer.section.profile')}>
+              <div className="btn-group">
+                {editButton}
+                {activityLink}
+                {toggleButton}
+              </div>
+            </ActionGroup>
+            <ActionGroup title={t('common.actions')} danger>
+              <div className="btn-group">
+                {convertButton}
+                {deleteButton}
+              </div>
+            </ActionGroup>
             <Card title={t('customer.section.profile')}>
               <dl className="kv-list">
                 <KeyValue label={t('col.name')}>

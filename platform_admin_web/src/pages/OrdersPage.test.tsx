@@ -11,7 +11,6 @@ import { ToastProvider } from '../components/feedback';
 import { downloadCsv } from '../data/csv';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
-import { setUi } from '../theme/ui';
 import { OrdersPage, parseDay } from './OrdersPage';
 
 const mock = vi.hoisted(() => ({
@@ -75,8 +74,6 @@ const lastAsk = () => mock.asked[mock.asked.length - 1];
 const names = () => [...document.querySelectorAll('table.data tbody tr')].map((r) => r.children[1].textContent);
 
 beforeEach(() => {
-  // These tests are about the current look; the redesign has its own in OrdersPageV2.test.tsx.
-  act(() => setUi('v1'));
   mock.paged = paged({ orders: [order('a'), order('b')] });
   mock.counts = { processing: 3, out_for_delivery: 1, completed: 40, cancelled: 6 };
   mock.snapshot = null;
@@ -316,10 +313,18 @@ describe('a list the dashboard flagged', () => {
 });
 
 describe('exporting the orders', () => {
-  const press = () =>
-    act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: en['common.exportCsv'] }));
+  // The export sits in the "..." menu of the page header.
+  const exportItem = () => {
+    const header = document.querySelector('.page-header') as HTMLElement;
+    fireEvent.click(within(header).getByRole('button', { name: en['common.actions'] }));
+    return screen.getByRole('menuitem', { name: en['common.exportCsv'] }) as HTMLButtonElement;
+  };
+  const press = () => {
+    const item = exportItem();
+    return act(async () => {
+      fireEvent.click(item);
     });
+  };
 
   it('reads every order the filters match, not only the page on screen, and downloads them', async () => {
     show('/orders?status=completed&company=c1&from=2026-10-01');
@@ -342,10 +347,10 @@ describe('exporting the orders', () => {
   it('has nothing to export while the list is still loading, or the dates are backwards', () => {
     mock.paged = paged({ status: 'loading' });
     show();
-    expect((screen.getByRole('button', { name: en['common.exportCsv'] }) as HTMLButtonElement).disabled).toBe(true);
+    expect(exportItem().disabled).toBe(true);
     cleanup();
     mock.paged = paged({ orders: [order('a')] });
     show('/orders?from=2026-10-05&to=2026-10-01');
-    expect((screen.getByRole('button', { name: en['common.exportCsv'] }) as HTMLButtonElement).disabled).toBe(true);
+    expect(exportItem().disabled).toBe(true);
   });
 });

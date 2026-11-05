@@ -12,22 +12,19 @@ import { displayPhone } from '../data/phone';
 import { fetchOrderReceipt } from '../data/receipts';
 import { db } from '../firebase';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 import { customerLabel, shortId } from '../utils';
 
 export function OrderDetailsPage() {
   const { id = '' } = useParams();
   const { t } = useI18n();
-  const { ui } = useUi();
   const orderState = useOrder(id);
   const order = orderState.order ?? undefined;
+  // The cancel action sits with the other order actions inside the details.
   return (
     <>
       <PageHeader
         title={order ? `${t('order.details')} #${shortId(order.id)}` : t('order.details')}
         back={{ to: '/orders', label: t('orders.title') }}
-        // In the redesign the cancel action sits with the other order actions inside the details.
-        actions={ui !== 'v2' && order?.orderStatus === 'processing' ? <AdminOrderCancel orderId={order.id} /> : undefined}
       />
       <OrderDetails orderState={orderState} />
     </>
@@ -40,12 +37,11 @@ export function OrderDetailsById({ id }: { id: string }) {
 }
 
 /**
- * Everything about one order. It is the body of the full page and, in the redesign, of
- * the side panel beside the order list: the same data and the same actions in both.
+ * Everything about one order. It is the body of the full page and of the side panel
+ * beside the order list: the same data and the same actions in both.
  */
 export function OrderDetails({ orderState }: { orderState: ReturnType<typeof useOrder> }) {
   const { t, number, money, dateTime } = useI18n();
-  const { ui } = useUi();
   const companies = useCompanies();
   const products = useProducts();
 
@@ -68,7 +64,7 @@ export function OrderDetails({ orderState }: { orderState: ReturnType<typeof use
         <>
           <p className="note note--top">{t('order.readOnlyNote')}</p>
 
-          {ui === 'v2' && order.orderStatus === 'processing' && (
+          {order.orderStatus === 'processing' && (
             <ActionGroup title={t('common.actions')} danger>
               <AdminOrderCancel orderId={order.id} />
             </ActionGroup>

@@ -17,7 +17,9 @@ service cloud.firestore {
         'email',
         'role',
         'isActive',
-        'createdAt'
+        'createdAt',
+        'termsVersion',
+        'termsAcceptedAt'
       ]);
     }
 
@@ -32,6 +34,7 @@ service cloud.firestore {
         && request.resource.data.isActive == true
         && request.resource.data.createdAt is timestamp
         && request.resource.data.createdAt == request.time
+        && hasValidTermsFields(request.resource.data)
         // An account Platform Admin deleted does not make a new profile.
         && !exists(/databases/$(database)/documents/deleted_accounts/$(request.auth.uid));
     }
@@ -369,6 +372,33 @@ service cloud.firestore {
         && request.resource.data.language in ['en', 'ar'];
     }
 
+    // The terms and conditions (platform_settings/terms) Platform Admin
+    // publishes: a version number, the text in Arabic and in English. A person
+    // accepts a version by writing termsVersion (the published number) and
+    // termsAcceptedAt (the server time) on their own profile, when they sign up
+    // or later when a version they have not accepted is published. The two
+    // travel together, and only the version that is published counts. Nothing
+    // here requires acceptance: the sign-up and the sign-in page of the site
+    // ask for it.
+    function termsPath() {
+      return /databases/$(database)/documents/platform_settings/terms;
+    }
+
+    function hasValidTermsFields(data) {
+      return !data.keys().hasAny(['termsVersion', 'termsAcceptedAt'])
+        || (data.keys().hasAll(['termsVersion', 'termsAcceptedAt'])
+          && data.termsVersion is int
+          && data.termsVersion == get(termsPath()).data.version
+          && data.termsAcceptedAt == request.time);
+    }
+
+    function isOwnTermsAcceptance() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['termsVersion', 'termsAcceptedAt'])
+        && hasValidTermsFields(request.resource.data)
+        && request.resource.data.keys().hasAll(['termsVersion', 'termsAcceptedAt']);
+    }
+
     // The cities customers and companies can choose. Platform Admin keeps the
     // list in platform_settings/cities (ids of every city ever added, which are
     // never removed: a city is hidden, not deleted); until it has saved one,
@@ -467,13 +497,14 @@ service cloud.firestore {
       let prefs = request.resource.data.get('pushPrefs', {});
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pushPrefs'])
         && prefs is map
-        && prefs.keys().hasOnly(['orders', 'chat', 'serviceRequests', 'reports', 'platform', 'cityAnnouncements'])
+        && prefs.keys().hasOnly(['orders', 'chat', 'serviceRequests', 'reports', 'platform', 'cityAnnouncements', 'usdRate'])
         && prefs.get('orders', true) is bool
         && prefs.get('chat', true) is bool
         && prefs.get('serviceRequests', true) is bool
         && prefs.get('reports', true) is bool
         && prefs.get('platform', true) is bool
-        && prefs.get('cityAnnouncements', true) is bool;
+        && prefs.get('cityAnnouncements', true) is bool
+        && prefs.get('usdRate', true) is bool;
     }
 
     function isOwnPushTokensUpdate() {
@@ -883,6 +914,7 @@ service cloud.firestore {
           && isSafeCustomerProfileUpdate())
         || (isOwner(uid) && isPasswordChangeCompletion())
         || (isOwner(uid) && isOwnLanguageUpdate())
+        || (isOwner(uid) && isOwnTermsAcceptance())
         || (isOwner(uid) && isOwnCityUpdate())
         || (isOwner(uid) && isOwnPushTokensUpdate())
         || (isOwner(uid) && isOwnPushPrefsUpdate())
@@ -1595,9 +1627,42 @@ service cloud.firestore {
         'lowStockThreshold',
         'imageUrls',
         'specificationsOrder',
+        'priceUsd',
+        'offerPriceUsd',
+        'installationPriceUsd',
+        'usdRateApplied',
         'createdAt',
         'updatedAt'
       ]);
+    }
+
+    // A product the company prices in US dollars keeps what it typed in
+    // dollars next to the Sudanese-pound prices worked out from its own dollar
+    // rate (companies/{id}.usdRate), and the rate they were worked out with:
+    //   priceUsd             the price in dollars; price is then set too
+    //   offerPriceUsd        an offer in dollars, below priceUsd
+    //   installationPriceUsd the installation price in dollars
+    //   usdRateApplied       the rate price/offerPrice/installationPrice use
+    // The pounds stay the prices everything else reads (orders included), so
+    // the sum itself is the company's to keep right and is not checked here.
+    // A dollar offer or installation price only counts beside its pounds, and
+    // is not required to go when they do: Platform Admin ending an offer
+    // clears only the pounds, and the product must stay editable after it.
+    function hasValidProductUsdPrices(data) {
+      return (data.get('priceUsd', null) == null
+          || (data.priceUsd is number
+            && data.priceUsd > 0
+            && data.get('price', null) is number))
+        && (data.get('offerPriceUsd', null) == null
+          || (data.offerPriceUsd is number
+            && data.offerPriceUsd > 0
+            && data.get('priceUsd', null) is number
+            && data.offerPriceUsd < data.priceUsd))
+        && (data.get('installationPriceUsd', null) == null
+          || (data.installationPriceUsd is number
+            && data.installationPriceUsd > 0))
+        && (data.get('usdRateApplied', null) == null
+          || (data.usdRateApplied is number && data.usdRateApplied > 0));
     }
 
     // Optional fields the company sets on its own product. Older documents
@@ -1665,6 +1730,7 @@ service cloud.firestore {
         && data.get('hiddenReason', '') is string
         && data.get('hiddenReason', '').size() <= 200
         && hasValidProductExtras(data)
+        && hasValidProductUsdPrices(data)
         && data.updatedAt == request.time;
     }
 
@@ -2119,6 +2185,57 @@ service cloud.firestore {
         && data.productName == getAfter(company).data.get('name', '');
     }
 
+    // A person tells the Platform Admins about something they must look at,
+    // right after writing it:
+    //   new_report  they sent a report (reports/{reportId});
+    //   low_review  a customer rated 1 or 2 stars (reviews/{reviewId}).
+    // It goes to every Platform Admin at once (recipientType 'platform_admin',
+    // recipientId 'platform'). Its only text is the report's subject or the
+    // rated item's name, and the report or review must be the caller's own.
+    // One per report or review: the id is fixed.
+    function isValidPlatformNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && callerIsNotDeactivated()
+        && data.get('recipientType', '') == 'platform_admin'
+        && data.recipientId == 'platform'
+        && data.id == notificationId
+        && data.senderId == request.auth.uid
+        && data.isRead == false
+        && data.createdAt == request.time
+        && ((data.type == 'new_report' && platformReportNoticeMatches(notificationId))
+          || (data.type == 'low_review' && platformReviewNoticeMatches(notificationId)));
+    }
+
+    function platformReportNoticeMatches(notificationId) {
+      let data = request.resource.data;
+      let path = /databases/$(database)/documents/reports/$(data.reportId);
+      return data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'reportId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'reportId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.reportId is string
+        && data.reportId.size() > 0
+        && data.reportId.size() <= 128
+        && notificationId == data.reportId + '_new_report'
+        && existsAfter(path)
+        && getAfter(path).data.reporterId == request.auth.uid
+        && data.productName == getAfter(path).data.subject;
+    }
+
+    function platformReviewNoticeMatches(notificationId) {
+      let data = request.resource.data;
+      let path = /databases/$(database)/documents/reviews/$(data.reviewId);
+      return data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'reviewId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'reviewId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.reviewId is string
+        && data.reviewId.size() > 0
+        && data.reviewId.size() <= 128
+        && notificationId == data.reviewId + '_low_review'
+        && existsAfter(path)
+        && getAfter(path).data.customerId == request.auth.uid
+        && getAfter(path).data.stars <= 2
+        && data.productName == getAfter(path).data.targetName;
+    }
+
     // What the notification says must be true of the report as the batch leaves it.
     function reportNotificationMatchesReport() {
       let data = request.resource.data;
@@ -2183,10 +2300,13 @@ service cloud.firestore {
     }
 
     // A notification's recipient may read it: the customer themself, any
-    // admin of the target company, or the technician it was assigned to.
+    // admin of the target company, the technician it was assigned to, or any
+    // Platform Admin for one addressed to all of them.
     function isNotificationRecipient() {
       return (resource.data.recipientType == 'customer'
           && resource.data.recipientId == request.auth.uid)
+        || (resource.data.recipientType == 'platform_admin'
+          && isPlatformAdmin())
         || (resource.data.recipientType == 'company_admin'
           && isCompanyAdminOf(resource.data.recipientId))
         || (resource.data.recipientType == 'technician'
@@ -2280,15 +2400,39 @@ service cloud.firestore {
         && data.updatedAt == request.time;
     }
 
+    // The terms and conditions: the first publication is version 1; after
+    // that a version either keeps its number (a correction people need not
+    // accept again) or goes up by one (everyone is asked again). Both texts are
+    // limited in size, and at least one has words in it.
+    function isValidTermsDocument() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['version', 'textAr', 'textEn', 'updatedAt', 'updatedBy'])
+        && data.keys().hasAll(['version', 'textAr', 'textEn', 'updatedAt', 'updatedBy'])
+        && data.version is int
+        && (resource == null
+          ? data.version == 1
+          : (data.version == resource.data.version || data.version == resource.data.version + 1))
+        && data.textAr is string
+        && data.textEn is string
+        && data.textAr.size() <= 50000
+        && data.textEn.size() <= 50000
+        && (data.textAr.size() > 0 || data.textEn.size() > 0)
+        && data.updatedAt == request.time
+        && data.updatedBy == request.auth.uid;
+    }
+
     match /platform_settings/{settingsId} {
-      allow get: if settingsId in ['public', 'cities'];
+      allow get: if settingsId in ['public', 'cities', 'terms'];
       allow list: if false;
       allow create, update: if (settingsId == 'public'
           && isPlatformAdmin()
           && isValidPlatformSettings())
         || (settingsId == 'cities'
           && isPlatformAdmin()
-          && isValidCitiesDocument());
+          && isValidCitiesDocument())
+        || (settingsId == 'terms'
+          && isPlatformAdmin()
+          && isValidTermsDocument());
       allow delete: if false;
     }
 
@@ -2551,6 +2695,7 @@ service cloud.firestore {
         || isValidCompanyCancelNotificationCreate(notificationId)
         || isValidAdminProductNotificationCreate(notificationId)
         || isValidAdminAccountNotificationCreate(notificationId)
+        || isValidPlatformNotificationCreate(notificationId)
         || isSignedIn()
         && callerIsNotDeactivated()
         && isValidNotificationCreate(notificationId)
@@ -2693,6 +2838,20 @@ service cloud.firestore {
         && data.updatedAt == request.time;
     }
 
+    // The company's own dollar rate: how many Sudanese pounds one US dollar
+    // costs it, which its dollar-priced products are worked out from, and when
+    // it last set or confirmed it (confirming the same rate changes only the
+    // time). Nothing else rides along, which keeps it apart from the profile
+    // update and well under the expression limit.
+    function isCompanyUsdRateUpdate() {
+      let data = request.resource.data;
+      return data.diff(resource.data).affectedKeys().hasOnly(['usdRate', 'usdRateUpdatedAt'])
+        && data.usdRate is number
+        && data.usdRate >= 1
+        && data.usdRate <= 1000000
+        && data.usdRateUpdatedAt == request.time;
+    }
+
     // Platform Admin decides a company's status and nothing else:
     //   pending  -> active | rejected
     //   active   -> inactive
@@ -2811,7 +2970,8 @@ service cloud.firestore {
       allow update: if isPlatformAdminCompanyStatusUpdate()
         || isPlatformAdminCompanyCitiesUpdate()
         || isPlatformAdminCompanyTrashUpdate()
-        || (isCompanyAdminOf(companyId) && isCompanyProfileUpdate());
+        || (isCompanyAdminOf(companyId) && isCompanyProfileUpdate())
+        || (isCompanyAdminOf(companyId) && isCompanyUsdRateUpdate());
 
       allow delete: if isPlatformAdminCompanyDelete();
     }

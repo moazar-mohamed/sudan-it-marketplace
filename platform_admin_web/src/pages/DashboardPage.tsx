@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { LineChart } from '../components/charts';
 import { CompanyStatusBadge, OrderStatusBadge } from '../components/StatusBadges';
-import { Card, DataGate, Disclosure, EmptyState, PageHeader, StatCard, Text, Thumb } from '../components/ui';
+import { Card, DataGate, Disclosure, EmptyState, StatCard, Text, Thumb } from '../components/ui';
 import { isConfirmedSale } from '../data/analytics';
 import { attentionCounts } from '../data/attention';
 import { attentionItems } from '../data/attentionItems';
@@ -19,7 +19,6 @@ import {
 } from '../data/stats';
 import { useDashboard } from '../data/useDashboard';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 import { customerLabel, shortId } from '../utils';
 
 /** The top-level categories as coloured tiles (redesign): what the marketplace is made of, one press from managing it. */
@@ -56,10 +55,9 @@ function HomeCategories() {
 
 export function DashboardPage() {
   const { t, number, money, date, dateTime } = useI18n();
-  const { snapshot, refreshing, refresh } = useDashboard();
+  const { snapshot, refresh } = useDashboard();
   const { state } = useAuth();
-  // The redesign refreshes the figures by itself (every few minutes while the tab is open, and when the bell is opened), so it has no refresh button.
-  const v2 = useUi().ui === 'v2';
+  // The figures refresh by themselves (every few minutes while the tab is open, and when the bell is opened), so there is no refresh button.
   const profile = state.status === 'authorized' ? state.profile : null;
   const firstName = (profile?.fullName || profile?.email || '').trim().split(/\s+/)[0];
   const [days, setDays] = useState<PeriodDays>(30);
@@ -299,40 +297,7 @@ export function DashboardPage() {
 
   return (
     <>
-      {v2 && hero}
-      {!v2 && (
-      <PageHeader
-        title={firstName ? t('dashboard.greeting', { name: firstName }) : t('dashboard.title')}
-        subtitle={t('dashboard.subtitle')}
-        actions={
-          <>
-            {snapshot && (
-              <span className="muted">{t('dashboard.updatedAt', { time: dateTime(new Date(snapshot.at)) })}</span>
-            )}
-            <div className="segmented" role="group" aria-label={t('dashboard.period')}>
-              {PERIOD_DAYS.map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  className={d === days ? 'segmented__item segmented__item--active' : 'segmented__item'}
-                  aria-pressed={d === days}
-                  onClick={() => setDays(d)}
-                >
-                  {periodName(d)}
-                </button>
-              ))}
-            </div>
-            {!v2 && (
-              <button className="btn btn--sm" onClick={() => void refresh()} disabled={refreshing}>
-                {t('dashboard.refresh')}
-              </button>
-            )}
-          </>
-        }
-      />
-      )}
-
-      {!v2 && <h2 className="section-title">{t('trend.title', { period })}</h2>}
+      {hero}
       <div className="stat-grid stat-grid--trend">
         <StatCard
           icon="orders"
@@ -373,25 +338,15 @@ export function DashboardPage() {
         />
       </div>
 
-      {v2 ? (
-        <>
-          <div className="grid-2 home-row">
-            {tasksCard}
-            {chartCard}
-          </div>
-          <HomeCategories />
-        </>
-      ) : (
-        chartCard
-      )}
+      <div className="grid-2 home-row">
+        {tasksCard}
+        {chartCard}
+      </div>
+      <HomeCategories />
 
-      {v2 ? (
-        <Disclosure title={t('home.totals')} icon="analytics">
-          {totalsGrid}
-        </Disclosure>
-      ) : (
-        totalsGrid
-      )}
+      <Disclosure title={t('home.totals')} icon="analytics">
+        {totalsGrid}
+      </Disclosure>
 
 
       <div className="grid-2">

@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   CustomerCreateModal,
   CustomerEditModal,
@@ -15,7 +15,6 @@ import { useCustomerOrderCounts } from '../data/orderHooks';
 import { displayPhone, phoneSearchForms } from '../data/phone';
 import type { Customer } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 import { matchesQuery } from '../utils';
 import { CustomerDetails } from './CustomerDetailsPage';
 
@@ -33,11 +32,9 @@ const SORTS = {
 export function CustomersPage() {
   const { t, number, date } = useI18n();
   const customers = useCustomers();
-  const navigate = useNavigate();
-  // In the redesign a row opens the customer in a panel beside the list (?open=<id>); the full page stays one click away.
+  // A row opens the customer in a panel beside the list (?open=<id>); the full page stays one click away.
   const [params, setParams] = useSearchParams();
-  const v2 = useUi().ui === 'v2';
-  const openId = v2 ? params.get('open') : null;
+  const openId = params.get('open');
   const setOpen = (id: string | null) =>
     setParams(
       (prev) => {
@@ -73,8 +70,7 @@ export function CustomersPage() {
   // inside it (the name link, View, Edit, Deactivate) are theirs, not the row's.
   const openCustomer = (id: string) => (e: MouseEvent<HTMLTableRowElement>) => {
     if ((e.target as HTMLElement).closest('a, button')) return;
-    if (v2) setOpen(id);
-    else navigate(`/customers/${id}`);
+    setOpen(id);
   };
   const openName = openId ? customers.data.find((c) => c.id === openId)?.fullName : undefined;
   const panel = openId ? (

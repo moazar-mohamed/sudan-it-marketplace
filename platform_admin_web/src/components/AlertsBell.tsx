@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { attentionCounts } from '../data/attention';
-import { attentionItems, attentionTotal } from '../data/attentionItems';
+import { attentionItems } from '../data/attentionItems';
 import { useNewReports } from '../data/hooks';
 import { useDashboard } from '../data/useDashboard';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 import { Icon } from './Icon';
 
 const SEEN_KEY = 'platform_admin_alerts_seen';
@@ -29,8 +28,7 @@ function readSeen(): Record<string, number> {
  */
 export function AlertsBell() {
   const { t, number, dateTime } = useI18n();
-  const { snapshot, refreshing, refresh, refreshIfStale } = useDashboard();
-  const v2 = useUi().ui === 'v2';
+  const { snapshot, refreshIfStale } = useDashboard();
   const [open, setOpen] = useState(false);
   // What the person has already looked at: the badge is for what is new since then.
   const [seen, setSeen] = useState(readSeen);
@@ -54,12 +52,11 @@ export function AlertsBell() {
   const newReports = useNewReports();
   const reportCount = newReports.status === 'ready' ? newReports.data.length : 0;
   const found = snapshot ? attentionCounts(snapshot) : null;
-  const total = reportCount > 0 ? (attentionTotal(found) ?? 0) + reportCount : attentionTotal(found);
   const items = attentionItems(found, t).filter((i) => i.count);
 
   const current: Record<string, number> = { reports: reportCount, ...Object.fromEntries(items.map((i) => [i.key, i.count ?? 0])) };
   const unseen = Object.entries(current).reduce((sum, [key, count]) => sum + Math.max(0, count - (seen[key] ?? 0)), 0);
-  const badgeCount = v2 ? unseen : (total ?? 0);
+  const badgeCount = unseen;
   const markSeen = () => {
     setSeen(current);
     try {
@@ -69,7 +66,7 @@ export function AlertsBell() {
     }
   };
   const toggleOpen = () => {
-    if (!open && v2) {
+    if (!open) {
       markSeen();
       refreshIfStale?.(OPEN_STALE_MS);
     }
@@ -152,11 +149,6 @@ export function AlertsBell() {
           )}
           <div className="bell__foot">
             <span className="muted">{snapshot ? t('alerts.updated', { time: dateTime(new Date(snapshot.at)) }) : t('common.loading')}</span>
-            {!v2 && (
-              <button className="btn btn--sm" onClick={() => void refresh()} disabled={refreshing}>
-                {t('dashboard.refresh')}
-              </button>
-            )}
           </div>
         </div>
       )}

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
@@ -7,7 +7,6 @@ import { setCompanyStatus, trashCompany } from '../data/actions';
 import type { Company, Product } from '../data/types';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
-import { setUi } from '../theme/ui';
 import { CompaniesPage } from './CompaniesPage';
 
 /* ---- in-memory stand-in for the live company / product collections ---- */
@@ -84,10 +83,13 @@ function renderList() {
 
 const row = (name: string) => screen.getByText(name).closest('tr') as HTMLElement;
 const dialog = () => screen.getByRole('dialog');
+/** Deactivate and Move to trash sit in the row's "..." menu. */
+const menuItem = (company: string, item: string, actions = en['common.actions']) => {
+  fireEvent.click(within(row(company)).getByRole('button', { name: actions }));
+  return within(screen.getByRole('menu', { name: actions })).getByRole('menuitem', { name: item });
+};
 
 beforeEach(() => {
-  // These tests are about the current look; the redesign has its own in CompaniesPageV2.test.tsx.
-  act(() => setUi('v1'));
   localStorage.setItem('platform_admin_locale', 'en');
   store.products = [product('p1', 'A'), product('p2', 'B')];
   setCompanies([company('A', 'Alpha Tech', 'active'), company('B', 'Beta Corp', 'inactive')]);
@@ -125,35 +127,12 @@ describe('company list row', () => {
     expect(screen.queryByRole('button', { name: en['common.view'] })).toBeNull();
     expect(screen.queryByText(en['common.view'])).toBeNull();
   });
-
-  it('renders Move to trash next to Deactivate on an active company (trash first)', () => {
-    renderList();
-    const names = within(row('Alpha Tech'))
-      .getAllByRole('button')
-      .map((b) => b.textContent);
-    expect(names).toEqual([en['companies.trash'], en['companies.deactivate']]);
-  });
-
-  it('marks Move to trash as a destructive action', () => {
-    renderList();
-    expect(within(row('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }).className).toContain(
-      'btn--danger',
-    );
-  });
-
-  it('keeps Move to trash next to Activate on an inactive company', () => {
-    renderList();
-    const names = within(row('Beta Corp'))
-      .getAllByRole('button')
-      .map((b) => b.textContent);
-    expect(names).toEqual([en['companies.activate'], en['companies.trash']]);
-  });
 });
 
 describe('Deactivate', () => {
   it('still works, and does not open the details', async () => {
     renderList();
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.deactivate'] }));
+    fireEvent.click(menuItem('Alpha Tech', en['companies.deactivate']));
 
     expect(screen.queryByTestId('details')).toBeNull();
     expect(dialog()).toBeTruthy();
@@ -166,7 +145,7 @@ describe('Deactivate', () => {
 
   it('cancelling does nothing', () => {
     renderList();
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.deactivate'] }));
+    fireEvent.click(menuItem('Alpha Tech', en['companies.deactivate']));
     fireEvent.click(within(dialog()).getByRole('button', { name: en['common.cancel'] }));
     expect(setCompanyStatus).not.toHaveBeenCalled();
   });
@@ -175,7 +154,7 @@ describe('Deactivate', () => {
 describe('Move to trash', () => {
   it('asks first, and does not open the details', () => {
     renderList();
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
+    fireEvent.click(menuItem('Alpha Tech', en['companies.trash']));
 
     expect(screen.queryByTestId('details')).toBeNull();
     expect(screen.getByRole('dialog', { name: en['companies.confirmTrash.title'] })).toBeTruthy();
@@ -184,7 +163,7 @@ describe('Move to trash', () => {
 
   it('says that nothing is deleted and how many products are hidden', () => {
     renderList();
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
+    fireEvent.click(menuItem('Alpha Tech', en['companies.trash']));
 
     const text = dialog().textContent ?? '';
     expect(text).toContain('Alpha Tech');
@@ -205,7 +184,7 @@ describe('Move to trash', () => {
 
   it('cancelling moves nothing', () => {
     renderList();
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
+    fireEvent.click(menuItem('Alpha Tech', en['companies.trash']));
     fireEvent.click(within(dialog()).getByRole('button', { name: en['common.cancel'] }));
 
     expect(trashCompany).not.toHaveBeenCalled();
@@ -218,7 +197,7 @@ describe('Move to trash', () => {
       setCompanies((store.companies as Company[]).map((x) => (x.id === c.id ? { ...x, trashedAt: new Date() } : x)));
     });
     renderList();
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: en['companies.trash'] }));
+    fireEvent.click(menuItem('Alpha Tech', en['companies.trash']));
     fireEvent.click(within(dialog()).getByRole('button', { name: en['companies.trash'] }));
 
     await waitFor(() => expect(screen.queryByText('Alpha Tech')).toBeNull());
@@ -244,7 +223,7 @@ describe('Move to trash', () => {
   it('a refused move keeps the row and reports the problem', async () => {
     vi.mocked(trashCompany).mockRejectedValue(Object.assign(new Error('denied'), { code: 'permission-denied' }));
     renderList();
-    fireEvent.click(within(row('Beta Corp')).getByRole('button', { name: en['companies.trash'] }));
+    fireEvent.click(menuItem('Beta Corp', en['companies.trash']));
     fireEvent.click(within(dialog()).getByRole('button', { name: en['companies.trash'] }));
 
     const toast = await screen.findByRole('status');
@@ -254,19 +233,19 @@ describe('Move to trash', () => {
 });
 
 describe('Arabic', () => {
-  it('shows the Arabic buttons and confirmation, right-to-left', () => {
+  it('shows the Arabic menu and confirmation, right-to-left', () => {
     localStorage.setItem('platform_admin_locale', 'ar');
     renderList();
     expect(document.documentElement.dir).toBe('rtl');
     expect(screen.queryByText(en['common.view'])).toBeNull();
     expect(screen.queryByText(ar['common.view'])).toBeNull();
 
-    const names = within(row('Alpha Tech'))
-      .getAllByRole('button')
+    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: ar['common.actions'] }));
+    const items = within(screen.getByRole('menu', { name: ar['common.actions'] }))
+      .getAllByRole('menuitem')
       .map((b) => b.textContent);
-    expect(names).toEqual([ar['companies.trash'], ar['companies.deactivate']]);
-
-    fireEvent.click(within(row('Alpha Tech')).getByRole('button', { name: ar['companies.trash'] }));
+    expect(items).toEqual([ar['companies.deactivate'], ar['companies.trash']]);
+    fireEvent.click(screen.getByRole('menuitem', { name: ar['companies.trash'] }));
     const text = dialog().textContent ?? '';
     expect(text).toContain('لا يُحذف شيء');
     expect(text).toContain('من السلة');

@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { setTheme } from '../theme/theme';
-import { setDensity, setUi } from '../theme/ui';
+import { setDensity } from '../theme/ui';
 import { DesignSystemPage } from './DesignSystemPage';
 
 const root = document.documentElement;
@@ -10,7 +10,6 @@ const root = document.documentElement;
 beforeEach(() => {
   localStorage.clear();
   act(() => {
-    setUi('v1');
     setDensity('comfortable');
     setTheme('system');
   });
@@ -20,19 +19,11 @@ afterEach(cleanup);
 describe('design-system page', () => {
   it('shows the tokens and the component seeds', () => {
     render(<DesignSystemPage />);
-    expect(screen.getByRole('heading', { name: 'سيستم التصميم (v2)' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'سيستم التصميم' })).toBeTruthy();
     expect(screen.getByTestId('swatch-color-brand-primary')).toBeTruthy();
     expect(screen.getByTestId('swatch-color-bg-app')).toBeTruthy();
     expect(screen.getByRole('menu', { name: 'قائمة الإجراءات' })).toBeTruthy();
     expect(screen.getAllByRole('menuitem').length).toBe(4);
-  });
-
-  it('says the new look is off until it is switched on', () => {
-    render(<DesignSystemPage />);
-    expect(screen.getByText(/الشكل الجديد مطفي الآن/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('checkbox', { name: /تشغيل الشكل الجديد/ }));
-    expect(root.getAttribute('data-ui')).toBe('v2');
-    expect(screen.queryByText(/الشكل الجديد مطفي الآن/)).toBeNull();
   });
 
   it('density and appearance switches change <html>', () => {

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DashboardSnapshot } from '../data/dashboardData';
@@ -7,7 +7,6 @@ import { failed, makeSnapshot, ok } from '../data/dashboardTestkit';
 import { mapCustomer, mapOrder } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
-import { setUi } from '../theme/ui';
 import { DashboardPage } from './DashboardPage';
 
 const hours = (h: number) => new Date(Date.now() - h * 3_600_000);
@@ -40,8 +39,6 @@ const tile = (label: string) => screen.getByText(label).closest('.stat') as HTML
 const period = (name: string) => screen.getByRole('button', { name });
 
 beforeEach(() => {
-  // These tests are about the current look; the redesign has its own in DashboardV2.test.tsx.
-  act(() => setUi('v1'));
   localStorage.clear();
   mock.profile = { uid: 'a', fullName: 'Mona Ali', email: 'm@x.test' };
 });
@@ -80,20 +77,18 @@ describe('Dashboard period', () => {
       ]),
     });
 
-  it('starts on 30 days and offers 7 and 14 next to the refresh button', () => {
+  it('starts on 30 days and offers 7 and 14', () => {
     show(snapshot());
     expect(period('30 days').getAttribute('aria-pressed')).toBe('true');
     expect(period('7 days').getAttribute('aria-pressed')).toBe('false');
     expect(period('14 days')).toBeTruthy();
-    expect(screen.getByRole('heading', { level: 2, name: 'Last 30 days' })).toBeTruthy();
   });
 
-  it('changes the figures, the comparison and the heading together', () => {
+  it('changes the figures and the comparison together', () => {
     show(snapshot());
     expect(within(tile(en['trend.orders'])).getByText('5')).toBeTruthy();
     fireEvent.click(period('7 days'));
     expect(period('7 days').getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('heading', { level: 2, name: 'Last 7 days' })).toBeTruthy();
     const orders = tile(en['trend.orders']);
     expect(orders.querySelector('.stat__value')!.textContent).toBe('2');
     // 2 in the last 7 days against 2 in the 7 before (10 and 12 days ago): no change.
@@ -113,9 +108,10 @@ describe('Dashboard period', () => {
   it('says days the Arabic way: 3 to 10 are أيام, the rest يوماً', () => {
     localStorage.setItem('platform_admin_locale', 'ar');
     show(snapshot());
-    expect(screen.getByRole('heading', { level: 2, name: 'آخر 30 يوماً' })).toBeTruthy();
+    expect(period('30 يوماً').getAttribute('aria-pressed')).toBe('true');
     fireEvent.click(period('7 أيام'));
-    expect(screen.getByRole('heading', { level: 2, name: 'آخر 7 أيام' })).toBeTruthy();
+    expect(period('7 أيام').getAttribute('aria-pressed')).toBe('true');
+    expect(period('14 يوماً')).toBeTruthy();
     expect(screen.getByText(ar['trend.cancelRate'])).toBeTruthy();
   });
 });

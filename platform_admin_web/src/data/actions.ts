@@ -216,6 +216,32 @@ export async function saveCities(cities: readonly SudanCity[]) {
   await batch.commit();
 }
 
+/**
+ * Publishes the terms and conditions (`platform_settings/terms`) with their
+ * activity entry. `newVersion` says whether the number went up (everyone is
+ * asked to accept again) or this is a correction that keeps it.
+ */
+export async function saveTerms(input: { textAr: string; textEn: string; version: number; newVersion: boolean }) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not signed in.');
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'platform_settings', 'terms'), {
+    version: input.version,
+    textAr: input.textAr,
+    textEn: input.textEn,
+    updatedAt: serverTimestamp(),
+    updatedBy: user.uid,
+  });
+  stageAudit(batch, {
+    action: input.newVersion ? 'terms.publish' : 'terms.update',
+    targetType: 'settings',
+    targetId: 'terms',
+    targetName: 'terms',
+    detail: String(input.version),
+  });
+  await batch.commit();
+}
+
 /** The ids of the cities now saved, for a page that adds to them. */
 export const currentCityIds = () => allCities().map((c) => c.id);
 

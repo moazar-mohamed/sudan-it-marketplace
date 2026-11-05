@@ -15,7 +15,6 @@ import { matchesOrderAttention, ORDER_ATTENTIONS, STUCK_ORDER_DAYS, UNVERIFIED_P
 import { ORDER_STATUSES, type Order, type OrderStatus } from '../data/types';
 import { useDashboard } from '../data/useDashboard';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 import { customerLabel, matchesQuery, shortId } from '../utils';
 import { OrderDetailsById } from './OrderDetailsPage';
 
@@ -78,10 +77,8 @@ export function OrdersPage() {
   };
   const [query, setQuery] = useState('');
   const { busy, run } = useRunner();
-  // In the redesign a row opens its details in a panel beside the list (?open=<id>); the full page stays one click away.
-  const { ui } = useUi();
-  const v2 = ui === 'v2';
-  const openId = v2 ? params.get('open') : null;
+  // A row opens its details in a panel beside the list (?open=<id>); the full page stays one click away.
+  const openId = params.get('open');
   const setOpen = (id: string | null) =>
     setParams(
       (prev) => {
@@ -231,34 +228,18 @@ export function OrdersPage() {
           onClear={() => updateFilters({ attention: null })}
         />
       )}
-      {v2 ? (
-        // The redesign keeps to the status chips and the search; the company and the dates fold into one "Filters" button.
-        <div className="toolbar">
-          {statusChips}
-          <div className="toolbar__end">
-            <SearchInput value={query} onChange={setQuery} placeholder={t('orders.search')} />
-            <FilterGroup count={(companyId ? 1 : 0) + (fromParam || toParam ? 1 : 0)} onClear={() => updateFilters({ company: '', from: '', to: '' })}>
-              {companySelect}
-              {dateFields}
-              <p className="muted toolbar__note">{t('orders.searchHint')}</p>
-            </FilterGroup>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="toolbar">
-            {statusChips}
-            <div className="toolbar__end">
-              {companySelect}
-              <SearchInput value={query} onChange={setQuery} placeholder={t('orders.search')} />
-            </div>
-          </div>
-          <div className="toolbar">
-            <div className="toolbar__end">{dateFields}</div>
+      {/* The status chips and the search; the company and the dates sit in the filter pills. */}
+      <div className="toolbar">
+        {statusChips}
+        <div className="toolbar__end">
+          <SearchInput value={query} onChange={setQuery} placeholder={t('orders.search')} />
+          <FilterGroup count={(companyId ? 1 : 0) + (fromParam || toParam ? 1 : 0)} onClear={() => updateFilters({ company: '', from: '', to: '' })}>
+            {companySelect}
+            {dateFields}
             <p className="muted toolbar__note">{t('orders.searchHint')}</p>
-          </div>
-        </>
-      )}
+          </FilterGroup>
+        </div>
+      </div>
 
       <SplitView panel={panel}>
       {badRange ? (
@@ -299,8 +280,8 @@ export function OrdersPage() {
                 {sortedRows.map((o) => (
                   <tr
                     key={o.id}
-                    className={v2 ? (openId === o.id ? 'row--clickable is-open' : 'row--clickable') : undefined}
-                    onClick={v2 ? () => setOpen(o.id) : undefined}
+                    className={openId === o.id ? 'row--clickable is-open' : 'row--clickable'}
+                    onClick={() => setOpen(o.id)}
                   >
                     <td>
                       <Link to={`/orders/${o.id}`} className="mono" dir="ltr">

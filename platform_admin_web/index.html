@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" data-ui="v2">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,12 +14,8 @@
         var theme = localStorage.getItem('platform_admin_theme');
         if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
       } catch (e) {}
-      // The redesign (v2) is the default; ?ui=v1 (or the design-system page) keeps the previous look in this browser. Density is saved too.
+      // The panel has one look (its styles sit under data-ui="v2", set above); only the density is a saved choice.
       try {
-        var asked = new URLSearchParams(location.search).get('ui');
-        if (asked === 'v1') localStorage.setItem('platform_admin_ui', 'v1');
-        if (asked === 'v2') localStorage.removeItem('platform_admin_ui');
-        if (localStorage.getItem('platform_admin_ui') !== 'v1') document.documentElement.setAttribute('data-ui', 'v2');
         if (localStorage.getItem('platform_admin_density') === 'compact') document.documentElement.setAttribute('data-density', 'compact');
       } catch (e) {}
     </script>

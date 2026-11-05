@@ -1,12 +1,11 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
 import type { Review } from '../data/types';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
-import { setUi } from '../theme/ui';
 import { ReviewsPage } from './ReviewsPage';
 
 const mock = vi.hoisted(() => ({ reviews: [] as unknown[] }));
@@ -54,12 +53,10 @@ const cards = () => [...document.querySelectorAll('.review-card')] as HTMLElemen
 beforeEach(() => {
   localStorage.setItem('platform_admin_locale', 'en');
   mock.reviews = [review('1', 5), review('2', 2), review('3', 4, { hidden: true, reply: 'thanks' })];
-  act(() => setUi('v2'));
 });
 afterEach(() => {
   cleanup();
   localStorage.clear();
-  act(() => setUi('v1'));
 });
 
 describe('the reviews page in the redesign', () => {

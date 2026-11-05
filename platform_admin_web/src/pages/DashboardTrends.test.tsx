@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DashboardSnapshot } from '../data/dashboardData';
@@ -7,7 +7,6 @@ import { failed, makeSnapshot, ok } from '../data/dashboardTestkit';
 import { mapCustomer, mapOrder } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
-import { setUi } from '../theme/ui';
 import { DashboardPage } from './DashboardPage';
 
 const hours = (h: number) => new Date(Date.now() - h * 3_600_000);
@@ -34,9 +33,7 @@ const show = (snapshot: DashboardSnapshot | null = makeSnapshot()) => {
   );
 };
 
-// These tests are about the current look; the redesign has its own in DashboardV2.test.tsx.
 beforeEach(() => {
-  act(() => setUi('v1'));
 });
 afterEach(cleanup);
 
@@ -90,11 +87,6 @@ describe('Dashboard "Last 30 days"', () => {
 });
 
 describe('Dashboard layout and refresh', () => {
-  it('offers a refresh and says when the figures were read', () => {
-    show();
-    expect(screen.getByRole('button', { name: en['dashboard.refresh'] })).toBeTruthy();
-    expect(screen.getByText(/^Updated /)).toBeTruthy();
-  });
 
   it('shows the five newest orders and companies it was given', () => {
     show(

@@ -7,6 +7,7 @@ import { CompanyStatusBadge } from '../components/StatusBadges';
 import { SortTh, useSortedRows } from '../components/sort';
 import { ExportAction, FilterGroup } from '../components/v2';
 import {
+  Badge,
   Chips,
   DataGate,
   EmptyState,
@@ -157,6 +158,7 @@ export function CompaniesPage() {
                     <SortTh label={t('col.location')} sortKey="location" sort={sort} onSort={toggle} />
                     <SortTh label={t('col.rating')} sortKey="rating" sort={sort} onSort={toggle} />
                     <SortTh label={t('col.reviews')} sortKey="reviews" sort={sort} onSort={toggle} />
+                    <th>{t('col.usdRate')}</th>
                     <SortTh label={t('col.status')} sortKey="status" sort={sort} onSort={toggle} />
                     <SortTh label={t('col.created')} sortKey="created" sort={sort} onSort={toggle} />
                     <th>{t('common.actions')}</th>
@@ -178,6 +180,9 @@ export function CompaniesPage() {
                       </td>
                       <td className="nowrap">{number(c.rating)} ★</td>
                       <td>{number(c.reviewCount)}</td>
+                      <td className="nowrap">
+                        <UsdRateCell company={c} now={now} />
+                      </td>
                       <td>
                         <CompanyStatusBadge status={c.status} />
                       </td>
@@ -194,5 +199,28 @@ export function CompaniesPage() {
         )}
       </DataGate>
     </>
+  );
+}
+
+/**
+ * The company's own dollar rate (its dollar-priced products are worked out
+ * from it), flagged when it has gone two days without being set or confirmed:
+ * the platform may want to call the company.
+ */
+function UsdRateCell({ company, now }: { company: Company; now: number }) {
+  const { t, number, dateTime } = useI18n();
+  if (!company.usdRate) return <span className="muted">{t('companies.usdRate.none')}</span>;
+  const updated = company.usdRateUpdatedAt ?? null;
+  const days = updated ? Math.floor((now - updated.getTime()) / 86_400_000) : null;
+  return (
+    <span title={t('companies.usdRate.title', { date: dateTime(updated) })}>
+      {number(company.usdRate)}
+      {(days === null || days >= 2) && (
+        <>
+          {' '}
+          <Badge tone="warning">{t('companies.usdRate.stale', { days: days ?? '—' })}</Badge>
+        </>
+      )}
+    </span>
   );
 }

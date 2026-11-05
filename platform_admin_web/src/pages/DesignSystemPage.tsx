@@ -4,9 +4,9 @@ import { useTheme, type ThemePreference } from '../theme/theme';
 import { useUi, type Density } from '../theme/ui';
 
 /*
- * An internal page (no link in the menu) that shows the v2 design system: the
- * switches for the redesign, the colour and shape tokens, and the seeds of the new
- * components. It is how the look is reviewed before any real page uses it.
+ * An internal page (no link in the menu) that shows the panel's design system: the
+ * density and theme switches, the colour and shape tokens, and the seeds of the
+ * components. It is how a change to the look is reviewed before a real page uses it.
  */
 
 const COLOR_GROUPS: { title: string; tokens: string[] }[] = [
@@ -80,22 +80,17 @@ function Swatch({ token }: { token: string }) {
 }
 
 export function DesignSystemPage() {
-  const { ui, density, setUi, setDensity } = useUi();
+  const { density, setDensity } = useUi();
   const { theme, setTheme } = useTheme();
   const [chip, setChip] = useState('all');
   const [tab, setTab] = useState('products');
-  const v2 = ui === 'v2';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-      <PageHeader title="سيستم التصميم (v2)" subtitle="صفحة داخلية لمراجعة الشكل الجديد. لا تظهر في القائمة." />
+      <PageHeader title="سيستم التصميم" subtitle="صفحة داخلية لمراجعة شكل اللوحة. لا تظهر في القائمة." />
 
       <Section title="المفاتيح">
         <div className="ds-card" style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'center' }}>
-          <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontWeight: 600 }}>
-            <input type="checkbox" checked={v2} onChange={(e) => setUi(e.target.checked ? 'v2' : 'v1')} />
-            تشغيل الشكل الجديد (v2)
-          </label>
           <div role="group" aria-label="الكثافة" style={{ display: 'flex', gap: 8 }}>
             {DENSITIES.map((d) => (
               <button
@@ -123,7 +118,6 @@ export function DesignSystemPage() {
             ))}
           </div>
         </div>
-        {!v2 && <p className="muted">الشكل الجديد مطفي الآن، فالعناصر أدناه تظهر بلا تنسيق. شغّله من المفتاح أعلاه.</p>}
       </Section>
 
       <Section title="الألوان">

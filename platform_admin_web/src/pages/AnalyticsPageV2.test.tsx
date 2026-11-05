@@ -1,11 +1,10 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mapOrder } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
-import { setUi } from '../theme/ui';
 import { AnalyticsPage } from './AnalyticsPage';
 
 vi.mock('../data/hooks', () => {
@@ -49,12 +48,10 @@ const tab = (key: 'sales' | 'companies' | 'cancellations' | 'usage') => screen.g
 
 beforeEach(() => {
   localStorage.setItem('platform_admin_locale', 'en');
-  act(() => setUi('v2'));
 });
 afterEach(() => {
   cleanup();
   localStorage.clear();
-  act(() => setUi('v1'));
 });
 
 describe('the analytics page in the redesign', () => {
@@ -90,16 +87,5 @@ describe('the analytics page in the redesign', () => {
     expect(screen.getByText('usage figures')).toBeTruthy();
     expect(within(screen.getByRole('group')).getAllByRole('button').length).toBeGreaterThan(2);
     expect(screen.getByText(en['analytics.definitions.title'])).toBeTruthy();
-  });
-});
-
-describe('with the redesign off, every part is on the page one after another', () => {
-  it('shows them all and no tabs', () => {
-    act(() => setUi('v1'));
-    show();
-    expect(screen.queryByRole('navigation', { name: en['analytics.tabs'] })).toBeNull();
-    for (const text of [en['analytics.confirmedSales'], en['analytics.cancelReasons'], en['analytics.topCompanies'], 'usage figures', 'cities figures']) {
-      expect(screen.getByText(text)).toBeTruthy();
-    }
   });
 });

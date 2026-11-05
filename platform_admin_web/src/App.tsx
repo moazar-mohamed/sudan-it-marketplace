@@ -13,6 +13,7 @@ const AdminsPage = page(() => import('./pages/AdminsPage'), 'AdminsPage');
 const ActivityPage = page(() => import('./pages/ActivityPage'), 'ActivityPage');
 const AnalyticsPage = page(() => import('./pages/AnalyticsPage'), 'AnalyticsPage');
 const CitiesPage = page(() => import('./pages/CitiesPage'), 'CitiesPage');
+const TermsPage = page(() => import('./pages/TermsPage'), 'TermsPage');
 const CategoriesPage = page(() => import('./pages/CategoriesPage'), 'CategoriesPage');
 const ServicesPage = page(() => import('./pages/ServicesPage'), 'ServicesPage');
 const ServiceRequestDetailsPage = page(() => import('./pages/ServiceRequestDetailsPage'), 'ServiceRequestDetailsPage');
@@ -72,6 +73,7 @@ export function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="cities" element={<CitiesPage />} />
+        <Route path="terms" element={<TermsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="activity" element={<ActivityPage />} />
         <Route path="admins" element={<AdminsPage />} />

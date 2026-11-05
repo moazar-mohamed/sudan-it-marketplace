@@ -9,7 +9,6 @@ import { failed, makeSnapshot, ok } from '../data/dashboardTestkit';
 import { mapCompany, mapOrder, mapReview, mapServiceRequest } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
-import { setUi } from '../theme/ui';
 import { setBaseTitle } from '../ui/titleBadge';
 import { AlertsBell } from './AlertsBell';
 import { ToastProvider } from './feedback';
@@ -44,8 +43,6 @@ const show = (snapshot: DashboardSnapshot | null) => {
 const bell = () => screen.getByRole('button', { name: /Alerts/ });
 
 beforeEach(() => {
-  // These tests are about the current look; the redesign has its own below.
-  act(() => setUi('v1'));
   mock.refresh.mockReset();
   mock.newReports = [];
   localStorage.clear();
@@ -127,14 +124,6 @@ describe('the alerts bell', () => {
     fireEvent.click(bell());
     fireEvent.mouseDown(document.body);
     expect(screen.queryByRole('dialog')).toBeNull();
-  });
-
-  it('refreshes on demand and says when the figures were read', () => {
-    show(makeSnapshot());
-    fireEvent.click(bell());
-    expect(screen.getByText(/^Updated /)).toBeTruthy();
-    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: en['dashboard.refresh'] }));
-    expect(mock.refresh).toHaveBeenCalledTimes(1);
   });
 
   it('keeps working when a source could not be read', () => {
@@ -254,12 +243,10 @@ describe('alerts while the panel stays open', () => {
 
 describe('the alerts bell in the redesign', () => {
   const showV2 = (snapshot: DashboardSnapshot | null) => {
-    act(() => setUi('v2'));
     show(snapshot);
   };
   const two = () => makeSnapshot({ openOrders: ok([unverified('a'), unverified('b')]) });
 
-  afterEach(() => act(() => setUi('v1')));
 
   it('shows how many are new, and the number goes away once the bell has been opened', () => {
     showV2(two());

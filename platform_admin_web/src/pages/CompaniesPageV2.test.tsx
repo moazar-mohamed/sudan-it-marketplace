@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
@@ -7,7 +7,6 @@ import { setCompanyStatus, trashCompany } from '../data/actions';
 import type { Company, Product } from '../data/types';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
-import { setUi } from '../theme/ui';
 import { CompaniesPage } from './CompaniesPage';
 
 /* ---- in-memory stand-in for the live company / product collections ---- */
@@ -86,7 +85,6 @@ const row = (name: string) => screen.getByText(name).closest('tr') as HTMLElemen
 const dialog = () => screen.getByRole('dialog');
 
 beforeEach(() => {
-  act(() => setUi('v2'));
   localStorage.setItem('platform_admin_locale', 'en');
   store.products = [product('p1', 'A'), product('p2', 'B')];
   setCompanies([company('A', 'Alpha Tech', 'active'), company('B', 'Beta Corp', 'inactive')]);
@@ -97,7 +95,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   localStorage.clear();
-  act(() => setUi('v1'));
 });
 
 const menuButton = (name: string) => within(row(name)).getByRole('button', { name: en['common.actions'] });

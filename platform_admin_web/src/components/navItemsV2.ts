@@ -61,10 +61,11 @@ export const NAV_V2_SYSTEM: NavV2Section[] = [
     to: '/settings',
     key: 'nav.settings',
     icon: 'settings',
-    match: ['/settings', '/cities', '/admins', '/activity', '/trash', '/profile'],
+    match: ['/settings', '/cities', '/terms', '/admins', '/activity', '/trash', '/profile'],
     children: [
       { to: '/settings', key: 'nav.noticesSettings' },
       { to: '/cities', key: 'nav.cities' },
+      { to: '/terms', key: 'nav.terms' },
       { to: '/admins', key: 'nav.admins' },
       { to: '/activity', key: 'nav.activity' },
       { to: '/trash', key: 'nav.trash' },

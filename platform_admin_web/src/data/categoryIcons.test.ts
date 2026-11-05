@@ -7,6 +7,7 @@ import {
   nextSortOrder,
   sortCategories,
 } from './categoryIcons';
+import { CATEGORY_EMOJI } from '../../../customer_web/src/data/categoryEmoji';
 import type { Category } from './types';
 
 const category = (id: string, extra: Partial<Category> = {}): Category => ({
@@ -93,10 +94,19 @@ describe('category icons', () => {
     expect(CATEGORY_ICONS.map((i) => i.key).sort()).toEqual(
       [
         'laptop', 'computer', 'phone', 'tablet', 'router', 'network', 'wifi', 'camera',
-        'cctv', 'printer', 'server', 'storage', 'monitor', 'keyboard', 'mouse', 'headset',
-        'battery', 'ups', 'cable', 'security', 'software', 'cloud', 'service', 'tools',
-        'game', 'accessory',
+        'cctv', 'video', 'printer', 'server', 'storage', 'monitor', 'keyboard', 'mouse', 'headset',
+        'battery', 'ups', 'cable', 'security', 'lock', 'software', 'cloud', 'service', 'gear', 'tools',
+        'game', 'accessory', 'education',
       ].sort(),
     );
+  });
+});
+
+describe('the shapes customers see', () => {
+  it('are the ones the picker shows, for every icon (customer_web/src/data/categoryEmoji.ts)', () => {
+    for (const icon of CATEGORY_ICONS) {
+      expect(CATEGORY_EMOJI[icon.key], icon.key).toBe(icon.emoji);
+    }
+    expect(Object.keys(CATEGORY_EMOJI).sort()).toEqual(CATEGORY_ICONS.map((i) => i.key).sort());
   });
 });

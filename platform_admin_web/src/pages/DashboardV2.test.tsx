@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DashboardSnapshot } from '../data/dashboardData';
@@ -8,7 +8,6 @@ import { mapOrder } from '../data/mappers';
 import type { Category } from '../data/types';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
-import { setUi } from '../theme/ui';
 import { DashboardPage } from './DashboardPage';
 
 const mock = vi.hoisted(() => ({ snapshot: null as unknown }));
@@ -44,12 +43,10 @@ const show = (snapshot: DashboardSnapshot = makeSnapshot()) => {
 
 beforeEach(() => {
   localStorage.setItem('platform_admin_locale', 'en');
-  act(() => setUi('v2'));
 });
 afterEach(() => {
   cleanup();
   localStorage.clear();
-  act(() => setUi('v1'));
 });
 
 describe('the home page in the redesign', () => {
@@ -105,15 +102,5 @@ describe('the home page in the redesign', () => {
     show();
     expect(screen.getByText(en['dashboard.recentOrders'])).toBeTruthy();
     expect(screen.getByText(en['dashboard.recentCompanies'])).toBeTruthy();
-  });
-});
-
-describe('with the redesign off, the home page is as it was', () => {
-  it('keeps the refresh button, the trend title and no hero', () => {
-    act(() => setUi('v1'));
-    show();
-    expect(screen.getByRole('button', { name: en['dashboard.refresh'] })).toBeTruthy();
-    expect(document.querySelector('.home-hero')).toBeNull();
-    expect(screen.queryByText(en['home.tasks'])).toBeNull();
   });
 });

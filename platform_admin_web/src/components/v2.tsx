@@ -1,13 +1,12 @@
 import { useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 import { Icon } from './Icon';
 import { sectionOfPath, underPath } from './navItemsV2';
 import { RowMenu } from './RowMenu';
 
 /*
- * Building blocks of the redesign (v2). They only draw and group; every page keeps
+ * Building blocks of the panel's look. They only draw and group; every page keeps
  * its own data and actions, so moving an operation into one of them never changes
  * what the operation does.
  */
@@ -34,15 +33,13 @@ export function SectionTabs() {
 }
 
 /**
- * The filters of a list in the redesign: not a box that opens, but pills sitting in the
- * toolbar, each one a choice you can see and change at once. When any is in use a "clear"
- * button appears. The filters themselves (and where their values live) are the page's own:
- * this only decides how they are shown; with the redesign off they stay exactly as they were.
+ * The filters of a list: not a box that opens, but pills sitting in the toolbar, each one a
+ * choice you can see and change at once. When any is in use a "clear" button appears. The
+ * filters themselves (and where their values live) are the page's own: this only decides
+ * how they are shown.
  */
 export function FilterGroup({ count = 0, onClear, children }: { count?: number; onClear?: () => void; children: ReactNode }) {
-  const { ui } = useUi();
   const { t } = useI18n();
-  if (ui !== 'v2') return <>{children}</>;
   return (
     <div className={count > 0 ? 'ds-pills ds-pills--active' : 'ds-pills'} role="group" aria-label={t('common.filters')}>
       <Icon name="filter" size={16} />
@@ -96,19 +93,11 @@ export function SidePanel({
 }
 
 /**
- * The export of a list. The current look keeps it as a button in the page header; the redesign
- * tucks it into the "..." menu so a rarely used action does not sit in the header on its own.
+ * The export of a list, tucked into the "..." menu so a rarely used action does not sit in
+ * the header on its own.
  */
-export function ExportAction({ label, disabled, title, onExport }: { label: string; disabled?: boolean; title?: string; onExport: () => void }) {
-  const { ui } = useUi();
+export function ExportAction({ label, disabled, onExport }: { label: string; disabled?: boolean; title?: string; onExport: () => void }) {
   const { t } = useI18n();
-  if (ui !== 'v2') {
-    return (
-      <button className="btn btn--sm" disabled={disabled} title={title} onClick={onExport}>
-        {label}
-      </button>
-    );
-  }
   return <RowMenu label={t('common.actions')} disabled={false} items={[{ key: 'export', label, disabled, onSelect: onExport }]} />;
 }
 

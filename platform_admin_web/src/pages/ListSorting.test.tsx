@@ -1,18 +1,16 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
-import { mapCompany, mapCompanyService, mapCustomer, mapOrder, mapProduct, mapReview, mapService } from '../data/mappers';
+import { mapCompany, mapCompanyService, mapCustomer, mapOrder, mapProduct, mapService } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
-import { setUi } from '../theme/ui';
 import { CompaniesPage } from './CompaniesPage';
 import { CustomersPage } from './CustomersPage';
 import { OffersPage } from './OffersPage';
 import { OrdersPage } from './OrdersPage';
 import { ProductsPage } from './ProductsPage';
-import { ReviewsPage } from './ReviewsPage';
 
 const data = vi.hoisted(() => ({
   orders: [] as unknown[],
@@ -85,8 +83,6 @@ const heading = (label: string, table = 0) =>
 const day = (n: number) => new Date(Date.now() - n * 86_400_000);
 
 beforeEach(() => {
-  // These tests are about the sortable table headings of the current look.
-  act(() => setUi('v1'));
   for (const key of Object.keys(data) as (keyof typeof data)[]) {
     if (key !== 'counts') data[key] = [];
   }
@@ -163,18 +159,6 @@ describe('sortable list headings', () => {
     expect(column(1)).toEqual(['Cable', 'Router', 'Quote only']);
     fireEvent.click(heading(en['col.price']));
     expect(column(1)).toEqual(['Router', 'Cable', 'Quote only']);
-  });
-
-  it('reviews: sorts by stars', () => {
-    data.reviews = [
-      mapReview('r1', { authorName: 'Aya', stars: 5, createdAt: day(1) }),
-      mapReview('r2', { authorName: 'Bashir', stars: 1, createdAt: day(2) }),
-      mapReview('r3', { authorName: 'Chris', stars: 3, createdAt: day(3) }),
-    ];
-    show(<ReviewsPage />);
-    expect(column(0)).toEqual(['Aya', 'Bashir', 'Chris']);
-    fireEvent.click(heading(en['col.rating']));
-    expect(column(0)).toEqual(['Bashir', 'Chris', 'Aya']);
   });
 
   it('offers: the product table and the service table sort on their own', () => {

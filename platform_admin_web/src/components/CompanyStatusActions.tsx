@@ -2,7 +2,6 @@ import { setCompanyStatus, trashCompany } from '../data/actions';
 import { useProducts } from '../data/hooks';
 import type { Company, CompanyStatus } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 import { useConfirm, useRunner } from './feedback';
 import { RowMenu, type RowMenuItem } from './RowMenu';
 
@@ -19,7 +18,6 @@ export function CompanyStatusActions({
   onDeleted?: () => void;
 }) {
   const { t } = useI18n();
-  const { ui } = useUi();
   const confirm = useConfirm();
   const products = useProducts();
   const { busy, run } = useRunner();
@@ -60,87 +58,34 @@ export function CompanyStatusActions({
   };
 
   const disabled = busy === company.id;
-  const deleteButton = (
-    <button className="btn btn--danger btn--sm" disabled={disabled} onClick={() => void remove()}>
-      {t('companies.trash')}
-    </button>
-  );
 
-  // The redesign shows the one everyday action (approve / activate) and folds the rest, the
-  // sensitive ones among them, into a "..." menu; each item runs the very same action.
-  if (ui === 'v2') {
-    const trashItem: RowMenuItem = { key: 'trash', label: t('companies.trash'), danger: true, separated: true, disabled, onSelect: () => void remove() };
-    const menu = (items: RowMenuItem[]) => <RowMenu label={t('common.actions')} items={items} disabled={disabled} />;
-    if (company.status === 'pending') {
-      return (
-        <div className="btn-group">
-          <button className="btn btn--primary btn--sm" disabled={disabled} onClick={() => change('active', null)}>
-            {t('companies.approve')}
-          </button>
-          {menu([{ key: 'reject', label: t('companies.reject'), danger: true, onSelect: () => void change('rejected', 'reject') }, trashItem])}
-        </div>
-      );
-    }
-    if (company.status === 'active') {
-      return (
-        <div className="btn-group">
-          {menu([{ key: 'deactivate', label: t('companies.deactivate'), danger: true, onSelect: () => void change('inactive', 'deactivate') }, trashItem])}
-        </div>
-      );
-    }
-    return (
-      <div className="btn-group">
-        <button className="btn btn--sm" disabled={disabled} onClick={() => change('active', null)}>
-          {t('companies.activate')}
-        </button>
-        {menu([trashItem])}
-      </div>
-    );
-  }
-
+  // The one everyday action (approve / activate) is a button; the rest, the sensitive ones
+  // among them, are folded into a "..." menu.
+  const trashItem: RowMenuItem = { key: 'trash', label: t('companies.trash'), danger: true, separated: true, disabled, onSelect: () => void remove() };
+  const menu = (items: RowMenuItem[]) => <RowMenu label={t('common.actions')} items={items} disabled={disabled} />;
   if (company.status === 'pending') {
     return (
       <div className="btn-group">
-        <button
-          className="btn btn--primary btn--sm"
-          disabled={disabled}
-          onClick={() => change('active', null)}
-        >
+        <button className="btn btn--primary btn--sm" disabled={disabled} onClick={() => change('active', null)}>
           {t('companies.approve')}
         </button>
-        <button
-          className="btn btn--danger-ghost btn--sm"
-          disabled={disabled}
-          onClick={() => change('rejected', 'reject')}
-        >
-          {t('companies.reject')}
-        </button>
-        {deleteButton}
+        {menu([{ key: 'reject', label: t('companies.reject'), danger: true, onSelect: () => void change('rejected', 'reject') }, trashItem])}
       </div>
     );
   }
-
   if (company.status === 'active') {
     return (
       <div className="btn-group">
-        {deleteButton}
-        <button
-          className="btn btn--danger-ghost btn--sm"
-          disabled={disabled}
-          onClick={() => change('inactive', 'deactivate')}
-        >
-          {t('companies.deactivate')}
-        </button>
+        {menu([{ key: 'deactivate', label: t('companies.deactivate'), danger: true, onSelect: () => void change('inactive', 'deactivate') }, trashItem])}
       </div>
     );
   }
-
   return (
     <div className="btn-group">
       <button className="btn btn--sm" disabled={disabled} onClick={() => change('active', null)}>
         {t('companies.activate')}
       </button>
-      {deleteButton}
+      {menu([trashItem])}
     </div>
   );
 }

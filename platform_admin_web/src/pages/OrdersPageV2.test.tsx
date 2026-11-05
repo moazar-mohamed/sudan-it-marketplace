@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PagedOrders } from '../data/orderHooks';
@@ -7,7 +7,6 @@ import { mapCompany, mapOrder } from '../data/mappers';
 import type { Order } from '../data/types';
 import { ToastProvider } from '../components/feedback';
 import { I18nProvider } from '../i18n/I18nProvider';
-import { setUi } from '../theme/ui';
 import { OrdersPage } from './OrdersPage';
 
 const mock = vi.hoisted(() => ({ paged: null as unknown }));
@@ -58,11 +57,9 @@ beforeEach(() => {
     changes: 0,
     retry: vi.fn(),
   } satisfies PagedOrders;
-  act(() => setUi('v2'));
 });
 afterEach(() => {
   cleanup();
-  act(() => setUi('v1'));
 });
 
 describe('the orders list in the redesign', () => {
@@ -109,19 +106,6 @@ describe('the orders list in the redesign', () => {
     show('/orders?open=a');
     fireEvent.click(screen.getByRole('button', { name: /Processing/ }));
     expect(where()).toBe('?status=processing');
-    expect(screen.queryByRole('complementary')).toBeNull();
-  });
-});
-
-describe('with the redesign off, the list is as it was', () => {
-  it('shows the company and the dates in the toolbar, and a row does not open a panel', () => {
-    act(() => setUi('v1'));
-    show('/orders?open=a');
-    expect(screen.queryByRole('button', { name: /Filters/ })).toBeNull();
-    expect(screen.getByRole('combobox', { name: 'Company' })).toBeTruthy();
-    expect(document.querySelectorAll('input[type="date"]')).toHaveLength(2);
-    expect(screen.queryByRole('complementary')).toBeNull();
-    fireEvent.click(document.querySelectorAll('table.data tbody tr')[0]);
     expect(screen.queryByRole('complementary')).toBeNull();
   });
 });

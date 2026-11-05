@@ -28,7 +28,6 @@ import { useOrdersSince } from '../data/orderHooks';
 import { COMPANY_FILTER_STATUSES, ORDER_STATUSES } from '../data/types';
 import { useNow } from '../data/useNow';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 
 /** The parts of the page in the redesign (?tab=); the current look shows them all, one after another. */
 const TABS = ['sales', 'companies', 'cancellations', 'usage'] as const;
@@ -163,10 +162,9 @@ export function AnalyticsPage() {
   const exportFile = (name: string, build: (orders: typeof inPeriod) => string) => () =>
     downloadCsv(csvFilename(`${name}-${period}`, now), build(inPeriod));
 
-  const v2 = useUi().ui === 'v2';
   const [params, setParams] = useSearchParams();
   const tab: Tab = TABS.find((x) => x === params.get('tab')) ?? 'sales';
-  const show = (part: Tab) => !v2 || tab === part;
+  const show = (part: Tab) => tab === part;
 
   return (
     <>
@@ -204,20 +202,18 @@ export function AnalyticsPage() {
         </div>
         {period === 'all' && <p className="muted">{t('analytics.allTimeNote')}</p>}
 
-        {v2 && (
-          <nav className="ds-tabs" aria-label={t('analytics.tabs')}>
-            {TABS.map((x) => (
-              <button
-                key={x}
-                type="button"
-                aria-current={tab === x ? 'page' : undefined}
-                onClick={() => setParams(x === 'sales' ? {} : { tab: x }, { replace: true })}
-              >
-                {t(`analytics.tab.${x}`)}
-              </button>
-            ))}
-          </nav>
-        )}
+        <nav className="ds-tabs" aria-label={t('analytics.tabs')}>
+          {TABS.map((x) => (
+            <button
+              key={x}
+              type="button"
+              aria-current={tab === x ? 'page' : undefined}
+              onClick={() => setParams(x === 'sales' ? {} : { tab: x }, { replace: true })}
+            >
+              {t(`analytics.tab.${x}`)}
+            </button>
+          ))}
+        </nav>
 
         {show('sales') && (
           <>

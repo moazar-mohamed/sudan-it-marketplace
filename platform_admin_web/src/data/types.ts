@@ -52,6 +52,10 @@ export interface Company {
   trashedAt?: Date | null;
   /** The status it had before the trash, which a restore brings back. */
   statusBeforeTrash?: CompanyStatus | null;
+  /** How many pounds one US dollar costs the company (its dollar products use it); null until it sets one. */
+  usdRate?: number | null;
+  /** When the company last set or confirmed usdRate. */
+  usdRateUpdatedAt?: Date | null;
   createdAt: Date | null;
 }
 
@@ -138,6 +142,9 @@ export interface Product {
   /** Platform Admin hid it from customers, with this reason (shown to its company). */
   hidden: boolean;
   hiddenReason: string;
+  /** A product the company prices in dollars: what it typed, and the rate its pounds use (null otherwise). */
+  priceUsd?: number | null;
+  usdRateApplied?: number | null;
   createdAt: Date | null;
 }
 

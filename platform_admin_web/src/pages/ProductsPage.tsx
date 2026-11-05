@@ -10,7 +10,6 @@ import { csvFilename, downloadCsv, productsToCsv } from '../data/csv';
 import { useProducts } from '../data/hooks';
 import type { Product } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 import { matchesQuery } from '../utils';
 
 const SORTS = {
@@ -27,7 +26,6 @@ export function ProductsPage() {
   const { t, number, money } = useI18n();
   const products = useProducts();
   const [params, setParams] = useSearchParams();
-  const v2 = useUi().ui === 'v2';
   const companyId = params.get('company') ?? '';
   const [availability, setAvailability] = useState<'available' | 'unavailable' | 'hidden' | 'all'>('all');
   const [query, setQuery] = useState('');
@@ -154,13 +152,7 @@ export function ProductsPage() {
                         {p.hidden && <Badge tone="warning">{t('product.hiddenBadge')}</Badge>}
                       </td>
                       <td>
-                        {v2 ? (
-                          <ProductRowMenu product={p} />
-                        ) : (
-                          <Link to={`/products/${p.id}`} className="btn btn--sm">
-                            {t('common.view')}
-                          </Link>
-                        )}
+                        <ProductRowMenu product={p} />
                       </td>
                     </tr>
                   ))}

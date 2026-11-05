@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { attentionCounts, sumCounts } from '../data/attention';
 import { useNewReports } from '../data/hooks';
@@ -9,12 +9,11 @@ import { DashboardProvider } from '../data/DashboardProvider';
 import { useDashboard } from '../data/useDashboard';
 import { useI18n } from '../i18n/I18nProvider';
 import { useChangeLanguage } from '../i18n/useChangeLanguage';
-import { useUi } from '../theme/ui';
 import { watchTables } from '../ui/tableLabels';
 import { AlertsBell } from './AlertsBell';
 import { CommandPalette } from './CommandPalette';
 import { Icon } from './Icon';
-import { NAV, NAV_GROUPS, type NavItem } from './navItems';
+import type { NavItem } from './navItems';
 import { NAV_V2, TABBAR_V2_IDS, sectionOfPath } from './navItemsV2';
 import { NavBadge, NavV2, sectionCount } from './NavV2';
 import { LoadingState } from './ui';
@@ -22,26 +21,13 @@ import { useAttentionAlerts } from './useAttentionAlerts';
 import { UserMenu } from './UserMenu';
 import { SectionTabs } from './v2';
 
-/** What a phone keeps one tap away in the bottom bar; everything else is under "More". */
-const TABBAR: NavItem[] = NAV.filter((n) => ['/', '/orders', '/service-requests', '/companies'].includes(n.to));
-
-/** The same for the redesign (v2): home, orders, companies and reports. */
-const TABBAR_V2: NavItem[] = TABBAR_V2_IDS.map((id) => NAV_V2.find((s) => s.id === id)!).map((s) => ({
+/** What a phone keeps one tap away in the bottom bar (home, orders, companies, reports); everything else is under "More". */
+const TABBAR: NavItem[] = TABBAR_V2_IDS.map((id) => NAV_V2.find((s) => s.id === id)!).map((s) => ({
   to: s.to,
   key: s.key,
   icon: s.icon,
   end: s.id === 'home',
 }));
-
-const COLLAPSED_KEY = 'platform_admin_sidebar_collapsed';
-
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(COLLAPSED_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
 
 export function LanguageToggle() {
   const { locale, t } = useI18n();
@@ -68,17 +54,14 @@ export function Layout() {
 }
 
 function Shell() {
-  const { t, number } = useI18n();
+  const { t } = useI18n();
   const { snapshot } = useDashboard();
   const newReportsNow = useNewReports();
   useCitiesSync();
   useAttentionAlerts(snapshot, newReportsNow.status === 'ready' ? newReportsNow.data.length : null);
-  const { state, signOut } = useAuth();
-  const { ui } = useUi();
-  const v2 = ui === 'v2';
+  const { state } = useAuth();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(readCollapsed);
   const [searchOpen, setSearchOpen] = useState(false);
   const contentRef = useRef<HTMLElement>(null);
 
@@ -117,16 +100,6 @@ function Shell() {
     return () => window.removeEventListener('keydown', onKey);
   }, [menuOpen]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0');
-    } catch {
-      // The choice just won't persist.
-    }
-  }, [collapsed]);
-  const toggleCollapsed = useCallback(() => setCollapsed((was) => !was), []);
-
-  const current = NAV.find((n) => (n.end ? pathname === n.to : pathname.startsWith(n.to)));
   const profile = state.status === 'authorized' ? state.profile : null;
 
   // How many records each section has that need attention (see the dashboard).
@@ -143,28 +116,17 @@ function Shell() {
   // New reports are counted on their own: a short live list of only the ones nobody has started on.
   if (newReports.status === 'ready' && newReports.data.length > 0) badges['/reports'] = newReports.data.length;
 
-  const badge = (to: string) => {
-    const count = badges[to] ?? 0;
-    return count ? (
-      <span className="nav-badge" role="img" aria-label={t('nav.attentionCount', { count: number(count) })}>
-        {count > 99 ? '99+' : number(count)}
-      </span>
-    ) : null;
-  };
-
   // Something in the menu that is not in the bottom bar is "current" under More.
-  const tabItems = v2 ? TABBAR_V2 : TABBAR;
   const currentSection = sectionOfPath(pathname);
-  const moreIsCurrent = v2 ? !!currentSection && !TABBAR_V2_IDS.includes(currentSection.id) : !!current && !TABBAR.some((n) => n.to === current.to);
-  // In the redesign a section's number is the sum of its parts (orders + service requests).
+  const moreIsCurrent = !!currentSection && !TABBAR_V2_IDS.includes(currentSection.id);
+  // A section's number is the sum of its parts (orders + service requests).
   const tabBadge = (to: string) => {
-    if (!v2) return badge(to);
     const section = NAV_V2.find((s) => s.to === to);
     return section ? <NavBadge count={sectionCount(section, badges)} /> : null;
   };
 
   return (
-    <div className={collapsed ? 'app app--collapsed' : 'app'}>
+    <div className="app">
       <aside className={menuOpen ? 'sidebar sidebar--open' : 'sidebar'} onPointerOver={prepare} onFocus={prepare}>
         <div className="sidebar__brand">
           <span className="sidebar__logo">
@@ -175,56 +137,12 @@ function Shell() {
             <small>{t('app.role')}</small>
           </div>
         </div>
-        {v2 ? (
-          <NavV2 pathname={pathname} badges={badges} onNavigate={() => setMenuOpen(false)} />
-        ) : (
-        <nav className="sidebar__nav" aria-label={t('common.menu')}>
-          {NAV_GROUPS.map((group) => (
-            <div className="nav-group" key={group.key} role="group" aria-label={t(group.key)}>
-              <span className="nav-group__title" aria-hidden="true">
-                {t(group.key)}
-              </span>
-              {group.items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  title={collapsed ? t(item.key) : undefined}
-                  className={({ isActive }) => (isActive ? 'nav-link nav-link--active' : 'nav-link')}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <Icon name={item.icon} size={18} />
-                  <span className="nav-link__label">{t(item.key)}</span>
-                  {badge(item.to)}
-                </NavLink>
-              ))}
-            </div>
-          ))}
-        </nav>
-        )}
-        {!v2 && (
-          <>
-            <button className="nav-link nav-link--signout" onClick={() => void signOut()} title={t('common.signOut')}>
-              <Icon name="logout" size={18} />
-              <span className="nav-link__label">{t('common.signOut')}</span>
-            </button>
-            <button
-              className="nav-link nav-link--collapse"
-              onClick={toggleCollapsed}
-              aria-expanded={!collapsed}
-              title={collapsed ? t('nav.expand') : t('nav.collapse')}
-            >
-              <Icon name={collapsed ? 'chevronRight' : 'chevronLeft'} size={18} flipInRtl />
-              <span className="nav-link__label">{collapsed ? t('nav.expand') : t('nav.collapse')}</span>
-            </button>
-          </>
-        )}
+        <NavV2 pathname={pathname} badges={badges} onNavigate={() => setMenuOpen(false)} />
       </aside>
       {menuOpen && <div className="scrim" onClick={() => setMenuOpen(false)} />}
 
       <div className="main">
         <header className="topbar">
-          {!v2 && <span className="topbar__title">{current ? t(current.key) : t('app.name')}</span>}
           <button className="search-trigger" onClick={() => setSearchOpen(true)} aria-label={t('search.title')} title={t('search.title')}>
             <Icon name="search" size={16} />
             <span className="search-trigger__text">{t('search.trigger')}</span>
@@ -232,31 +150,11 @@ function Shell() {
           </button>
           <div className="topbar__end">
             <AlertsBell />
-            {v2 ? (
-              profile && <UserMenu name={profile.fullName} email={profile.email} />
-            ) : (
-              <>
-                <LanguageToggle />
-                <Link to="/settings" className="icon-btn" aria-label={t('nav.settings')} title={t('nav.settings')}>
-                  <Icon name="settings" size={18} />
-                </Link>
-                {profile && (
-                  <div className="userchip">
-                    <span className="userchip__avatar">
-                      {(profile.fullName || profile.email || 'A').charAt(0).toUpperCase()}
-                    </span>
-                    <span className="userchip__text">
-                      <bdi>{profile.fullName || profile.email}</bdi>
-                      <small>{t('app.role')}</small>
-                    </span>
-                  </div>
-                )}
-              </>
-            )}
+            {profile && <UserMenu name={profile.fullName} email={profile.email} />}
           </div>
         </header>
         <main className="content" ref={contentRef}>
-          {v2 && <SectionTabs />}
+          <SectionTabs />
           <Suspense fallback={<LoadingState />}>
             <Outlet />
           </Suspense>
@@ -266,7 +164,7 @@ function Shell() {
       <CommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       <nav className="tabbar" aria-label={t('nav.bottom')} onPointerOver={prepare} onFocus={prepare}>
-        {tabItems.map((item) => (
+        {TABBAR.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

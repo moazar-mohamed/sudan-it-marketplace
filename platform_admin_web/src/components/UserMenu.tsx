@@ -19,15 +19,15 @@ const DENSITY_CHOICES: { value: Density; key: 'userMenu.densityComfortable' | 'u
 ];
 
 /**
- * The person's own menu in the top bar (redesign): profile and password, language,
- * appearance, density, the way back to the previous look, and signing out.
+ * The person's own menu in the top bar: profile and password, language,
+ * appearance, density, and signing out.
  */
 export function UserMenu({ name, email }: { name: string; email: string }) {
   const { t, locale } = useI18n();
   const { signOut } = useAuth();
   const changeLanguage = useChangeLanguage();
   const { theme, setTheme } = useTheme();
-  const { density, setDensity, setUi } = useUi();
+  const { density, setDensity } = useUi();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
 
@@ -118,10 +118,6 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
             </div>
           </div>
 
-          <button type="button" role="menuitem" className="v2-user__item" onClick={() => setUi('v1')}>
-            <Icon name="back" size={18} flipInRtl />
-            {t('userMenu.previousLook')}
-          </button>
           <button type="button" role="menuitem" className="v2-user__item v2-user__item--danger" onClick={() => void signOut()}>
             <Icon name="logout" size={18} />
             {t('common.signOut')}

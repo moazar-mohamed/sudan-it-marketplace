@@ -1,10 +1,9 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mapCustomer } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
-import { setUi } from '../theme/ui';
 import { CustomersPage } from './CustomersPage';
 
 const mock = vi.hoisted(() => ({ customers: [] as unknown[] }));
@@ -39,12 +38,10 @@ const row = () => document.querySelector('table.data tbody tr') as HTMLElement;
 beforeEach(() => {
   localStorage.setItem('platform_admin_locale', 'en');
   mock.customers = [mapCustomer('u1', { role: 'customer', fullName: 'Amna Customer', email: 'amna@x.test', createdAt: new Date(2026, 0, 1) })];
-  act(() => setUi('v2'));
 });
 afterEach(() => {
   cleanup();
   localStorage.clear();
-  act(() => setUi('v1'));
 });
 
 describe('the customer list in the redesign', () => {
@@ -69,16 +66,6 @@ describe('the customer list in the redesign', () => {
   it('a button in the row keeps its own action and does not open the panel', () => {
     show();
     fireEvent.click(within(row()).getByRole('button', { name: /Edit/ }));
-    expect(screen.queryByRole('complementary')).toBeNull();
-  });
-});
-
-describe('with the redesign off, a row still goes to the customer page', () => {
-  it('navigates and shows no panel', () => {
-    act(() => setUi('v1'));
-    show();
-    fireEvent.click(row().children[2]);
-    expect(screen.getByText('full page of the customer')).toBeTruthy();
     expect(screen.queryByRole('complementary')).toBeNull();
   });
 });

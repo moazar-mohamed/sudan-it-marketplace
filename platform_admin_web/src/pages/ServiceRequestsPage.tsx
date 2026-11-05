@@ -9,7 +9,6 @@ import { isStaleServiceRequest, STALE_REQUEST_HOURS } from '../data/stats';
 import { SERVICE_REQUEST_STATUSES, type ServiceRequestStatus } from '../data/types';
 import { useNow } from '../data/useNow';
 import { useI18n } from '../i18n/I18nProvider';
-import { useUi } from '../theme/ui';
 import { customerLabel, matchesQuery, shortId } from '../utils';
 import { ServiceRequestDetails } from './ServiceRequestDetailsPage';
 
@@ -43,9 +42,8 @@ export function ServiceRequestsPage() {
     );
   };
   const [query, setQuery] = useState('');
-  // In the redesign a row opens its details in a panel beside the list (?open=<id>); the full page stays one click away.
-  const v2 = useUi().ui === 'v2';
-  const openId = v2 ? params.get('open') : null;
+  // A row opens its details in a panel beside the list (?open=<id>); the full page stays one click away.
+  const openId = params.get('open');
   const setOpen = (id: string | null) =>
     setParams(
       (prev) => {
@@ -159,14 +157,10 @@ export function ServiceRequestsPage() {
                   {visible.map((r) => (
                     <tr
                       key={r.id}
-                      className={v2 ? (openId === r.id ? 'row--clickable is-open' : 'row--clickable') : undefined}
-                      onClick={
-                        v2
-                          ? (e) => {
-                              if (!(e.target as HTMLElement).closest('a, button')) setOpen(r.id);
-                            }
-                          : undefined
-                      }
+                      className={openId === r.id ? 'row--clickable is-open' : 'row--clickable'}
+                      onClick={(e) => {
+                        if (!(e.target as HTMLElement).closest('a, button')) setOpen(r.id);
+                      }}
                     >
                       <td>
                         <Link to={`/service-requests/${r.id}`} className="mono" dir="ltr">

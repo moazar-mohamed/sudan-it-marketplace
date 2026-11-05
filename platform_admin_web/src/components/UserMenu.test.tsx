@@ -1,77 +1,60 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ToastProvider } from '../components/feedback';
+import { ToastProvider } from './feedback';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
 import { saveLanguage } from '../i18n/saveLanguage';
 import { setTheme, THEME_STORAGE_KEY } from '../theme/theme';
-import { setUi } from '../theme/ui';
-import { SettingsPage } from './SettingsPage';
+import { UserMenu } from './UserMenu';
+
+// The language and the appearance are chosen in the person menu of the top bar
+// (the Settings page keeps to the notices).
 
 const auth = vi.hoisted(() => ({
   state: { status: 'authorized', profile: { uid: 'admin-1' } } as { status: string; profile?: { uid: string } },
 }));
-vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ state: auth.state }) }));
+vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ state: auth.state, signOut: vi.fn() }) }));
 vi.mock('../i18n/saveLanguage', () => ({ saveLanguage: vi.fn() }));
-// The notices section is tested on its own; here it must not reach Firestore.
-vi.mock('../components/NoticesCard', () => ({ NoticesSection: () => null }));
 
-const renderPage = () =>
+const renderMenu = () => {
   render(
     <I18nProvider>
       <ToastProvider>
         <MemoryRouter>
-          <SettingsPage />
+          <UserMenu name="Sara Admin" email="sara@example.com" />
         </MemoryRouter>
       </ToastProvider>
     </I18nProvider>,
   );
-
-/** Language and Appearance start closed: open every closed card, then find the choice. */
-const radio = (name: string) => {
-  for (const head of document.querySelectorAll('button[aria-expanded="false"]')) fireEvent.click(head);
-  return screen.getByRole('radio', { name }) as HTMLInputElement;
+  fireEvent.click(document.querySelector('.v2-user__button')!);
 };
 
+const choice = (name: string) => screen.getByRole('menuitemradio', { name });
+const isChosen = (name: string) => choice(name).getAttribute('aria-checked') === 'true';
+
 beforeEach(() => {
-  // These tests are about the current look; the redesign has its own in SettingsPageV2.test.tsx.
-  act(() => setUi('v1'));
   localStorage.clear();
   vi.mocked(saveLanguage).mockReset().mockResolvedValue(true);
   auth.state = { status: 'authorized', profile: { uid: 'admin-1' } };
 });
 afterEach(cleanup);
 
-describe('Settings page', () => {
-  it('starts with its cards closed, each saying its current choice, and opens one when pressed', () => {
-    renderPage();
-    const heads = [...document.querySelectorAll<HTMLButtonElement>('.disclosure__head')];
-    expect(heads.map((h) => h.getAttribute('aria-expanded'))).toEqual(['false', 'false']);
-    expect(heads[0].textContent).toContain('English');
-    expect(heads[1].textContent).toContain(en['settings.themeSystem']);
-    fireEvent.click(heads[0]);
-    expect(heads[0].getAttribute('aria-expanded')).toBe('true');
-    expect(heads[1].getAttribute('aria-expanded')).toBe('false');
-    fireEvent.click(heads[0]);
-    expect(heads[0].getAttribute('aria-expanded')).toBe('false');
-  });
-
+describe('the language in the person menu', () => {
   it('offers English and العربية and marks the current one', () => {
-    renderPage();
-    expect(screen.getByRole('heading', { name: en['settings.title'] })).toBeTruthy();
-    expect(radio('English').checked).toBe(true);
-    expect(radio('العربية').checked).toBe(false);
+    renderMenu();
+    expect(isChosen('English')).toBe(true);
+    expect(isChosen('العربية')).toBe(false);
   });
 
   it('choosing Arabic changes the page at once, flips to RTL, remembers it and saves it to the profile', async () => {
-    renderPage();
-    fireEvent.click(radio('العربية'));
+    renderMenu();
+    fireEvent.click(choice('العربية'));
 
-    expect(await screen.findByRole('heading', { name: ar['settings.title'] })).toBeTruthy();
-    expect(radio('العربية').checked).toBe(true);
-    expect(radio('English').checked).toBe(false);
+    expect(await screen.findByRole('menu', { name: ar['userMenu.title'] })).toBeTruthy();
+    expect(isChosen('العربية')).toBe(true);
+    expect(isChosen('English')).toBe(false);
     expect(document.documentElement.dir).toBe('rtl');
     expect(document.documentElement.lang).toBe('ar');
     expect(localStorage.getItem('platform_admin_locale')).toBe('ar');
@@ -80,10 +63,10 @@ describe('Settings page', () => {
 
   it('choosing English again returns to LTR and saves en', async () => {
     localStorage.setItem('platform_admin_locale', 'ar');
-    renderPage();
-    fireEvent.click(radio('English'));
+    renderMenu();
+    fireEvent.click(choice('English'));
 
-    expect(await screen.findByRole('heading', { name: en['settings.title'] })).toBeTruthy();
+    expect(await screen.findByRole('menu', { name: en['userMenu.title'] })).toBeTruthy();
     expect(document.documentElement.dir).toBe('ltr');
     expect(localStorage.getItem('platform_admin_locale')).toBe('en');
     await waitFor(() => expect(saveLanguage).toHaveBeenCalledWith('admin-1', 'en'));
@@ -91,8 +74,8 @@ describe('Settings page', () => {
 
   it('keeps the new language and tells the user when the profile could not be saved', async () => {
     vi.mocked(saveLanguage).mockResolvedValue(false);
-    renderPage();
-    fireEvent.click(radio('العربية'));
+    renderMenu();
+    fireEvent.click(choice('العربية'));
 
     expect(await screen.findByText(ar['settings.languageSaveFailed'])).toBeTruthy();
     expect(document.documentElement.dir).toBe('rtl');
@@ -101,52 +84,52 @@ describe('Settings page', () => {
 
   it('does not touch Firestore when nobody is signed in', async () => {
     auth.state = { status: 'signedOut' };
-    renderPage();
-    fireEvent.click(radio('العربية'));
+    renderMenu();
+    fireEvent.click(choice('العربية'));
 
-    expect(await screen.findByRole('heading', { name: ar['settings.title'] })).toBeTruthy();
+    expect(await screen.findByRole('menu', { name: ar['userMenu.title'] })).toBeTruthy();
     expect(saveLanguage).not.toHaveBeenCalled();
   });
 
   it('does nothing when the current language is picked again', () => {
-    renderPage();
-    fireEvent.click(radio('English'));
+    renderMenu();
+    fireEvent.click(choice('English'));
     expect(saveLanguage).not.toHaveBeenCalled();
   });
 });
 
-describe('Settings page appearance', () => {
+describe('the appearance in the person menu', () => {
   beforeEach(() => setTheme('system'));
   afterEach(() => setTheme('system'));
 
   it('follows the device until another look is chosen', () => {
-    renderPage();
-    expect(radio(en['settings.themeSystem']).checked).toBe(true);
+    renderMenu();
+    expect(isChosen(en['settings.themeSystem'])).toBe(true);
     expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
   });
 
   it('lets the admin force the dark or the light look, and remembers it in this browser', () => {
-    renderPage();
-    fireEvent.click(radio(en['settings.themeDark']));
-    expect(radio(en['settings.themeDark']).checked).toBe(true);
+    renderMenu();
+    fireEvent.click(choice(en['settings.themeDark']));
+    expect(isChosen(en['settings.themeDark'])).toBe(true);
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
-    fireEvent.click(radio(en['settings.themeLight']));
+    fireEvent.click(choice(en['settings.themeLight']));
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
   });
 
   it('goes back to the device with "same as the device"', () => {
-    renderPage();
-    fireEvent.click(radio(en['settings.themeDark']));
-    fireEvent.click(radio(en['settings.themeSystem']));
+    renderMenu();
+    fireEvent.click(choice(en['settings.themeDark']));
+    fireEvent.click(choice(en['settings.themeSystem']));
     expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
   });
 
   it('is named in Arabic too', () => {
     localStorage.setItem('platform_admin_locale', 'ar');
-    renderPage();
-    expect(radio(ar['settings.themeDark'])).toBeTruthy();
+    renderMenu();
+    expect(choice(ar['settings.themeDark'])).toBeTruthy();
     expect(screen.getByText(ar['settings.theme'])).toBeTruthy();
   });
 });

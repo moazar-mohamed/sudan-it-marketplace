@@ -53,7 +53,7 @@ export const DEFAULT_CATEGORY_TREE: readonly CategoryTemplate[] = [
     ],
   },
   {
-    ar: 'الأمن السيبراني', en: 'Cybersecurity', icon: 'security', color: 'red',
+    ar: 'الأمن السيبراني', en: 'Cybersecurity', icon: 'lock', color: 'red',
     children: [
       sub('جدران حماية', 'Firewalls', 'security'),
       sub('مكافحة الفيروسات', 'Antivirus', 'security'),
@@ -75,7 +75,7 @@ export const DEFAULT_CATEGORY_TREE: readonly CategoryTemplate[] = [
     ],
   },
   {
-    ar: 'خدمات تقنية المعلومات', en: 'IT Services', icon: 'service', color: 'amber',
+    ar: 'خدمات تقنية المعلومات', en: 'IT Services', icon: 'gear', color: 'amber',
     children: [
       sub('دعم فني وصيانة', 'Support & Maintenance', 'tools'),
       sub('تركيب الشبكات', 'Network Installation', 'network'),
@@ -83,7 +83,7 @@ export const DEFAULT_CATEGORY_TREE: readonly CategoryTemplate[] = [
     ],
   },
   {
-    ar: 'المراقبة والأمن', en: 'CCTV & Security', icon: 'cctv', color: 'orange',
+    ar: 'المراقبة والأمن', en: 'CCTV & Security', icon: 'video', color: 'orange',
     children: [
       sub('كاميرات مراقبة', 'CCTV Cameras', 'cctv'),
       sub('أنظمة إنذار', 'Alarm Systems', 'security'),
@@ -103,7 +103,7 @@ export const DEFAULT_CATEGORY_TREE: readonly CategoryTemplate[] = [
     ],
   },
   {
-    ar: 'التدريب والشهادات', en: 'Training & Certification', icon: 'monitor', color: 'indigo',
+    ar: 'التدريب والشهادات', en: 'Training & Certification', icon: 'education', color: 'indigo',
     children: [
       sub('شهادات Cisco', 'Cisco Certifications', 'network'),
       sub('دورات برمجة', 'Programming Courses', 'software'),

@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { setUi } from '../theme/ui';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mapCustomer } from '../data/mappers';
@@ -15,6 +14,8 @@ vi.mock('../data/hooks', () => ({
 }));
 vi.mock('../data/orderHooks', () => ({ useCustomerOrderCounts: () => new Map([['u1', 3]]) }));
 vi.mock('../data/actions', () => ({}));
+// A row opens the customer in a panel beside the list; what the panel shows is tested on its own.
+vi.mock('./CustomerDetailsPage', () => ({ CustomerDetails: () => <p>details of the customer</p> }));
 vi.mock('../components/CustomerActions', () => ({
   CustomerCreateModal: () => null,
   CustomerEditModal: ({ customer }: { customer: { id: string } }) => {
@@ -37,8 +38,6 @@ const show = () =>
   );
 
 beforeEach(() => {
-  // These tests are about the current look; the redesign has its own in CustomersPageV2.test.tsx.
-  act(() => setUi('v1'));
   localStorage.setItem('platform_admin_locale', 'en');
   mock.customers = [
     mapCustomer('u1', { role: 'customer', fullName: 'Amna Customer', email: 'amna@x.test', createdAt: new Date(2026, 0, 1) }),

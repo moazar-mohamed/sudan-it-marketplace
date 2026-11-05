@@ -97,8 +97,15 @@ export function mapCompany(id: string, d: DocumentData): Company {
     status: parseCompanyStatus(d.status),
     trashedAt: toDate(d.trashedAt),
     statusBeforeTrash: d.statusBeforeTrash == null ? null : parseCompanyStatus(d.statusBeforeTrash),
+    usdRate: positive(d.usdRate),
+    usdRateUpdatedAt: toDate(d.usdRateUpdatedAt),
     createdAt: toDate(d.createdAt),
   };
+}
+
+/** A positive number, else null. */
+function positive(v: unknown): number | null {
+  return typeof v === 'number' && isFinite(v) && v > 0 ? v : null;
 }
 
 export function mapCustomer(id: string, d: DocumentData): Customer {
@@ -177,6 +184,8 @@ export function mapProduct(id: string, d: DocumentData): Product {
     offerBadge: typeof d.offerBadge === 'string' && d.offerBadge ? d.offerBadge : null,
     hidden: d.hidden === true,
     hiddenReason: str(d.hiddenReason),
+    priceUsd: positive(d.priceUsd),
+    usdRateApplied: positive(d.usdRateApplied),
     createdAt: toDate(d.createdAt),
   };
 }

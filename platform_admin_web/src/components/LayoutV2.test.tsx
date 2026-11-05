@@ -7,7 +7,7 @@ import { makeSnapshot, ok } from '../data/dashboardTestkit';
 import { mapOrder, mapServiceRequest } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { setTheme } from '../theme/theme';
-import { setDensity, setUi } from '../theme/ui';
+import { setDensity } from '../theme/ui';
 import { ToastProvider } from './feedback';
 import { Layout } from './Layout';
 import { NAV } from './navItems';
@@ -59,14 +59,12 @@ beforeEach(() => {
   mock.signOut.mockClear();
   mock.changeLanguage.mockClear();
   act(() => {
-    setUi('v2');
     setDensity('comfortable');
     setTheme('system');
   });
 });
 afterEach(() => {
   cleanup();
-  act(() => setUi('v1'));
 });
 
 describe('the redesigned menu (v2)', () => {
@@ -96,7 +94,7 @@ describe('the redesigned menu (v2)', () => {
   it('keeps the settings pages together under Settings, with the trash among them', () => {
     show('/trash');
     const group = within(sidebar()).getByRole('group', { name: 'Settings sections' });
-    expect(labels(group.querySelectorAll('a'))).toEqual(['Notices and maintenance', 'Cities', 'Admins', 'Activity log', 'Trash']);
+    expect(labels(group.querySelectorAll('a'))).toEqual(['Notices and maintenance', 'Cities', 'Terms and conditions', 'Admins', 'Activity log', 'Trash']);
     expect(group.querySelector('.v2-sublink--active')?.textContent).toBe('Trash');
   });
 
@@ -134,15 +132,11 @@ describe('the redesigned menu (v2)', () => {
     expect(parts.querySelectorAll('.nav-badge')).toHaveLength(2);
   });
 
-  it('puts the tabs of the section above the page, in v2 only', () => {
+  it('puts the tabs of the section above the page', () => {
     show('/offers');
     const tabs = document.querySelector('.content nav.ds-tabs') as HTMLElement;
     expect(labels(tabs.querySelectorAll('a'))).toEqual(['Products', 'Services', 'Categories', 'Offers']);
     expect(tabs.querySelector('[aria-current="page"]')?.textContent).toBe('Offers');
-    cleanup();
-    act(() => setUi('v1'));
-    show('/offers');
-    expect(document.querySelector('.content nav.ds-tabs')).toBeNull();
   });
 
   it('keeps four sections in the phone bar, with More for the rest', () => {
@@ -194,14 +188,6 @@ describe('the top bar and the person menu (v2)', () => {
     expect(document.documentElement.getAttribute('data-density')).toBe('compact');
   });
 
-  it('goes back to the previous look from the menu', () => {
-    show('/');
-    expect(document.documentElement.getAttribute('data-ui')).toBe('v2');
-    fireEvent.click(screen.getByRole('button', { name: 'Account menu' }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Use the previous look' }));
-    expect(document.documentElement.hasAttribute('data-ui')).toBe(false);
-  });
-
   it('closes with Escape and with a press outside', () => {
     show('/');
     const open = () => fireEvent.click(screen.getByRole('button', { name: 'Account menu' }));
@@ -211,17 +197,5 @@ describe('the top bar and the person menu (v2)', () => {
     open();
     fireEvent.mouseDown(document.body);
     expect(screen.queryByRole('menu')).toBeNull();
-  });
-});
-
-describe('with the redesign off, the current menu is unchanged', () => {
-  it('shows the grouped menu, the language toggle and the sign-out button', () => {
-    act(() => setUi('v1'));
-    show('/');
-    expect(sidebar().querySelectorAll('.nav-group')).toHaveLength(4);
-    expect(sidebar().querySelector('.v2-nav')).toBeNull();
-    expect(within(sidebar()).getByRole('button', { name: /sign out/i })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Account menu' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Language' })).toBeTruthy();
   });
 });
