@@ -4,6 +4,7 @@ import { useI18n, type Locale } from '../i18n/I18nProvider';
 import type { TranslationKey } from '../i18n/dictionary';
 import { useChangeLanguage } from '../i18n/useChangeLanguage';
 import { useTheme, type ThemePreference } from '../theme/theme';
+import { useUi } from '../theme/ui';
 
 // Each language is named in its own language, so it can be found from either.
 const LANGUAGES: { value: Locale; label: TranslationKey }[] = [
@@ -21,6 +22,8 @@ export function SettingsPage() {
   const { t, locale } = useI18n();
   const changeLanguage = useChangeLanguage();
   const { theme, setTheme } = useTheme();
+  // In the redesign the language and the appearance live in the person menu (top bar), so this page keeps to the notices.
+  const v2 = useUi().ui === 'v2';
 
   return (
     <>
@@ -29,6 +32,8 @@ export function SettingsPage() {
         subtitle={t('settings.subtitle')}
         back={{ to: '/', label: t('nav.dashboard') }}
       />
+      {!v2 && (
+        <>
       <Disclosure
         title={t('common.language')}
         icon="globe"
@@ -74,6 +79,8 @@ export function SettingsPage() {
           ))}
         </fieldset>
       </Disclosure>
+        </>
+      )}
       <NoticesSection />
     </>
   );

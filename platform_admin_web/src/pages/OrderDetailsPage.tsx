@@ -4,6 +4,7 @@ import { OrderStatusBadge, PaymentBadge } from '../components/StatusBadges';
 import { ReceiptViewer } from '../components/ReceiptViewer';
 import { AdminNotes } from '../components/AdminNotes';
 import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../components/ui';
+import { ActionGroup } from '../components/v2';
 import { useCompanies, useProducts } from '../data/hooks';
 import { useOrder } from '../data/orderHooks';
 import { formatCoordinate, osmViewUrl, toGeoPoint } from '../data/location';
@@ -11,13 +12,40 @@ import { displayPhone } from '../data/phone';
 import { fetchOrderReceipt } from '../data/receipts';
 import { db } from '../firebase';
 import { useI18n } from '../i18n/I18nProvider';
+import { useUi } from '../theme/ui';
 import { customerLabel, shortId } from '../utils';
 
 export function OrderDetailsPage() {
   const { id = '' } = useParams();
-  const { t, number, money, dateTime } = useI18n();
-  // Only this order is read (its own document), not every order there is.
+  const { t } = useI18n();
+  const { ui } = useUi();
   const orderState = useOrder(id);
+  const order = orderState.order ?? undefined;
+  return (
+    <>
+      <PageHeader
+        title={order ? `${t('order.details')} #${shortId(order.id)}` : t('order.details')}
+        back={{ to: '/orders', label: t('orders.title') }}
+        // In the redesign the cancel action sits with the other order actions inside the details.
+        actions={ui !== 'v2' && order?.orderStatus === 'processing' ? <AdminOrderCancel orderId={order.id} /> : undefined}
+      />
+      <OrderDetails orderState={orderState} />
+    </>
+  );
+}
+
+/** The side panel's body: reads the one order (its own document) and shows it. */
+export function OrderDetailsById({ id }: { id: string }) {
+  return <OrderDetails orderState={useOrder(id)} />;
+}
+
+/**
+ * Everything about one order. It is the body of the full page and, in the redesign, of
+ * the side panel beside the order list: the same data and the same actions in both.
+ */
+export function OrderDetails({ orderState }: { orderState: ReturnType<typeof useOrder> }) {
+  const { t, number, money, dateTime } = useI18n();
+  const { ui } = useUi();
   const companies = useCompanies();
   const products = useProducts();
 
@@ -33,181 +61,154 @@ export function OrderDetailsPage() {
   const deliveryPoint = order ? toGeoPoint(order.deliveryLatitude, order.deliveryLongitude) : null;
 
   return (
-    <>
-      <PageHeader
-        title={order ? `${t('order.details')} #${shortId(order.id)}` : t('order.details')}
-        back={{ to: '/orders', label: t('orders.title') }}
-        actions={order?.orderStatus === 'processing' ? <AdminOrderCancel orderId={order.id} /> : undefined}
-      />
-      <DataGate gates={[orderState]}>
-        {!order ? (
-          <EmptyState message={t('common.notFound')} />
-        ) : (
-          <>
-            <p className="note note--top">{t('order.readOnlyNote')}</p>
+    <DataGate gates={[orderState]}>
+      {!order ? (
+        <EmptyState message={t('common.notFound')} />
+      ) : (
+        <>
+          <p className="note note--top">{t('order.readOnlyNote')}</p>
 
-            <div className="grid-2">
-              <Card title={t('order.section.order')}>
-                <dl className="kv-list">
-                  <KeyValue label={t('order.id')}>
-                    <bdi className="mono" dir="ltr">
-                      {order.id}
-                    </bdi>
-                  </KeyValue>
-                  <KeyValue label={t('col.orderStatus')}>
-                    <OrderStatusBadge status={order.orderStatus} />
-                  </KeyValue>
-                  {order.orderStatus === 'cancelled' && (
-                    <>
-                      {order.cancelReason && (
-                        <KeyValue label={t('order.cancelReason')}>
-                          {t(`order.cancel.${order.cancelReason}`)}
-                        </KeyValue>
-                      )}
-                      <KeyValue label={t('order.cancelledAt')}>{dateTime(order.cancelledAt)}</KeyValue>
-                      <KeyValue label={t('order.stockReturn')}>
-                        {order.stockReleased ? t('order.stockReturned') : t('order.stockNotReturned')}
-                      </KeyValue>
-                    </>
-                  )}
-                  <KeyValue label={t('order.created')}>{dateTime(order.createdAt)}</KeyValue>
-                  <KeyValue label={t('order.updated')}>{dateTime(order.updatedAt)}</KeyValue>
-                </dl>
-              </Card>
+          {ui === 'v2' && order.orderStatus === 'processing' && (
+            <ActionGroup title={t('common.actions')} danger>
+              <AdminOrderCancel orderId={order.id} />
+            </ActionGroup>
+          )}
 
-              <Card title={t('order.section.payment')}>
-                <dl className="kv-list">
-                  <KeyValue label={t('col.payment')}>
-                    <PaymentBadge status={order.paymentStatus} orderStatus={order.orderStatus} />
-                  </KeyValue>
-                  <KeyValue label={t('order.unitPrice')}>{money(order.unitPrice)}</KeyValue>
-                  <KeyValue label={t('col.quantity')}>{number(order.quantity)}</KeyValue>
-                  <KeyValue label={t('order.subtotal')}>{money(order.productSubtotal)}</KeyValue>
-                  <KeyValue label={t('order.deliveryFee')}>{money(order.deliveryFee)}</KeyValue>
-                  <KeyValue label={t('order.installationFee')}>
-                    {money(order.installationFee)}
-                  </KeyValue>
-                  <KeyValue label={t('order.total')}>
-                    <strong>{money(order.totalAmount)}</strong>
-                  </KeyValue>
-                  <KeyValue label={t('order.receipt')}>
-                    {order.receiptFileName ? (
-                      <bdi dir="ltr">{order.receiptFileName}</bdi>
-                    ) : (
-                      t('order.notProvided')
+          <div className="grid-2">
+            <Card title={t('order.section.order')}>
+              <dl className="kv-list">
+                <KeyValue label={t('order.id')}>
+                  <bdi className="mono" dir="ltr">
+                    {order.id}
+                  </bdi>
+                </KeyValue>
+                <KeyValue label={t('col.orderStatus')}>
+                  <OrderStatusBadge status={order.orderStatus} />
+                </KeyValue>
+                {order.orderStatus === 'cancelled' && (
+                  <>
+                    {order.cancelReason && (
+                      <KeyValue label={t('order.cancelReason')}>{t(`order.cancel.${order.cancelReason}`)}</KeyValue>
                     )}
-                  </KeyValue>
-                </dl>
-                {order.receiptFileName && (
-                  <ReceiptViewer orderId={order.id} load={(orderId) => fetchOrderReceipt(db, orderId)} />
-                )}
-              </Card>
-
-              <Card title={t('order.section.customer')}>
-                <dl className="kv-list">
-                  <KeyValue label={t('col.name')}>
-                    {order.customerId ? (
-                      <Link to={`/customers/${order.customerId}`} className="strong">
-                        <Text>{customerLabel(order)}</Text>
-                      </Link>
-                    ) : (
-                      <Text>{customerLabel(order)}</Text>
-                    )}
-                  </KeyValue>
-                  <KeyValue label={t('col.phone')}>
-                    {order.contactPhone ? <bdi dir="ltr">{displayPhone(order.contactPhone)}</bdi> : '—'}
-                  </KeyValue>
-                </dl>
-              </Card>
-
-              <Card title={t('order.section.company')}>
-                <dl className="kv-list">
-                  <KeyValue label={t('col.name')}>
-                    {company ? (
-                      <Link to={`/companies/${company.id}`} className="strong">
-                        <Text>{order.companyName || company.name}</Text>
-                      </Link>
-                    ) : (
-                      dash(order.companyName)
-                    )}
-                  </KeyValue>
-                </dl>
-              </Card>
-
-              <Card title={t('order.section.product')}>
-                <dl className="kv-list">
-                  <KeyValue label={t('col.product')}>
-                    {productExists ? (
-                      <Link to={`/products/${order.productId}`} className="strong">
-                        <Text>{order.productName || order.productId}</Text>
-                      </Link>
-                    ) : (
-                      dash(order.productName)
-                    )}
-                  </KeyValue>
-                  <KeyValue label={t('col.quantity')}>{number(order.quantity)}</KeyValue>
-                </dl>
-              </Card>
-
-              <Card title={t('order.section.delivery')}>
-                <dl className="kv-list">
-                  <KeyValue label={t('order.method')}>
-                    {t(`delivery.${order.deliveryMethod}`)}
-                  </KeyValue>
-                  <KeyValue
-                    label={
-                      order.deliveryMethod === 'pickup'
-                        ? t('order.pickupLocation')
-                        : t('order.address')
-                    }
-                  >
-                    {dash(
-                      order.deliveryMethod === 'pickup'
-                        ? company?.pickupAddress || order.deliveryAddress
-                        : order.deliveryAddress,
-                    )}
-                  </KeyValue>
-                  {order.deliveryMethod === 'delivery' && deliveryPoint ? (
-                    <KeyValue label={t('location.deliveryPoint')}>
-                      <bdi dir="ltr">
-                        {formatCoordinate(deliveryPoint.latitude)},{' '}
-                        {formatCoordinate(deliveryPoint.longitude)}
-                      </bdi>{' '}
-                      <a
-                        href={osmViewUrl(deliveryPoint)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="link-sm"
-                      >
-                        {t('location.viewOnMap')}
-                      </a>
+                    <KeyValue label={t('order.cancelledAt')}>{dateTime(order.cancelledAt)}</KeyValue>
+                    <KeyValue label={t('order.stockReturn')}>
+                      {order.stockReleased ? t('order.stockReturned') : t('order.stockNotReturned')}
                     </KeyValue>
-                  ) : null}
-                </dl>
-              </Card>
+                  </>
+                )}
+                <KeyValue label={t('order.created')}>{dateTime(order.createdAt)}</KeyValue>
+                <KeyValue label={t('order.updated')}>{dateTime(order.updatedAt)}</KeyValue>
+              </dl>
+            </Card>
 
-              <Card title={t('order.section.installation')}>
-                <dl className="kv-list">
-                  <KeyValue label={t('order.installationOption')}>
-                    {order.installationSelected
-                      ? t('order.withInstallation')
-                      : t('order.productOnly')}
-                  </KeyValue>
-                  <KeyValue label={t('order.technician')}>
-                    {order.installationSelected
-                      ? order.technicianName
-                        ? <Text>{order.technicianName}</Text>
-                        : t('order.notAssigned')
-                      : '—'}
-                  </KeyValue>
-                </dl>
-              </Card>
-            </div>
+            <Card title={t('order.section.payment')}>
+              <dl className="kv-list">
+                <KeyValue label={t('col.payment')}>
+                  <PaymentBadge status={order.paymentStatus} orderStatus={order.orderStatus} />
+                </KeyValue>
+                <KeyValue label={t('order.unitPrice')}>{money(order.unitPrice)}</KeyValue>
+                <KeyValue label={t('col.quantity')}>{number(order.quantity)}</KeyValue>
+                <KeyValue label={t('order.subtotal')}>{money(order.productSubtotal)}</KeyValue>
+                <KeyValue label={t('order.deliveryFee')}>{money(order.deliveryFee)}</KeyValue>
+                <KeyValue label={t('order.installationFee')}>{money(order.installationFee)}</KeyValue>
+                <KeyValue label={t('order.total')}>
+                  <strong>{money(order.totalAmount)}</strong>
+                </KeyValue>
+                <KeyValue label={t('order.receipt')}>
+                  {order.receiptFileName ? <bdi dir="ltr">{order.receiptFileName}</bdi> : t('order.notProvided')}
+                </KeyValue>
+              </dl>
+              {order.receiptFileName && <ReceiptViewer orderId={order.id} load={(orderId) => fetchOrderReceipt(db, orderId)} />}
+            </Card>
 
-            <AdminNotes targetType="order" targetId={order.id} />
-          </>
-        )}
-      </DataGate>
-    </>
+            <Card title={t('order.section.customer')}>
+              <dl className="kv-list">
+                <KeyValue label={t('col.name')}>
+                  {order.customerId ? (
+                    <Link to={`/customers/${order.customerId}`} className="strong">
+                      <Text>{customerLabel(order)}</Text>
+                    </Link>
+                  ) : (
+                    <Text>{customerLabel(order)}</Text>
+                  )}
+                </KeyValue>
+                <KeyValue label={t('col.phone')}>
+                  {order.contactPhone ? <bdi dir="ltr">{displayPhone(order.contactPhone)}</bdi> : '—'}
+                </KeyValue>
+              </dl>
+            </Card>
+
+            <Card title={t('order.section.company')}>
+              <dl className="kv-list">
+                <KeyValue label={t('col.name')}>
+                  {company ? (
+                    <Link to={`/companies/${company.id}`} className="strong">
+                      <Text>{order.companyName || company.name}</Text>
+                    </Link>
+                  ) : (
+                    dash(order.companyName)
+                  )}
+                </KeyValue>
+              </dl>
+            </Card>
+
+            <Card title={t('order.section.product')}>
+              <dl className="kv-list">
+                <KeyValue label={t('col.product')}>
+                  {productExists ? (
+                    <Link to={`/products/${order.productId}`} className="strong">
+                      <Text>{order.productName || order.productId}</Text>
+                    </Link>
+                  ) : (
+                    dash(order.productName)
+                  )}
+                </KeyValue>
+                <KeyValue label={t('col.quantity')}>{number(order.quantity)}</KeyValue>
+              </dl>
+            </Card>
+
+            <Card title={t('order.section.delivery')}>
+              <dl className="kv-list">
+                <KeyValue label={t('order.method')}>{t(`delivery.${order.deliveryMethod}`)}</KeyValue>
+                <KeyValue label={order.deliveryMethod === 'pickup' ? t('order.pickupLocation') : t('order.address')}>
+                  {dash(order.deliveryMethod === 'pickup' ? company?.pickupAddress || order.deliveryAddress : order.deliveryAddress)}
+                </KeyValue>
+                {order.deliveryMethod === 'delivery' && deliveryPoint ? (
+                  <KeyValue label={t('location.deliveryPoint')}>
+                    <bdi dir="ltr">
+                      {formatCoordinate(deliveryPoint.latitude)}, {formatCoordinate(deliveryPoint.longitude)}
+                    </bdi>{' '}
+                    <a href={osmViewUrl(deliveryPoint)} target="_blank" rel="noopener noreferrer" className="link-sm">
+                      {t('location.viewOnMap')}
+                    </a>
+                  </KeyValue>
+                ) : null}
+              </dl>
+            </Card>
+
+            <Card title={t('order.section.installation')}>
+              <dl className="kv-list">
+                <KeyValue label={t('order.installationOption')}>
+                  {order.installationSelected ? t('order.withInstallation') : t('order.productOnly')}
+                </KeyValue>
+                <KeyValue label={t('order.technician')}>
+                  {order.installationSelected ? (
+                    order.technicianName ? (
+                      <Text>{order.technicianName}</Text>
+                    ) : (
+                      t('order.notAssigned')
+                    )
+                  ) : (
+                    '—'
+                  )}
+                </KeyValue>
+              </dl>
+            </Card>
+          </div>
+
+          <AdminNotes targetType="order" targetId={order.id} />
+        </>
+      )}
+    </DataGate>
   );
 }

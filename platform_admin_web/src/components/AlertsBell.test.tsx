@@ -9,6 +9,7 @@ import { failed, makeSnapshot, ok } from '../data/dashboardTestkit';
 import { mapCompany, mapOrder, mapReview, mapServiceRequest } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
+import { setUi } from '../theme/ui';
 import { setBaseTitle } from '../ui/titleBadge';
 import { AlertsBell } from './AlertsBell';
 import { ToastProvider } from './feedback';
@@ -43,6 +44,8 @@ const show = (snapshot: DashboardSnapshot | null) => {
 const bell = () => screen.getByRole('button', { name: /Alerts/ });
 
 beforeEach(() => {
+  // These tests are about the current look; the redesign has its own below.
+  act(() => setUi('v1'));
   mock.refresh.mockReset();
   mock.newReports = [];
   localStorage.clear();
@@ -246,5 +249,50 @@ describe('alerts while the panel stays open', () => {
     expect(document.title).toBe(`(2) ${NAME}`);
     unmount();
     expect(document.title).toBe(NAME);
+  });
+});
+
+describe('the alerts bell in the redesign', () => {
+  const showV2 = (snapshot: DashboardSnapshot | null) => {
+    act(() => setUi('v2'));
+    show(snapshot);
+  };
+  const two = () => makeSnapshot({ openOrders: ok([unverified('a'), unverified('b')]) });
+
+  afterEach(() => act(() => setUi('v1')));
+
+  it('shows how many are new, and the number goes away once the bell has been opened', () => {
+    showV2(two());
+    expect(document.querySelector('.bell__badge')?.textContent).toBe('2');
+    fireEvent.click(bell());
+    expect(document.querySelector('.bell__badge')).toBeNull();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(document.querySelector('.bell__badge')).toBeNull();
+  });
+
+  it('has no refresh button: the figures refresh by themselves', () => {
+    showV2(two());
+    fireEvent.click(bell());
+    expect(screen.queryByRole('button', { name: en['dashboard.refresh'] })).toBeNull();
+    expect(screen.getByText(/Updated|updated/i)).toBeTruthy();
+  });
+
+  it('brings the badge back only for what arrives after it was seen', () => {
+    showV2(two());
+    fireEvent.click(bell());
+    cleanup();
+    show(two());
+    expect(document.querySelector('.bell__badge')).toBeNull();
+    cleanup();
+    show(makeSnapshot({ openOrders: ok([unverified('a'), unverified('b'), unverified('c')]) }));
+    expect(document.querySelector('.bell__badge')?.textContent).toBe('1');
+  });
+
+  it('a smaller count never brings the badge back', () => {
+    showV2(two());
+    fireEvent.click(bell());
+    cleanup();
+    show(makeSnapshot({ openOrders: ok([unverified('a')]) }));
+    expect(document.querySelector('.bell__badge')).toBeNull();
   });
 });

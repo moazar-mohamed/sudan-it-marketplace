@@ -11,6 +11,7 @@ import { ToastProvider } from '../components/feedback';
 import { downloadCsv } from '../data/csv';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
+import { setUi } from '../theme/ui';
 import { OrdersPage, parseDay } from './OrdersPage';
 
 const mock = vi.hoisted(() => ({
@@ -74,6 +75,8 @@ const lastAsk = () => mock.asked[mock.asked.length - 1];
 const names = () => [...document.querySelectorAll('table.data tbody tr')].map((r) => r.children[1].textContent);
 
 beforeEach(() => {
+  // These tests are about the current look; the redesign has its own in OrdersPageV2.test.tsx.
+  act(() => setUi('v1'));
   mock.paged = paged({ orders: [order('a'), order('b')] });
   mock.counts = { processing: 3, out_for_delivery: 1, completed: 40, cancelled: 6 };
   mock.snapshot = null;

@@ -3,8 +3,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { LineChart } from '../components/charts';
 import { CompanyStatusBadge, OrderStatusBadge } from '../components/StatusBadges';
-import { Card, DataGate, EmptyState, PageHeader, StatCard, Text, Thumb } from '../components/ui';
+import { Card, DataGate, Disclosure, EmptyState, PageHeader, StatCard, Text, Thumb } from '../components/ui';
 import { isConfirmedSale } from '../data/analytics';
+import { attentionCounts } from '../data/attention';
+import { attentionItems } from '../data/attentionItems';
+import { compareSiblings } from '../data/categoryTree';
+import { useCategories } from '../data/hooks';
 import { activeCompanyCount, type CountKey, type Piece } from '../data/dashboardData';
 import {
   compareWindows,
@@ -15,12 +19,47 @@ import {
 } from '../data/stats';
 import { useDashboard } from '../data/useDashboard';
 import { useI18n } from '../i18n/I18nProvider';
+import { useUi } from '../theme/ui';
 import { customerLabel, shortId } from '../utils';
+
+/** The top-level categories as coloured tiles (redesign): what the marketplace is made of, one press from managing it. */
+function HomeCategories() {
+  const { t, number, locale } = useI18n();
+  const categories = useCategories();
+  const top = categories.data
+    .filter((c) => !c.parentId && c.isActive)
+    .sort(compareSiblings)
+    .slice(0, 4);
+  if (top.length === 0) return null;
+  return (
+    <Card
+      title={t('home.categories')}
+      actions={
+        <Link to="/categories" className="link-sm">
+          {t('home.manageCategories')}
+        </Link>
+      }
+    >
+      <div className="home-cats">
+        {top.map((c, i) => (
+          <Link key={c.id} to="/categories" className={`home-cat home-cat--${i % 4}`}>
+            <strong>
+              <Text>{(locale === 'ar' ? c.nameAr : c.nameEn) || c.name || '—'}</Text>
+            </strong>
+            <small>{t('home.subCount', { n: number(categories.data.filter((x) => x.parentId === c.id).length) })}</small>
+          </Link>
+        ))}
+      </div>
+    </Card>
+  );
+}
 
 export function DashboardPage() {
   const { t, number, money, date, dateTime } = useI18n();
   const { snapshot, refreshing, refresh } = useDashboard();
   const { state } = useAuth();
+  // The redesign refreshes the figures by itself (every few minutes while the tab is open, and when the bell is opened), so it has no refresh button.
+  const v2 = useUi().ui === 'v2';
   const profile = state.status === 'authorized' ? state.profile : null;
   const firstName = (profile?.fullName || profile?.email || '').trim().split(/\s+/)[0];
   const [days, setDays] = useState<PeriodDays>(30);
@@ -134,8 +173,134 @@ export function DashboardPage() {
   const salesTotal = salesPerDay.reduce((a, b) => a + b, 0);
   const salesPeak = Math.max(0, ...salesPerDay);
 
+  const attentionFound = snapshot ? attentionCounts(snapshot) : null;
+  const tasks = attentionItems(attentionFound, t).filter((i) => i.count);
+  const taskTotal = tasks.reduce((sum, i) => sum + (i.count ?? 0), 0);
+  const tasksCard = (
+    <Card title={t('home.tasks')}>
+      {!snapshot ? (
+        <EmptyState message={t('common.loading')} />
+      ) : tasks.length === 0 ? (
+        <EmptyState message={t('alerts.none')} />
+      ) : (
+        <ul className="home-tasks">
+          {tasks.map((i) => (
+            <li key={i.key}>
+              <Link to={i.to} className="home-task">
+                <span className={`attention__dot attention__dot--${i.severity}`} aria-hidden="true" />
+                <span className="home-task__label">{i.label}</span>
+                <span className="home-task__count">{number(i.count ?? 0)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+  const periodSwitch = (
+    <div className="segmented" role="group" aria-label={t('dashboard.period')}>
+      {PERIOD_DAYS.map((d) => (
+        <button
+          key={d}
+          type="button"
+          className={d === days ? 'segmented__item segmented__item--active' : 'segmented__item'}
+          aria-pressed={d === days}
+          onClick={() => setDays(d)}
+        >
+          {periodName(d)}
+        </button>
+      ))}
+    </div>
+  );
+  const hero = (
+    <section className="home-hero">
+      <div className="home-hero__text">
+        <h1>{firstName ? t('dashboard.greeting', { name: firstName }) : t('dashboard.title')}</h1>
+        <p>{taskTotal > 0 ? t('home.summary', { count: number(taskTotal) }) : t('home.allClear')}</p>
+        {snapshot && <small>{t('dashboard.updatedAt', { time: dateTime(new Date(snapshot.at)) })}</small>}
+      </div>
+      <div className="home-hero__end">
+        {periodSwitch}
+        {tasks[0] && (
+          <Link to={tasks[0].to} className="btn">
+            {t('home.start')}
+          </Link>
+        )}
+      </div>
+    </section>
+  );
+  const chartCard = (
+    <Card title={t('dashboard.chart.title')}>
+      <DataGate gates={[windowOrders]}>
+        {salesTotal === 0 ? (
+          <EmptyState message={t('dashboard.chart.empty')} />
+        ) : (
+          <LineChart
+            values={salesPerDay}
+            pointLabels={salesPerDay.map(
+              (v, i) => `${date(new Date(now - (days - 1 - i) * DAY_MS))} — ${money(v)}`,
+            )}
+            formatAxis={number}
+            startLabel={date(new Date(now - (days - 1) * DAY_MS))}
+            endLabel={t('dashboard.chart.today')}
+            summary={t('dashboard.chart.summary', { total: money(salesTotal), period, peak: money(salesPeak) })}
+          />
+        )}
+      </DataGate>
+    </Card>
+  );
+
+  const totalsGrid = (
+  <div className="stat-grid">
+    <StatCard
+      icon="companies"
+      to="/companies"
+      label={t('kpi.totalCompanies')}
+      value={total('companies')}
+    />
+    <StatCard
+      icon="companies"
+      to="/companies?status=active"
+      label={t('kpi.activeCompanies')}
+      value={activeCompanies === undefined ? '…' : activeCompanies === null ? '–' : number(activeCompanies)}
+    />
+    <StatCard
+      icon="customers"
+      to="/customers"
+      label={t('kpi.totalCustomers')}
+      value={total('customers')}
+    />
+    <StatCard
+      icon="products"
+      to="/products"
+      label={t('kpi.totalProducts')}
+      value={total('products')}
+    />
+    <StatCard
+      icon="orders"
+      to="/orders"
+      label={t('kpi.totalOrders')}
+      value={total('orders')}
+    />
+    <StatCard
+      icon="orders"
+      to="/orders?status=processing"
+      label={t('kpi.processingOrders')}
+      value={total('processingOrders')}
+    />
+    <StatCard
+      icon="orders"
+      to="/orders?status=completed"
+      label={t('kpi.completedOrders')}
+      value={total('completedOrders')}
+    />
+  </div>
+  );
+
   return (
     <>
+      {v2 && hero}
+      {!v2 && (
       <PageHeader
         title={firstName ? t('dashboard.greeting', { name: firstName }) : t('dashboard.title')}
         subtitle={t('dashboard.subtitle')}
@@ -157,14 +322,17 @@ export function DashboardPage() {
                 </button>
               ))}
             </div>
-            <button className="btn btn--sm" onClick={() => void refresh()} disabled={refreshing}>
-              {t('dashboard.refresh')}
-            </button>
+            {!v2 && (
+              <button className="btn btn--sm" onClick={() => void refresh()} disabled={refreshing}>
+                {t('dashboard.refresh')}
+              </button>
+            )}
           </>
         }
       />
+      )}
 
-      <h2 className="section-title">{t('trend.title', { period })}</h2>
+      {!v2 && <h2 className="section-title">{t('trend.title', { period })}</h2>}
       <div className="stat-grid stat-grid--trend">
         <StatCard
           icon="orders"
@@ -205,69 +373,26 @@ export function DashboardPage() {
         />
       </div>
 
-      <Card title={t('dashboard.chart.title')}>
-        <DataGate gates={[windowOrders]}>
-          {salesTotal === 0 ? (
-            <EmptyState message={t('dashboard.chart.empty')} />
-          ) : (
-            <LineChart
-              values={salesPerDay}
-              pointLabels={salesPerDay.map(
-                (v, i) => `${date(new Date(now - (days - 1 - i) * DAY_MS))} — ${money(v)}`,
-              )}
-              formatAxis={number}
-              startLabel={date(new Date(now - (days - 1) * DAY_MS))}
-              endLabel={t('dashboard.chart.today')}
-              summary={t('dashboard.chart.summary', { total: money(salesTotal), period, peak: money(salesPeak) })}
-            />
-          )}
-        </DataGate>
-      </Card>
+      {v2 ? (
+        <>
+          <div className="grid-2 home-row">
+            {tasksCard}
+            {chartCard}
+          </div>
+          <HomeCategories />
+        </>
+      ) : (
+        chartCard
+      )}
 
-      <div className="stat-grid">
-        <StatCard
-          icon="companies"
-          to="/companies"
-          label={t('kpi.totalCompanies')}
-          value={total('companies')}
-        />
-        <StatCard
-          icon="companies"
-          to="/companies?status=active"
-          label={t('kpi.activeCompanies')}
-          value={activeCompanies === undefined ? '…' : activeCompanies === null ? '–' : number(activeCompanies)}
-        />
-        <StatCard
-          icon="customers"
-          to="/customers"
-          label={t('kpi.totalCustomers')}
-          value={total('customers')}
-        />
-        <StatCard
-          icon="products"
-          to="/products"
-          label={t('kpi.totalProducts')}
-          value={total('products')}
-        />
-        <StatCard
-          icon="orders"
-          to="/orders"
-          label={t('kpi.totalOrders')}
-          value={total('orders')}
-        />
-        <StatCard
-          icon="orders"
-          to="/orders?status=processing"
-          label={t('kpi.processingOrders')}
-          value={total('processingOrders')}
-        />
-        <StatCard
-          icon="orders"
-          to="/orders?status=completed"
-          label={t('kpi.completedOrders')}
-          value={total('completedOrders')}
-        />
-      </div>
+      {v2 ? (
+        <Disclosure title={t('home.totals')} icon="analytics">
+          {totalsGrid}
+        </Disclosure>
+      ) : (
+        totalsGrid
+      )}
+
 
       <div className="grid-2">
         <Card

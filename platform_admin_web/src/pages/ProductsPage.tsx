@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { ProductRowMenu } from '../components/ProductModeration';
 import { SortTh, useSortedRows } from '../components/sort';
+import { ExportAction, FilterGroup } from '../components/v2';
 import { AvailabilityBadge } from '../components/StatusBadges';
 import { Badge } from '../components/ui';
 import { Chips, DataGate, EmptyState, PageHeader, SearchInput, Text, Thumb } from '../components/ui';
@@ -8,6 +10,7 @@ import { csvFilename, downloadCsv, productsToCsv } from '../data/csv';
 import { useProducts } from '../data/hooks';
 import type { Product } from '../data/types';
 import { useI18n } from '../i18n/I18nProvider';
+import { useUi } from '../theme/ui';
 import { matchesQuery } from '../utils';
 
 const SORTS = {
@@ -24,6 +27,7 @@ export function ProductsPage() {
   const { t, number, money } = useI18n();
   const products = useProducts();
   const [params, setParams] = useSearchParams();
+  const v2 = useUi().ui === 'v2';
   const companyId = params.get('company') ?? '';
   const [availability, setAvailability] = useState<'available' | 'unavailable' | 'hidden' | 'all'>('all');
   const [query, setQuery] = useState('');
@@ -53,13 +57,11 @@ export function ProductsPage() {
         subtitle={t('products.subtitle')}
         back={{ to: '/', label: t('nav.dashboard') }}
         actions={
-          <button
-            className="btn btn--sm"
+          <ExportAction
+            label={t('common.exportCsv')}
             disabled={visible.length === 0}
-            onClick={() => downloadCsv(csvFilename('products', Date.now()), productsToCsv(sortedRows))}
-          >
-            {t('common.exportCsv')}
-          </button>
+            onExport={() => downloadCsv(csvFilename('products', Date.now()), productsToCsv(sortedRows))}
+          />
         }
       />
       <DataGate gates={[products]}>
@@ -87,19 +89,21 @@ export function ProductsPage() {
             ]}
           />
           <div className="toolbar__end">
-            <select
-              className="select"
-              value={companyId}
-              aria-label={t('col.company')}
-              onChange={(e) => setParams(e.target.value ? { company: e.target.value } : {})}
-            >
-              <option value="">{t('products.allCompanies')}</option>
-              {companyOptions.map(([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </select>
+            <FilterGroup count={companyId ? 1 : 0} onClear={() => setParams({})}>
+              <select
+                className="select"
+                value={companyId}
+                aria-label={t('col.company')}
+                onChange={(e) => setParams(e.target.value ? { company: e.target.value } : {})}
+              >
+                <option value="">{t('products.allCompanies')}</option>
+                {companyOptions.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </FilterGroup>
             <SearchInput value={query} onChange={setQuery} placeholder={t('products.search')} />
           </div>
         </div>
@@ -150,9 +154,13 @@ export function ProductsPage() {
                         {p.hidden && <Badge tone="warning">{t('product.hiddenBadge')}</Badge>}
                       </td>
                       <td>
-                        <Link to={`/products/${p.id}`} className="btn btn--sm">
-                          {t('common.view')}
-                        </Link>
+                        {v2 ? (
+                          <ProductRowMenu product={p} />
+                        ) : (
+                          <Link to={`/products/${p.id}`} className="btn btn--sm">
+                            {t('common.view')}
+                          </Link>
+                        )}
                       </td>
                     </tr>
                   ))}

@@ -13,6 +13,21 @@ import { customerLabel, shortId } from '../utils';
  */
 export function ServiceRequestDetailsPage() {
   const { id = '' } = useParams();
+  const { t } = useI18n();
+  const request = useServiceRequests().data.find((r) => r.id === id);
+  return (
+    <>
+      <PageHeader
+        title={request ? `${t('serviceRequest.details')} #${shortId(request.id)}` : t('serviceRequest.details')}
+        back={{ to: '/service-requests', label: t('serviceRequests.title') }}
+      />
+      <ServiceRequestDetails id={id} />
+    </>
+  );
+}
+
+/** The body of the page and, in the redesign, of the side panel beside the request list. */
+export function ServiceRequestDetails({ id }: { id: string }) {
   const { t, money, dateTime } = useI18n();
   const requests = useServiceRequests();
   const companies = useCompanies();
@@ -26,14 +41,6 @@ export function ServiceRequestDetailsPage() {
 
   return (
     <>
-      <PageHeader
-        title={
-          request
-            ? `${t('serviceRequest.details')} #${shortId(request.id)}`
-            : t('serviceRequest.details')
-        }
-        back={{ to: '/service-requests', label: t('serviceRequests.title') }}
-      />
       <DataGate gates={[requests]}>
         {!request ? (
           <EmptyState message={t('common.notFound')} />

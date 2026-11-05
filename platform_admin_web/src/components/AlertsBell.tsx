@@ -5,7 +5,22 @@ import { attentionItems, attentionTotal } from '../data/attentionItems';
 import { useNewReports } from '../data/hooks';
 import { useDashboard } from '../data/useDashboard';
 import { useI18n } from '../i18n/I18nProvider';
+import { useUi } from '../theme/ui';
 import { Icon } from './Icon';
+
+const SEEN_KEY = 'platform_admin_alerts_seen';
+/** Figures older than this are read again when the bell is opened (the free plan's read budget is small). */
+const OPEN_STALE_MS = 60_000;
+
+function readSeen(): Record<string, number> {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(SEEN_KEY) ?? '{}');
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+}
+
 
 /**
  * The bell in the top bar: how many records need attention (the dashboard's
@@ -14,8 +29,11 @@ import { Icon } from './Icon';
  */
 export function AlertsBell() {
   const { t, number, dateTime } = useI18n();
-  const { snapshot, refreshing, refresh } = useDashboard();
+  const { snapshot, refreshing, refresh, refreshIfStale } = useDashboard();
+  const v2 = useUi().ui === 'v2';
   const [open, setOpen] = useState(false);
+  // What the person has already looked at: the badge is for what is new since then.
+  const [seen, setSeen] = useState(readSeen);
   const box = useRef<HTMLDivElement>(null);
 
   // Closes with Escape or a press outside.
@@ -39,6 +57,25 @@ export function AlertsBell() {
   const total = reportCount > 0 ? (attentionTotal(found) ?? 0) + reportCount : attentionTotal(found);
   const items = attentionItems(found, t).filter((i) => i.count);
 
+  const current: Record<string, number> = { reports: reportCount, ...Object.fromEntries(items.map((i) => [i.key, i.count ?? 0])) };
+  const unseen = Object.entries(current).reduce((sum, [key, count]) => sum + Math.max(0, count - (seen[key] ?? 0)), 0);
+  const badgeCount = v2 ? unseen : (total ?? 0);
+  const markSeen = () => {
+    setSeen(current);
+    try {
+      localStorage.setItem(SEEN_KEY, JSON.stringify(current));
+    } catch {
+      // The choice just won't persist.
+    }
+  };
+  const toggleOpen = () => {
+    if (!open && v2) {
+      markSeen();
+      refreshIfStale?.(OPEN_STALE_MS);
+    }
+    setOpen((v) => !v);
+  };
+
   const pending = snapshot?.pendingRequests;
   const open_ = snapshot?.openOrders;
   const waiting = [
@@ -60,14 +97,14 @@ export function AlertsBell() {
     <div className="bell" ref={box}>
       <button
         className="icon-btn bell__button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggleOpen}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={total ? t('alerts.open', { count: number(total) }) : t('alerts.title')}
+        aria-label={badgeCount ? t('alerts.open', { count: number(badgeCount) }) : t('alerts.title')}
         title={t('alerts.title')}
       >
         <Icon name="bell" size={18} />
-        {total ? <span className="bell__badge">{total > 99 ? '99+' : number(total)}</span> : null}
+        {badgeCount ? <span className="bell__badge">{badgeCount > 99 ? '99+' : number(badgeCount)}</span> : null}
       </button>
       {open && (
         <div className="bell__panel" role="dialog" aria-label={t('alerts.title')}>
@@ -115,9 +152,11 @@ export function AlertsBell() {
           )}
           <div className="bell__foot">
             <span className="muted">{snapshot ? t('alerts.updated', { time: dateTime(new Date(snapshot.at)) }) : t('common.loading')}</span>
-            <button className="btn btn--sm" onClick={() => void refresh()} disabled={refreshing}>
-              {t('dashboard.refresh')}
-            </button>
+            {!v2 && (
+              <button className="btn btn--sm" onClick={() => void refresh()} disabled={refreshing}>
+                {t('dashboard.refresh')}
+              </button>
+            )}
           </div>
         </div>
       )}

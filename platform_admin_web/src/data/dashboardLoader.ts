@@ -37,6 +37,15 @@ export function useDashboardLoader() {
     return load();
   }, [load]);
 
+  /** Reads again only when the figures on screen are older than `maxAgeMs` (e.g. when the bell is opened). */
+  const refreshIfStale = useCallback(
+    (maxAgeMs: number) => {
+      if (document.hidden || Date.now() - lastRead.current < maxAgeMs) return;
+      void refresh();
+    },
+    [refresh],
+  );
+
   useEffect(() => {
     alive.current = true;
     void load();
@@ -55,5 +64,5 @@ export function useDashboardLoader() {
     };
   }, [load, refresh]);
 
-  return { snapshot, refreshing, refresh };
+  return { snapshot, refreshing, refresh, refreshIfStale };
 }

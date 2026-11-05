@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:rules": "firebase emulators:exec --only firestore,auth --project demo-sudan-rules --config ../firebase.json \"vitest run --config vitest.rules.config.ts\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:v2": "vitest run --config vitest.v2.config.ts"
   },
   "dependencies": {
     "@fontsource/cairo": "^5.3.0",

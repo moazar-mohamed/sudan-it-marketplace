@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Card, Chips, DataGate, EmptyState, PageHeader, StatCard, Text } from '../components/ui';
 import { RowMenu } from '../components/RowMenu';
 import { CitiesSection } from '../components/CitiesSection';
@@ -28,6 +28,11 @@ import { useOrdersSince } from '../data/orderHooks';
 import { COMPANY_FILTER_STATUSES, ORDER_STATUSES } from '../data/types';
 import { useNow } from '../data/useNow';
 import { useI18n } from '../i18n/I18nProvider';
+import { useUi } from '../theme/ui';
+
+/** The parts of the page in the redesign (?tab=); the current look shows them all, one after another. */
+const TABS = ['sales', 'companies', 'cancellations', 'usage'] as const;
+type Tab = (typeof TABS)[number];
 
 interface Bar {
   key: string;
@@ -158,6 +163,11 @@ export function AnalyticsPage() {
   const exportFile = (name: string, build: (orders: typeof inPeriod) => string) => () =>
     downloadCsv(csvFilename(`${name}-${period}`, now), build(inPeriod));
 
+  const v2 = useUi().ui === 'v2';
+  const [params, setParams] = useSearchParams();
+  const tab: Tab = TABS.find((x) => x === params.get('tab')) ?? 'sales';
+  const show = (part: Tab) => !v2 || tab === part;
+
   return (
     <>
       <PageHeader
@@ -194,6 +204,23 @@ export function AnalyticsPage() {
         </div>
         {period === 'all' && <p className="muted">{t('analytics.allTimeNote')}</p>}
 
+        {v2 && (
+          <nav className="ds-tabs" aria-label={t('analytics.tabs')}>
+            {TABS.map((x) => (
+              <button
+                key={x}
+                type="button"
+                aria-current={tab === x ? 'page' : undefined}
+                onClick={() => setParams(x === 'sales' ? {} : { tab: x }, { replace: true })}
+              >
+                {t(`analytics.tab.${x}`)}
+              </button>
+            ))}
+          </nav>
+        )}
+
+        {show('sales') && (
+          <>
         <div className="stat-grid">
           <StatCard icon="orders" label={t('analytics.ordersPlaced')} value={number(summary.orders)} />
           <StatCard icon="analytics" label={t('analytics.confirmedSales')} value={money(summary.confirmedSales)} />
@@ -219,8 +246,11 @@ export function AnalyticsPage() {
         </div>
 
         {period !== 'all' && undated > 0 && <p className="muted">{t('analytics.undatedNote', { count: number(undated) })}</p>}
+          </>
+        )}
 
         <div className="grid-2">
+          {show('sales') && (
           <Card title={t('analytics.salesBreakdown')}>
             {summary.confirmedSales === 0 ? (
               <EmptyState message={t('analytics.noData')} />
@@ -235,6 +265,8 @@ export function AnalyticsPage() {
               />
             )}
           </Card>
+          )}
+          {show('cancellations') && (
           <Card title={t('analytics.cancelReasons')}>
             {summary.cancelled === 0 ? (
               <EmptyState message={t('analytics.noData')} />
@@ -250,9 +282,11 @@ export function AnalyticsPage() {
               />
             )}
           </Card>
+          )}
         </div>
 
         <div className="grid-2">
+          {show('sales') && (
           <Card title={t('analytics.ordersByStatus')}>
             {inPeriod.length === 0 ? (
               <EmptyState message={t('analytics.noData')} />
@@ -268,6 +302,8 @@ export function AnalyticsPage() {
               />
             )}
           </Card>
+          )}
+          {show('companies') && (
           <Card title={t('analytics.companiesByStatus')}>
             {companies.data.length === 0 ? (
               <EmptyState message={t('analytics.noData')} />
@@ -283,8 +319,10 @@ export function AnalyticsPage() {
               />
             )}
           </Card>
+          )}
         </div>
 
+        {show('companies') && (
         <div className="grid-2">
           <Card title={t('analytics.topCompanies')} flush>
             {companyRows.length === 0 ? (
@@ -301,7 +339,10 @@ export function AnalyticsPage() {
             )}
           </Card>
         </div>
+        )}
 
+        {show('sales') && (
+          <>
         <h2 className="section-title">{t('analytics.last12Months')}</h2>
         <div className="grid-2">
           <Card title={t('analytics.monthOrders')}>
@@ -316,10 +357,12 @@ export function AnalyticsPage() {
             <BarList format={number} bars={monthBars((m) => m.newCustomers, 'info')} />
           </Card>
         </div>
+          </>
+        )}
 
-        <CitiesSection />
+        {show('companies') && <CitiesSection />}
 
-        <UsageSection />
+        {show('usage') && <UsageSection />}
 
         <Card title={t('analytics.definitions.title')}>
           <ul className="definitions">

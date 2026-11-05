@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { endProductOffer, setProductHidden } from '../data/actions';
 import { hasRunningOffer } from '../data/stats';
 import type { Product } from '../data/types';
@@ -6,15 +7,12 @@ import { useNow } from '../data/useNow';
 import { useI18n } from '../i18n/I18nProvider';
 import { useConfirm, useRunner } from './feedback';
 import { ReasonDialog } from './ReasonDialog';
+import { RowMenu, type RowMenuItem } from './RowMenu';
 import { Card } from './ui';
 
-/**
- * What Platform Admin may do to a company's product: hide it from customers
- * (with a reason the company sees) or show it again, and end a running offer.
- * Price, stock and everything else stay the company's.
- */
-export function ProductModeration({ product }: { product: Product }) {
-  const { t, money, dateTime } = useI18n();
+/** The two things Platform Admin can do to a product's offer and visibility; shared by the details card and the list's row menu. */
+function useModeration(product: Product) {
+  const { t } = useI18n();
   const confirm = useConfirm();
   const { busy, run } = useRunner();
   const now = useNow();
@@ -32,6 +30,30 @@ export function ProductModeration({ product }: { product: Product }) {
     });
     if (ok) await run('offer', () => endProductOffer(product), t('product.offer.done'));
   };
+
+  const hideDialog = hiding ? (
+    <ReasonDialog
+      title={t('product.hideTitle')}
+      body={t('product.hideBody', { name: product.name })}
+      label={t('product.hiddenReason')}
+      confirmLabel={t('product.hide')}
+      danger
+      onClose={() => setHiding(false)}
+      onSubmit={(reason) => run('hide', () => setProductHidden(product, true, reason), t('product.hidden.done'))}
+    />
+  ) : null;
+
+  return { busy, offerRunning, show, endOffer, startHide: () => setHiding(true), hideDialog };
+}
+
+/**
+ * What Platform Admin may do to a company's product: hide it from customers
+ * (with a reason the company sees) or show it again, and end a running offer.
+ * Price, stock and everything else stay the company's.
+ */
+export function ProductModeration({ product }: { product: Product }) {
+  const { t, money, dateTime } = useI18n();
+  const { busy, offerRunning, show, endOffer, startHide, hideDialog } = useModeration(product);
 
   return (
     <Card title={t('product.moderation')}>
@@ -74,22 +96,37 @@ export function ProductModeration({ product }: { product: Product }) {
             {t('product.show')}
           </button>
         ) : (
-          <button className="btn btn--danger" onClick={() => setHiding(true)}>
+          <button className="btn btn--danger" onClick={startHide}>
             {t('product.hide')}
           </button>
         )}
       </div>
-      {hiding && (
-        <ReasonDialog
-          title={t('product.hideTitle')}
-          body={t('product.hideBody', { name: product.name })}
-          label={t('product.hiddenReason')}
-          confirmLabel={t('product.hide')}
-          danger
-          onClose={() => setHiding(false)}
-          onSubmit={(reason) => run('hide', () => setProductHidden(product, true, reason), t('product.hidden.done'))}
-        />
-      )}
+      {hideDialog}
     </Card>
+  );
+}
+
+/**
+ * The "..." menu of a product row (redesign): open it, hide it from customers with a reason
+ * or show it again, end its running offer. Each item runs the same action as the details page.
+ */
+export function ProductRowMenu({ product }: { product: Product }) {
+  const { t } = useI18n();
+  const navigate = useNavigate();
+  const { busy, offerRunning, show, endOffer, startHide, hideDialog } = useModeration(product);
+
+  const items: RowMenuItem[] = [{ key: 'view', label: t('common.view'), onSelect: () => navigate(`/products/${product.id}`) }];
+  if (offerRunning) items.push({ key: 'endOffer', label: t('product.endOffer'), disabled: busy === 'offer', onSelect: () => void endOffer() });
+  items.push(
+    product.hidden
+      ? { key: 'show', label: t('product.show'), disabled: busy === 'show', onSelect: () => void show() }
+      : { key: 'hide', label: t('product.hide'), danger: true, separated: true, onSelect: startHide },
+  );
+
+  return (
+    <>
+      <RowMenu label={t('common.actions')} items={items} />
+      {hideDialog}
+    </>
   );
 }

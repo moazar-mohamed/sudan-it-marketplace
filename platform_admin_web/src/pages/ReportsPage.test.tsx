@@ -7,6 +7,7 @@ import { setReportStatus } from '../data/actions';
 import { mapReport } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ar, en } from '../i18n/dictionary';
+import { setUi } from '../theme/ui';
 import { ReportsPage } from './ReportsPage';
 
 const mock = vi.hoisted(() => ({ reports: [] as unknown[] }));
@@ -49,6 +50,8 @@ const bodyRows = () => screen.getAllByRole('row').slice(1);
 const rowFor = (text: string) => bodyRows().find((r) => (r.textContent ?? '').includes(text))!;
 
 beforeEach(() => {
+  // These tests are about the current look; the redesign has its own in ReportsPageV2.test.tsx.
+  act(() => setUi('v1'));
   localStorage.setItem('platform_admin_locale', 'en');
   mock.reports = [
     make('a', { createdAt: at(3), orderRef: 'AB12CD' }),

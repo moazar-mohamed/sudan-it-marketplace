@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
 import { mapCompany, mapCompanyService, mapCustomer, mapOrder, mapProduct, mapReview, mapService } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
+import { setUi } from '../theme/ui';
 import { CompaniesPage } from './CompaniesPage';
 import { CustomersPage } from './CustomersPage';
 import { OffersPage } from './OffersPage';
@@ -84,6 +85,8 @@ const heading = (label: string, table = 0) =>
 const day = (n: number) => new Date(Date.now() - n * 86_400_000);
 
 beforeEach(() => {
+  // These tests are about the sortable table headings of the current look.
+  act(() => setUi('v1'));
   for (const key of Object.keys(data) as (keyof typeof data)[]) {
     if (key !== 'counts') data[key] = [];
   }

@@ -12,9 +12,11 @@ import {
 } from '../data/globalSearch';
 import { useI18n } from '../i18n/I18nProvider';
 import type { TranslationKey } from '../i18n/dictionary';
+import { useUi } from '../theme/ui';
 import { customerLabel, matchesQuery, shortId } from '../utils';
 import { Icon, type IconName } from './Icon';
 import { NAV } from './navItems';
+import { NAV_V2 } from './navItemsV2';
 
 /** How long the admin must pause typing before records are searched. */
 export const SEARCH_DELAY_MS = 300;
@@ -25,7 +27,18 @@ interface Row {
   icon: IconName;
   title: string;
   subtitle?: string;
+  /** The redesign names the kind of a record (company, order...) beside it. */
+  tag?: string;
 }
+
+/** What needs attention, one press away (the redesign's list before anything is typed). */
+const QUICK_LINKS: { key: TranslationKey; to: string; icon: IconName }[] = [
+  { key: 'search.q.stuck', to: '/orders?attention=stuck', icon: 'orders' },
+  { key: 'search.q.reports', to: '/reports', icon: 'flag' },
+  { key: 'search.q.noProducts', to: '/companies?attention=noProducts', icon: 'companies' },
+  { key: 'search.q.requests', to: '/service-requests?attention=stale', icon: 'serviceRequests' },
+  { key: 'search.q.lowReviews', to: '/reviews?attention=low', icon: 'reviews' },
+];
 
 const KIND_TITLE: Record<SearchKind, TranslationKey> = {
   company: 'nav.companies',
@@ -81,15 +94,32 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
     };
   }, [trimmed, wantsRecords]);
 
-  const pages: Row[] = useMemo(
-    () =>
-      NAV.filter((n) => matchesQuery(trimmed, t(n.key))).map((n) => ({
+  const v2 = useUi().ui === 'v2';
+
+  const pages: Row[] = useMemo(() => {
+    if (!v2) {
+      return NAV.filter((n) => matchesQuery(trimmed, t(n.key))).map((n) => ({
         key: `page:${n.to}`,
         to: n.to,
         icon: n.icon,
         title: t(n.key),
-      })),
-    [trimmed, t],
+      }));
+    }
+    // The redesign names the eight sections first, then their parts (shown as "part, in section").
+    const all: Row[] = NAV_V2.flatMap((s) => [
+      { key: `page:${s.to}`, to: s.to, icon: s.icon, title: t(s.key) },
+      ...(s.children ?? [])
+        .filter((c) => c.to !== s.to)
+        .map((c) => ({ key: `page:${c.to}`, to: c.to, icon: s.icon, title: t(c.key), subtitle: t(s.key) })),
+    ]);
+    const matched = all.filter((r) => matchesQuery(trimmed, r.title, r.subtitle ?? ''));
+    // With nothing typed, only the sections; the parts appear as you type.
+    return trimmed ? matched : matched.filter((r) => !r.subtitle);
+  }, [trimmed, t, v2]);
+
+  const quick: Row[] = useMemo(
+    () => (v2 && !trimmed ? QUICK_LINKS.map((q) => ({ key: `quick:${q.to}`, to: q.to, icon: q.icon, title: t(q.key) })) : []),
+    [trimmed, t, v2],
   );
 
   const describe = (hit: SearchHit): Row => {
@@ -121,18 +151,25 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
   const current = found && found.term === trimmed ? found.results : null;
   const groups = useMemo(() => {
     const out: { id: string; title: string; rows: Row[]; unavailable?: boolean }[] = [];
-    if (pages.length > 0) out.push({ id: 'pages', title: t('search.pages'), rows: pages });
+    const records: typeof out = [];
     if (current) {
       for (const kind of SEARCH_KINDS) {
         const piece = current[kind];
-        if (!piece.ok) out.push({ id: kind, title: t(KIND_TITLE[kind]), rows: [], unavailable: true });
-        else if (piece.value.length > 0) out.push({ id: kind, title: t(KIND_TITLE[kind]), rows: piece.value.map(describe) });
+        if (!piece.ok) records.push({ id: kind, title: t(KIND_TITLE[kind]), rows: [], unavailable: true });
+        else if (piece.value.length > 0) {
+          records.push({ id: kind, title: t(KIND_TITLE[kind]), rows: piece.value.map((h) => ({ ...describe(h), tag: v2 ? t(KIND_TITLE[kind]) : undefined })) });
+        }
       }
     }
+    if (quick.length > 0) out.push({ id: 'quick', title: t('search.quick'), rows: quick });
+    // In the redesign what you are looking for (a record) comes before the pages.
+    if (v2) out.push(...records);
+    if (pages.length > 0) out.push({ id: 'pages', title: t('search.pages'), rows: pages });
+    if (!v2) out.push(...records);
     return out;
     // `describe` only reads the language through t and money.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pages, current, t, money]);
+  }, [pages, quick, current, t, money, v2]);
 
   const rows = groups.flatMap((g) => g.rows);
   const activeIndex = Math.min(active, Math.max(rows.length - 1, 0));
@@ -206,14 +243,35 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                     onMouseMove={() => setActive(mine)}
                     onClick={() => go(row)}
                   >
-                    <Icon name={row.icon} size={16} />
-                    <span className="palette__title">
-                      <bdi>{row.title}</bdi>
-                    </span>
-                    {row.subtitle && (
-                      <span className="palette__sub muted">
-                        <bdi>{row.subtitle}</bdi>
-                      </span>
+                    {v2 ? (
+                      <>
+                        <span className="palette__tile">
+                          <Icon name={row.icon} size={18} />
+                        </span>
+                        <span className="palette__text">
+                          <strong>
+                            <bdi>{row.title}</bdi>
+                          </strong>
+                          {row.subtitle && (
+                            <small>
+                              <bdi>{row.subtitle}</bdi>
+                            </small>
+                          )}
+                        </span>
+                        {row.tag && <span className="palette__tag">{row.tag}</span>}
+                      </>
+                    ) : (
+                      <>
+                        <Icon name={row.icon} size={16} />
+                        <span className="palette__title">
+                          <bdi>{row.title}</bdi>
+                        </span>
+                        {row.subtitle && (
+                          <span className="palette__sub muted">
+                            <bdi>{row.subtitle}</bdi>
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 );

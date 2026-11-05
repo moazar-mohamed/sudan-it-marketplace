@@ -5,6 +5,7 @@ import { CompanyCreateModal } from '../components/CompanyCreateModal';
 import { CompanyStatusActions } from '../components/CompanyStatusActions';
 import { CompanyStatusBadge } from '../components/StatusBadges';
 import { SortTh, useSortedRows } from '../components/sort';
+import { ExportAction, FilterGroup } from '../components/v2';
 import {
   Chips,
   DataGate,
@@ -88,13 +89,11 @@ export function CompaniesPage() {
         back={{ to: '/', label: t('nav.dashboard') }}
         actions={
           <>
-            <button
-              className="btn btn--sm"
+            <ExportAction
+              label={t('common.exportCsv')}
               disabled={visible.length === 0}
-              onClick={() => downloadCsv(csvFilename('companies', now), companiesToCsv(visible))}
-            >
-              {t('common.exportCsv')}
-            </button>
+              onExport={() => downloadCsv(csvFilename('companies', now), companiesToCsv(visible))}
+            />
             <button className="btn btn--primary" onClick={() => setAdding(true)}>
               + {t('companies.add')}
             </button>
@@ -122,21 +121,23 @@ export function CompaniesPage() {
               })),
             ]}
           />
-          <select
-            aria-label={t('companies.cityFilter')}
-            value={cityId}
-            onChange={(e) => setCityId(e.target.value)}
-          >
-            <option value="">
-              {t('companies.cityFilter')}: {t('company.allCities')}
-            </option>
-            <option value={NO_CITIES}>{t('companies.cityNone')}</option>
-            {cityChoices(cities, cityId ? [cityId] : []).map((city) => (
-              <option key={city.id} value={city.id}>
-                {locale === 'ar' ? city.ar : city.en}
+          <FilterGroup count={cityId ? 1 : 0} onClear={() => setCityId('')}>
+            <select
+              aria-label={t('companies.cityFilter')}
+              value={cityId}
+              onChange={(e) => setCityId(e.target.value)}
+            >
+              <option value="">
+                {t('companies.cityFilter')}: {t('company.allCities')}
               </option>
-            ))}
-          </select>
+              <option value={NO_CITIES}>{t('companies.cityNone')}</option>
+              {cityChoices(cities, cityId ? [cityId] : []).map((city) => (
+                <option key={city.id} value={city.id}>
+                  {locale === 'ar' ? city.ar : city.en}
+                </option>
+              ))}
+            </select>
+          </FilterGroup>
           <SearchInput value={query} onChange={setQuery} placeholder={t('companies.search')} />
         </div>
         <p className="note">{t('companies.statusNote')}</p>

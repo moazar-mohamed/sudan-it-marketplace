@@ -6,6 +6,7 @@ import type { SearchResults } from '../data/globalSearch';
 import { mapCompany, mapCustomer, mapOrder, mapProduct } from '../data/mappers';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
+import { setUi } from '../theme/ui';
 import { CommandPalette, SEARCH_DELAY_MS } from './CommandPalette';
 
 const search = vi.hoisted(() => ({ run: vi.fn() }));
@@ -48,6 +49,8 @@ const wait = async (ms = SEARCH_DELAY_MS) => {
 const options = () => screen.queryAllByRole('option').map((o) => o.textContent);
 
 beforeEach(() => {
+  // These tests are about the current look; the redesign has its own below.
+  act(() => setUi('v1'));
   vi.useFakeTimers();
   search.run.mockReset();
   search.run.mockResolvedValue(none());
@@ -244,5 +247,56 @@ describe('moving and opening', () => {
     await wait();
     fireEvent.keyDown(input(), { key: 'Enter' });
     expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+describe('the search window in the redesign', () => {
+  beforeEach(() => {
+    act(() => setUi('v2'));
+  });
+  afterEach(() => act(() => setUi('v1')));
+
+  it('opens with what needs attention and the nine sections, not a list of every page', () => {
+    show();
+    const groups = screen.getAllByRole('group').map((g) => g.getAttribute('aria-label'));
+    expect(groups).toEqual([en['search.quick'], en['search.pages']]);
+    const rows = options();
+    expect(rows.length).toBe(5 + 9);
+    expect(rows.slice(0, 5).map((r) => r)).toEqual([
+      en['search.q.stuck'],
+      en['search.q.reports'],
+      en['search.q.noProducts'],
+      en['search.q.requests'],
+      en['search.q.lowReviews'],
+    ]);
+  });
+
+  it('a quick link goes to the list it counted', () => {
+    show();
+    fireEvent.click(screen.getByRole('option', { name: en['search.q.noProducts'] }));
+    expect(screen.getByTestId('where').textContent).toBe('/companies');
+  });
+
+  it('the parts of a section appear as you type, each named with its section', () => {
+    show();
+    type('categ');
+    const rows = screen.getAllByRole('option');
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textContent).toContain(en['nav.categories']);
+    expect(rows[0].textContent).toContain(en['nav.group.catalog']);
+    fireEvent.click(rows[0]);
+    expect(screen.getByTestId('where').textContent).toBe('/categories');
+  });
+
+  it('shows the records before the pages, each with its kind', async () => {
+    search.run.mockResolvedValue({ ...none(), company: { ok: true, value: [{ kind: 'company', item: mapCompany('c1', { name: 'Noor Tech' }) }] } });
+    show();
+    type('noor');
+    await wait();
+    const groups = screen.getAllByRole('group').map((g) => g.getAttribute('aria-label'));
+    expect(groups[0]).toBe(en['nav.companies']);
+    const row = screen.getAllByRole('option')[0];
+    expect(row.textContent).toContain('Noor Tech');
+    expect(row.querySelector('.palette__tag')?.textContent).toBe(en['nav.companies']);
   });
 });

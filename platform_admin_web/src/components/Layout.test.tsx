@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { setUi } from '../theme/ui';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DashboardSnapshot } from '../data/dashboardData';
@@ -50,6 +51,8 @@ const hours = (h: number) => new Date(Date.now() - h * 3_600_000);
 beforeEach(() => {
   localStorage.clear();
   mock.newReports = [];
+  // These tests are about the current look; the redesign has its own in LayoutV2.test.tsx.
+  act(() => setUi('v1'));
 });
 afterEach(cleanup);
 
