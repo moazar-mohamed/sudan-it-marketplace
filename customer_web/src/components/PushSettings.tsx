@@ -22,6 +22,8 @@ function stateText(state: PushState): string {
       return t('المتصفح ممنوع من الإشعارات. اسمح بها من رمز القفل جنب عنوان الموقع، ثم ارجع هنا.');
     case 'unsupported':
       return t('هذا المتصفح لا يدعم الإشعارات.');
+    case 'homeScreen':
+      return t('على الآيفون: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية»، وافتح الموقع من الأيقونة الجديدة، ثم فعّل الإشعارات من هنا.');
     default:
       return t('فعّل الإشعارات لتعرف بتحديثات طلباتك ورسائل الشركات حتى والموقع مقفول.');
   }
@@ -32,7 +34,7 @@ export function PushSwitch({ profile, compact = false }: { profile: UserProfile;
   const [state, setState] = usePushState();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
-  if (state === null || (compact && state !== 'off')) return null;
+  if (state === null || (compact && state !== 'off' && state !== 'homeScreen')) return null;
 
   const change = async (on: boolean) => {
     setBusy(true);

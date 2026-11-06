@@ -22,8 +22,10 @@ const SCOPE = '/push/';
 const TOKEN_KEY = 'sudan_company_push_token';
 
 export type PushState =
-  /** This browser cannot receive pushes (or, on an iPhone, the site is not on the Home Screen). */
+  /** This browser cannot receive pushes. */
   | 'unsupported'
+  /** An iPhone or iPad: pushes come only once the site is added to the Home Screen and opened from there. */
+  | 'homeScreen'
   /** The person refused it in the browser; only the browser's site settings can undo that. */
   | 'blocked'
   | 'off'
@@ -62,6 +64,7 @@ async function supported(): Promise<boolean> {
 }
 
 export async function pushState(): Promise<PushState> {
+  if (needsHomeScreen()) return 'homeScreen';
   if (!(await supported())) return 'unsupported';
   if (Notification.permission === 'denied') return 'blocked';
   return Notification.permission === 'granted' && storedToken() ? 'on' : 'off';
@@ -83,6 +86,7 @@ async function saveToken(uid: string, token: string): Promise<void> {
 
 /** Asks the browser, then registers this browser for [uid]'s pushes. */
 export async function turnPushOn(uid: string): Promise<PushState> {
+  if (needsHomeScreen()) return 'homeScreen';
   if (!(await supported())) return 'unsupported';
   const permission = await Notification.requestPermission();
   if (permission === 'denied') return 'blocked';

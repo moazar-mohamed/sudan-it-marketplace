@@ -38,6 +38,18 @@
       "port": 5195
     },
     {
+      "name": "company-web-emulator",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set VITE_EMULATOR=1&& npm --prefix company_web run dev -- --port 5196 --strictPort"],
+      "port": 5196
+    },
+    {
+      "name": "platform-admin-web-emulator",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set VITE_EMULATOR=1&& npm --prefix platform_admin_web run dev -- --port 5184 --strictPort"],
+      "port": 5184
+    },
+    {
       "name": "platform-admin-web",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "platform_admin_web", "run", "dev", "--", "--port", "5183"],

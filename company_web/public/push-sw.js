@@ -8,6 +8,8 @@
 // Where a pressed push leads in the company panel, from what the relay put in its data.
 function targetOf(data) {
   if (data.type === 'chat_message' && data.chatId) return `/chats?c=${encodeURIComponent(data.chatId)}`;
+  // The dollar rate reminder: the rate is set on the Today page.
+  if (data.type === 'usd_rate_reminder') return '/';
   if (data.type === 'new_review') return '/reviews';
   if (data.serviceRequestId) return '/services';
   if (data.productId) return `/products/${data.productId}`;

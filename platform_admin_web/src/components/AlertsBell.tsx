@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { attentionCounts } from '../data/attention';
 import { attentionItems } from '../data/attentionItems';
 import { useNewReports } from '../data/hooks';
+import { markPlatformNoticeRead, markPlatformNoticesRead, platformNoticeTarget, usePlatformNotices } from '../data/platformNotices';
 import { useDashboard } from '../data/useDashboard';
 import { useI18n } from '../i18n/I18nProvider';
 import { Icon } from './Icon';
@@ -53,8 +54,16 @@ export function AlertsBell() {
   const reportCount = newReports.status === 'ready' ? newReports.data.length : 0;
   const found = snapshot ? attentionCounts(snapshot) : null;
   const items = attentionItems(found, t).filter((i) => i.count);
+  // What people told the admins (a new report, a low rating), newest first; the unread ones are listed.
+  const notices = (usePlatformNotices() ?? []).filter((n) => !n.isRead);
+  // New reports are already counted on their own; a low rating adds to the number.
+  const lowRatings = notices.filter((n) => n.type === 'low_review').length;
 
-  const current: Record<string, number> = { reports: reportCount, ...Object.fromEntries(items.map((i) => [i.key, i.count ?? 0])) };
+  const current: Record<string, number> = {
+    reports: reportCount,
+    lowRatings,
+    ...Object.fromEntries(items.map((i) => [i.key, i.count ?? 0])),
+  };
   const unseen = Object.entries(current).reduce((sum, [key, count]) => sum + Math.max(0, count - (seen[key] ?? 0)), 0);
   const badgeCount = unseen;
   const markSeen = () => {
@@ -105,6 +114,36 @@ export function AlertsBell() {
       </button>
       {open && (
         <div className="bell__panel" role="dialog" aria-label={t('alerts.title')}>
+          {notices.length > 0 && (
+            <>
+              <div className="bell__head">
+                <h2 className="bell__title">{t('alerts.notices')}</h2>
+                <button type="button" className="link-btn" onClick={() => void markPlatformNoticesRead(notices.map((n) => n.id)).catch(() => undefined)}>
+                  {t('alerts.markAllRead')}
+                </button>
+              </div>
+              <ul className="bell__list">
+                {notices.slice(0, 5).map((n) => (
+                  <li key={n.id}>
+                    <Link
+                      to={platformNoticeTarget(n)}
+                      className="bell__row"
+                      onClick={() => {
+                        void markPlatformNoticeRead(n.id).catch(() => undefined);
+                        setOpen(false);
+                      }}
+                    >
+                      <span className={`attention__dot attention__dot--${n.type === 'new_report' ? 'high' : 'medium'}`} aria-hidden="true" />
+                      <span className="bell__label">
+                        {t(n.type === 'new_report' ? 'alerts.notice.new_report' : 'alerts.notice.low_review', { name: n.name || '—' })}
+                        {n.createdAt && <small className="muted"> · {dateTime(n.createdAt)}</small>}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
           <h2 className="bell__title">{t('attention.title')}</h2>
           {reportCount > 0 && (
             <ul className="bell__list">

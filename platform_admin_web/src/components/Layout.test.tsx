@@ -19,6 +19,10 @@ vi.mock('../auth/AuthProvider', () => ({
   useAuth: () => ({ state: { status: 'authorized', profile: { uid: 'a', fullName: 'Mona', email: 'm@x.test' } }, signOut: () => undefined }),
 }));
 vi.mock('../firebase', () => ({ db: {} }));
+// The bell's list of notices to the admins is tested on its own (AlertsBell.test.tsx).
+vi.mock('../data/platformNotices', () => ({ usePlatformNotices: () => [], markPlatformNoticeRead: async () => undefined, markPlatformNoticesRead: async () => undefined, platformNoticeTarget: () => '/' }));
+// A pressed browser push and this browser's push address are tested on their own.
+vi.mock('../data/webPush', () => ({ listenForPushOpens: () => () => undefined, refreshPush: async () => undefined }));
 vi.mock('../data/hooks', () => ({
   useNewReports: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.newReports }),
 }));

@@ -1,5 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
 import { useCompanyData } from '../data/CompanyData';
+import { PushSettings } from '../ui/PushSettings';
 import { describeNotice, markAllNoticesRead, markNoticeRead } from '../data/inbox';
 import { ago } from '../data/format';
 import { Icon } from '../ui/Icon';
@@ -9,6 +11,8 @@ import { t } from '../i18n';
 
 export function NotificationsPage() {
   const { notices, unreadNotices } = useCompanyData();
+  const { state } = useAuth();
+  const uid = state.status === 'authorized' ? state.profile.uid : null;
   const navigate = useNavigate();
   const toast = useToast();
   if (notices === null) return <main className="page"><Loading /></main>;
@@ -33,6 +37,7 @@ export function NotificationsPage() {
         subtitle={unreadNotices ? t('{0} غير مقروءة', unreadNotices) : t('لا تنبيهات جديدة')}
         actions={<button type="button" className="btn" disabled={unreadNotices === 0} onClick={() => void readAll()}><Icon name="check" />{t('تعليم الكل كمقروء')}</button>}
       />
+      {uid && <PushSettings uid={uid} />}
       <section className="card" aria-label={t('التنبيهات')}>
         {notices.length === 0 ? (
           <Empty icon="bell" text={t('لا تنبيهات بعد. سيصلك هنا كل طلب جديد وتقييم وطلب خدمة.')} />

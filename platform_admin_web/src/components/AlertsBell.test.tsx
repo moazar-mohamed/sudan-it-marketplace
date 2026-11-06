@@ -14,7 +14,13 @@ import { AlertsBell } from './AlertsBell';
 import { ToastProvider } from './feedback';
 import { useAttentionAlerts } from './useAttentionAlerts';
 
-const mock = vi.hoisted(() => ({ snapshot: null as unknown, refresh: vi.fn(), newReports: [] as unknown[] }));
+const mock = vi.hoisted(() => ({ snapshot: null as unknown, refresh: vi.fn(), newReports: [] as unknown[], notices: [] as unknown[], read: [] as string[][] }));
+vi.mock('../data/platformNotices', () => ({
+  usePlatformNotices: () => mock.notices,
+  markPlatformNoticeRead: async (id: string) => void mock.read.push([id]),
+  markPlatformNoticesRead: async (ids: string[]) => void mock.read.push(ids),
+  platformNoticeTarget: (n: { type: string }) => (n.type === 'new_report' ? '/reports' : '/reviews?attention=low'),
+}));
 vi.mock('../data/hooks', () => ({
   useNewReports: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.newReports }),
 }));
@@ -45,6 +51,8 @@ const bell = () => screen.getByRole('button', { name: /Alerts/ });
 beforeEach(() => {
   mock.refresh.mockReset();
   mock.newReports = [];
+  mock.notices = [];
+  mock.read = [];
   localStorage.clear();
 });
 afterEach(cleanup);
@@ -281,5 +289,50 @@ describe('the alerts bell in the redesign', () => {
     cleanup();
     show(makeSnapshot({ openOrders: ok([unverified('a')]) }));
     expect(document.querySelector('.bell__badge')).toBeNull();
+  });
+});
+
+describe('what people told the admins, in the bell', () => {
+  const notice = (id: string, type: 'new_report' | 'low_review', name: string, isRead = false) => ({
+    id,
+    type,
+    reportId: type === 'new_report' ? 'r1' : '',
+    reviewId: type === 'low_review' ? 'v1' : '',
+    name,
+    isRead,
+    createdAt: hours(1),
+  });
+
+  it('lists the unread ones first, each leading to its page and marked read when opened', () => {
+    mock.notices = [notice('r1_new_report', 'new_report', 'Late delivery'), notice('v1_low_review', 'low_review', 'Printer X')];
+    show(makeSnapshot());
+    fireEvent.click(bell());
+    const panel = screen.getByRole('dialog');
+    expect(within(panel).getByText(en['alerts.notices'])).toBeTruthy();
+    expect(within(panel).getByText(/New report: Late delivery/)).toBeTruthy();
+    fireEvent.click(within(panel).getByText(/Low rating for Printer X/));
+    expect(mock.read).toEqual([['v1_low_review']]);
+    expect(screen.getByTestId('where').textContent).toBe('/reviews?attention=low');
+  });
+
+  it('marks them all read at once', () => {
+    mock.notices = [notice('a', 'new_report', 'One'), notice('b', 'low_review', 'Two')];
+    show(makeSnapshot());
+    fireEvent.click(bell());
+    fireEvent.click(screen.getByRole('button', { name: en['alerts.markAllRead'] }));
+    expect(mock.read).toEqual([['a', 'b']]);
+  });
+
+  it('a low rating adds to the number on the bell; a read one does not', () => {
+    mock.notices = [notice('b', 'low_review', 'Two'), notice('c', 'low_review', 'Three', true)];
+    show(makeSnapshot());
+    expect(document.querySelector('.bell__badge')!.textContent).toBe('1');
+  });
+
+  it('shows no notice section when nothing is unread', () => {
+    mock.notices = [notice('c', 'low_review', 'Three', true)];
+    show(makeSnapshot());
+    fireEvent.click(bell());
+    expect(screen.queryByText(en['alerts.notices'])).toBeNull();
   });
 });

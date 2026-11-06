@@ -110,6 +110,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     noticeRef.current = null;
     resetStores();
+    // This browser stops getting the admin's pushes (best effort).
+    const uid = auth.currentUser?.uid ?? null;
+    await import('../data/webPush').then((m) => m.turnPushOff(uid)).catch(() => undefined);
     await firebaseSignOut(auth);
   }, []);
 

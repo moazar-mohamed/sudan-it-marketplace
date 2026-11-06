@@ -2,7 +2,12 @@ import { Suspense, useEffect, useRef, useState, type FormEvent } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useCompanyData } from '../data/CompanyData';
+import { describeNotice } from '../data/inbox';
+import { chime, RINGING_TYPES, useNewArrivals } from '../data/newArrivals';
+import { showCountInTitle } from '../data/titleCount';
+import { listenForPushOpens, refreshPush } from '../data/webPush';
 import { useTheme } from '../theme';
+import { useToast } from './toast';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Banner, Loading } from './kit';
 import { Icon, type IconName } from './Icon';
@@ -18,7 +23,7 @@ interface Item {
 
 export function Shell() {
   const { state, signOut } = useAuth();
-  const { company, pendingPayment, failed, unreadChats, unreadNotices } = useCompanyData();
+  const { company, pendingPayment, failed, unreadChats, unreadNotices, notices } = useCompanyData();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { resolved: theme, toggle: toggleTheme } = useTheme();
@@ -40,6 +45,23 @@ export function Shell() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // A new order or service request while the panel is open: a chime and a note.
+  const toast = useToast();
+  useNewArrivals(notices, (fresh) => {
+    const ringing = fresh.filter((n) => RINGING_TYPES.has(n.type));
+    if (ringing.length === 0) return;
+    chime();
+    const first = describeNotice(ringing[0]);
+    toast(ringing.length > 1 ? t('{0} تنبيهات جديدة', ringing.length) : `${first.title}: ${first.body}`, 'info');
+  });
+  // The tab's title counts what is waiting; a pressed push opens its page here; this browser's push address stays fresh.
+  useEffect(() => showCountInTitle(unreadNotices + unreadChats), [unreadNotices, unreadChats]);
+  useEffect(() => listenForPushOpens((path) => navigate(path)), [navigate]);
+  const uid = state.status === 'authorized' ? state.profile.uid : null;
+  useEffect(() => {
+    if (uid) void refreshPush(uid);
+  }, [uid]);
 
   const groups: { label: string; items: Item[] }[] = [
     {

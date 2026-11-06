@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { attentionCounts, sumCounts } from '../data/attention';
 import { useNewReports } from '../data/hooks';
@@ -7,6 +7,7 @@ import { prefetchAllPages, prefetchPath } from '../data/prefetch';
 import { useCitiesSync } from '../data/useCitiesSync';
 import { DashboardProvider } from '../data/DashboardProvider';
 import { useDashboard } from '../data/useDashboard';
+import { listenForPushOpens, refreshPush } from '../data/webPush';
 import { useI18n } from '../i18n/I18nProvider';
 import { useChangeLanguage } from '../i18n/useChangeLanguage';
 import { watchTables } from '../ui/tableLabels';
@@ -70,6 +71,13 @@ function Shell() {
 
   // Every page file is fetched while the panel is idle, so opening a section does not wait for it.
   useEffect(() => prefetchAllPages(), []);
+  // A pressed push opens its page in this tab; this browser's push address is kept fresh.
+  const navigate = useNavigate();
+  useEffect(() => listenForPushOpens((path) => navigate(path)), [navigate]);
+  const uid = state.status === 'authorized' ? state.profile.uid : null;
+  useEffect(() => {
+    if (uid) void refreshPush(uid);
+  }, [uid]);
   // Reaching a link with the pointer or the keyboard starts reading what its section shows.
   const prepare = useCallback((e: React.SyntheticEvent) => {
     const href = (e.target as HTMLElement).closest?.('a[href]')?.getAttribute('href');

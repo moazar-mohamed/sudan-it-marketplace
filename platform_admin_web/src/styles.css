@@ -3525,3 +3525,14 @@ kbd {
 .note.note--spaced {
   margin-bottom: 16px;
 }
+
+/* The bell's "latest alerts": its title with "Mark all read" beside it. */
+.bell__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.bell__head .link-btn {
+  font-size: 12px;
+}

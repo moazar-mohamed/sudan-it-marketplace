@@ -638,4 +638,5 @@ export const EN: Record<string, string> = {
   "تعذّر تغيير الإشعارات. تحقق من اتصالك وحاول مرة أخرى.": "Could not change the notifications. Check your connection and try again.",
   "ما الذي يصلك (على الموبايل والمتصفح):": "What reaches you (on your phone and in this browser):",
   "تعذّر حفظ الاختيار. حاول مرة أخرى.": "Could not save the choice. Please try again.",
+  "على الآيفون: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية»، وافتح الموقع من الأيقونة الجديدة، ثم فعّل الإشعارات من هنا.": "On an iPhone: press Share, then “Add to Home Screen”, open the site from the new icon, then turn on notifications here.",
 };
