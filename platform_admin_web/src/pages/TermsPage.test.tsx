@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
 import { saveTerms } from '../data/actions';
-import { SAMPLE_TERMS_AR, SAMPLE_TERMS_EN } from '../data/termsSample';
+import { DEFAULT_TERMS_AR, DEFAULT_TERMS_EN } from '../data/termsDefault';
 import type { Terms, TermsState } from '../data/terms';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { en } from '../i18n/dictionary';
@@ -46,14 +46,14 @@ afterEach(() => {
 });
 
 describe('the terms page', () => {
-  it('says nothing is published and starts from the sample, ready to publish as version 1', async () => {
+  it('says nothing is published and starts from the standard text, ready to publish as version 1', async () => {
     show();
     expect(screen.getByText(en['terms.none'])).toBeTruthy();
-    expect(screen.getByText(en['terms.sampleNote'])).toBeTruthy();
-    expect(arabic().value).toBe(SAMPLE_TERMS_AR);
+    expect(screen.getByText(en['terms.defaultNote'])).toBeTruthy();
+    expect(arabic().value).toBe(DEFAULT_TERMS_AR);
     expect(publishButton().disabled).toBe(false);
     fireEvent.click(publishButton());
-    await waitFor(() => expect(saveTerms).toHaveBeenCalledWith({ textAr: SAMPLE_TERMS_AR, textEn: SAMPLE_TERMS_EN, version: 1, newVersion: true }));
+    await waitFor(() => expect(saveTerms).toHaveBeenCalledWith({ textAr: DEFAULT_TERMS_AR, textEn: DEFAULT_TERMS_EN, version: 1, newVersion: true }));
   });
 
   it('refuses a cleared Arabic text even when English is there', () => {
@@ -63,13 +63,13 @@ describe('the terms page', () => {
     expect(publishButton().disabled).toBe(true);
   });
 
-  it('can bring the sample back over what was typed', () => {
+  it('can bring the standard text back over what was typed', () => {
     mock.state = { status: 'ready', terms: published(2) };
     show();
-    expect(screen.queryByText(en['terms.sampleNote'])).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: en['terms.useSample'] }));
-    expect(arabic().value).toBe(SAMPLE_TERMS_AR);
-    expect(screen.getByText(en['terms.sampleNote'])).toBeTruthy();
+    expect(screen.queryByText(en['terms.defaultNote'])).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: en['terms.useDefault'] }));
+    expect(arabic().value).toBe(DEFAULT_TERMS_AR);
+    expect(screen.getByText(en['terms.defaultNote'])).toBeTruthy();
   });
 
   it('shows what is published and asks before a new version asks everyone again', async () => {

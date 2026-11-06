@@ -3,7 +3,7 @@ import { useConfirm, useRunner } from '../components/feedback';
 import { Card, PageHeader } from '../components/ui';
 import { saveTerms } from '../data/actions';
 import { MAX_TERMS_LENGTH, nextTermsVersion, termsProblem, useTerms } from '../data/terms';
-import { SAMPLE_TERMS_AR, SAMPLE_TERMS_EN } from '../data/termsSample';
+import { DEFAULT_TERMS_AR, DEFAULT_TERMS_EN } from '../data/termsDefault';
 import { useI18n } from '../i18n/I18nProvider';
 
 /** Platform Admin writes the terms and conditions and publishes them as a new version or a correction. */
@@ -15,10 +15,10 @@ export function TermsPage() {
   const [draft, setDraft] = useState<{ textAr: string; textEn: string } | null>(null);
   const [askAgain, setAskAgain] = useState(true);
 
-  // Until something is published the editor holds the sample, so it is never empty.
-  const textAr = draft?.textAr ?? terms?.textAr ?? SAMPLE_TERMS_AR;
-  const textEn = draft?.textEn ?? terms?.textEn ?? SAMPLE_TERMS_EN;
-  const isSample = textAr === SAMPLE_TERMS_AR && textEn === SAMPLE_TERMS_EN;
+  // Until something is published the editor holds the standard text, so it is never empty.
+  const textAr = draft?.textAr ?? terms?.textAr ?? DEFAULT_TERMS_AR;
+  const textEn = draft?.textEn ?? terms?.textEn ?? DEFAULT_TERMS_EN;
+  const isDefault = textAr === DEFAULT_TERMS_AR && textEn === DEFAULT_TERMS_EN;
   const problem = termsProblem(textAr, textEn);
   const version = nextTermsVersion(terms, askAgain);
   const changed = terms === null || textAr !== terms.textAr || textEn !== terms.textEn;
@@ -62,14 +62,14 @@ export function TermsPage() {
       <Card
         title={t('terms.text')}
         actions={
-          !isSample ? (
-            <button type="button" className="btn" onClick={() => setDraft({ textAr: SAMPLE_TERMS_AR, textEn: SAMPLE_TERMS_EN })}>
-              {t('terms.useSample')}
+          !isDefault ? (
+            <button type="button" className="btn" onClick={() => setDraft({ textAr: DEFAULT_TERMS_AR, textEn: DEFAULT_TERMS_EN })}>
+              {t('terms.useDefault')}
             </button>
           ) : undefined
         }
       >
-        {isSample && <p className="muted">{t('terms.sampleNote')}</p>}
+        {isDefault && <p className="muted">{t('terms.defaultNote')}</p>}
         <label className="field">
           <span>{t('terms.textAr')}</span>
           <textarea dir="rtl" rows={14} value={textAr} onChange={(e) => setDraft({ textAr: e.target.value, textEn })} />
