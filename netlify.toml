@@ -1,0 +1,6 @@
+# Netlify builds sictm.net from this repo on every push to main.
+# Only the deploy/ folder is published - android/, firebase/, promo/ stay private.
+[build]
+  publish = "deploy"
+  # Keep the live page in sync with the main source file.
+  command = "cp sictmp.html deploy/index.html"
