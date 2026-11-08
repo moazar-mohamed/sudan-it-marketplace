@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "net.sictm.twa",
+        "sha256_cert_fingerprints": ["C4:CC:FB:CC:AF:19:C9:0B:AE:86:27:8D:1B:7E:EA:25:42:84:B9:EF:B3:F8:2B:81:56:B9:51:21:D0:6C:FB:D8"]
+      }
+    }]

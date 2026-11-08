@@ -1,0 +1,104 @@
+rules_version = '2';
+// Firestore security rules for Sudan ICT Marketplace (sictm.net)
+// Paste into: Firebase Console > Firestore Database > Rules > Publish
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isMe(id)   { return signedIn() && request.auth.uid == id; }
+    function isAdmin()  { return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function onlyChanges(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+    function changes(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+    // Sign-in email (lower case) or phone number of the current user, '' if none.
+    function myEmail() { return request.auth.token.get('email', '').lower(); }
+    function myPhone() { return request.auth.token.get('phone_number', ''); }
+    function invited() {
+      return (myEmail() != '' && exists(/databases/$(database)/documents/adminInvites/$(myEmail())))
+          || (myPhone() != '' && exists(/databases/$(database)/documents/adminInvites/$(myPhone())));
+    }
+
+    // Admins. The FIRST admin is added by hand in the console (document id = admin's UID).
+    // After that, admins add/remove admins from the site's Admin Dashboard.
+    // A user who was invited (adminInvites/{email or phone}) may create their own admin doc on first sign-in.
+    match /admins/{uid} {
+      allow read: if isMe(uid) || isAdmin();
+      allow create: if isAdmin() || (isMe(uid) && invited());
+      allow update, delete: if isAdmin() && !isMe(uid);
+    }
+
+    // Pending admin invites, keyed by lower-case email or +phone.
+    match /adminInvites/{key} {
+      allow read, delete: if isAdmin() || (signedIn() && (key == myEmail() || key == myPhone()));
+      allow create, update: if isAdmin();
+    }
+
+    // User profiles: each user owns their own document, but cannot change their role or suspension.
+    match /users/{uid} {
+      allow read: if isMe(uid) || isAdmin();
+      allow create: if isMe(uid) && request.resource.data.role in ['client', 'company']
+                       && !('suspended' in request.resource.data);
+      allow update: if (isMe(uid) && !changes(['role', 'suspended'])) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Companies: public to read. Owner edits own profile but cannot approve itself; admin approves.
+    match /companies/{cid} {
+      allow read: if true;
+      allow create: if isMe(cid) && request.resource.data.approved == false;
+      allow update: if (isMe(cid) && request.resource.data.approved == resource.data.approved) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Products & services: public to read. The owning company writes, but cannot un-hide
+    // an item the admin has hidden. Admin can add / edit / hide / delete any item.
+    match /products/{pid} {
+      allow read: if true;
+      allow create: if isAdmin() || (signedIn() && request.resource.data.cid == request.auth.uid
+                                     && request.resource.data.get('hidden', false) == false);
+      allow update: if isAdmin() || (signedIn() && resource.data.cid == request.auth.uid
+                                     && request.resource.data.cid == request.auth.uid
+                                     && request.resource.data.get('hidden', false) == resource.data.get('hidden', false));
+      allow delete: if isAdmin() || (signedIn() && resource.data.cid == request.auth.uid);
+    }
+
+    // Reviews: public to read; signed-in users write their own.
+    match /reviews/{rid} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.resource.data.from == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // Quote requests: customer creates; customer, the company, and admin can read.
+    match /inquiries/{id} {
+      allow read: if signedIn() && (resource.data.from == request.auth.uid
+                                    || resource.data.cid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && request.resource.data.from == request.auth.uid;
+      allow update: if (signedIn() && resource.data.cid == request.auth.uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Orders: customer creates; company may only change the status; admin full access.
+    match /orders/{id} {
+      allow read: if signedIn() && (resource.data.from == request.auth.uid
+                                    || resource.data.cid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && request.resource.data.from == request.auth.uid
+                       && request.resource.data.status == 'pending';
+      allow update: if (signedIn() && resource.data.cid == request.auth.uid && onlyChanges(['status'])) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Activity log: anyone signed in records their own actions; it can't be edited.
+    // Admin reads everything; a company reads entries about its company; users read their own.
+    match /activity/{id} {
+      allow read: if isAdmin() || (signedIn() && (resource.data.cid == request.auth.uid
+                                                  || resource.data.by == request.auth.uid));
+      allow create: if signedIn() && request.resource.data.by == request.auth.uid;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+  }
+}

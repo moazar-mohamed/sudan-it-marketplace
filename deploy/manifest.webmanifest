@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "سوق السودان للتقنية والاتصالات - Sudan ICT Marketplace",
+  "short_name": "SICTM",
+  "description": "أجهزة، شبكات، سيرفرات، سحابة وأمن سيبراني من شركات سودانية موثوقة. Hardware, networks, cloud and cybersecurity from trusted Sudanese companies.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#063b73",
+  "background_color": "#ffffff",
+  "categories": ["business", "shopping", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "المنتجات", "short_name": "Products", "url": "/?go=products", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "الخدمات", "short_name": "Services", "url": "/?go=services", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "الشركات", "short_name": "Companies", "url": "/?go=companies", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
