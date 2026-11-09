@@ -6,3 +6,7 @@ New Text Document.txt
 *.keystore
 *.jks
 signing-key-info.txt
+
+# New promo videos stay on this computer only (too big for GitHub uploads here)
+promo/sictm-update-*.mp4
+promo/sictm-full-tour-*.mp4

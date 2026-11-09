@@ -347,17 +347,312 @@ function scrCompanies(lt, opt = {}) {
   }
   appHeader(3);
 }
-const SCREENS = { home: scrHome, products: scrProducts, detail: scrDetail, chat: scrChat, companies: scrCompanies };
+/* ---------- "what's new" screens (update video, 9 Nov 2026) ---------- */
+const GOLD = '#f5a623';
+function tapFx(x, y, lt, at) {          // finger tap ripple at time `at`
+  const tp = prog(lt, at, at + .6); if (tp <= 0 || tp >= 1) return;
+  X.fillStyle = `rgba(255,255,255,${.6 * (1 - tp)})`; X.beginPath(); X.arc(x, y, 14 + tp * 40, 0, 7); X.fill();
+  X.fillStyle = 'rgba(6,59,115,.35)'; X.beginPath(); X.arc(x, y, 13, 0, 7); X.fill();
+}
+function toastFx(s, lt, at) {
+  const a = ease(prog(lt, at, at + .3)); if (a <= 0) return;
+  X.save(); X.globalAlpha = a; const w = tw(s, 14, 700) + 40, y = PH - 110 + (1 - a) * 20;
+  X.fillStyle = '#12263f'; rr(PW / 2 - w / 2, y, w, 42, 14); X.fill();
+  txt(s, PW / 2, y + 27, { size: 14, weight: 700, align: 'center' }); X.restore();
+}
+function starsFx(x, y, n, size = 22) { for (let i = 0; i < 5; i++) txt(i < n ? '★' : '☆', x - i * size * 1.05, y, { size, weight: 400, color: i < n ? GOLD : '#b8c3d1', align: 'right', dir: 'ltr' }); }
+function btn(x, y, w, h, label, o = {}) {
+  X.fillStyle = o.bg || GREEN; rr(x, y, w, h, o.r || 12); X.fill();
+  if (o.stroke) { X.strokeStyle = o.stroke; X.lineWidth = 1.5; X.stroke(); }
+  txt(label, x + w / 2, y + h / 2 + (o.size || 15) * .36, { size: o.size || 15, weight: 800, color: o.color || '#fff', align: 'center' });
+}
+function check(x, y, on, s = 20) {
+  X.fillStyle = on ? GREEN : '#fff'; rr(x, y, s, s, 5); X.fill();
+  if (!on) { X.strokeStyle = '#9fb0c4'; X.lineWidth = 1.5; X.stroke(); }
+  else txt('✓', x + s / 2, y + s * .78, { size: s * .8, weight: 900, align: 'center', dir: 'ltr' });
+}
+function sheet(lt, at, y0, h) {         // dimmed page + white modal sliding up; returns its top y (or null)
+  const a = ease(prog(lt, at, at + .45)); if (a <= 0) return null;
+  X.fillStyle = `rgba(0,0,0,${.55 * a})`; X.fillRect(0, 0, PW, PH);
+  const y = y0 + (1 - a) * 520; X.fillStyle = '#fff'; rr(16, y, PW - 32, h, 22); X.fill(); return y;
+}
 
-/* ---------- video timeline ---------- */
-const D = 24;
-const SEG = [[3.0, 7, 'home'], [7, 11, 'products'], [11, 13.5, 'detail'], [13.5, 15.6, 'chat'], [15.6, 20, 'companies']];
-const CAP = [
-  [3.4, 7, 'ابحث عن أي منتج أو خدمة تقنية', 'Find any tech product or service'],
-  [7, 11, 'منتجات وخدمات من شركات سودانية', 'Products & services from Sudanese companies'],
-  [11, 15.6, 'اسأل عن السعر مباشرة عبر واتساب', 'Ask the price instantly on WhatsApp'],
-  [15.6, 19.4, 'شركات موثّقة ومعتمدة', 'Verified, approved companies']
-];
+// 1) product window: installation option + Buy now
+function scrDetail2(lt) {
+  scrProducts(0, { scroll: 0 });
+  const a = ease(prog(lt, 0, .45)), my = 150 + (1 - a) * 500, R = PW - 34;
+  X.fillStyle = `rgba(0,0,0,${.55 * a})`; X.fillRect(0, 0, PW, PH);
+  X.save(); X.globalAlpha = a;
+  X.fillStyle = '#fff'; rr(16, my, PW - 32, 660, 22); X.fill();
+  txt('✕', 38, my + 34, { size: 18, weight: 700, color: MU, align: 'center' });
+  thumb(R - 96, my + 18, 96, 96, 1, '🌐');
+  pill('الشبكات والبنية التحتية', R - 108, my + 22, { size: 11 });
+  txt('Cisco Catalyst 2960-X', R, my + 150, { size: 21, weight: 800, color: TX });
+  txt('سويتش 24 منفذ مُدار', R, my + 178, { size: 13, weight: 400, color: TX });
+  txt('🏢 البحر الأحمر للشبكات · بورتسودان', R, my + 204, { size: 12, weight: 600, color: MU });
+  txt('3,000,000 ج.س', R, my + 248, { size: 26, weight: 800, color: GREEN });
+  // installation badge (new) with a glow
+  const g = .5 + .5 * Math.sin(lt * 5), ib = prog(lt, .6, 1.0);
+  X.save(); X.globalAlpha = a * ease(ib);
+  const lab = '🔧 خدمة التركيب متاحة: +50,000 ج.س للوحدة', lw = tw(lab, 13, 800) + 28;
+  X.shadowColor = `rgba(245,166,35,${.5 * g})`; X.shadowBlur = 16; X.fillStyle = '#fff4e0'; rr(R - lw, my + 266, lw, 36, 18); X.fill(); X.shadowBlur = 0;
+  X.strokeStyle = GOLD; X.lineWidth = 1.5; X.stroke();
+  txt(lab, R - lw / 2, my + 290, { size: 13, weight: 800, color: '#8a5a00', align: 'center' });
+  txt('جديد', R - lw - 8, my + 290, { size: 11, weight: 800, color: GOLD });
+  X.restore();
+  txt('★★★★★', R, my + 330, { size: 15, weight: 400, color: GOLD, dir: 'ltr' }); txt('4.9 (12)', R - 90, my + 330, { size: 12, weight: 600, color: MU });
+  const press = clamp(1 - Math.abs(lt - 2.9) * 5);
+  btn(34 - press * 3, my + 350 - press * 2, PW - 68 + press * 6, 52 + press * 4, '⚡ اشترِ الآن', { size: 16 });
+  btn(34, my + 412, PW - 68, 46, '🛒 أضف للسلة', { bg: WAF, color: NAVY });
+  btn(34, my + 466, PW - 68, 46, 'اطلب عرض سعر', { bg: WAF, color: NAVY });
+  waButton(34, my + 520, PW - 68, 50, 0);
+  X.restore();
+  tapFx(PW / 2, my + 376, lt, 2.6);
+}
+
+// 2) cart grouped by company
+function coCart(y, name, items, sub, lt, at, hi) {
+  const a = ease(prog(lt, at, at + .5)); if (a <= 0) return;
+  X.save(); X.globalAlpha = a; X.translate((1 - a) * 60, 0);
+  const h = 70 + items.length * 56 + 60; card(16, y, PW - 32, h);
+  txt('🏢 ' + name, PW - 32, y + 34, { size: 15, weight: 800, color: NAVY });
+  items.forEach(([n, p, q], i) => {
+    const yy = y + 52 + i * 56; X.fillStyle = BD; X.fillRect(32, yy, PW - 64, 1);
+    txt(n, PW - 32, yy + 24, { size: 14, weight: 700, color: TX }); txt(p, PW - 32, yy + 44, { size: 12, weight: 400, color: MU });
+    X.fillStyle = WAF; rr(32, yy + 14, 28, 28, 8); X.fill(); txt('+', 46, yy + 34, { size: 15, weight: 800, color: NAVY, align: 'center' });
+    txt(String(q), 76, yy + 34, { size: 15, weight: 800, color: TX, align: 'center' });
+    X.fillStyle = WAF; rr(92, yy + 14, 28, 28, 8); X.fill(); txt('−', 106, yy + 34, { size: 15, weight: 800, color: NAVY, align: 'center' });
+  });
+  const by = y + 52 + items.length * 56 + 10;
+  txt('المجموع: ' + sub, PW - 32, by + 30, { size: 13, weight: 800, color: GREEN });
+  const pulse = hi ? .5 + .5 * Math.sin(lt * 6) : 0;
+  if (hi) { X.save(); X.shadowColor = `rgba(31,163,92,${.6 * pulse})`; X.shadowBlur = 14; }
+  btn(32, by + 6, 170, 38, 'إتمام الطلب مع هذه الشركة', { size: 11 });
+  if (hi) X.restore();
+  X.restore();
+}
+function scrCart(lt) {
+  txt('🛒 سلة المشتريات', PW - 16, 200, { size: 22, weight: 800, color: TX });
+  const na = ease(prog(lt, .3, .8));
+  X.save(); X.globalAlpha = na;
+  X.fillStyle = '#fff4e0'; rr(16, 216, PW - 32, 62, 14); X.fill(); X.strokeStyle = GOLD; X.lineWidth = 1; X.stroke();
+  wrapTxt('لديك منتجات من شركتين. كل شركة لها طلب وفاتورة منفصلة — أكمل الطلب مع كل شركة على حدة.', PW - 30, 241, PW - 64, 19, { size: 12, weight: 700, color: '#8a5a00' });
+  X.restore();
+  coCart(294, 'الخرطوم نت للحلول التقنية', [['Dell Latitude 5540', '2,125,000 ج.س', 1], ['HP LaserJet Pro M404dn', '750,000 ج.س', 1]], '2,875,000 ج.س', lt, .7, lt > 2.2);
+  coCart(552, 'البحر الأحمر للشبكات', [['Cisco Catalyst 2960-X  🔧', '3,000,000 ج.س', 2]], '6,000,000 ج.س', lt, 1.2, lt > 2.2);
+  appHeader(-1);
+}
+
+// 3) checkout for ONE company with the installation choice
+function scrCheckout(lt) {
+  const R = PW - 32;
+  txt('إتمام الطلب — البحر الأحمر للشبكات', PW - 16, 196, { size: 17, weight: 800, color: TX });
+  txt('هذا الطلب وفاتورته مع هذه الشركة فقط', PW - 16, 220, { size: 12, weight: 600, color: MU });
+  card(16, 236, PW - 32, 520);
+  txt('1. عنوان الشحن', R, 266, { size: 14, weight: 800, color: TX });
+  [['محمد أحمد', 278], ['+249 9XX XXX XXX', 318], ['بورتسودان — حي المطار', 358]].forEach(([v, y]) => { X.fillStyle = BG; rr(32, y, PW - 64, 32, 9); X.fill(); X.strokeStyle = BD; X.stroke(); txt(v, R - 10, y + 21, { size: 12, weight: 600, color: TX }); });
+  txt('2. التوصيل', R, 418, { size: 14, weight: 800, color: TX });
+  X.strokeStyle = BD; rr(32, 430, PW - 64, 36, 10); X.stroke();
+  X.fillStyle = GREEN; X.beginPath(); X.arc(R - 14, 448, 7, 0, 7); X.fill();
+  txt('عادي (3-5 أيام) — 25,000 ج.س', R - 30, 453, { size: 12, weight: 600, color: TX });
+  // installation section (new)
+  const on = lt > 1.5, hl = ease(prog(lt, .5, 1.0));
+  X.save(); X.globalAlpha = hl;
+  txt('🔧 التركيب', R, 500, { size: 14, weight: 800, color: TX });
+  txt('هل تريد أن ترسل الشركة فنياً لتركيبها في موقعك؟', R, 522, { size: 11, weight: 400, color: MU });
+  X.fillStyle = on ? '#e3f7ec' : '#fff'; rr(32, 534, PW - 64, 44, 10); X.fill(); X.strokeStyle = on ? GREEN : BD; X.lineWidth = 1.5; X.stroke();
+  check(R - 22, 546, on);
+  txt('Cisco Catalyst 2960-X ×2 — 100,000 ج.س', R - 32, 561, { size: 12, weight: 700, color: TX });
+  X.restore();
+  tapFx(R - 12, 556, lt, 1.2);
+  txt('3. طريقة الدفع', R, 610, { size: 14, weight: 800, color: TX });
+  txt('◉ تحويل بنكي     ○ نقود موبايل     ○ عند الاستلام', R, 636, { size: 12, weight: 600, color: TX });
+  // totals line updates when installation is ticked
+  X.fillStyle = WAF; rr(32, 656, PW - 64, 40, 10); X.fill();
+  const tl = on ? 'المنتجات: 6,000,000 · 🔧 التركيب: 100,000 ج.س' : 'المنتجات: 6,000,000 ج.س';
+  X.save(); if (on) X.globalAlpha = .4 + .6 * ease(prog(lt, 1.5, 1.9));
+  txt(tl, PW / 2, 682, { size: fit(tl, PW - 84, 13, 800), weight: 800, color: NAVY, align: 'center' }); X.restore();
+  const press = clamp(1 - Math.abs(lt - 3.0) * 5);
+  btn(32, 704 - press * 2, PW - 64, 44 + press * 4, 'تأكيد الطلب');
+  tapFx(PW / 2, 726, lt, 2.8);
+  appHeader(-1);
+}
+
+// 4) company dashboard: technicians + assign a technician to the job
+function scrTech(lt) {
+  txt('🏢 لوحة الشركة — البحر الأحمر', PW - 16, 196, { size: 17, weight: 800, color: TX });
+  let cx = PW - 16;
+  [['📊 نظرة عامة', 0], ['🛒 الطلبات', 0], ['👷 الفنيون (3)', 1]].forEach(([c, on]) => {
+    const w = tw(c, 12) + 22; X.fillStyle = on ? NAVY : '#fff'; rr(cx - w, 210, w, 32, 10); X.fill();
+    if (!on) { X.strokeStyle = BD; X.lineWidth = 1; X.stroke(); }
+    txt(c, cx - w / 2, 231, { size: 12, weight: 700, color: on ? '#fff' : TX, align: 'center' }); cx -= w + 6;
+  });
+  X.fillStyle = '#fff4e0'; rr(16, 254, PW - 32, 40, 12); X.fill();
+  txt('⏳ طلب تركيب واحد بانتظار فني', PW - 30, 280, { size: 12, weight: 800, color: '#8a5a00' });
+  const T = [['Ahmed Osman', 'فني أول', 'كاميرات، شبكات', 5, '5.0', '#0ca678'], ['Sara Ali', 'مهندس / خبير', 'سيرفرات، سحابة', 5, '4.9', '#7048e8'], ['Omer Hassan', 'فني', 'تمديدات، واي فاي', 4, '4.6', '#e8590c']];
+  T.forEach(([n, lv, sk, st, sc, col], i) => {
+    const a = ease(prog(lt, .1 + i * .2, .5 + i * .2)); if (a <= 0) return;
+    X.save(); X.globalAlpha = a; X.translate((1 - a) * 50, 0);
+    const y = 306 + i * 108; card(16, y, PW - 32, 96);
+    X.fillStyle = col; X.beginPath(); X.arc(PW - 56, y + 48, 24, 0, 7); X.fill();
+    txt('👷', PW - 56, y + 56, { size: 22, weight: 400, align: 'center', dir: 'ltr' });
+    txt(n, PW - 92, y + 32, { size: 15, weight: 800, color: TX, dir: 'ltr' });
+    pill(lv, PW - 92, y + 42, { size: 11 });
+    txt(sk, PW - 92, y + 84, { size: 11, weight: 600, color: MU });
+    starsFx(132, y + 40, st, 15); txt(sc, 40, y + 40, { size: 13, weight: 800, color: TX, align: 'left', dir: 'ltr' });
+    X.restore();
+  });
+  appHeader(-1);
+  // assign sheet
+  const y = sheet(lt, 1.5, 300, 420); if (y == null) return;
+  const R = PW - 36;
+  txt('👷 تعيين فني للتركيب', R, y + 40, { size: 17, weight: 800, color: TX });
+  txt('#9a82c · محمد أحمد · بورتسودان', R, y + 66, { size: 12, weight: 600, color: MU });
+  txt('Cisco Catalyst 2960-X ×2 🔧', R, y + 88, { size: 12, weight: 600, color: MU });
+  txt('الفني', R, y + 122, { size: 13, weight: 700, color: TX });
+  X.fillStyle = BG; rr(36, y + 132, PW - 72, 40, 10); X.fill(); X.strokeStyle = NAVY; X.lineWidth = 1.5; X.stroke();
+  txt('Ahmed Osman — فني أول · كاميرات، شبكات', R - 10, y + 158, { size: 12, weight: 700, color: TX });
+  txt('▾', 52, y + 158, { size: 13, color: MU, align: 'center' });
+  txt('موعد الزيارة', R, y + 200, { size: 13, weight: 700, color: TX });
+  X.fillStyle = BG; rr(36, y + 210, PW - 72, 40, 10); X.fill(); X.strokeStyle = BD; X.lineWidth = 1; X.stroke();
+  txt('📅  12 / 11 / 2026  —  9:00 ص', R - 10, y + 236, { size: 12, weight: 700, color: TX });
+  const press = clamp(1 - Math.abs(lt - 3.0) * 5);
+  btn(36, y + 280 - press * 2, PW - 72, 48 + press * 4, 'تعيين');
+  tapFx(PW / 2, y + 304, lt, 2.8);
+  toastFx('✔ تم تعيين الفني — وصل إشعار للعميل', lt, 3.2);
+}
+
+// 5) customer accepts the installation, then rates technician / service / product
+function scrRate(lt) {
+  txt('طلباتي', PW - 16, 200, { size: 22, weight: 800, color: TX });
+  card(16, 218, PW - 32, 250);
+  const R = PW - 32;
+  txt('#9a82c · البحر الأحمر للشبكات', R, 248, { size: 14, weight: 800, color: TX });
+  txt('Cisco Catalyst 2960-X ×2 🔧 · 6,125,000 ج.س', R, 272, { size: 12, weight: 600, color: MU });
+  const acc = lt > .9;
+  pill(acc ? '✔ اكتمل وقبله العميل' : 'تم التركيب — بانتظار تأكيدك', R, 286, { size: 12, bg: acc ? '#e3f7ec' : '#fff4e0', color: acc ? GREEN : '#8a5a00' });
+  txt('👷 Ahmed Osman · فني أول', R, 342, { size: 13, weight: 700, color: TX });
+  txt('📅 12/11/2026', R, 366, { size: 12, weight: 600, color: MU });
+  if (!acc) {
+    const press = clamp(1 - Math.abs(lt - .75) * 6);
+    btn(R - 150 - press * 2, 388 - press * 2, 150 + press * 4, 42 + press * 4, '✔ قبول التركيب', { size: 13 });
+    btn(32, 388, 140, 42, '⚠️ توجد مشكلة', { size: 12, bg: '#fdecec', color: '#c92a2a' });
+  }
+  tapFx(R - 75, 409, lt, .5);
+  appHeader(-1);
+  const y = sheet(lt, 1.1, 236, 480); if (y == null) return;
+  const RR = PW - 36;
+  txt('⭐ قيّم تجربة التركيب', RR, y + 42, { size: 18, weight: 800, color: TX });
+  txt('#9a82c · البحر الأحمر للشبكات', RR, y + 68, { size: 12, weight: 600, color: MU });
+  const rows = [['👷 الفني: Ahmed Osman', 5, 1.6, 2.1], ['🔧 خدمة التركيب كاملة', 4, 2.2, 2.6], ['📦 Cisco Catalyst 2960-X', 5, 2.7, 3.1]];
+  rows.forEach(([l, n, a0, a1], i) => {
+    const yy = y + 112 + i * 78; X.fillStyle = BG; rr(32, yy - 26, PW - 64, 64, 12); X.fill();
+    txt(l, RR - 8, yy, { size: 13, weight: 800, color: TX });
+    starsFx(RR - 8, yy + 28, Math.round(n * clamp(prog(lt, a0, a1))), 22);
+  });
+  X.fillStyle = BG; rr(32, y + 336, PW - 64, 56, 12); X.fill(); X.strokeStyle = BD; X.lineWidth = 1; X.stroke();
+  const cm = 'فني ممتاز وشغل سريع 👍', n = Math.floor(clamp(prog(lt, 3.0, 3.5)) * cm.length);
+  txt(n ? cm.slice(0, n) : 'تعليقك (اختياري)', RR - 8, y + 370, { size: 13, weight: n ? 700 : 400, color: n ? TX : '#8a9ab0' });
+  btn(32, y + 408, PW - 64, 50, 'إرسال التقييم');
+  toastFx('شكراً لتقييمك ⭐', lt, 3.6);
+}
+
+// 6) quick sign-in with Google
+function scrLogin(lt) {
+  scrProducts(0, { scroll: 0 });
+  const y = sheet(lt, 0, 210, 470); if (y == null) return;
+  const R = PW - 36;
+  txt('دخول / تسجيل', R, y + 44, { size: 19, weight: 800, color: TX });
+  txt('الاسم (للحسابات الجديدة)', R, y + 80, { size: 12, weight: 700, color: TX });
+  X.fillStyle = BG; rr(36, y + 90, PW - 72, 38, 10); X.fill(); X.strokeStyle = BD; X.lineWidth = 1; X.stroke();
+  txt('البريد الإلكتروني', R, y + 152, { size: 12, weight: 700, color: TX });
+  X.fillStyle = BG; rr(36, y + 162, PW - 72, 38, 10); X.fill(); X.stroke();
+  txt('name@example.com', 52, y + 187, { size: 12, weight: 400, color: '#8a9ab0', align: 'left', dir: 'ltr' });
+  check(R - 20, y + 218, lt > .7, 20);
+  txt('أوافق على الشروط والأحكام وسياسة الخصوصية', R - 30, y + 234, { size: 12, weight: 600, color: TX });
+  tapFx(R - 10, y + 228, lt, .5);
+  btn(36, y + 256, PW - 72, 46, 'إرسال رابط الدخول', { size: 14 });
+  txt('— أو —', PW / 2, y + 332, { size: 12, weight: 600, color: MU, align: 'center' });
+  const press = clamp(1 - Math.abs(lt - 1.5) * 5), gy = y + 348 - press * 2;
+  X.save(); if (lt > .9) { X.shadowColor = `rgba(66,133,244,${.35 + .25 * Math.sin(lt * 6)})`; X.shadowBlur = 16; }
+  X.fillStyle = '#fff'; rr(36 - press * 2, gy, PW - 72 + press * 4, 50 + press * 4, 12); X.fill(); X.restore();
+  X.strokeStyle = '#c6d3e3'; X.lineWidth = 1.5; rr(36 - press * 2, gy, PW - 72 + press * 4, 50 + press * 4, 12); X.stroke();
+  const gl = 'الدخول بحساب Google', glw = tw(gl, 15, 800);
+  txt(gl, PW / 2 + 14, gy + 31, { size: 15, weight: 800, color: TX, align: 'center' });
+  const gx = PW / 2 - glw / 2 - 10; ['#4285F4', '#EA4335', '#FBBC05', '#34A853'].forEach((c, i) => { X.strokeStyle = c; X.lineWidth = 4; X.beginPath(); X.arc(gx, gy + 25, 9, -Math.PI / 4 + i * Math.PI / 2, Math.PI / 4 + i * Math.PI / 2); X.stroke(); });
+  tapFx(PW / 2, gy + 25, lt, 1.3);
+  toastFx('أهلاً بك 👋 تم تسجيل الدخول', lt, 1.9);
+}
+const SCREENS = { home: scrHome, products: scrProducts, detail: scrDetail, chat: scrChat, companies: scrCompanies,
+  detail2: scrDetail2, cart: scrCart, checkout: scrCheckout, tech: scrTech, rate: scrRate, login: scrLogin };
+
+/* ---------- video timelines ----------
+   'promo'  = original 24 s launch video (8 Nov 2026).
+   'update' = "what's new" video (9 Nov 2026): installation, per-company orders, technicians, ratings, Google sign-in.
+   Call useTL('update') before encodeVideo(...) to render the update video. */
+const TL = {
+  promo: {
+    D: 24, tag: null, tagline: 'شريكك الموثوق في عالم التقنية والاتصالات',
+    outro: 'أجهزة • شبكات • سيرفرات • سحابة • أمن سيبراني • كاميرات',
+    SEG: [[3.0, 7, 'home'], [7, 11, 'products'], [11, 13.5, 'detail'], [13.5, 15.6, 'chat'], [15.6, 20, 'companies']],
+    CAP: [
+      [3.4, 7, 'ابحث عن أي منتج أو خدمة تقنية', 'Find any tech product or service'],
+      [7, 11, 'منتجات وخدمات من شركات سودانية', 'Products & services from Sudanese companies'],
+      [11, 15.6, 'اسأل عن السعر مباشرة عبر واتساب', 'Ask the price instantly on WhatsApp'],
+      [15.6, 19.4, 'شركات موثّقة ومعتمدة', 'Verified, approved companies']
+    ]
+  },
+  update: {
+    D: 29.3, tag: '✨ تحديث جديد  ·  New update', tagline: 'التركيب • الفنيون • التقييمات • فاتورة لكل شركة',
+    outro: 'التركيب • الفنيون • التقييمات • دخول بحساب Google',
+    SEG: [[3.0, 7, 'detail2'], [7, 10.5, 'cart'], [10.5, 14, 'checkout'], [14, 18, 'tech'], [18, 22, 'rate'], [22, 24.8, 'login']],
+    CAP: [
+      [3.4, 7, 'خدمة التركيب متاحة مع المنتج', 'Installation available with products'],
+      [7, 10.5, 'طلب وفاتورة منفصلة لكل شركة', 'A separate order & invoice per company'],
+      [10.5, 14, 'أضف التركيب — الرسوم واضحة في الفاتورة', 'Add installation — fees shown on the invoice'],
+      [14, 18, 'الشركة تعيّن فنياً متخصصاً', 'The company assigns a skilled technician'],
+      [18, 22, 'اقبل التركيب وقيّم الفني والخدمة', 'Accept the job, rate the technician & service'],
+      [22, 24.3, 'دخول سريع بحساب Google', 'Quick sign-in with Google']
+    ]
+  }
+};
+/* 'full' = complete platform tour (all 11 scenes) with close-up zooms and an Arabic voice-over.
+   VO: [clip in vo/, start time s]; clips are made by vo/make-voice.ps1 from vo/lines.txt.
+   ZOOM: [scene, from, to (seconds into the scene), focus x, focus y (phone coords), zoom]. */
+TL.full = {
+  D: 49.5, out: 6.3, tag: '✨ جولة كاملة في المنصّة  ·  Full tour', tagline: 'كل ما تحتاجه في عالم التقنية — في مكان واحد',
+  outro: 'بحث • واتساب • شركات موثّقة • التركيب • الفنيون • التقييمات • Google',
+  SEG: [[3.0, 7, 'home'], [7, 10.5, 'products'], [10.5, 13.5, 'detail'], [13.5, 16, 'chat'], [16, 19.3, 'companies'],
+        [19.3, 23.3, 'detail2'], [23.3, 27.2, 'cart'], [27.2, 31, 'checkout'], [31, 35, 'tech'], [35, 39.2, 'rate'], [39.2, 42.7, 'login']],
+  CAP: [
+    [3.4, 7, 'ابحث عن أي منتج أو خدمة تقنية', 'Find any tech product or service'],
+    [7, 10.5, 'منتجات من شركات سودانية', 'Products from Sudanese companies'],
+    [10.5, 13.5, 'اسأل عن السعر عبر واتساب', 'Ask the price on WhatsApp'],
+    [13.5, 16, 'تواصل مباشر مع الشركة', 'Talk directly to the company'],
+    [16, 19.3, 'شركات موثّقة ومعتمدة', 'Verified, approved companies'],
+    [19.3, 23.3, 'خدمة التركيب مع المنتج', 'Installation with your product'],
+    [23.3, 27.2, 'طلب وفاتورة لكل شركة', 'An order & invoice per company'],
+    [27.2, 31, 'رسوم التركيب واضحة في الفاتورة', 'Installation fee on the invoice'],
+    [31, 35, 'الشركة تعيّن فنياً متخصصاً', 'The company assigns a technician'],
+    [35, 39.2, 'اقبل التركيب وقيّم الفني والخدمة', 'Accept the job, rate the service'],
+    [39.2, 42.2, 'دخول سريع بحساب Google', 'Quick sign-in with Google']
+  ],
+  VO: [['intro', .35], ['home', 3.3], ['products', 7.3], ['detail', 10.8], ['chat', 13.8], ['companies', 16.3], ['detail2', 19.6],
+       ['cart', 23.5], ['checkout', 27.5], ['tech', 31.3], ['rate', 35.3], ['login', 39.5], ['outro', 43.4]],
+  ZOOM: [['home', .7, 2.9, PW / 2, 320, 1.45], ['detail', .7, 2.6, PW / 2, 565, 1.45], ['companies', .9, 2.9, PW / 2, 360, 1.3],
+         ['detail2', .8, 2.4, PW / 2, 434, 1.55], ['checkout', 1.3, 2.7, PW / 2, 600, 1.45], ['tech', .4, 1.45, PW / 2, 380, 1.3],
+         ['rate', 1.7, 3.4, PW / 2, 426, 1.4]]
+};
+let MODE = 'promo', D, SEG, CAP;
+function useTL(k) { MODE = k; ({ D, SEG, CAP } = TL[k]); LOG('timeline: ' + k + ' (' + D + ' s)'); }
+useTL('promo');
+function segAt(t) { let i = SEG.findIndex(s => t < s[1]); if (i < 0) i = SEG.length - 1; return { name: SEG[i][2], lt: t - SEG[i][0] }; }
+function zoomAt(t) {                       // close-up: returns [zoom, fx, fy] for the current scene
+  const Z = TL[MODE].ZOOM; if (!Z) return [1];
+  const { name, lt } = segAt(t), z = Z.find(q => q[0] === name); if (!z) return [1];
+  const k = ease(prog(lt, z[1], z[1] + .45)) * (1 - ease(prog(lt, z[2] - .45, z[2])));
+  return [1 + (z[5] - 1) * k, z[3], z[4], k];
+}
 function phoneScreens(t) {
   let i = SEG.findIndex(s => t < s[1]); if (i < 0) i = SEG.length - 1;
   const [st, , name] = SEG[i], lt = t - st, TR = .45;
@@ -382,7 +677,7 @@ function caption(W, H, t, V, m) {
       for (let k = 0; k < dots; k++) { X.fillStyle = k === i ? '#fff' : 'rgba(255,255,255,.35)'; rr(W / 2 + (dots / 2 - k - 1) * dw * 1.6 + (k === i ? -dw * .25 : 0), y + m * .11, k === i ? dw * 1.5 : dw * .5, dw * .5, dw * .25); X.fill(); }
     } else {
       const xr = W * .93, y = H * .42 + dy;
-      txt('0' + (i + 1), xr, y - m * .13, { size: m * .06, weight: 900, color: 'rgba(255,255,255,.35)', dir: 'ltr' });
+      txt(String(i + 1).padStart(2, '0'), xr, y - m * .13, { size: m * .06, weight: 900, color: 'rgba(255,255,255,.35)', dir: 'ltr' });
       lines(ar, W * .5, m * .075, 900).forEach((l, k) => txt(l, xr, y + k * m * .095, { size: m * .075, weight: 900 }));
       txt(en, xr, y + m * .1 + (lines(ar, W * .5, m * .075, 900).length - 1) * m * .095, { size: m * .04, weight: 600, color: '#cfe0f5', dir: 'ltr' });
     }
@@ -403,38 +698,57 @@ function frame(W, H, t) {
     txt('سوق السودان للتقنية والاتصالات', W / 2, base + ty, { size: fit('سوق السودان للتقنية والاتصالات', W * .9, m * (V ? .068 : .07), 900), weight: 900, align: 'center' });
     txt('Sudan ICT Marketplace', W / 2, base + m * .075 + ty, { size: m * .045, weight: 700, color: '#cfe0f5', align: 'center', dir: 'ltr' });
     X.globalAlpha = ia * ease(prog(t, 1.3, 1.9));
-    txt('شريكك الموثوق في عالم التقنية والاتصالات', W / 2, base + m * .15, { size: m * .036, weight: 600, color: '#bfe9e2', align: 'center' });
+    txt(TL[MODE].tagline, W / 2, base + m * .15, { size: fit(TL[MODE].tagline, W * .9, m * .036, 600), weight: 600, color: '#bfe9e2', align: 'center' });
+    if (TL[MODE].tag) {   // "New update" badge above the logo
+      const tg = TL[MODE].tag, ts = m * .04, a = back(prog(t, .5, 1.1)), pw = tw(tg, ts, 800) + m * .07, ph2 = m * .075, ty2 = cy - m * (V ? .33 : .28);
+      X.globalAlpha = ia * clamp(prog(t, .5, .8));
+      X.save(); X.translate(W / 2, ty2); X.scale(a, a);
+      X.fillStyle = '#f5a623'; X.shadowColor = 'rgba(0,0,0,.3)'; X.shadowBlur = m * .02; rr(-pw / 2, -ph2 / 2, pw, ph2, ph2 / 2); X.fill();
+      X.shadowBlur = 0; txt(tg, 0, ts * .36, { size: ts, weight: 800, color: '#1b2a3d', align: 'center' });
+      X.restore();
+    }
     X.restore();
   }
+  // O = outro start (outro lasts TL.out seconds, default 4.5 as in the original video)
+  const O = D - (TL[MODE].out || 4.5);
   // watermark logo during the phone part
-  const wa = ease(prog(t, 3.1, 3.6)) * (1 - ease(prog(t, 19.0, 19.5)));
+  const wa = ease(prog(t, 3.1, 3.6)) * (1 - ease(prog(t, O - .5, O)));
   if (wa > 0) { if (V) logoCard(W / 2, m * .085, m * .1, wa); else logoCard(W - m * .1, m * .1, m * .13, wa); }
-  // phone
-  const pin = ease(prog(t, 2.9, 3.7)), pout = easeIO(prog(t, 19.0, 19.7));
+  // phone (with an optional close-up zoom around a focus point)
+  const pin = ease(prog(t, 2.9, 3.7)), pout = easeIO(prog(t, O - .5, O + .2));
+  let zk = 0;
   if (pin > 0 && pout < 1) {
     const ph = V ? H * .64 : H * .86, cx = V ? W / 2 : W * .3, cy0 = V ? H * .615 : H * .53;
-    const cy = cy0 + (1 - pin) * H * .8 + pout * H * .9;
-    phone(cx, cy, ph, () => phoneScreens(clamp(t, 3.0, 19.99)));
+    const cy = cy0 + (1 - pin) * H * .8 + pout * H * .9, ts = clamp(t, 3.0, O + .49);
+    const [z, fx, fy, k] = zoomAt(ts); zk = k || 0;
+    X.save();
+    if (z > 1) { const sc = ph / PH, sx = cx - PW * sc / 2 + fx * sc, sy = cy - ph / 2 + fy * sc; X.translate(sx, sy); X.scale(z, z); X.translate(-sx, -sy); }
+    phone(cx, cy, ph, () => phoneScreens(ts));
+    X.restore();
+  }
+  if (zk > 0 && V) {  // keep the caption readable over a zoomed phone
+    const g = X.createLinearGradient(0, 0, 0, H * .27); g.addColorStop(0, `rgba(5,43,87,${.92 * zk})`); g.addColorStop(.75, `rgba(5,43,87,${.7 * zk})`); g.addColorStop(1, 'rgba(5,43,87,0)');
+    X.fillStyle = g; X.fillRect(0, 0, W, H * .27);
   }
   caption(W, H, t, V, m);
   // outro
-  const oa = ease(prog(t, 19.5, 20.2));
+  const oa = ease(prog(t, O, O + .7));
   if (oa > 0) {
     X.save(); X.globalAlpha = oa;
-    const cy = V ? H * .3 : H * .3, s = back(prog(t, 19.5, 20.3));
+    const cy = V ? H * .3 : H * .3, s = back(prog(t, O, O + .8));
     logoCard(W / 2, cy, m * (V ? .4 : .32) * s);
     const b = cy + m * (V ? .3 : .25);
     txt('sictm.net', W / 2, b, { size: m * .11, weight: 900, align: 'center', dir: 'ltr' });
-    X.globalAlpha = oa * ease(prog(t, 20.3, 20.9));
+    X.globalAlpha = oa * ease(prog(t, O + .8, O + 1.4));
     const label = 'حمّل التطبيق:  sictm.net/app', pw = tw(label, m * .045, 800) + m * .09, ph2 = m * .1;
     const pulse = 1 + Math.sin(t * 4) * .015;
     X.save(); X.translate(W / 2, b + m * .12); X.scale(pulse, pulse);
     X.fillStyle = GREEN; X.shadowColor = 'rgba(0,0,0,.3)'; X.shadowBlur = m * .03; rr(-pw / 2, -ph2 / 2, pw, ph2, ph2 / 2); X.fill();
     X.shadowBlur = 0; txt(label, 0, m * .016, { size: m * .045, weight: 800, align: 'center' });
     X.restore();
-    X.globalAlpha = oa * ease(prog(t, 20.9, 21.5));
+    X.globalAlpha = oa * ease(prog(t, O + 1.4, O + 2.0));
     txt('Get the app — Web · Android · iPhone', W / 2, b + m * .25, { size: m * .036, weight: 600, color: '#cfe0f5', align: 'center', dir: 'ltr' });
-    txt('أجهزة • شبكات • سيرفرات • سحابة • أمن سيبراني • كاميرات', W / 2, b + m * .32, { size: m * .032, weight: 600, color: '#bfe9e2', align: 'center' });
+    txt(TL[MODE].outro, W / 2, b + m * .32, { size: fit(TL[MODE].outro, W * .92, m * .032, 600), weight: 600, color: '#bfe9e2', align: 'center' });
     X.restore();
   }
 }
@@ -478,7 +792,13 @@ function design(kind, W, H) {
       ss2: ['products', 'منتجات من شركات سودانية', 'Products from Sudanese companies'],
       ss3: ['detail', 'اسأل عن السعر عبر واتساب', 'Ask the price on WhatsApp'],
       ss4: ['chat', 'تواصل مباشر مع الشركة', 'Talk directly to the company'],
-      ss5: ['companies', 'شركات موثّقة ومعتمدة', 'Verified, approved companies']
+      ss5: ['companies', 'شركات موثّقة ومعتمدة', 'Verified, approved companies'],
+      ss6: ['detail2', 'خدمة التركيب مع المنتج', 'Installation with your product'],
+      ss7: ['cart', 'طلب وفاتورة منفصلة لكل شركة', 'A separate order & invoice per company'],
+      ss8: ['checkout', 'رسوم التركيب واضحة في الفاتورة', 'Installation fee shown on the invoice'],
+      ss9: ['tech', 'الشركة تعيّن فنياً متخصصاً', 'The company assigns a skilled technician'],
+      ss10: ['rate', 'قيّم الفني والخدمة والمنتج', 'Rate the technician, service & product'],
+      ss11: ['login', 'دخول سريع بحساب Google', 'Quick sign-in with Google']
     }[kind];
     txt(SS[1], W / 2, H * .1, { size: fit(SS[1], W * .9, m * .072, 900), weight: 900, align: 'center' });
     txt(SS[2], W / 2, H * .1 + m * .075, { size: m * .042, weight: 600, color: '#cfe0f5', align: 'center', dir: 'ltr' });
@@ -500,10 +820,40 @@ async function renderImage(kind, W, H, file) {
 }
 async function preview(W, H, t) { await ready; C.width = W; C.height = H; BGC = null; frame(W, H, t); }
 /* Frame-by-frame H.264 encode (WebCodecs) + mp4-muxer: exact 30 fps, correct duration, fast-start MP4. */
+/* Voice-over: mixes the timeline's VO clips into one 48 kHz stereo track (with a gentle limiter). */
+const SR = 48000;
+async function voMix() {
+  const VO = TL[MODE].VO; if (!VO) return null;
+  const ac = new OfflineAudioContext(2, Math.ceil(D * SR), SR);
+  const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = .003; comp.release.value = .2;
+  const gain = ac.createGain(); gain.gain.value = 1.6; gain.connect(comp); comp.connect(ac.destination);
+  for (const [n, at] of VO) {
+    const r = await fetch('vo/' + n + '.wav'); if (!r.ok) throw new Error('missing vo/' + n + '.wav — run vo/make-voice.ps1');
+    const src = ac.createBufferSource(); src.buffer = await ac.decodeAudioData(await r.arrayBuffer()); src.connect(gain); src.start(at);
+  }
+  const buf = await ac.startRendering();
+  let pk = 0; for (let c = 0; c < 2; c++) for (const v of buf.getChannelData(c)) pk = Math.max(pk, Math.abs(v));
+  const k = pk > 0 ? .9 / pk : 1; for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < d.length; i++) d[i] *= k; }  // peak-normalise to -0.9 dBFS
+  return buf;
+}
+async function encodeAudio(muxer, buf) {
+  let err = null;
+  const enc = new AudioEncoder({ output: (c, m) => muxer.addAudioChunk(c, m), error: e => { err = e; } });
+  enc.configure({ codec: 'mp4a.40.2', sampleRate: SR, numberOfChannels: 2, bitrate: 160000 });
+  const L = buf.getChannelData(0), R = buf.getChannelData(1), N = 1024;
+  for (let i = 0; i < L.length; i += N) {
+    const n = Math.min(N, L.length - i), d = new Float32Array(n * 2); d.set(L.subarray(i, i + n), 0); d.set(R.subarray(i, i + n), n);
+    const ad = new AudioData({ format: 'f32-planar', sampleRate: SR, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round(i * 1e6 / SR), data: d });
+    enc.encode(ad); ad.close(); if (err) throw err;
+  }
+  await enc.flush(); enc.close(); if (err) throw err;
+}
 async function encodeVideo(W, H, file, fps = 30, bitrate = 5e6) {
   await ready; C.width = W; C.height = H; BGC = null;
-  const target = new Mp4Muxer.ArrayBufferTarget();
-  const muxer = new Mp4Muxer.Muxer({ target, video: { codec: 'avc', width: W, height: H, frameRate: fps }, fastStart: 'in-memory' });
+  const target = new Mp4Muxer.ArrayBufferTarget(), voice = await voMix();
+  const muxer = new Mp4Muxer.Muxer({ target, video: { codec: 'avc', width: W, height: H, frameRate: fps },
+    ...(voice ? { audio: { codec: 'aac', numberOfChannels: 2, sampleRate: SR } } : {}), fastStart: 'in-memory', firstTimestampBehavior: 'offset' });
+  if (voice) { await encodeAudio(muxer, voice); LOG('voice-over track: ' + voice.duration.toFixed(1) + ' s AAC'); }
   let encErr = null;
   const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => { encErr = e; } });
   let cfg = null;
@@ -523,7 +873,7 @@ async function encodeVideo(W, H, file, fps = 30, bitrate = 5e6) {
     if (i % 60 === 0) window.__progress = file + ' ' + Math.round(100 * i / N) + '%';
   }
   await enc.flush(); enc.close(); muxer.finalize();
-  const blob = new Blob([target.buffer], { type: 'video/mp4' });
+  const blob = new Blob([target.buffer], { type: 'video/mp4' }); window.__lastBlob = blob;
   LOG(`${file}: ${N + 1} frames @ ${fps} fps, ${cfg.codec}, encoded in ${((performance.now() - t0) / 1000).toFixed(1)} s`);
   await save(file, blob);
   window.__progress = file + ' done';

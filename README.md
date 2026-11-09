@@ -215,3 +215,4 @@ To make it a real shared marketplace:
 - Added "Ask price on WhatsApp" button in the product window; companies can set a separate WhatsApp number (falls back to phone). Local numbers like `0912…` are converted to `249912…`.
 - Split "Products & Services" into separate **Products** and **Services** menu pages and homepage sections.
 - Published on Netlify; registered and connected **sictm.net** with HTTPS.
+75.2.60.5 website ip
