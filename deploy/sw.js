@@ -1,7 +1,7 @@
 /* Sudan ICT Marketplace - service worker.
    Online: always loads the newest site from the network (so a Netlify redeploy updates the app).
    Offline: falls back to the last copy saved on the phone. Firebase, other sites and downloads are never cached. */
-const CACHE = 'sictm-v2';
+const CACHE = 'sictm-v3';
 const CORE = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -24,6 +24,8 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET' || url.origin !== location.origin) return;
   // Let downloads (the Android APK and its short links) go straight to the network.
   if (url.pathname.startsWith('/download/') || url.pathname === '/app' || url.pathname === '/android') return;
+  // Firebase sign-in helper pages (Google login window): never cache, never treat as the home page.
+  if (url.pathname.startsWith('/__/')) return;
 
   if (req.mode === 'navigate') {
     e.respondWith(
