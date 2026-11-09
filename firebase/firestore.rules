@@ -66,10 +66,28 @@ service cloud.firestore {
     }
 
     // Reviews: public to read; signed-in users write their own.
+    // Technician ('tech') and installation-service ('inst') ratings must come from the customer
+    // of that order, after they accepted the installation.
+    function acceptedJobOf(oid) {
+      let o = get(/databases/$(database)/documents/orders/$(oid)).data;
+      return o.from == request.auth.uid && o.get('job', {}).get('status', '') == 'accepted';
+    }
     match /reviews/{rid} {
       allow read: if true;
-      allow create, update: if signedIn() && request.resource.data.from == request.auth.uid;
+      allow create, update: if signedIn() && request.resource.data.from == request.auth.uid
+                               && (!(request.resource.data.kind in ['tech', 'inst'])
+                                   || acceptedJobOf(request.resource.data.oid));
       allow delete: if isAdmin();
+    }
+
+    // Technicians: each company manages its own list; admin sees all.
+    // (Customers see the assigned technician's name/level/phone copied into their order.)
+    match /techs/{tid} {
+      allow read: if isAdmin() || (signedIn() && resource.data.cid == request.auth.uid);
+      allow create: if isAdmin() || (signedIn() && request.resource.data.cid == request.auth.uid);
+      allow update: if isAdmin() || (signedIn() && resource.data.cid == request.auth.uid
+                                     && request.resource.data.cid == request.auth.uid);
+      allow delete: if isAdmin() || (signedIn() && resource.data.cid == request.auth.uid);
     }
 
     // Quote requests: customer creates; customer, the company, and admin can read.
@@ -81,13 +99,24 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Orders: customer creates; company may only change the status; admin full access.
+    // Orders: customer creates; company may change the status and run the installation job
+    // (assign technician, mark installed); the customer may only accept / report a problem /
+    // mark rated once the company marked it installed; admin full access.
+    function jobSt(d) { return d.get('job', {}).get('status', ''); }
     match /orders/{id} {
       allow read: if signedIn() && (resource.data.from == request.auth.uid
                                     || resource.data.cid == request.auth.uid || isAdmin());
       allow create: if signedIn() && request.resource.data.from == request.auth.uid
-                       && request.resource.data.status == 'pending';
-      allow update: if (signedIn() && resource.data.cid == request.auth.uid && onlyChanges(['status'])) || isAdmin();
+                       && request.resource.data.status == 'pending'
+                       && (!('job' in request.resource.data) || jobSt(request.resource.data) == 'needed');
+      allow update: if isAdmin()
+                    || (signedIn() && resource.data.cid == request.auth.uid && onlyChanges(['status', 'job'])
+                        && (jobSt(request.resource.data) in ['', 'needed', 'assigned', 'done', 'issue']
+                            || request.resource.data.get('job', null) == resource.data.get('job', null)))
+                    || (signedIn() && resource.data.from == request.auth.uid && onlyChanges(['job'])
+                        && jobSt(resource.data) in ['done', 'accepted']
+                        && jobSt(request.resource.data) in ['accepted', 'issue']
+                        && request.resource.data.job.tech == resource.data.job.tech);
       allow delete: if isAdmin();
     }
 
