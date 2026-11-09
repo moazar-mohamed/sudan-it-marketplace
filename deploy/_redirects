@@ -1,6 +1,11 @@
 # Backup for the Android app link, in case the hidden .well-known folder is skipped on upload.
 /.well-known/assetlinks.json  /assetlinks.json  200
 
+# Firebase sign-in helper pages served from sictm.net itself (authDomain = sictm.net),
+# so Google sign-in works in browsers that block third-party storage (Chrome, Safari, phones).
+/__/auth/*      https://sictm-website.firebaseapp.com/__/auth/:splat      200
+/__/firebase/*  https://sictm-website.firebaseapp.com/__/firebase/:splat  200
+
 # Short link to download the Android test app.
 /app         /download/SICTM.apk  302
 /android     /download/SICTM.apk  302

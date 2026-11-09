@@ -177,7 +177,7 @@ footer{background:#052b57;color:#cfe0f5;text-align:start;padding:30px 16px;margi
 <script>
 onerror=(m,u,l)=>{const v=document.getElementById("v");if(v)v.innerHTML="<pre style=\"white-space:pre-wrap\">"+m+" (line "+l+")</pre>"};
 /* ===== Firebase config: paste your web-app config from Firebase Console > Project settings > Your apps ===== */
-const FIREBASE_CONFIG={apiKey:"AIzaSyCadbl5AFYPo3CET4gHMhFJ6vDngClJlgM",authDomain:"sictm-website.firebaseapp.com",projectId:"sictm-website",storageBucket:"sictm-website.firebasestorage.app",messagingSenderId:"1081658633550",appId:"1:1081658633550:web:54b31402ee1c51ffb2421f"};
+const FIREBASE_CONFIG={apiKey:"AIzaSyCadbl5AFYPo3CET4gHMhFJ6vDngClJlgM",authDomain:location.hostname==="sictm.net"?"sictm.net":"sictm-website.firebaseapp.com",projectId:"sictm-website",storageBucket:"sictm-website.firebasestorage.app",messagingSenderId:"1081658633550",appId:"1:1081658633550:web:54b31402ee1c51ffb2421f"};
 /* Free (Spark) plan: Firebase Storage and SMS sign-in need the paid Blaze plan, so they are off.
    Photos are saved small inside the product record instead; sign-in is by email link or Google.
    After upgrading to Blaze (and creating Storage + enabling Phone sign-in), set these to true. */
@@ -301,7 +301,7 @@ A.code=String(Math.floor(100000+Math.random()*900000));A.step=1;authUI();toast(L
 /* Google sign-in: name and account type typed in the form are used when the account is new */
 async function gIn(){if(!$("tc").checked)return toast(L("يجب الموافقة على الشروط والأحكام للمتابعة","You must accept the Terms & Conditions to continue"));
 sv("sict2_pend",{name:$("an").value.trim(),role:$("ar").value});const p=new FB.au.GoogleAuthProvider();
-try{JUST=1;await FB.au.signInWithPopup(FB.auth,p);cm()}catch(e){if(/popup-blocked|operation-not-supported/.test(e.code||"")){try{await FB.au.signInWithRedirect(FB.auth,p)}catch(e2){JUST=0;fail(e2)}}else{JUST=0;if(!/popup-closed|cancelled-popup/.test(e.code||""))fail(e)}}}
+try{JUST=1;await FB.au.signInWithPopup(FB.auth,p);cm()}catch(e){if(/popup-blocked|operation-not-supported/.test(e.code||"")){try{await FB.au.signInWithRedirect(FB.auth,p)}catch(e2){JUST=0;fail(e2)}}else{JUST=0;console.warn("Google sign-in:",e.code,e.message);if(!/popup-closed|cancelled-popup/.test(e.code||""))fail(e)}}}
 async function verify(){const v=$("ao").value.trim();
 if(FB){try{JUST=1;await FB.cr.confirm(v);cm()}catch(e){JUST=0;fail(e)}return}
 if(v!==A.code)return toast(L("الرمز غير صحيح","Incorrect code"));
