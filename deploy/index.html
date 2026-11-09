@@ -30,7 +30,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SICTM">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- Font loads in the background so a slow or blocked Google Fonts never leaves the page blank (Tahoma is used until it arrives). -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--tx:#12263f;--mu:#5d6f86;--pr:#063b73;--ac:#1fa35c;--bd:#dde5ef;--wa:#e8f0fa;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1523;--card:#13233a;--tx:#e6eef9;--mu:#93a7c2;--pr:#4a90e2;--bd:#25395a;--wa:#182c48}}
