@@ -28,7 +28,7 @@ const option = (name) => {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : undefined;
 };
-const siteUrl = option('--site-url') ?? process.env.SITE_URL ?? 'https://sudan-it-market.web.app';
+const siteUrl = option('--site-url') ?? process.env.SITE_URL ?? 'https://sictm.net';
 
 const FIELDS = {
   products: ['companyId', 'companyName', 'categoryId', 'name', 'brand', 'description', 'imageUrl', 'imageUrls', 'price', 'currency', 'offerPrice', 'offerEndsAt', 'stockCount', 'inStock', 'status', 'hidden', 'specifications', 'specificationsOrder', 'isDeliveryAvailable', 'isInstallationAvailable', 'createdAt'],

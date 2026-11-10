@@ -32,8 +32,8 @@ export function HomePage() {
   const [query, setQuery] = useState('');
   if (error) return <main className="stack"><ErrorState /></main>;
 
-  // A category with nothing in it is not shown.
-  const roots = tree.activeChildrenOf(null).filter((c) => counts === null || countTotal(counts.get(c.id)) > 0);
+  // Every active category is shown, an empty one too.
+  const roots = tree.activeChildrenOf(null);
   const offers = products.filter((p) => hasActiveOffer(p)).slice(0, 4);
   const serves = servingIds ? (p: Product) => p.companyId === '' || servingIds.has(p.companyId) : undefined;
   const shownOffers = new Set(offers.map((p) => p.id));

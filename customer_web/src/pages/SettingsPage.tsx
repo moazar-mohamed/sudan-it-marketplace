@@ -18,7 +18,8 @@ export function SettingsPage() {
   const { choice, pick } = useTheme();
   const { profile } = useCatalog();
 
-  const changeLanguage = (next: Language) => switchLanguage(profile.id, next);
+  // A visitor changes the look and the language on this device; the rest needs an account.
+  const changeLanguage = (next: Language) => switchLanguage(profile?.id ?? null, next);
 
   return (
     <main className="stack narrow">
@@ -44,7 +45,7 @@ export function SettingsPage() {
           </label>
         ))}
       </section>
-      <PushSettings profile={profile} />
+      {profile && <PushSettings profile={profile} />}
       <h2 className="group-title">{t('المساعدة')}</h2>
       <section className="rows" aria-label={t('المساعدة')}>
         <Link className="row" to="/reports/new">

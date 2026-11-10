@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { EmptyState, ErrorState, Skeleton } from '../components/Bits';
 import { CompanyCard } from '../components/CompanyCard';
+import { Select } from '../components/Select';
 import { companyTopCategories, viewCompanies } from '../data/browse';
 import type { CompanySort } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
@@ -58,9 +59,12 @@ export function CompaniesPage() {
         <span className="grow pmeta">{companiesCount(shown.length)}</span>
         <label className="sort">
           <span className="pmeta">{t('ترتيب:')}</span>
-          <select value={sort} onChange={(e) => set('sort', e.target.value === 'topRated' ? null : e.target.value)}>
-            {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-          </select>
+          <Select
+            ariaLabel={t('ترتيب:')}
+            value={sort}
+            onChange={(v) => set('sort', v === 'topRated' ? null : v)}
+            options={SORTS.map((s) => ({ value: s.value, label: s.label }))}
+          />
         </label>
       </div>
       {loading ? (

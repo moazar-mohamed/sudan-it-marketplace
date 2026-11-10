@@ -10,15 +10,16 @@ export const LANGUAGES: { value: Language; label: string }[] = [
 
 /**
  * Changes the language the way Settings does: on this device at once, and in the
- * profile; a save that fails is sent again on the next visit.
+ * profile; a save that fails is sent again on the next visit. A visitor (no
+ * [uid]) keeps it on this device only, and it reaches the profile at sign-in.
  */
-export async function switchLanguage(uid: string, next: Language): Promise<void> {
-  markLanguagePending(!(await saveLanguage(uid, next)));
+export async function switchLanguage(uid: string | null, next: Language): Promise<void> {
+  if (uid !== null) markLanguagePending(!(await saveLanguage(uid, next)));
   applyLanguage(next);
 }
 
 /** The site header's one-press switch: shows the language it changes to. */
-export function LanguageButton({ uid }: { uid: string }) {
+export function LanguageButton({ uid }: { uid: string | null }) {
   const next: Language = language === 'ar' ? 'en' : 'ar';
   const target = LANGUAGES.find((l) => l.value === next)!;
   return (

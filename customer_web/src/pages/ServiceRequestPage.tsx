@@ -5,8 +5,9 @@ import { EmptyState, ErrorState, PriceText, Skeleton } from '../components/Bits'
 import { Icon, PATHS } from '../components/Icon';
 import type { GeoPoint } from '../components/MapPicker';
 import { PhoneInput, phoneError } from '../components/PhoneInput';
+import { Select } from '../components/Select';
 import { servesCity } from '../data/browse';
-import { useCatalog } from '../data/DataProvider';
+import { useAccount, useCatalog } from '../data/DataProvider';
 import { salePrice } from '../data/format';
 import { parsePhone, toE164 } from '../data/phone';
 import {
@@ -27,7 +28,8 @@ const MapPicker = lazy(() => import('../components/MapPicker'));
 
 function RequestForm({ offer, service, company }: { offer: CompanyService; service: CatalogService; company: Company }) {
   const navigate = useNavigate();
-  const { profile, cities } = useCatalog();
+  const { cities } = useCatalog();
+  const profile = useAccount();
   const saved = loadFormDraft(offer.id);
   const [details, setDetails] = useState(saved.details);
   const [address, setAddress] = useState(saved.address);
@@ -108,10 +110,12 @@ function RequestForm({ offer, service, company }: { offer: CompanyService; servi
         <h2>{t('المدينة والموقع')}</h2>
         <label className="field">
           {t('المدينة')}
-          <select value={cityId} onChange={(e) => setCityId(e.target.value)}>
-            <option value="">{t('اختر مدينة')}</option>
-            {cityChoices.map((c) => <option key={c.id} value={c.id}>{cityName(c)}</option>)}
-          </select>
+          <Select
+            ariaLabel={t('المدينة')}
+            value={cityId}
+            onChange={setCityId}
+            options={[{ value: '', label: t('اختر مدينة') }, ...cityChoices.map((c) => ({ value: c.id, label: cityName(c) }))]}
+          />
           <span className="pmeta">{t('الطلب لشخص آخر؟ اختر مدينته. مدينة حسابك لا تتغير.')}</span>
         </label>
         <label className="field">

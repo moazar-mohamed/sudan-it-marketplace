@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AuthCard } from '../components/AuthCard';
 import { EMAIL_PATTERN, passwordResetErrorMessage, requestPasswordReset } from '../data/account';
+import { safeNext, withNext } from '../data/nextPath';
 import { t } from '../i18n';
 
 const COOLDOWN_SECONDS = 60;
@@ -10,6 +11,7 @@ const COOLDOWN_SECONDS = 60;
 /** The result never tells whether an account exists for the address. */
 export function ForgotPasswordPage() {
   const [params] = useSearchParams();
+  const next = safeNext(params.get('next'));
   const [email, setEmail] = useState(params.get('email') ?? '');
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -54,7 +56,7 @@ export function ForgotPasswordPage() {
         <button className="btn ghost" disabled={busy || secondsLeft > 0} onClick={() => send(sentTo)}>
           {secondsLeft > 0 ? t('إعادة الإرسال بعد {0} ث', secondsLeft) : t('إعادة إرسال الرسالة')}
         </button>
-        <p className="auth-foot"><Link to="/" className="auth-link">{t('العودة إلى تسجيل الدخول')}</Link></p>
+        <p className="auth-foot"><Link to={withNext('/login', next)} className="auth-link">{t('العودة إلى تسجيل الدخول')}</Link></p>
       </AuthCard>
     );
   }
@@ -69,7 +71,7 @@ export function ForgotPasswordPage() {
         {error && <div className="error" role="alert">{error}</div>}
         <button className="btn" type="submit" disabled={busy}>{t('إرسال رابط إعادة التعيين')}</button>
       </form>
-      <p className="auth-foot"><Link to="/" className="auth-link">{t('العودة إلى تسجيل الدخول')}</Link></p>
+      <p className="auth-foot"><Link to={withNext('/login', next)} className="auth-link">{t('العودة إلى تسجيل الدخول')}</Link></p>
     </AuthCard>
   );
 }

@@ -2,6 +2,7 @@ import { COMMON_COUNTRIES, PHONE_COUNTRIES } from '../data/phoneCountries';
 import { cleanNational, countryByIso, flagOf, phoneProblem } from '../data/phone';
 import type { PhoneNumber } from '../data/phone';
 import { language, t } from '../i18n';
+import { Select } from './Select';
 
 const common = COMMON_COUNTRIES.flatMap((iso) => PHONE_COUNTRIES.filter((c) => c.iso === iso));
 const others = PHONE_COUNTRIES.filter((c) => !COMMON_COUNTRIES.includes(c.iso)).sort((a, b) => a.ar.localeCompare(b.ar, 'ar'));
@@ -26,25 +27,28 @@ export function PhoneInput({
   label: string;
   disabled?: boolean;
 }) {
-  const option = (c: (typeof PHONE_COUNTRIES)[number]) => (
-    <option key={c.iso} value={c.iso}>{flagOf(c)} {language === 'en' ? c.en : c.ar} +{c.dialCode}</option>
-  );
+  const option = (c: (typeof PHONE_COUNTRIES)[number], group: string) => ({
+    value: c.iso,
+    label: `${flagOf(c)} ${language === 'en' ? c.en : c.ar} +${c.dialCode}`,
+    short: `${flagOf(c)} +${c.dialCode}`,
+    group,
+  });
+  const options = [...common.map((c) => option(c, t('الأكثر استخدامًا'))), ...others.map((c) => option(c, t('كل الدول')))];
   return (
     <div className="field">
       <span id="phone-label">{label}</span>
       <div className="phone-row" dir="ltr">
-        <select
-          aria-label={t('مفتاح الدولة')}
+        <Select
+          ariaLabel={t('مفتاح الدولة')}
           disabled={disabled}
+          dir="ltr"
           value={value.country.iso}
-          onChange={(e) => {
-            const country = countryByIso(e.target.value) ?? value.country;
+          options={options}
+          onChange={(iso) => {
+            const country = countryByIso(iso) ?? value.country;
             onChange({ country, national: cleanNational(value.national, country) });
           }}
-        >
-          <optgroup label={t('الأكثر استخدامًا')}>{common.map(option)}</optgroup>
-          <optgroup label={t('كل الدول')}>{others.map(option)}</optgroup>
-        </select>
+        />
         <input
           aria-labelledby="phone-label"
           inputMode="tel"

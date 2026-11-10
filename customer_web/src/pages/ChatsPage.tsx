@@ -19,7 +19,7 @@ import {
   useConversations,
   useMessages,
 } from '../data/chats';
-import { useCatalog } from '../data/DataProvider';
+import { useAccount, useCatalog } from '../data/DataProvider';
 import { formatDate, formatDateTime } from '../data/format';
 import { useOrder } from '../data/hooks';
 import { ORDER_STATUS } from '../data/orders';
@@ -131,7 +131,7 @@ function Bubble({ message, conversation, mine }: { message: ChatMessage; convers
 }
 
 function Messages({ conversation }: { conversation: Conversation }) {
-  const { profile } = useCatalog();
+  const profile = useAccount();
   const { messages, loaded, failed, hasOlder, loadingOlder, loadOlder } = useMessages(conversation.id);
   const box = useRef<HTMLDivElement>(null);
   const before = useRef({ height: 0, last: '' });
@@ -184,7 +184,7 @@ function Messages({ conversation }: { conversation: Conversation }) {
 }
 
 function Composer({ conversation }: { conversation: Conversation }) {
-  const { profile } = useCatalog();
+  const profile = useAccount();
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -266,7 +266,8 @@ function ChatPanel({ id }: { id: string }) {
 function useOpenInquiry(): string {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { products, links, companies, services, profile, loading } = useCatalog();
+  const { products, links, companies, services, loading } = useCatalog();
+  const profile = useAccount();
   const [error, setError] = useState('');
   const productId = params.get('product');
   const offerId = params.get('offer');
@@ -300,7 +301,7 @@ function useOpenInquiry(): string {
 
 export function ChatsPage() {
   const { id = '' } = useParams();
-  const { profile } = useCatalog();
+  const profile = useAccount();
   const { items, error } = useConversations(profile.id);
   const openError = useOpenInquiry();
   const conversations = useMemo(() => items ?? [], [items]);

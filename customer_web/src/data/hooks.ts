@@ -37,14 +37,20 @@ export interface Loaded<T> {
   error: boolean;
 }
 
-export function useCollection<T>(build: () => Query<DocumentData>, map: (id: string, d: DocumentData) => T, key = ''): Loaded<T> {
+/** [build] returning null reads nothing: an empty list (a visitor has no orders). */
+export function useCollection<T>(build: () => Query<DocumentData> | null, map: (id: string, d: DocumentData) => T, key = ''): Loaded<T> {
   const [state, setState] = useState<Loaded<T>>({ items: null, error: false });
   const retry = useRetryKey();
   useEffect(
     () => {
+      const built = build();
+      if (built === null) {
+        setState({ items: [], error: false });
+        return;
+      }
       setState((s) => (s.error ? { items: null, error: false } : s));
       return onSnapshot(
-        build(),
+        built,
         (snap) => setState({ items: snap.docs.map((d) => map(d.id, d.data())), error: false }),
         () => setState({ items: null, error: true }),
       );
@@ -168,11 +174,15 @@ const newestFirst = (list: AppNotification[]) => [...list].sort((a, b) => b.crea
  * The customer's newest notifications, newest first, live. It reads only the
  * newest [NOTIFICATIONS_SHOWN] (firestore.indexes.json has the index); while
  * that index is not ready on the server it reads them all, as before, and
- * keeps the newest. Null until the first answer.
+ * keeps the newest. Null until the first answer; empty for a visitor (no [uid]).
  */
 export function useNotifications(uid: string): AppNotification[] | null {
   const [items, setItems] = useState<AppNotification[] | null>(null);
   useEffect(() => {
+    if (uid === '') {
+      setItems([]);
+      return;
+    }
     const base = [where('recipientType', '==', 'customer'), where('recipientId', '==', uid)] as const;
     const map = (docs: { id: string; data: () => DocumentData }[]) => docs.map((d) => mapNotification(d.id, d.data()));
     let stop = onSnapshot(

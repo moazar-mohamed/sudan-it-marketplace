@@ -4,6 +4,7 @@ import { Breadcrumbs, EmptyState, ErrorState, Skeleton } from '../components/Bit
 import { CategoryGlyph } from '../components/CategoryGlyph';
 import { Icon, PATHS } from '../components/Icon';
 import { ProductCard } from '../components/ProductCard';
+import { Select } from '../components/Select';
 import { ServiceCard } from '../components/ServiceCard';
 import {
   brandsOf,
@@ -119,8 +120,8 @@ export function BrowsePage() {
   const nothingHere = products.length === 0 && listings.length === 0;
   const nothingMatches = shownProducts.length === 0 && shownListings.length === 0;
 
-  const shownChildren = (parent: string | null) =>
-    tree.activeChildrenOf(parent).filter((c) => counts === null || countTotal(counts.get(c.id)) > 0);
+  // Every active category is offered, an empty one too.
+  const shownChildren = (parent: string | null) => tree.activeChildrenOf(parent);
   const roots = shownChildren(null);
   const path = current ? tree.pathOf(current.id) : [];
   // A category with sub-categories lists them; a last-level one its siblings.
@@ -190,7 +191,7 @@ export function BrowsePage() {
       )}
 
       {nothingHere ? (
-        <EmptyState title={t('لا يوجد شيء هنا بعد.')} />
+        <EmptyState title={id ? t('لا توجد منتجات في هذا القسم حالياً، تابعنا قريباً') : t('لا يوجد شيء هنا بعد.')} />
       ) : (
         <section className="results" aria-label={t('النتائج')}>
           <div className="scroll-row filter-row" role="group" aria-label={t('الفلاتر')}>
@@ -211,21 +212,34 @@ export function BrowsePage() {
               </button>
             ))}
             {brands.length > 0 && (
-              <select className={`filter-pill${filters.brand ? ' on' : ''}`} aria-label={t('الماركة')} value={filters.brand ?? ''} onChange={(e) => setValue('brand', e.target.value)}>
-                <option value="">{t('الماركة')}</option>
-                {brands.map((b) => <option key={b} value={b}>{b}</option>)}
-              </select>
+              <Select
+                variant="pill"
+                active={!!filters.brand}
+                ariaLabel={t('الماركة')}
+                value={filters.brand ?? ''}
+                onChange={(v) => setValue('brand', v)}
+                options={[{ value: '', label: t('الماركة') }, ...brands.map((b) => ({ value: b, label: b }))]}
+              />
             )}
             {(companies.length > 1 || filters.companyId !== null) && (
-              <select className={`filter-pill${filters.companyId ? ' on' : ''}`} aria-label={t('الشركة')} value={filters.companyId ?? ''} onChange={(e) => setValue('company', e.target.value)}>
-                <option value="">{t('الشركة')}</option>
-                {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              <Select
+                variant="pill"
+                active={!!filters.companyId}
+                ariaLabel={t('الشركة')}
+                value={filters.companyId ?? ''}
+                onChange={(v) => setValue('company', v)}
+                options={[{ value: '', label: t('الشركة') }, ...companies.map((c) => ({ value: c.id, label: c.name }))]}
+              />
             )}
             {products.length > 0 && (
-              <select className="filter-pill filter-sort" aria-label={t('ترتيب')} value={sort} onChange={(e) => setValue('sort', e.target.value === 'newest' ? '' : e.target.value)}>
-                {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
+              <Select
+                variant="pill"
+                className="filter-sort"
+                ariaLabel={t('ترتيب')}
+                value={sort}
+                onChange={(v) => setValue('sort', v === 'newest' ? '' : v)}
+                options={SORTS.map((s) => ({ value: s.value, label: s.label }))}
+              />
             )}
           </div>
 

@@ -271,11 +271,11 @@ describe('Company location: who can change it', () => {
     );
   });
 
-  it('every signed-in role can read a company location; signed-out cannot', async () => {
+  it('every role reads a company location, a signed-out visitor too (public catalogue)', async () => {
     for (const uid of ['cust1', 'tech1', 'ca2', 'admin']) {
       await assertSucceeds(getDoc(doc(as(uid), 'companies', 'c1')));
     }
-    await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'companies', 'c1')));
+    await assertSucceeds(getDoc(doc(env.unauthenticatedContext().firestore(), 'companies', 'c1')));
   });
 });
 

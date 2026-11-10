@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { EmptyState, ErrorState, Skeleton } from '../components/Bits';
-import { useCatalog } from '../data/DataProvider';
+import { useAccount } from '../data/DataProvider';
 import { formatDate } from '../data/format';
 import { useMyReports } from '../data/hooks';
 import {
@@ -19,7 +19,7 @@ import { t } from '../i18n';
 
 export function ReportFormPage() {
   const nav = useNavigate();
-  const { profile } = useCatalog();
+  const profile = useAccount();
   const [reason, setReason] = useState<string>(REPORT_REASONS[0].value);
   const [subject, setSubject] = useState('');
   const [details, setDetails] = useState('');
@@ -78,7 +78,7 @@ export function ReportFormPage() {
 }
 
 export function MyReportsPage() {
-  const { profile } = useCatalog();
+  const profile = useAccount();
   const { items, error } = useMyReports(profile.id);
   const sent = new URLSearchParams(window.location.search).get('sent') === '1';
 

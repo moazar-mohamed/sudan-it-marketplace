@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
 import { EmptyState, Skeleton } from '../components/Bits';
-import { LanguageSwitch } from '../components/LanguageSwitch';
 import { formatDate } from '../data/format';
 import { termsText, useTerms } from '../data/terms';
 import { language, t } from '../i18n';
@@ -25,19 +23,5 @@ export function TermsPage() {
         </section>
       )}
     </main>
-  );
-}
-
-/** The same page for someone who has not signed in: a small header and the language switch. */
-export function PublicTermsPage() {
-  return (
-    <div className="page">
-      <Link to="/" className="brand">
-        <span className="brand-mark">{t('س')}</span>
-        {t('سوق السودان للتقنية')}
-      </Link>
-      <TermsPage />
-      <LanguageSwitch />
-    </div>
   );
 }

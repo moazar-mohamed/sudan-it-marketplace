@@ -6,7 +6,7 @@ import { CityPicker } from '../components/CityPicker';
 import { Icon, PATHS } from '../components/Icon';
 import { PhoneInput, phoneError } from '../components/PhoneInput';
 import { changePassword, hasPassword, PASSWORD_MIN, updateProfile } from '../data/account';
-import { useCatalog } from '../data/DataProvider';
+import { useAccount, useCatalog } from '../data/DataProvider';
 import { displayPhone, parsePhone, toE164 } from '../data/phone';
 import { signOutHere } from '../firebase';
 import { cityName } from '../data/cities';
@@ -58,7 +58,8 @@ function ChangePassword({ onDone }: { onDone: () => void }) {
 
 export function ProfilePage() {
   const { user } = useAuth();
-  const { profile, cities, cityId } = useCatalog();
+  const { cities, cityId } = useCatalog();
+  const profile = useAccount();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(profile.fullName);
   const [phone, setPhone] = useState(parsePhone(profile.phone));

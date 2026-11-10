@@ -12,9 +12,9 @@ const NAME_MAX = 200;
 /** The document id, fixed per item so one can only be saved once. */
 export const favoriteKey = (kind: FavoriteKind, targetId: string): string => `${kind}_${targetId}`;
 
-/** Newest first, sorted here so no index is needed. Null until loaded. */
+/** Newest first, sorted here so no index is needed. Null until loaded; empty for a visitor (no [uid]). */
 export function useFavorites(uid: string): Favorite[] | null {
-  const { items } = useCollection<Favorite>(() => collection(db, 'users', uid, 'favorites'), mapFavorite, uid);
+  const { items } = useCollection<Favorite>(() => (uid === '' ? null : collection(db, 'users', uid, 'favorites')), mapFavorite, uid);
   return items ? [...items].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) : null;
 }
 

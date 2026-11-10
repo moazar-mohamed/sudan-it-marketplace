@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { AuthCard } from '../components/AuthCard';
 import { authErrorMessage, EMAIL_PATTERN, NAME_PATTERN, PASSWORD_MIN, signUp } from '../data/account';
+import { safeNext, withNext } from '../data/nextPath';
 import { useTerms } from '../data/terms';
 import { t } from '../i18n';
 
@@ -19,6 +20,8 @@ function problemOf(name: string, email: string, password: string, confirm: strin
 }
 
 export function RegisterPage() {
+  const [params] = useSearchParams();
+  const next = safeNext(params.get('next'));
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,7 +53,7 @@ export function RegisterPage() {
   }
 
   return (
-    <AuthCard title={t('إنشاء حساب')} subtitle={t('أنشئ حسابًا للبدء.')}>
+    <AuthCard title={t('إنشاء حساب')} subtitle={t('أنشئ حسابًا للبدء.')} back={next}>
       <form onSubmit={submit} noValidate>
         <label className="field">
           {t('الاسم الكامل')}
@@ -81,7 +84,7 @@ export function RegisterPage() {
         {error && <div className="error" role="alert">{error}</div>}
         <button className="btn" type="submit" disabled={busy}>{busy ? t('جارٍ الإنشاء...') : t('إنشاء حساب')}</button>
       </form>
-      <p className="auth-foot">{t('لديك حساب بالفعل؟')}{' '}<Link to="/" className="auth-link">{t('تسجيل الدخول')}</Link></p>
+      <p className="auth-foot">{t('لديك حساب بالفعل؟')}{' '}<Link to={withNext('/login', next)} className="auth-link">{t('تسجيل الدخول')}</Link></p>
     </AuthCard>
   );
 }

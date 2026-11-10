@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { EmptyState, ErrorState, Skeleton } from '../components/Bits';
-import { useCatalog } from '../data/DataProvider';
+import { useAccount } from '../data/DataProvider';
 import { formatDate, formatPrice } from '../data/format';
 import { useMyOrders } from '../data/hooks';
 import { isAwaitingVerification, ORDER_STATUS, shortOrderId } from '../data/orders';
@@ -17,7 +17,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 ];
 
 export function OrdersPage() {
-  const { profile } = useCatalog();
+  const profile = useAccount();
   const { items, error } = useMyOrders(profile.id);
   const requests = useMyRequests(profile.id);
   const [params, setParams] = useSearchParams();

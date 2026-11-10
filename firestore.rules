@@ -996,7 +996,8 @@ service cloud.firestore {
     }
 
     match /categories/{categoryId} {
-      allow get, list: if isSignedIn();
+      // The catalogue is public: visitors browse the customer site signed out.
+      allow get, list: if true;
 
       allow create: if isPlatformAdmin()
         && request.resource.data.id == categoryId
@@ -1014,7 +1015,7 @@ service cloud.firestore {
     }
 
     match /services/{serviceId} {
-      allow get, list: if isSignedIn();
+      allow get, list: if true;
 
       // Only a company creates a service (its own). Platform Admin no longer
       // adds catalogue services; it can still edit, move or switch off any.
@@ -1775,7 +1776,7 @@ service cloud.firestore {
     }
 
     match /products/{productId} {
-      allow get, list: if isSignedIn();
+      allow get, list: if true;
 
       allow create: if isCompanyAdminOf(request.resource.data.companyId)
         && request.resource.data.id == productId
@@ -2963,7 +2964,7 @@ service cloud.firestore {
     }
 
     match /companies/{companyId} {
-      allow get, list: if isSignedIn();
+      allow get, list: if true;
 
       allow create: if isValidPlatformAdminCompanyCreate();
 
@@ -2977,15 +2978,16 @@ service cloud.firestore {
     }
 
     match /company_services/{companyServiceId} {
-      allow get: if isSignedIn()
-        && (resource.data.isActive == true
-          || isPlatformAdmin()
-          || isCompanyAdminOf(resource.data.companyId));
+      // An active link is public (visitors browse signed out).
+      allow get: if resource.data.isActive == true
+        || (isSignedIn()
+          && (isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId)));
 
-      allow list: if isSignedIn()
-        && (resource.data.isActive == true
-          || isPlatformAdmin()
-          || isCompanyAdminOf(resource.data.companyId));
+      allow list: if resource.data.isActive == true
+        || (isSignedIn()
+          && (isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId)));
 
       // Only a company offers its own services.
       allow create: if isCompanyAdminOf(request.resource.data.companyId)
@@ -3943,21 +3945,21 @@ service cloud.firestore {
     }
 
     match /reviews/{reviewId} {
-      // Everyone signed in reads the visible ones; a hidden one only its
-      // customer, its company and Platform Admin. A missing one reads as
-      // missing, so a customer can ask whether they rated an order yet.
-      allow get: if isSignedIn()
-        && (resource == null
-          || resource.data.hidden == false
-          || resource.data.customerId == request.auth.uid
-          || isCompanyAdminOf(resource.data.companyId)
-          || isPlatformAdmin());
+      // Everyone reads the visible ones, signed-out visitors too; a hidden one
+      // only its customer, its company and Platform Admin. A missing one reads
+      // as missing, so a customer can ask whether they rated an order yet.
+      allow get: if (resource != null && resource.data.hidden == false)
+        || (isSignedIn()
+          && (resource == null
+            || resource.data.customerId == request.auth.uid
+            || isCompanyAdminOf(resource.data.companyId)
+            || isPlatformAdmin()));
 
-      allow list: if isSignedIn()
-        && (resource.data.hidden == false
-          || resource.data.customerId == request.auth.uid
-          || isCompanyAdminOf(resource.data.companyId)
-          || isPlatformAdmin());
+      allow list: if resource.data.hidden == false
+        || (isSignedIn()
+          && (resource.data.customerId == request.auth.uid
+            || isCompanyAdminOf(resource.data.companyId)
+            || isPlatformAdmin()));
 
       allow create: if isSignedIn() && isValidReviewCreate(reviewId);
 
@@ -4010,7 +4012,7 @@ service cloud.firestore {
     }
 
     match /ratings/{key} {
-      allow get, list: if isSignedIn();
+      allow get, list: if true;
       allow create, update: if isSignedIn() && isValidRatingsWrite(key);
       allow delete: if isPlatformAdmin()
         && companyIsGoneAfter(resource.data.get('companyId', ''));

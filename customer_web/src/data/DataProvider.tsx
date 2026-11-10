@@ -28,7 +28,8 @@ interface CatalogValue {
   vocabulary: string[];
   cities: City[];
   cityId: string | null;
-  profile: UserProfile;
+  /** Null for a visitor who browses without signing in. */
+  profile: UserProfile | null;
   /** Null until they have loaded. */
   notifications: AppNotification[] | null;
   /** Null until they have loaded. */
@@ -45,8 +46,8 @@ function newestFirst(a: Product, b: Product): number {
   return (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0);
 }
 
-/** One shared set of live listeners for the whole site. */
-export function CatalogProvider({ profile, children }: { profile: UserProfile; children: ReactNode }) {
+/** One shared set of live listeners for the whole site; [profile] null for a visitor. */
+export function CatalogProvider({ profile, children }: { profile: UserProfile | null; children: ReactNode }) {
   const categories = useCategories();
   const rawProducts = useProducts();
   const rawCompanies = useCompanies();
@@ -54,9 +55,9 @@ export function CatalogProvider({ profile, children }: { profile: UserProfile; c
   const rawLinks = useCompanyServices();
   const rawRatings = useRatings();
   const cities = useCities();
-  const notifications = useNotifications(profile.id);
-  const favorites = useFavorites(profile.id);
-  const cityId = profile.cityId;
+  const notifications = useNotifications(profile?.id ?? '');
+  const favorites = useFavorites(profile?.id ?? '');
+  const cityId = profile?.cityId ?? null;
 
   const value = useMemo<CatalogValue>(() => {
     const tree = new CategoryTree(categories.items ?? []);
@@ -131,4 +132,11 @@ export function useCatalog(): CatalogValue {
   const v = useContext(CatalogContext);
   if (!v) throw new Error('useCatalog outside CatalogProvider');
   return v;
+}
+
+/** The signed-in customer, on the pages behind RequireAccount. */
+export function useAccount(): UserProfile {
+  const { profile } = useCatalog();
+  if (!profile) throw new Error('useAccount outside RequireAccount');
+  return profile;
 }

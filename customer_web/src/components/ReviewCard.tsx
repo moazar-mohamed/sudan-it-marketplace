@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCatalog } from '../data/DataProvider';
+import { useAccount } from '../data/DataProvider';
 import { formatDate } from '../data/format';
 import { useReview } from '../data/hooks';
 import { canEdit, COMMENT_MAX, editableUntil, editReview, rateSubject, STAR_LABELS } from '../data/reviews';
@@ -28,7 +28,7 @@ function StarPicker({ stars, onChange }: { stars: number; onChange: (n: number) 
 }
 
 function ReviewForm({ subject, existing, initialStars, onClose }: { subject: ReviewSubject; existing: Review | null; initialStars: number; onClose: () => void }) {
-  const { profile } = useCatalog();
+  const profile = useAccount();
   const [stars, setStars] = useState(existing?.stars ?? initialStars);
   const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
   const [comment, setComment] = useState(existing?.comment ?? '');

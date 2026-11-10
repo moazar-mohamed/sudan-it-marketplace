@@ -4,7 +4,7 @@ import { EmptyState, Skeleton } from '../components/Bits';
 import { Icon, PATHS } from '../components/Icon';
 import { ReviewCard } from '../components/ReviewCard';
 import { openOrderChat } from '../data/chats';
-import { useCatalog } from '../data/DataProvider';
+import { useAccount, useCatalog } from '../data/DataProvider';
 import { formatDateTime, formatPrice } from '../data/format';
 import { useOrder } from '../data/hooks';
 import { cancelledLines, isAwaitingVerification, loadReceipt, ORDER_STATUS, paymentLabel, shortOrderId } from '../data/orders';
@@ -110,7 +110,7 @@ function DeliveryCard({ order }: { order: Order }) {
 /** An order older than conversations gets its conversation here, on first use. */
 function OpenChatButton({ order }: { order: Order }) {
   const navigate = useNavigate();
-  const { profile } = useCatalog();
+  const profile = useAccount();
   const [error, setError] = useState('');
   return (
     <>

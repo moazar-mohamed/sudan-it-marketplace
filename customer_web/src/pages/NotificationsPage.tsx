@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { EmptyState, Skeleton } from '../components/Bits';
 import { PushSwitch } from '../components/PushSettings';
-import { useCatalog } from '../data/DataProvider';
+import { useAccount, useCatalog } from '../data/DataProvider';
 import {
   deleteNotification,
   markNotificationRead,
@@ -19,7 +19,8 @@ function when(value: Date): string {
 
 export function NotificationsPage() {
   const nav = useNavigate();
-  const { notifications, profile } = useCatalog();
+  const { notifications } = useCatalog();
+  const profile = useAccount();
 
   function open(n: AppNotification) {
     if (!n.isRead) void markNotificationRead(n.id).catch(() => undefined);

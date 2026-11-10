@@ -64,10 +64,10 @@ export function mergeMessages(known: ChatMessage[], incoming: ChatMessage[]): Ch
   return [...byId.values()].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 }
 
-/** Sorted here (most recent activity first) so no composite index is needed. */
+/** Sorted here (most recent activity first) so no composite index is needed. Empty for a visitor (no [uid]). */
 export function useConversations(uid: string): Loaded<Conversation> {
   const r = useCollection<Conversation>(
-    () => query(collection(db, 'chats'), where('customerId', '==', uid)),
+    () => (uid === '' ? null : query(collection(db, 'chats'), where('customerId', '==', uid))),
     mapConversation,
     uid,
   );

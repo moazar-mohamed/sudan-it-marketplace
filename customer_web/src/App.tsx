@@ -4,9 +4,10 @@ import { useAuth } from './auth';
 import { AccountGate } from './components/AccountGate';
 import { AutoUpdate } from './components/AutoUpdate';
 import { NoticeGate } from './components/NoticeGate';
+import { RequireAccount, SignedOutOnly } from './components/RequireAccount';
 import { Shell } from './components/Shell';
 import { CompareProvider } from './data/compare';
-import { PublicTermsPage } from './pages/TermsPage';
+import { CatalogProvider } from './data/DataProvider';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 
@@ -34,6 +35,51 @@ const ServiceRequestPage = lazy(() => import('./pages/ServiceRequestPage').then(
 const TermsPage = lazy(() => import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 
+/**
+ * The whole site for everyone: browsing needs no account. Only the pages under
+ * RequireAccount (checkout, orders, chats...) ask a visitor to sign in, and
+ * bring them back to the same page afterwards.
+ */
+function SiteRoutes() {
+  return (
+    <CompareProvider>
+      <Routes>
+        <Route path="login" element={<SignedOutOnly><LoginPage /></SignedOutOnly>} />
+        <Route path="register" element={<SignedOutOnly><Suspense fallback={null}><RegisterPage /></Suspense></SignedOutOnly>} />
+        <Route path="forgot-password" element={<SignedOutOnly><Suspense fallback={null}><ForgotPasswordPage /></Suspense></SignedOutOnly>} />
+        <Route element={<Shell />}>
+          <Route index element={<HomePage />} />
+          <Route path="browse" element={<BrowsePage />} />
+          <Route path="category/:id" element={<BrowsePage />} />
+          <Route path="search" element={<SearchPage />} />
+          <Route path="product/:id" element={<ProductPage />} />
+          <Route path="company/:id" element={<CompanyPage />} />
+          <Route path="companies" element={<CompaniesPage />} />
+          <Route path="compare" element={<ComparePage />} />
+          <Route path="service/:id" element={<ServicePage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="terms" element={<TermsPage />} />
+          <Route element={<RequireAccount />}>
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="favorites" element={<FavoritesPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="reports" element={<MyReportsPage />} />
+            <Route path="reports/new" element={<ReportFormPage />} />
+            <Route path="checkout/:id" element={<CheckoutPage />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="orders/:id" element={<OrderDetailsPage />} />
+            <Route path="chats" element={<ChatsPage />} />
+            <Route path="chats/:id" element={<ChatsPage />} />
+            <Route path="service-request" element={<ServiceRequestPage />} />
+            <Route path="requests/:id" element={<RequestDetailsPage />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </CompareProvider>
+  );
+}
+
 export default function App() {
   const { user, ready } = useAuth();
   if (!ready) return null;
@@ -41,49 +87,15 @@ export default function App() {
     <BrowserRouter>
       <AutoUpdate />
       <NoticeGate>
-      {user ? (
-        <AccountGate>
-          <CompareProvider>
-          <Routes>
-            <Route element={<Shell />}>
-              <Route index element={<HomePage />} />
-              <Route path="browse" element={<BrowsePage />} />
-              <Route path="category/:id" element={<BrowsePage />} />
-              <Route path="search" element={<SearchPage />} />
-              <Route path="product/:id" element={<ProductPage />} />
-              <Route path="company/:id" element={<CompanyPage />} />
-              <Route path="companies" element={<CompaniesPage />} />
-              <Route path="compare" element={<ComparePage />} />
-              <Route path="service/:id" element={<ServicePage />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="favorites" element={<FavoritesPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="terms" element={<TermsPage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="reports" element={<MyReportsPage />} />
-              <Route path="reports/new" element={<ReportFormPage />} />
-              <Route path="checkout/:id" element={<CheckoutPage />} />
-              <Route path="orders" element={<OrdersPage />} />
-              <Route path="orders/:id" element={<OrderDetailsPage />} />
-              <Route path="chats" element={<ChatsPage />} />
-              <Route path="chats/:id" element={<ChatsPage />} />
-              <Route path="service-request" element={<ServiceRequestPage />} />
-              <Route path="requests/:id" element={<RequestDetailsPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-          </Routes>
-          </CompareProvider>
-        </AccountGate>
-      ) : (
-        <Suspense fallback={null}>
-          <Routes>
-            <Route path="register" element={<RegisterPage />} />
-            <Route path="forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="terms" element={<PublicTermsPage />} />
-            <Route path="*" element={<LoginPage />} />
-          </Routes>
-        </Suspense>
-      )}
+        {user ? (
+          <AccountGate>
+            <SiteRoutes />
+          </AccountGate>
+        ) : (
+          <CatalogProvider profile={null}>
+            <SiteRoutes />
+          </CatalogProvider>
+        )}
       </NoticeGate>
     </BrowserRouter>
   );
