@@ -29,13 +29,15 @@ class FirestoreProductsRemoteDataSource implements ProductsRemoteDataSource {
   /// Products a customer can see: only those with units left, and not hidden
   /// by Platform Admin. A product at `stockCount == 0` (or with no stock
   /// field) is left out here but stays in Firestore and in the company's own
-  /// list, and reappears the moment the company restocks it. A hidden product
-  /// is filtered here rather than in the query, because most products have no
-  /// `hidden` field and a query on it would leave them out. A single-field
-  /// range filter needs no composite index.
+  /// list, and reappears the moment the company restocks it. A product
+  /// Platform Admin hid is left out by the query itself: the rules refuse a
+  /// customer's list that could include one, so every product carries
+  /// `hidden` (written false when it is made). The query uses the composite
+  /// index hidden + stockCount (firestore.indexes.json).
   @override
   Stream<List<Product>> watchMarketplaceProducts() {
     return _products
+        .where('hidden', isEqualTo: false)
         .where('stockCount', isGreaterThan: 0)
         .snapshots()
         .map((snapshot) => withoutHiddenProducts(_sorted(snapshot)));
@@ -57,6 +59,8 @@ class FirestoreProductsRemoteDataSource implements ProductsRemoteDataSource {
     try {
       await _products.doc(product.id).set({
         ...ProductModel.toFirestoreFields(product),
+        // Customers list products with where hidden == false.
+        'hidden': false,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });

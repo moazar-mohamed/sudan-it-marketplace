@@ -109,6 +109,20 @@ Widget _app(Widget home, {Locale locale = _en, List overrides = const []}) {
 }
 
 void main() {
+  group('who sees the dollar-rate card', () {
+    test('a company that never chose dollar pricing does not', () {
+      expect(UsdPricing.usesDollars(null, null), isFalse);
+      expect(UsdPricing.usesDollars(null, const <Product>[]), isFalse);
+      expect(UsdPricing.usesDollars(null, [const Product(id: 'p', name: 'Cable', companyId: 'c1')]), isFalse);
+    });
+
+    test('one with a rate or a product priced in dollars does', () {
+      expect(UsdPricing.usesDollars(2500, null), isTrue);
+      expect(UsdPricing.usesDollars(2500, const <Product>[]), isTrue);
+      expect(UsdPricing.usesDollars(null, [_usd()]), isTrue);
+    });
+  });
+
   group('the sums', () {
     test('a price rounds UP to the next 500 pounds', () {
       expect(UsdPricing.price(99, 3170), 314000);

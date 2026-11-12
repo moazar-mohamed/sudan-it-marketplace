@@ -16,9 +16,11 @@ class FirestoreCompaniesRemoteDataSource implements CompaniesRemoteDataSource {
   CollectionReference<Map<String, dynamic>> get _companies =>
       _firestore.collection(_companiesCollection);
 
+  /// The active companies, the only ones customers may read: the rules refuse
+  /// a list that could include a pending, rejected or deactivated company.
   @override
   Stream<List<Company>> watchAllCompanies() {
-    return _companies.snapshots().map(
+    return _companies.where('status', isEqualTo: 'active').snapshots().map(
           (snapshot) =>
               snapshot.docs.map(CompanyModel.fromFirestore).toList(),
         );

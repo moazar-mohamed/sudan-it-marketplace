@@ -95,9 +95,10 @@ beforeEach(async () => {
       isActive: true,
       createdAt: now,
     });
+    // Each company carries the name its products show ('Company 1' for c1).
     for (const id of ['c1', 'c2']) {
       await setDoc(doc(db, 'companies', id), {
-        name: `Company ${id}`,
+        name: `Company ${id.slice(1)}`,
         logoUrl: '',
         description: '',
         city: '',

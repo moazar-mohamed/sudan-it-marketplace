@@ -1775,12 +1775,41 @@ service cloud.firestore {
             && after.get('offerBadge', null) == null));
     }
 
+    // The company name a product shows is its company's own name: the
+    // customer sees it on the product and it is copied into the order, so a
+    // company must never sell under another company's name. Checked when the
+    // product is made and whenever the name on it changes (an edit that leaves
+    // the name as it was, a stock change at payment for instance, still works
+    // after the company renamed itself).
+    function productCompanyNameIsReal() {
+      return request.resource.data.companyName
+        == get(/databases/$(database)/documents/companies/$(request.resource.data.companyId)).data.name;
+    }
+
+    // A product Platform Admin hid is read only by its own company and by
+    // Platform Admin: the reason it was hidden (fraud, a forbidden item...)
+    // means nobody else should get it, not even by asking for it directly.
+    function readsHiddenProduct() {
+      return isSignedIn()
+        && (isPlatformAdmin() || isCompanyAdminOf(resource.data.companyId));
+    }
+
     match /products/{productId} {
-      allow get, list: if true;
+      // The catalogue is public (visitors browse signed out), hidden products
+      // left out. A list must ask for them with where hidden == false, so every
+      // product carries `hidden` (false unless Platform Admin hid it).
+      // A product that is gone reads as gone (the order flows ask whether it
+      // still exists).
+      allow get: if resource == null
+        || resource.data.get('hidden', false) == false
+        || readsHiddenProduct();
+      allow list: if resource.data.hidden == false
+        || readsHiddenProduct();
 
       allow create: if isCompanyAdminOf(request.resource.data.companyId)
         && request.resource.data.id == productId
         && request.resource.data.createdAt == request.time
+        && productCompanyNameIsReal()
         && isValidProductData()
         && request.resource.data.get('hidden', false) == false
         && request.resource.data.get('hiddenReason', '') == ''
@@ -1794,6 +1823,8 @@ service cloud.firestore {
           && request.resource.data.id == resource.data.id
           && request.resource.data.companyId == resource.data.companyId
           && request.resource.data.createdAt == resource.data.createdAt
+          && (request.resource.data.companyName == resource.data.companyName
+            || productCompanyNameIsReal())
           && isValidProductData()
           && request.resource.data.get('hidden', false) == resource.data.get('hidden', false)
           && request.resource.data.get('hiddenReason', '') == resource.data.get('hiddenReason', '')
@@ -2963,8 +2994,26 @@ service cloud.firestore {
         && resource.data.get('status', 'active') != 'active';
     }
 
+    // Who may read a company that is not active (pending, rejected,
+    // deactivated or in the trash): its own admin and technicians, and
+    // Platform Admin. Nobody else sees its phone, e-mail or payment accounts.
+    function readsOwnOrAnyCompany(companyId) {
+      return isSignedIn()
+        && (isPlatformAdmin()
+          || isCompanyAdminOf(companyId)
+          || (isTechnician() && signedInUser().get('companyId', '') == companyId));
+    }
+
     match /companies/{companyId} {
-      allow get, list: if true;
+      // An active company is public (visitors browse signed out). A list must
+      // ask for active companies (where status == 'active') unless the reader
+      // may see the others.
+      // A company that is gone reads as gone.
+      allow get: if resource == null
+        || resource.data.get('status', 'active') == 'active'
+        || readsOwnOrAnyCompany(companyId);
+      allow list: if resource.data.status == 'active'
+        || readsOwnOrAnyCompany(companyId);
 
       allow create: if isValidPlatformAdminCompanyCreate();
 
@@ -3111,6 +3160,8 @@ service cloud.firestore {
           || linkOfferPriceIs(get(linkPath).data, data.get('price', null)))
         && exists(companyPath)
         && get(companyPath).data.get('status', 'active') == 'active'
+        // The company is named as it names itself, never as the sender likes.
+        && get(companyPath).data.name == data.companyName
         // The city the service is wanted in, one of the cities in the list.
         && (!data.keys().hasAny(['cityId'])
           || (data.cityId is string && data.cityId in validCityIds()))
@@ -3858,13 +3909,18 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/orders/$(reviewId)).data.customerId == request.auth.uid
           && get(/databases/$(database)/documents/orders/$(reviewId)).data.companyId == data.companyId
           && get(/databases/$(database)/documents/orders/$(reviewId)).data.productId == data.targetId
-          && get(/databases/$(database)/documents/orders/$(reviewId)).data.orderStatus == 'completed')
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.orderStatus == 'completed'
+          // Everyone reads a review: the names it shows are the order's own.
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.get('companyName', '') == data.companyName
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.get('productName', '') == data.targetName)
         : (data.sourceType == 'service_request'
           && data.targetType == 'service'
           && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.customerId == request.auth.uid
           && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.companyId == data.companyId
           && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.companyServiceId == data.targetId
-          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.status == 'completed');
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.status == 'completed'
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.get('companyName', '') == data.companyName
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.get('serviceName', '') == data.targetName);
     }
 
     // The ratings doc [key] was written in this same request, naming this

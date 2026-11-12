@@ -96,8 +96,9 @@ beforeEach(async () => {
     await user('ca1', { role: 'company_admin', companyId: 'c1' });
     await user('ca2', { role: 'company_admin', companyId: 'c2' });
     await user('pa1', { role: 'platform_admin' });
+    // c1 carries the name its products show (a product names its company as the company names itself).
     for (const id of ['c1', 'c2']) {
-      await setDoc(doc(db, 'companies', id), { name: id, status: 'active', rating: 0, reviewCount: 0, createdAt: new Date() });
+      await setDoc(doc(db, 'companies', id), { name: id === 'c1' ? 'Alpha Tech' : id, status: 'active', rating: 0, reviewCount: 0, createdAt: new Date() });
     }
     // An older product: none of the new fields.
     await setDoc(doc(db, 'products', 'old'), { ...productFields('old'), createdAt: new Date(), updatedAt: new Date() });

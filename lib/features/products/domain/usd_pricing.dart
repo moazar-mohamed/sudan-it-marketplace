@@ -72,6 +72,13 @@ abstract final class UsdPricing {
     return UsdRateAge.fresh;
   }
 
+  /// Whether a company sells in dollars: it has set a rate, or already has a
+  /// product priced in dollars. Only then does its Home show the dollar-rate
+  /// card; a company that never chose dollar pricing never sees it. It starts
+  /// by picking "in dollars" on a product, which asks for the rate right there.
+  static bool usesDollars(double? rate, Iterable<Product>? products) =>
+      rate != null || (products ?? const <Product>[]).any((p) => p.isPricedInUsd);
+
   /// Whether [product] is priced in dollars and its pounds were not worked out
   /// from [rate] (the rate changed, or an earlier rewrite was cut short).
   static bool needsRepricing(Product product, double rate) =>

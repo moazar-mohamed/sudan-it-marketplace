@@ -61,6 +61,8 @@ const fields = (id: string, extra: Record<string, unknown> = {}) => ({
   isDeliveryAvailable: true,
   isInstallationAvailable: false,
   installationPrice: null,
+  // Every product carries `hidden` (the customer list asks for hidden == false).
+  hidden: false,
   ...extra,
 });
 
@@ -196,13 +198,13 @@ describe('optional product price', () => {
 
 describe('customer marketplace query sees priced and unpriced products', () => {
   const marketplace = async () =>
-    (await assertSucceeds(getDocs(query(collection(as('cust1'), 'products'), where('stockCount', '>', 0)))))
+    (await assertSucceeds(getDocs(query(collection(as('cust1'), 'products'), where('hidden', '==', false), where('stockCount', '>', 0)))))
       .docs.map((d) => d.id)
       .sort();
 
   it('lists both, with the unpriced one keeping a null price (not 0)', async () => {
     expect(await marketplace()).toEqual(['priced', 'unpriced']);
-    const snap = await getDocs(query(collection(as('cust1'), 'products'), where('stockCount', '>', 0)));
+    const snap = await getDocs(query(collection(as('cust1'), 'products'), where('hidden', '==', false), where('stockCount', '>', 0)));
     const unpriced = snap.docs.find((d) => d.id === 'unpriced');
     expect(unpriced?.data().price).toBeNull();
   });

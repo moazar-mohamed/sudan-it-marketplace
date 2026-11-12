@@ -71,6 +71,8 @@ const product = (id: string, stockCount: number, extra: Record<string, unknown> 
   isDeliveryAvailable: true,
   isInstallationAvailable: false,
   installationPrice: null,
+  // Every product carries `hidden` (the customer list asks for hidden == false).
+  hidden: false,
   createdAt: now,
   updatedAt: now,
   ...extra,
@@ -400,7 +402,7 @@ describe('marketplace visibility and restocking', () => {
   const marketplace = async () =>
     (
       await assertSucceeds(
-        getDocs(query(collection(as('cust1'), 'products'), where('stockCount', '>', 0))),
+        getDocs(query(collection(as('cust1'), 'products'), where('hidden', '==', false), where('stockCount', '>', 0))),
       )
     ).docs.map((d) => d.id);
 

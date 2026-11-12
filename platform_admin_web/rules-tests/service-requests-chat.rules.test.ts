@@ -301,6 +301,15 @@ describe('service_requests: creating a request', () => {
     );
   });
 
+  it('the request names the company as the company names itself', async () => {
+    const fake = { companyName: 'Another Company' };
+    await assertFails(
+      sendRequest(as('cust1'), 'n11', 'cust1', 'c1_svc1', { request: { price: 15000, ...fake }, chat: fake }),
+    );
+    // The same request with the company's own name goes through.
+    await assertSucceeds(sendRequest(as('cust1'), 'n12', 'cust1', 'c1_svc1', { request: { price: 15000 } }));
+  });
+
   it('no request to an inactive company or through an inactive offer', async () => {
     await assertFails(sendRequest(as('cust1'), 'n9', 'cust1', 'cOff_svc1'));
     await assertFails(sendRequest(as('cust1'), 'n10', 'cust1', 'c1_svc3'));

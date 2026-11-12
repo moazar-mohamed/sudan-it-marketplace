@@ -75,16 +75,18 @@ beforeEach(async () => {
   }
   const order = (id: string, customerId: string, orderStatus: string) =>
     put(`orders/${id}`, {
-      id, customerId, companyId: 'c1', productId: 'p1', productName: 'Laptop', quantity: 1, orderStatus,
+      id, customerId, companyId: 'c1', companyName: 'Company c1', productId: 'p1', productName: 'Laptop', quantity: 1, orderStatus,
     });
   await order('o1', 'cust1', 'completed');
   await order('o2', 'cust1', 'processing');
   await order('o3', 'cust2', 'completed');
   await put('service_requests/r1', {
-    id: 'r1', customerId: 'cust1', companyId: 'c1', companyServiceId: 'c1_svc1', status: 'completed',
+    id: 'r1', customerId: 'cust1', companyId: 'c1', companyName: 'Company c1', companyServiceId: 'c1_svc1',
+    serviceName: 'Office setup', status: 'completed',
   });
   await put('service_requests/r2', {
-    id: 'r2', customerId: 'cust1', companyId: 'c1', companyServiceId: 'c1_svc1', status: 'in_progress',
+    id: 'r2', customerId: 'cust1', companyId: 'c1', companyName: 'Company c1', companyServiceId: 'c1_svc1',
+    serviceName: 'Office setup', status: 'in_progress',
   });
 });
 
@@ -114,7 +116,7 @@ function rate(db: Firestore, id: string, o: Opts = {}) {
     companyName: 'Company c1',
     targetType,
     targetId,
-    targetName: 'Laptop',
+    targetName: sourceType === 'order' ? 'Laptop' : 'Office setup',
     stars,
     tags: ['quality'],
     comment: 'Good',
@@ -194,6 +196,20 @@ describe('rating an order or a service request', () => {
   it('lets the customer rate a completed service request', async () => {
     await assertSucceeds(rate(as('cust1'), 'r1', { sourceType: 'service_request' }));
     expect(await read('ratings/service_c1_svc1')).toMatchObject({ sum: 5, count: 1 });
+  });
+
+  it('a review shows the order\'s own names, never names the customer made up', async () => {
+    await assertFails(rate(as('cust1'), 'o1', { extra: { companyName: 'Another Company' } }));
+    await assertFails(rate(as('cust1'), 'o1', { extra: { targetName: 'Something else' } }));
+    await assertFails(
+      rate(as('cust1'), 'r1', { sourceType: 'service_request', extra: { companyName: 'Another Company' } }),
+    );
+    await assertFails(
+      rate(as('cust1'), 'r1', { sourceType: 'service_request', extra: { targetName: 'Something else' } }),
+    );
+    // The same reviews with the order's and the request's own names go through.
+    await assertSucceeds(rate(as('cust1'), 'o1'));
+    await assertSucceeds(rate(as('cust1'), 'r1', { sourceType: 'service_request' }));
   });
 
   it('refuses an order or request that is not completed', async () => {

@@ -11,6 +11,7 @@ import '../../../companies/presentation/companies_providers.dart';
 import '../../../orders/domain/entities/order_entity.dart';
 import '../../../orders/presentation/orders_providers.dart';
 import '../../../products/domain/entities/product.dart';
+import '../../../products/domain/usd_pricing.dart';
 import '../../../products/presentation/products_providers.dart';
 import '../../../reviews/domain/review.dart';
 import '../../../reviews/presentation/reviews_providers.dart';
@@ -127,13 +128,17 @@ class CompanyDashboardTab extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // The dollar rate comes first: the one place it is kept.
-                  UsdRateCard(
-                    companyId: companyId,
-                    company: company,
-                    products: productsAsync.asData?.value,
-                  ),
-                  if (company != null) const SizedBox(height: AppSpacing.s16),
+                  // The dollar rate comes first once the company sells in
+                  // dollars: the one place it is kept.
+                  if (company != null &&
+                      UsdPricing.usesDollars(company.usdRate, productsAsync.asData?.value)) ...[
+                    UsdRateCard(
+                      companyId: companyId,
+                      company: company,
+                      products: productsAsync.asData?.value,
+                    ),
+                    const SizedBox(height: AppSpacing.s16),
+                  ],
                   if (needsCities) ...[
                     AppBanner(
                       key: const ValueKey('company-needs-cities'),

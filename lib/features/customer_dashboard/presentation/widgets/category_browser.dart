@@ -26,9 +26,8 @@ class CategoryBrowser extends StatelessWidget {
   final CategoryTree tree;
   final ValueChanged<String> onOpen;
 
-  /// What each category holds. When given, a category with nothing in it is
-  /// not offered and every tile shows its count; null (still loading) offers
-  /// them all.
+  /// What each category holds, shown on every tile; null while loading. A
+  /// category with nothing in it yet is offered too, with a count of 0.
   final Map<String, CategoryCount>? counts;
 
   /// The tiles' section title, and how they are drawn ([CategoryGridStyle.homeRow]
@@ -40,10 +39,8 @@ class CategoryBrowser extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final known = counts;
     final tiles = [
-      for (final category in tree.activeChildrenOf(null))
-        if (known == null || !(known[category.id]?.isEmpty ?? true)) category,
+      ...tree.activeChildrenOf(null),
     ];
     if (tiles.isEmpty) return const SizedBox.shrink();
     return CategoryGrid(

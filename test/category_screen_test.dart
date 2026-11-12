@@ -267,11 +267,11 @@ void main() {
       expect(find.text('2 items'), findsOneWidget);
     });
 
-    testWidgets('leave out a category with nothing in it', (tester) async {
+    testWidgets('show a category with nothing in it too', (tester) async {
       await pumpHome(tester);
       expect(find.text('Laptops'), findsWidgets);
       expect(find.text('Networks'), findsWidgets);
-      expect(find.text('Empty'), findsNothing);
+      expect(find.text('Empty'), findsWidgets);
     });
 
     testWidgets('open a screen of their own', (tester) async {
@@ -293,8 +293,8 @@ void main() {
       // Everything below Networks, and each sub-category that holds something.
       expect(find.text('All (4)'), findsOneWidget);
       expect(find.text('Routers (3)'), findsOneWidget);
-      // Switches has nothing in it, so it is not offered.
-      expect(find.textContaining('Switches'), findsNothing);
+      // Switches has nothing in it and is offered all the same.
+      expect(find.text('Switches (0)'), findsOneWidget);
       expect(productIds(tester).toSet(), {'p1', 'p2', 'p3'});
       expect(find.text('Network Setup'), findsOneWidget);
       expect(find.text('Laptop Repair'), findsNothing);

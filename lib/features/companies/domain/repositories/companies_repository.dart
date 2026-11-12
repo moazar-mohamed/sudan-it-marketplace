@@ -2,6 +2,8 @@ import '../entities/company.dart';
 import '../entities/payment_account.dart';
 
 abstract interface class CompaniesRepository {
+  /// Every ACTIVE company (pending, rejected and deactivated ones are not
+  /// readable by customers).
   Stream<List<Company>> watchAllCompanies();
 
   Stream<Company?> watchCompany(String companyId);

@@ -89,6 +89,8 @@ beforeEach(async () => {
     await user('admin', 'platform_admin');
     await user('ca1', 'company_admin', { companyId: 'c1' });
     await user('ca2', 'company_admin', { companyId: 'c2' });
+    // A product names its company as the company names itself.
+    await setDoc(doc(db, 'companies', 'c1'), { name: 'Company 1', status: 'active', rating: 0, reviewCount: 0, createdAt: now });
     await setDoc(doc(db, 'products', 'old'), {
       ...productFields('old'),
       createdAt: now,

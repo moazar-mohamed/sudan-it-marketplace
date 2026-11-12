@@ -361,10 +361,8 @@ class _SubChips extends StatelessWidget {
   final ValueChanged<String> onGo;
   final EdgeInsets padding;
 
-  List<Category> _shown(String? parentId) => [
-    for (final category in tree.activeChildrenOf(parentId))
-      if (counts == null || !(counts![category.id]?.isEmpty ?? true)) category,
-  ];
+  // Every active category is offered, an empty one too.
+  List<Category> _shown(String? parentId) => tree.activeChildrenOf(parentId);
 
   @override
   Widget build(BuildContext context) {
