@@ -1,7 +1,7 @@
 /* Sudan ICT Marketplace - service worker.
    Online: always loads the newest site from the network (so a Netlify redeploy updates the app).
    Offline: falls back to the last copy saved on the phone. Firebase, other sites and downloads are never cached. */
-const CACHE = 'sictm-v3';
+const CACHE = 'sictm-v4';
 const CORE = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -28,10 +28,12 @@ self.addEventListener('fetch', e => {
   if (url.pathname.startsWith('/__/')) return;
 
   if (req.mode === 'navigate') {
+    // The technician portal (/tech/) is a separate page with its own offline copy.
+    const page = url.pathname.startsWith('/tech') ? '/tech/' : '/';
     e.respondWith(
       fetch(req)
-        .then(res => { if (isHtml(res)) { const copy = res.clone(); caches.open(CACHE).then(c => c.put('/', copy)); } return res; })
-        .catch(() => caches.match('/'))
+        .then(res => { if (isHtml(res)) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(page, copy)); } return res; })
+        .catch(() => caches.match(page))
     );
     return;
   }
@@ -41,5 +43,18 @@ self.addEventListener('fetch', e => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return res;
     }))
+  );
+});
+
+// Technician portal: tapping a notification opens (or focuses) the task or chat it is about.
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const target = (e.notification.data && e.notification.data.url) || '/tech/';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const open = list.find(c => new URL(c.url).pathname.startsWith('/tech'));
+      if (open) { open.navigate(target).catch(() => {}); return open.focus(); }
+      return self.clients.openWindow(target);
+    })
   );
 });

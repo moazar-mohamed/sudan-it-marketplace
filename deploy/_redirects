@@ -1,3 +1,7 @@
+# Technician portal on its own address (after adding tech.sictm.net as a domain alias in Netlify).
+https://tech.sictm.net/*  https://sictm.net/tech/:splat  301!
+http://tech.sictm.net/*   https://sictm.net/tech/:splat  301!
+
 # Backup for the Android app link, in case the hidden .well-known folder is skipped on upload.
 /.well-known/assetlinks.json  /assetlinks.json  200
 

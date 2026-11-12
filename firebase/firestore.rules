@@ -82,12 +82,44 @@ service cloud.firestore {
 
     // Technicians: each company manages its own list; admin sees all.
     // (Customers see the assigned technician's name/level/phone copied into their order.)
+    // A technician with a login (techs.uid, created by the company) reads their own record in the
+    // technician portal (sictm.net/tech) and may change only: availability, name, phone, "password chosen".
     match /techs/{tid} {
-      allow read: if isAdmin() || (signedIn() && resource.data.cid == request.auth.uid);
+      allow read: if isAdmin() || (signedIn() && (resource.data.cid == request.auth.uid
+                                                  || resource.data.uid == request.auth.uid));
       allow create: if isAdmin() || (signedIn() && request.resource.data.cid == request.auth.uid);
       allow update: if isAdmin() || (signedIn() && resource.data.cid == request.auth.uid
-                                     && request.resource.data.cid == request.auth.uid);
+                                     && request.resource.data.cid == request.auth.uid)
+                    || (signedIn() && resource.data.uid == request.auth.uid
+                        && onlyChanges(['avail', 'name', 'phone', 'pwSet']));
       allow delete: if isAdmin() || (signedIn() && resource.data.cid == request.auth.uid);
+    }
+
+    // Technician portal: the technician assigned to an order (orders.techUid) and that order's company.
+    function jobParty(oid, cid, tuid) {
+      let o = get(/databases/$(database)/documents/orders/$(oid)).data;
+      return o.cid == cid && o.techUid == tuid;
+    }
+    // Technician's notes on a job: the technician writes/deletes; the company reads; the customer never sees them.
+    match /techNotes/{id} {
+      allow read: if isAdmin() || (signedIn() && (resource.data.tuid == request.auth.uid
+                                                  || resource.data.cid == request.auth.uid));
+      allow create: if signedIn() && request.resource.data.tuid == request.auth.uid
+                       && request.resource.data.text is string && request.resource.data.text.size() <= 500
+                       && jobParty(request.resource.data.oid, request.resource.data.cid, request.auth.uid);
+      allow update: if false;
+      allow delete: if isAdmin() || (signedIn() && resource.data.tuid == request.auth.uid);
+    }
+    // Job chat between the technician ('tech') and the company ('co'). Messages can't be edited.
+    match /techChats/{id} {
+      allow read: if isAdmin() || (signedIn() && (resource.data.tuid == request.auth.uid
+                                                  || resource.data.cid == request.auth.uid));
+      allow create: if signedIn() && request.resource.data.text is string && request.resource.data.text.size() <= 1200
+                       && jobParty(request.resource.data.oid, request.resource.data.cid, request.resource.data.tuid)
+                       && ((request.resource.data.by == 'tech' && request.resource.data.tuid == request.auth.uid)
+                           || (request.resource.data.by == 'co' && (request.resource.data.cid == request.auth.uid || isAdmin())));
+      allow update: if false;
+      allow delete: if isAdmin();
     }
 
     // Quote requests: customer creates; customer, the company, and admin can read.
@@ -102,17 +134,25 @@ service cloud.firestore {
     // Orders: customer creates; company may change the status and run the installation job
     // (assign technician, mark installed); the customer may only accept / report a problem /
     // mark rated once the company marked it installed; admin full access.
+    // The assigned technician (orders.techUid) reads the order in the technician portal and may only
+    // move the job forward: on the way → installed ('done'). They cannot change the technician or anything else.
     function jobSt(d) { return d.get('job', {}).get('status', ''); }
     match /orders/{id} {
       allow read: if signedIn() && (resource.data.from == request.auth.uid
-                                    || resource.data.cid == request.auth.uid || isAdmin());
+                                    || resource.data.cid == request.auth.uid || isAdmin()
+                                    || resource.data.techUid == request.auth.uid);
       allow create: if signedIn() && request.resource.data.from == request.auth.uid
                        && request.resource.data.status == 'pending'
                        && (!('job' in request.resource.data) || jobSt(request.resource.data) == 'needed');
       allow update: if isAdmin()
-                    || (signedIn() && resource.data.cid == request.auth.uid && onlyChanges(['status', 'job'])
+                    || (signedIn() && resource.data.cid == request.auth.uid && onlyChanges(['status', 'job', 'techUid'])
                         && (jobSt(request.resource.data) in ['', 'needed', 'assigned', 'done', 'issue']
                             || request.resource.data.get('job', null) == resource.data.get('job', null)))
+                    || (signedIn() && resource.data.get('techUid', '') == request.auth.uid && onlyChanges(['job'])
+                        && resource.data.status != 'cancelled'
+                        && jobSt(resource.data) in ['assigned', 'issue']
+                        && jobSt(request.resource.data) in ['assigned', 'issue', 'done']
+                        && request.resource.data.job.tech == resource.data.job.tech)
                     || (signedIn() && resource.data.from == request.auth.uid && onlyChanges(['job'])
                         && jobSt(resource.data) in ['done', 'accepted']
                         && jobSt(request.resource.data) in ['accepted', 'issue']

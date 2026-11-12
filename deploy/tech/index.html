@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>بوابة الفني · Sudan ICT Marketplace</title>
+<meta name="description" content="بوابة الفني في سوق السودان للتقنية والاتصالات: مهام التركيب من شركتك، في موبايلك.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#17477d">
+<link rel="manifest" href="/tech/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Same identity as the customer page (sictm.net): navy + green, Cairo, cards 18 / buttons 14 / fields 12, touch targets >= 44px */
+:root{--navy:#063b73;--hd:#17477d;--green:#1fa35c;--lb:#e8f0fa;--bg:#f4f7fb;--field:#eef3f9;--card:#fff;--tx:#12263f;--mu:#5d6f86;--bd:#dde5ef;
+--warn:#fff4e0;--warnT:#8a5300;--ok:#e8f5e9;--okT:#1b6b2f;--err:rgba(211,47,47,.12);--errT:#b3261e;--acc:#063b73;--chip:#dbe4f0;--edge:#9aa9bd;--sh:rgba(18,38,63,.10)}
+:root[data-theme=dark]{--bg:#0b1523;--card:#13233a;--field:#1a2c47;--lb:#1a2c47;--tx:#f1f5fb;--mu:#9fb0c8;--bd:#22395a;--acc:#6aa9f0;--hd:#063b73;
+--warn:#3a2c12;--warnT:#ffc56b;--ok:#143524;--okT:#7ddba0;--err:rgba(239,83,80,.16);--errT:#ff8a84;--chip:#1e3558;--edge:#0a1220;--sh:rgba(0,0,0,.35)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Cairo,system-ui,"Segoe UI",Tahoma,sans-serif;font-size:15px;line-height:1.6;color:var(--tx);background:var(--bg)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+a{color:inherit;text-decoration:none}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+[dir=ltr] svg.dir{transform:scaleX(-1)}
+#app{max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;background:var(--bg);position:relative;display:flex;flex-direction:column}
+@media(min-width:520px){body{background:#e3eaf4}:root[data-theme=dark] body{background:#060d17}#app{box-shadow:0 0 40px rgba(18,38,63,.18)}}
+.grad{background:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.5px) 0 0/22px 22px,linear-gradient(135deg,#0a2f66 0%,#0b5680 48%,#149a84 100%);color:#fff}
+/* top bars */
+.top{position:sticky;top:0;z-index:20;background:var(--hd);color:#fff;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top));display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(6,24,48,.25)}
+.top h1{font-size:22px;font-weight:800;margin:0;line-height:1.3}
+.top .sub{font-size:13px;opacity:.8;line-height:1.4}
+.top .gr{flex:1;min-width:0}
+.logo{width:46px;height:46px;border-radius:12px;background:#fff url(/icons/icon-192.png) center/86% no-repeat;flex:none}
+.ib{width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;display:grid;place-items:center;position:relative;flex:none}
+.ib .n,.nav .n{position:absolute;top:-6px;inset-inline-start:-6px;min-width:20px;height:20px;border-radius:10px;background:var(--green);color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center;padding:0 5px;line-height:1}
+.pill{height:46px;padding:0 14px;border-radius:12px;background:rgba(31,163,92,.28);border:1px solid rgba(255,255,255,.22);color:#fff;font-weight:700;display:flex;align-items:center;gap:8px;flex:none}
+.pill:before{content:"";width:10px;height:10px;border-radius:50%;background:#4ade80}
+.pill.off{background:rgba(255,255,255,.12)}.pill.off:before{background:#cbd5e1}
+.tchip{background:rgba(255,255,255,.16);color:#fff;border-radius:999px;padding:4px 14px;font-size:13px;font-weight:700;white-space:nowrap}
+.tbtn{height:46px;padding:0 14px;border-radius:12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;font-weight:700}
+/* layout */
+.pg{flex:1;padding:14px 16px 24px}
+.pg.nb{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 1.5px 0 var(--edge),0 8px 16px var(--sh)}
+.card.flat{box-shadow:none;opacity:.85}
+.card.un{background:var(--lb);background:color-mix(in srgb,var(--lb) 55%,var(--card))}
+h2{font-size:18px;font-weight:800;margin:0}
+.lbl{font-size:14px;font-weight:700;color:var(--mu);margin:0 0 10px}
+.mu{color:var(--mu)}.sm{font-size:13px}.b{font-weight:700}.xb{font-weight:800}
+.row{display:flex;align-items:center;gap:10px}.sp{justify-content:space-between}.gr{flex:1;min-width:0}
+.el{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
+.green{color:var(--green)}.acc{color:var(--acc)}
+/* buttons */
+.btn{min-height:52px;border-radius:14px;padding:0 18px;font-weight:800;font-size:17px;display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--green);color:#fff;width:100%;text-align:center}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.s{background:var(--lb);color:var(--acc)}
+.btn.n{background:var(--navy);color:#fff}
+.btn.d{background:var(--err);color:var(--errT)}
+.btn.m{min-height:46px;font-size:15px;padding:0 12px}
+.btn.a{width:auto}
+.b3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.b3 .btn{padding:0 6px;font-size:15px}.b3 svg.i{width:19px;height:19px}
+.sq{width:52px;height:52px;border-radius:14px;background:var(--lb);color:var(--acc);display:grid;place-items:center;flex:none}
+.link{color:var(--acc);font-weight:700}
+/* badges */
+.bdg{display:inline-flex;align-items:center;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:700;white-space:nowrap;background:var(--chip);color:var(--acc)}
+.bdg.onway{background:#d5ecdf;background:color-mix(in srgb,var(--green) 18%,var(--card));color:var(--okT)}
+.bdg.pay{background:var(--warn);color:var(--warnT)}
+.bdg.done{background:var(--ok);color:var(--okT)}
+.bdg.cancelled{background:var(--err);color:var(--errT)}
+.bdg.new{background:var(--green);color:#fff}
+/* stepper */
+.steps{display:flex;align-items:flex-start;margin:14px 0 4px}
+.st{flex:none;width:64px;text-align:center;font-size:12.5px;color:var(--mu);line-height:1.35}
+.st i{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:2.5px solid #c3cedc;border:2.5px solid color-mix(in srgb,var(--mu) 35%,transparent);margin:0 auto 6px;color:#fff}
+.st i svg{width:15px;height:15px;stroke-width:3}
+.st.ok i{background:var(--green);border-color:var(--green)}.st.ok{color:var(--tx)}
+.st.cur i{border-color:var(--acc)}.st.cur i:after{content:"";width:10px;height:10px;border-radius:50%;background:var(--acc)}
+.st.cur{color:var(--acc);font-weight:800}
+.ln{flex:1;height:3px;border-radius:2px;background:#d5dde8;background:color-mix(in srgb,var(--mu) 22%,transparent);margin-top:13px}
+.ln.ok{background:var(--green)}
+/* home */
+.hero{padding:16px 20px 76px}
+.hero h1{font-size:24px;font-weight:800;margin:0}
+.hero p{margin:2px 0 0;opacity:.9}
+.lift{margin-top:-62px;padding-top:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:12px 14px;box-shadow:0 1.5px 0 var(--edge),0 8px 16px var(--sh)}
+.stat b{display:block;font-size:24px;font-weight:800;line-height:1.3;color:var(--acc)}
+.stat.a b{color:#a35c00}:root[data-theme=dark] .stat.a b{color:#ffb547}.stat.g b{color:var(--green);font-size:20px;line-height:1.56}
+.stat span{font-size:13px;color:var(--mu)}
+.ic{width:46px;height:46px;border-radius:14px;background:var(--lb);color:var(--acc);display:grid;place-items:center;flex:none}
+.ic.r{border-radius:50%}.ic.ok{background:var(--ok);color:var(--okT)}.ic.er{background:var(--err);color:var(--errT)}.ic.nv{background:var(--navy);color:#fff}
+/* banners */
+.ban{border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.ban.w{background:var(--warn);color:var(--warnT)}.ban.o{background:var(--ok);color:var(--okT)}.ban.e{background:var(--err);color:var(--errT);border:1px solid color-mix(in srgb,var(--errT) 25%,transparent)}.ban.i{background:var(--lb);color:var(--tx)}
+.ban b{display:block}
+.offl{background:var(--warn);color:var(--warnT);padding:10px 16px;display:flex;gap:10px;align-items:center;font-weight:700;font-size:14px}
+/* tasks */
+.srch{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:0 14px;height:52px;margin-bottom:12px;color:var(--mu)}
+.srch input{flex:1;border:0;outline:0;background:none;min-width:0;height:100%;color:var(--tx)}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:0 -16px 12px;padding:0 16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:44px;padding:0 16px;border-radius:999px;background:var(--card);border:1px solid var(--bd);font-weight:700;white-space:nowrap}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.sec{font-size:14px;font-weight:700;color:var(--mu);margin:16px 0 8px}
+.tk{display:block;width:100%;text-align:start}.tk.row{display:flex}
+.dist{font-weight:800;color:var(--acc);white-space:nowrap}
+/* detail */
+.map{height:140px;margin:-16px -16px 14px;border-radius:17px 17px 0 0;background:linear-gradient(var(--card) 1.5px,transparent 1.5px) 0 0/100% 32px,linear-gradient(90deg,var(--card) 1.5px,transparent 1.5px) 0 0/40px 100%,var(--lb);position:relative;display:grid;place-items:center}
+.map .p{width:44px;height:44px;border-radius:50% 50% 50% 0;background:var(--navy);transform:rotate(-45deg);box-shadow:0 6px 10px rgba(6,24,48,.3)}
+.map .d{position:absolute;bottom:12px;inset-inline-end:14px;background:var(--card);border-radius:10px;padding:3px 10px;font-size:13px;font-weight:800;color:var(--acc)}
+.av{width:50px;height:50px;border-radius:50%;background:var(--lb);color:var(--acc);display:grid;place-items:center;font-weight:800;font-size:20px;flex:none}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.kv div{background:var(--field);border-radius:12px;padding:10px 14px}
+.kv span{display:block;font-size:13px;color:var(--mu)}.kv b{font-weight:800}
+.note{background:var(--field);border-radius:12px;padding:10px 14px;margin-bottom:10px;display:flex;gap:10px}
+.note button{width:44px;height:44px;display:grid;place-items:center;color:var(--mu);flex:none;margin:-6px}
+.note svg.i{width:18px;height:18px}
+.nin{background:var(--field);border:1px solid var(--bd);border-radius:12px;padding:10px;display:flex;gap:8px;align-items:flex-end}
+.nin textarea{flex:1;border:0;outline:0;background:none;resize:none;min-height:60px}
+.dock{position:sticky;bottom:0;z-index:15;background:var(--card);border-top:1px solid var(--bd);padding:12px 16px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -8px 18px var(--sh)}
+.dock .hint{text-align:center;font-size:13px;color:var(--mu);margin-top:8px}
+/* bottom nav */
+.nav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;z-index:30;background:var(--card);border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:13px;color:var(--mu);min-height:56px;justify-content:center}
+.nav span.w{position:relative;width:56px;height:30px;border-radius:15px;display:grid;place-items:center}
+.nav .on{color:var(--acc);font-weight:800}.nav .on span.w{background:var(--lb)}
+.nav .n{inset-inline-start:2px;top:-4px}
+/* sheets */
+.ov{position:fixed;inset:0;z-index:50;background:rgba(10,20,36,.55);display:flex;align-items:flex-end;justify-content:center;animation:fd .18s}
+.sheet{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom));max-height:92dvh;overflow:auto;animation:up .22s}
+.sheet:before{content:"";display:block;width:44px;height:5px;border-radius:3px;background:var(--bd);margin:0 auto 14px}
+@keyframes fd{from{opacity:0}}@keyframes up{from{transform:translateY(40px);opacity:.4}}
+.tbl{background:var(--field);border-radius:14px;padding:4px 14px;margin:14px 0}
+.tbl div{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--bd)}.tbl div:last-child{border:0}
+.tbl span{color:var(--mu);width:64px;flex:none}.tbl b{flex:1}
+.ck{display:flex;align-items:center;gap:12px;border:1.5px solid var(--bd);border-radius:14px;padding:12px 14px;margin-bottom:10px;min-height:56px;cursor:pointer}
+.ck input{appearance:none;-webkit-appearance:none;width:26px;height:26px;border:2px solid var(--mu);border-radius:6px;flex:none;margin:0;display:grid;place-items:center;cursor:pointer}
+.ck input:checked{background:var(--green);border-color:var(--green)}
+.ck input:checked:after{content:"";width:12px;height:6px;border:solid #fff;border-width:0 0 3px 3px;transform:rotate(-45deg) translate(1px,-1px)}
+.ck:has(input:checked){border-color:var(--green);background:color-mix(in srgb,var(--green) 9%,var(--card))}
+.prog{flex:1;height:8px;border-radius:4px;background:var(--lb);overflow:hidden}.prog i{display:block;height:100%;background:var(--green);border-radius:4px;transition:width .2s}
+textarea.f,input.f{width:100%;background:var(--field);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;outline:0;min-height:52px}
+textarea.f{min-height:120px;resize:vertical}
+input.f:focus,textarea.f:focus,.nin:focus-within,.srch:focus-within{border-color:var(--acc)}
+label.fl{display:block;font-weight:700;margin:14px 0 8px}
+.pw{position:relative}.pw button{position:absolute;inset-inline-end:4px;top:4px;width:44px;height:44px;display:grid;place-items:center;color:var(--mu)}
+.pw input{padding-inline-end:52px}
+.rule{display:flex;gap:10px;align-items:center;color:var(--mu);margin-top:10px}.rule.ok{color:var(--okT)}
+/* chat */
+.strip{background:var(--card);border-bottom:1px solid var(--bd);padding:10px 16px;display:flex;align-items:center;gap:10px}
+.msgs{flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:var(--field)}
+.day{align-self:center;font-size:13px;font-weight:700;color:var(--mu);margin:6px 0}
+.priv{align-self:center;background:var(--card);border-radius:999px;padding:5px 14px;font-size:13px;color:var(--mu);display:flex;gap:6px;align-items:center}
+.priv svg.i{width:15px;height:15px}
+.bub{max-width:82%;padding:10px 14px;border-radius:16px;background:var(--card);align-self:flex-start;box-shadow:0 1px 0 var(--edge);white-space:pre-wrap;overflow-wrap:anywhere}
+.bub.me{align-self:flex-end;background:var(--navy);color:#fff}
+.bub time{display:block;font-size:12px;opacity:.65;margin-top:2px}
+.quick{display:flex;gap:8px;overflow-x:auto;padding:8px 16px;background:var(--field);scrollbar-width:none}
+.send{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--bd);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center}
+.send input{flex:1;height:52px;border-radius:26px;border:1px solid var(--bd);background:var(--field);padding:0 18px;outline:0;min-width:0}
+.send button{width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;flex:none}
+/* notifications / account */
+.dot{width:10px;height:10px;border-radius:50%;background:var(--green);flex:none;margin-top:8px}
+.promo{border-radius:18px;padding:16px;margin-bottom:14px;display:flex;gap:12px;align-items:center}
+.promo .ic{background:rgba(255,255,255,.18);color:#fff}
+.promo ol{margin:8px 0 0;padding-inline-start:20px}
+.sw{appearance:none;-webkit-appearance:none;width:56px;height:32px;border-radius:16px;background:#b4bfcd;background:color-mix(in srgb,var(--mu) 40%,transparent);position:relative;cursor:pointer;flex:none;margin:6px 0;transition:.15s}
+.sw:after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.15s}
+.sw:checked{background:var(--green)}.sw:checked:after{inset-inline-start:27px}
+.seg{display:flex;background:var(--field);border-radius:12px;padding:3px}
+.seg button{min-height:40px;padding:0 16px;border-radius:10px;font-weight:700;color:var(--mu)}
+.seg .on{background:var(--card);color:var(--tx);box-shadow:0 1px 3px var(--sh),0 0 0 1px var(--bd)}
+.hr{border-top:1px solid var(--bd);margin:10px 0}
+.acct{padding:22px 20px 84px;display:flex;align-items:center;gap:14px}
+.acct .av{width:72px;height:72px;font-size:30px;background:#fff;color:var(--navy);border:4px solid rgba(255,255,255,.35)}
+.two{display:grid;grid-template-columns:1fr 1fr}.two>div{padding:2px 8px}.two>div+div{border-inline-start:1px solid var(--bd)}
+.two b{display:block;font-size:22px;font-weight:800;color:var(--acc)}.two .g{color:var(--green)}
+/* auth */
+.auth{padding:34px 20px 110px;text-align:center}
+.auth .logo{width:104px;height:104px;border-radius:26px;margin:0 auto 14px;box-shadow:0 12px 24px rgba(0,0,0,.25)}
+.auth h1{font-size:28px;font-weight:800;margin:8px 0 2px}
+.auth p{margin:0;opacity:.9}
+.toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);z-index:99;background:#12263f;color:#fff;padding:10px 18px;border-radius:12px;font-weight:700;max-width:88vw;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.3)}
+@media(max-width:400px){.top{gap:8px;padding-inline:12px}.top .brand{font-size:13.5px}.logo,.ib{width:42px;height:42px}.pill{height:42px;padding:0 10px}.stat{padding:10px}.stat span{font-size:12px}}
+.empty{text-align:center;color:var(--mu);padding:36px 10px}
+.demo{background:#7c3aed;color:#fff;text-align:center;font-size:13px;font-weight:700;padding:4px 10px}
+.load{flex:1;display:grid;place-items:center;color:var(--mu)}
+</style>
+</head>
+<body>
+<div id="app"><div class="load">…</div></div>
+<script>
+/* ============================================================================
+   SICTM technician portal (tech.sictm.net  ·  sictm.net/tech)
+   Uses the SAME Firebase project as the customer page:
+     techs/{id}       technician record made by the company (uid, email, avail, pwSet…)
+     orders/{id}      an order is a "task" when order.techUid == the technician's uid
+     techNotes/{id}   the technician's private notes on a task (company can read, customer cannot)
+     techChats/{id}   task chat between the technician and the company
+   Add ?demo to the address to preview every screen with sample data (nothing is saved).
+   ============================================================================ */
+const FIREBASE_CONFIG={apiKey:"AIzaSyCadbl5AFYPo3CET4gHMhFJ6vDngClJlgM",authDomain:"sictm-website.firebaseapp.com",projectId:"sictm-website",storageBucket:"sictm-website.firebasestorage.app",messagingSenderId:"1081658633550",appId:"1:1081658633550:web:54b31402ee1c51ffb2421f"};
+const MAIN_SITE=/(^|\.)sictm\.net$/.test(location.hostname)?"https://sictm.net/":"/";
+const DEMO=new URLSearchParams(location.search).has("demo");
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ls=(k,d)=>{try{const v=localStorage.getItem("sictech_"+k);return v?JSON.parse(v):d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem("sictech_"+k,JSON.stringify(v))}catch(e){}};
+let lang=ls("lang","ar"),theme=ls("theme",matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+const L=(a,e)=>lang==="en"?e:a;
+const num=n=>Number(n||0).toLocaleString("en-US");
+const sdg=n=>`<span class="ltr">${num(n)} SDG</span>`;
+
+const P={/* icons */
+home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+chat:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+nav:'<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
+phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+box:'<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+check:'<path d="M20 6 9 17l-5-5"/>',x:'<path d="M18 6 6 18M6 6l12 12"/>',search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+trash:'<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>',
+lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+fwd:'<path d="m15 18-6-6 6-6"/>',back:'<path d="m9 18 6-6-6-6"/>',arrow:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+wifi:'<path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5.1A15 15 0 0 1 22 8.8M5 12.9a10 10 0 0 1 5.2-2.7M16.9 11a10 10 0 0 1 2.1 1.9M12 20h.01"/>',
+sync:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',sort:'<path d="m3 16 4 4 4-4M7 20V4M21 8l-4-4-4 4M17 4v16"/>',
+build:'<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/>',
+truck:'<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+cash:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+eye:'<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',alert:'<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',dl:'<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+dev:'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',share:'<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/>'};
+const I=(n,dir)=>`<svg class="i${dir?" dir":""}" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
+
+/* ---------- state ---------- */
+const S={ready:false,user:null,tech:null,co:null,orders:[],notes:[],msgs:[],view:"home",arg:"",tab:"all",sort:ls("sort","new"),q:"",cq:"",allDone:false,
+sheet:null,online:navigator.onLine,syncAt:Date.now(),pending:new Set(),geo:null,geoAsk:false,err:"",busy:false,
+seenAt:ls("seenAt",0),readN:ls("readN",[]),chatSeen:ls("chatSeen",{}),opened:ls("opened",[]),prefs:ls("prefs",{tasks:true,msgs:true})};
+let FB=null,unsub=[],installEvt=null,known=null;
+
+/* ---------- tasks (derived from orders) ---------- */
+const STL={prep:["قيد التجهيز","Preparing"],onway:["في الطريق","On the way"],pay:["بانتظار تأكيد الدفع","Awaiting payment"],done:["مكتملة","Completed"],cancelled:["ملغاة من الشركة","Cancelled by company"]};
+const stl=(s,short)=>s==="pay"&&short?L("بانتظار الدفع","Awaiting payment"):s==="cancelled"&&short?L("ملغاة","Cancelled"):L(...STL[s]);
+const code=o=>"#"+String(o.id).slice(-4).toUpperCase();
+const job=o=>o.job||{};
+const pickup=o=>o.delivery==="pickup";
+function stateOf(o){const j=job(o);if(o.status==="cancelled")return"cancelled";if(j.status==="done"||j.status==="accepted")return"done";if(o.status==="pending")return"pay";return j.onWayAt&&!pickup(o)?"onway":"prep"}
+const active=o=>["prep","onway","pay"].includes(stateOf(o));
+const nm=i=>lang==="en"&&i.nameEn?i.nameEn:i.name;
+function title(o){const l=(o.items||[]).filter(i=>i.inst),a=l.length?l:(o.items||[]);if(!a.length)return L("مهمة تركيب","Installation job");return nm(a[0])+(a[0].qty>1?` (${a[0].qty})`:"")+(a.length>1?` +${a.length-1}`:"")}
+const qty=o=>((o.items||[]).filter(i=>i.inst).reduce((s,i)=>s+(i.qty||1),0))||1;
+const fee=o=>Number(o.inst||0);
+const cust=o=>(o.ship&&o.ship.name)||o.fromName||"—";
+const addr=o=>(o.ship&&o.ship.addr)||"";
+const area=o=>addr(o).split(/[،,]/).slice(0,2).map(s=>s.trim()).filter(Boolean).join(L("، ",", "));
+const tsOf=o=>{const j=job(o);return Date.parse(j.assignedAt||o.date||0)||0};
+const doneTs=o=>Date.parse(job(o).doneAt||o.date||0)||0;
+function dist(o){if(o._dist!=null)return o._dist;const s=o.ship||{};if(!S.geo||s.lat==null||s.lng==null)return null;
+const r=x=>x*Math.PI/180,a=Math.sin(r(s.lat-S.geo.lat)/2)**2+Math.cos(r(S.geo.lat))*Math.cos(r(s.lat))*Math.sin(r(s.lng-S.geo.lng)/2)**2;return 12742*Math.asin(Math.sqrt(a))}
+const km=d=>d==null?"":`${d<10?Math.round(d*10)/10:Math.round(d)} ${L("كم","km")}`;
+const hasGeoTasks=()=>S.orders.some(o=>o._dist!=null||(o.ship&&o.ship.lat!=null));
+const T=id=>S.orders.find(o=>o.id===id);
+const act=()=>S.orders.filter(active).sort(cmp);
+function cmp(a,b){const ra=stateOf(a)==="pay"?1:0,rb=stateOf(b)==="pay"?1:0;if(S.sort==="near"){const da=dist(a),db_=dist(b);if(da!=null&&db_!=null&&da!==db_)return da-db_}return ra-rb||tsOf(b)-tsOf(a)}
+function monthStats(){const n=new Date(),l=S.orders.filter(o=>stateOf(o)==="done"&&(d=>d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear())(new Date(doneTs(o))));return{n:l.length,sum:l.reduce((s,o)=>s+fee(o),0)}}
+
+/* ---------- time ---------- */
+const MON=[["يناير","Jan"],["فبراير","Feb"],["مارس","Mar"],["أبريل","Apr"],["مايو","May"],["يونيو","Jun"],["يوليو","Jul"],["أغسطس","Aug"],["سبتمبر","Sep"],["أكتوبر","Oct"],["نوفمبر","Nov"],["ديسمبر","Dec"]];
+const p2=n=>String(n).padStart(2,"0"),hm=t=>{const d=new Date(t);return p2(d.getHours())+":"+p2(d.getMinutes())};
+const dm=t=>{const d=new Date(t);return d.getDate()+" "+L(...MON[d.getMonth()])};
+const day0=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()};
+const daysAgo=t=>Math.round((day0(Date.now())-day0(t))/864e5);
+const hasTime=s=>/T\d/.test(String(s||""));
+function when(t,raw){const d=daysAgo(t);if(d<=0)return hasTime(raw??"T0")?hm(t):L("اليوم","Today");if(d===1)return L("أمس","Yesterday");return dm(t)}
+function rel(t){const m=Math.floor((Date.now()-t)/6e4);if(m<1)return L("الآن","now");if(m<60)return L(m===1?"قبل دقيقة":m===2?"قبل دقيقتين":m<11?`قبل ${m} دقائق`:`قبل ${m} دقيقة`,`${m} min ago`);
+const h=Math.floor(m/60);if(daysAgo(t)===0)return L(h===1?"قبل ساعة":h===2?"قبل ساعتين":h<11?`قبل ${h} ساعات`:`قبل ${h} ساعة`,`${h} h ago`);return when(t)}
+function arrived(o){const j=job(o),raw=j.assignedAt||o.date,t=tsOf(o),d=daysAgo(t);
+return d<=0?L("وصلت اليوم","Arrived today")+(hasTime(raw)?" "+hm(t):""):d===1?L("وصلت أمس","Arrived yesterday"):d===2?L("وصلت منذ يومين","Arrived 2 days ago"):L(d<11?`وصلت منذ ${d} أيام`:`وصلت منذ ${d} يوماً`,`Arrived ${d} days ago`)}
+const paid=o=>stateOf(o)==="pay"?L("بانتظار تأكيد الدفع","awaiting payment"):L("الدفع مؤكد","payment confirmed");
+
+/* ---------- notifications & unread (derived on this device) ---------- */
+function notifs(){const l=[];S.orders.forEach(o=>{const j=job(o),c=code(o),t=title(o)+" · "+cust(o);
+l.push({id:"n"+o.id,k:"new",at:tsOf(o),raw:j.assignedAt||o.date,oid:o.id,ti:L("مهمة جديدة أُسندت إليك","New job assigned to you"),tx:t+(area(o)?L("، ",", ")+area(o):"")+".",c});
+if(j.readyAt&&o.status!=="cancelled")l.push({id:"r"+o.id,k:"ready",at:Date.parse(j.readyAt),oid:o.id,ti:L("المهمة جاهزة للتنفيذ","Job ready to start"),tx:L("أكدت الشركة الدفع: ","The company confirmed payment: ")+t+".",c});
+if(o.status==="cancelled")l.push({id:"c"+o.id,k:"cancel",at:Date.parse(j.cancelAt||o.date)||tsOf(o),raw:j.cancelAt||o.date,oid:o.id,ti:L("ألغت الشركة مهمة","The company cancelled a job"),tx:t+L(". لا داعي للذهاب.",". No need to go."),c})});
+S.msgs.filter(m=>m.by==="co").forEach(m=>{const o=T(m.oid);l.push({id:"m"+m.id,k:"msg",at:Date.parse(m.at),oid:m.oid,chat:1,ti:L("رسالة من الشركة","Message from the company"),tx:m.text,c:o?code(o):""})});
+return l.filter(n=>n.at).sort((a,b)=>b.at-a.at)}
+const unreadN=n=>n.at>S.seenAt&&!S.readN.includes(n.id);
+const chatOf=oid=>S.msgs.filter(m=>m.oid===oid).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
+const chatUnread=oid=>S.msgs.filter(m=>m.oid===oid&&m.by==="co"&&Date.parse(m.at)>(S.chatSeen[oid]||0)).length;
+const chatsUnread=()=>S.orders.filter(o=>chatUnread(o.id)).length;
+const isNew=o=>active(o)&&!S.opened.includes(o.id)&&Date.now()-tsOf(o)<864e5&&hasTime(job(o).assignedAt);
+
+/* ---------- data layer: Firebase or demo ---------- */
+const api={
+async job(oid,patch){S.pending.add(oid);render();
+  if(!FB){Object.assign(T(oid).job,patch);S.pending.delete(oid);return render()}
+  const u={};Object.keys(patch).forEach(k=>u["job."+k]=patch[k]);
+  FB.f.updateDoc(FB.f.doc(FB.fs,"orders",oid),u).then(()=>{S.pending.delete(oid);render()}).catch(fail)},
+note(oid,text){const n={id:"n"+Date.now()+Math.random().toString(36).slice(2,6),oid,cid:S.tech.cid,tuid:S.tech.uid,text,at:new Date().toISOString()};
+  if(!FB){S.notes.push(n);return render()}const{id,...d}=n;FB.f.setDoc(FB.f.doc(FB.fs,"techNotes",id),d).catch(fail)},
+delNote(id){if(!FB){S.notes=S.notes.filter(n=>n.id!==id);return render()}FB.f.deleteDoc(FB.f.doc(FB.fs,"techNotes",id)).catch(fail)},
+msg(oid,text){const m={id:"m"+Date.now()+Math.random().toString(36).slice(2,6),oid,cid:S.tech.cid,tuid:S.tech.uid,by:"tech",text,at:new Date().toISOString()};
+  if(!FB){S.msgs.push(m);return render()}const{id,...d}=m;FB.f.setDoc(FB.f.doc(FB.fs,"techChats",id),d).catch(fail)},
+tech(patch){Object.assign(S.tech,patch);render();if(FB)FB.f.updateDoc(FB.f.doc(FB.fs,"techs",S.tech.id),patch).catch(fail)}};
+const EMSG={"auth/invalid-credential":["البريد أو كلمة المرور غير صحيحة","Wrong email or password"],"auth/wrong-password":["كلمة المرور غير صحيحة","Wrong password"],"auth/user-not-found":["لا يوجد حساب بهذا البريد","No account with this email"],"auth/invalid-email":["اكتب بريداً إلكترونياً صحيحاً","Enter a valid email"],"auth/too-many-requests":["محاولات كثيرة، انتظر قليلاً ثم حاول","Too many attempts, try again later"],"auth/network-request-failed":["لا يوجد اتصال بالإنترنت","No internet connection"],"auth/weak-password":["كلمة المرور ضعيفة (6 أحرف على الأقل)","Password too weak (min 6 characters)"],"auth/requires-recent-login":["سجّل الخروج ثم ادخل من جديد لتغيير كلمة المرور","Sign out and in again to change the password"],"permission-denied":["لا تملك صلاحية لهذا الإجراء","You don't have permission for this action"]};
+const emsg=e=>EMSG[e&&e.code]?L(...EMSG[e.code]):(e&&(e.code||e.message))||String(e);
+const fail=e=>{S.busy=false;toast(emsg(e));render()};
+
+async function fbInit(){
+try{const B="https://www.gstatic.com/firebasejs/10.12.2/";const[a,au,f]=await Promise.all(["firebase-app","firebase-auth","firebase-firestore"].map(n=>import(B+n+".js")));
+/* a named app keeps the technician's sign-in separate from the customer/company sign-in on sictm.net */
+const app=a.initializeApp(FIREBASE_CONFIG,"tech");let fs;try{fs=f.initializeFirestore(app,{localCache:f.persistentLocalCache()})}catch(e){fs=f.getFirestore(app)}
+FB={au,f,auth:au.getAuth(app),fs};FB.auth.languageCode=lang;
+au.onAuthStateChanged(FB.auth,u=>{unsub.forEach(x=>x());unsub=[];known=null;S.user=u;S.tech=null;S.co=null;S.orders=[];S.notes=[];S.msgs=[];
+ if(!u){S.ready=true;return render()}
+ const c=n=>f.collection(fs,n),w=(n,k)=>f.query(c(n),f.where(k,"==",u.uid));
+ const on=(q,cb,opt)=>unsub.push(opt?f.onSnapshot(q,opt,cb,fail):f.onSnapshot(q,cb,fail));
+ on(w("techs","uid"),s=>{if(s.empty){if(s.metadata.fromCache)return;S.ready=true;S.err=L("هذا الحساب ليس حساب فني. اطلب من شركتك إنشاء حسابك.","This is not a technician account. Ask your company to create one.");au.signOut(FB.auth);return}
+  const d=s.docs[0];S.tech={...d.data(),id:d.id};S.ready=true;
+  if(!S.co||S.co.id!==S.tech.cid)f.getDoc(f.doc(fs,"companies",S.tech.cid)).then(x=>{S.co={...(x.data()||{}),id:S.tech.cid};render()}).catch(()=>{});render()});
+ on(w("orders","techUid"),s=>{S.orders=s.docs.map(d=>({...d.data(),id:d.id}));S.pending=new Set(s.docs.filter(d=>d.metadata.hasPendingWrites).map(d=>d.id));if(!s.metadata.fromCache)S.syncAt=Date.now();fresh();render()},{includeMetadataChanges:true});
+ on(w("techNotes","tuid"),s=>{S.notes=s.docs.map(d=>({...d.data(),id:d.id}));render()});
+ on(w("techChats","tuid"),s=>{S.msgs=s.docs.map(d=>({...d.data(),id:d.id}));fresh();render()})});
+}catch(e){S.ready=true;S.err="Firebase: "+(e.message||e);render()}}
+
+/* a new event arrived while the page is in the background → show a device notification */
+function fresh(){const l=notifs(),ids=new Set(l.map(n=>n.id));if(known){l.filter(n=>!known.has(n.id)&&Date.now()-n.at<36e5).forEach(n=>{
+ if(!("Notification"in window)||Notification.permission!=="granted"||!document.hidden)return;if(n.k==="msg"?!S.prefs.msgs:!S.prefs.tasks)return;
+ const o={body:n.tx,icon:"/icons/icon-192.png",badge:"/icons/icon-192.png",tag:n.id,lang,dir:lang==="ar"?"rtl":"ltr",data:{url:location.pathname+(n.chat?"#/chat/":"#/task/")+n.oid}};
+ navigator.serviceWorker&&navigator.serviceWorker.ready.then(r=>r.showNotification(n.ti,o)).catch(()=>{try{new Notification(n.ti,o)}catch(e){}})})}known=ids}
+
+/* ---------- demo data (the sample technician from the design) ---------- */
+function demo(){const now=Date.now(),H=36e5,D=864e5,iso=t=>new Date(t).toISOString(),d10=t=>iso(t).slice(0,10);
+const mk=(id,name,nameEn,q,f,who,ad,st,j,x)=>({id:"o"+id,cid:"co1",techUid:"demo",from:"u"+id,fromName:who,items:[{pid:"p"+id,name,nameEn,price:0,qty:q,inst:true,instFee:f/q}],inst:f,total:f,ship:{name:who,phone:"+249 91 234 5678",addr:ad},delivery:"s",pay:"bank",status:st,date:d10(now-2*D),job:{status:"assigned",tech:{id:"t1",uid:"demo",name:"محمد الأمين"},...j},...x});
+S.user={uid:"demo",email:"tech.mohamed@printhub.sd"};
+S.tech={id:"t1",uid:"demo",cid:"co1",name:"محمد الأمين",phone:"+249 92 555 0142",email:"tech.mohamed@printhub.sd",level:"l2",avail:true,pwSet:true};
+S.co={id:"co1",name:"سودان برنت هب",nameEn:"Sudan Print Hub",city:"الخرطوم، شارع الملك نمر",cityEn:"Khartoum, King Nimir St"};
+S.orders=[
+mk("7K2Q","طابعة HP LaserJet Pro M404dn","HP LaserJet Pro M404dn printer",1,7500,"أحمد عثمان","الخرطوم، الرياض، شارع المشتل، جنب صيدلية الرياض، البيت بالباب الأخضر","processing",{assignedAt:iso(now-2*D),readyAt:iso(now-2*H)},{_dist:3.2,date:d10(now-2*D)+" 14:20"}),
+mk("Q9MD","كاميرات مراقبة Hikvision","Hikvision CCTV cameras",4,20000,"مكتبة النيل","أم درمان، الثورة، الحارة 12","processing",{assignedAt:iso(now-3*H),onWayAt:iso(now-H)},{_dist:11}),
+mk("B21C","راوتر TP-Link Archer AX55","TP-Link Archer AX55 router",1,5000,"سارة إبراهيم","بحري، الحلفايا، مربع 4","pending",{assignedAt:iso(now-3*D)},{_dist:5.8}),
+mk("Z3KW","سويتش Cisco 24 منفذ","Cisco 24-port switch",1,9000,"شركة الريان","بحري، المنطقة الصناعية","cancelled",{assignedAt:iso(now-11*D),cancelAt:iso(now-10*D),cancelNote:"العميل طلب تأجيل الطلب للشهر القادم."})];
+const dn=[["M4TR","شاشة Samsung 27 بوصة","Samsung 27-inch monitor",7500,"عمر الطيب","الخرطوم 2",4],["U8PC","جهاز UPS APC 1500VA","APC 1500VA UPS",10000,"صيدلية الأمل","العمارات",7],["L2NV","طابعة Canon i-SENSYS","Canon i-SENSYS printer",7500,"مدرسة النور","الخرطوم، الصحافة",8],["K5RT","راوتر MikroTik hAP","MikroTik hAP router",5000,"كافيه الواحة","أم درمان، بانت",9],["H7WS","نقطة وصول Ubiquiti","Ubiquiti access point",7500,"عيادة الشفاء","بحري، شمبات",10],["D3XE","كاميرا Dahua داخلية","Dahua indoor camera",7500,"بقالة السلام","الخرطوم، جبرة",11]];
+for(let i=0;i<12;i++)dn.push(["A"+(100+i),"تركيب شبكة مكتبية","Office network installation",6000,"عميل "+(i+1),"الخرطوم",14+i*3]);
+const m0=new Date(now);m0.setDate(1);m0.setHours(9,0,0,0);
+dn.forEach((x,i)=>{let t=now-x[6]*D;if(i<6&&t<m0.getTime())t=m0.getTime()+i*H;if(i>=6&&t>=m0.getTime())t=m0.getTime()-(i-5)*D;S.orders.push(mk(x[0],x[1],x[2],1,x[3],x[4],x[5],"delivered",{status:"accepted",assignedAt:iso(t-D),doneAt:iso(t)}))});
+const t0=day0(now);
+S.notes=[{id:"n1",oid:"o7K2Q",text:"العميل طلب الحضور بعد العصر، والطابعة تحتاج كيبل شبكة طويل.",at:iso(t0-D+18*H+5*6e4)},{id:"n2",oid:"o7K2Q",text:"جرّبت الاتصال الساعة 11 ولم يرد، سأعيد بعد الظهر.",at:iso(Math.min(now-6e4,t0+11*H+10*6e4))}];
+const mm=(id,oid,by,text,t)=>({id,oid,cid:"co1",tuid:"demo",by,text,at:iso(t)});
+S.msgs=[mm("m1","o7K2Q","co","صباح الخير يا محمد، الطابعة جاهزة في المخزن. استلمها قبل الساعة 12.",now-70*6e4),mm("m2","o7K2Q","tech","تمام، أنا في الطريق للمخزن. الكيبل معها؟",now-62*6e4),mm("m3","o7K2Q","co","الكيبل جاهز في المخزن، استلمه قبل ما تطلع. العميل طلب الحضور بعد العصر.",now-5*6e4),
+mm("m5","oQ9MD","co","العميل يفضّل الحضور قبل الساعة 4.",now-2*H),mm("m6","oB21C","tech","في انتظار تأكيد الدفع من طرفكم",now-D),mm("m7","oM4TR","co","شكرًا، العميل راضٍ عن التركيب",now-4*D)];
+S.seenAt=now-4*H;S.readN=["mm1","mm5"];S.chatSeen={o7K2Q:now-H,oM4TR:now};S.opened=["o7K2Q","oB21C"];S.geo={lat:15.55,lng:32.53};S.sort="near";S.ready=true}
+
+/* ---------- navigation ---------- */
+function go(v,a){const h="#/"+v+(a?"/"+a:"");if(location.hash===h)return route();location.hash=h}
+function route(){const m=location.hash.replace(/^#\/?/,"").split("/");S.view=m[0]||"home";S.arg=m[1]||"";S.sheet=null;
+if(S.view==="task"&&S.arg&&!S.opened.includes(S.arg)){S.opened.push(S.arg);if(!DEMO)sv("opened",S.opened.slice(-300))}
+if(S.view==="task"||S.view==="chat"){const ids=notifs().filter(n=>n.oid===S.arg&&(S.view==="chat"?n.chat:!n.chat)).map(n=>n.id);S.readN=[...new Set([...S.readN,...ids])].slice(-400);if(!DEMO)sv("readN",S.readN)}
+render();scrollTo(0,S.view==="chat"?1e6:0)}
+addEventListener("hashchange",route);
+const back=f=>history.length>1?history.back():go(f||"home");
+function toast(t){document.querySelectorAll(".toast").forEach(e=>e.remove());const d=document.createElement("div");d.className="toast";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2800)}
+function setTheme(t){theme=t;sv("theme",t);document.documentElement.dataset.theme=t;const m=document.querySelector("meta[name=theme-color]");if(m)m.content=t==="dark"?"#063b73":"#17477d";render()}
+function setLang(l){lang=l;sv("lang",l);document.documentElement.lang=l;document.documentElement.dir=l==="ar"?"rtl":"ltr";document.title=L("بوابة الفني","Technician Portal")+" · Sudan ICT Marketplace";if(FB)FB.auth.languageCode=l;render()}
+
+/* ---------- shared pieces ---------- */
+const bell=()=>{const n=notifs().filter(unreadN).length;return `<button class="ib" onclick="go('notifs')" aria-label="${L("الإشعارات","Notifications")}">${I("bell")}${n?`<span class="n">${n}</span>`:""}</button>`};
+const backBtn=f=>`<button class="ib" onclick="back('${f||"home"}')" aria-label="${L("رجوع","Back")}">${I("back",1)}</button>`;
+function navBar(){const a=act().filter(o=>isNew(o)).length,c=chatsUnread();
+const b=(v,ic,t,n)=>`<button class="${S.view===v?"on":""}" onclick="go('${v}')"><span class="w">${I(ic)}${n?`<span class="n">${n}</span>`:""}</span>${t}</button>`;
+return `<nav class="nav">${b("home","home",L("الرئيسية","Home"))}${b("tasks","wrench",L("المهام","Jobs"),a)}${b("chats","chat",L("المحادثات","Chats"),c)}${b("account","user",L("حسابي","Account"))}</nav>`}
+function steps(o){const s=stateOf(o),l=pickup(o)?[["pay",L("تأكيد الدفع","Payment")],["prep",L("قيد التجهيز","Preparing")],["done",L("اكتملت","Done")]]:[["pay",L("تأكيد الدفع","Payment")],["prep",L("قيد التجهيز","Preparing")],["onway",L("في الطريق","On the way")],["done",L("اكتملت","Done")]];
+const cur=s==="done"?l.length:l.findIndex(x=>x[0]===s);
+return `<div class="steps">${l.map((x,i)=>`${i?`<span class="ln${i<=cur?" ok":""}"></span>`:""}<div class="st${i<cur?" ok":i===cur?" cur":""}"><i>${i<cur?I("check"):""}</i>${x[1]}</div>`).join("")}</div>`}
+const mapUrl=o=>{const s=o.ship||{};return "https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(s.lat!=null?s.lat+","+s.lng:addr(o))};
+const tel=p=>"tel:"+String(p||"").replace(/[^\d+]/g,"");
+const phoneOf=o=>(o.ship&&o.ship.phone)||"";
+function primary(o,cls){const s=stateOf(o);
+if(s==="prep"&&!pickup(o))return `<button class="btn ${cls||""}" onclick="sheet('start','${o.id}')">${L("بدء التوصيل للعميل","Start delivery to customer")} ${I("arrow",1)}</button>`;
+if(s==="onway"||s==="prep")return `<button class="btn ${cls||""}" onclick="sheet('finish','${o.id}')">${L("إنهاء المهمة","Finish the job")} ${I("arrow",1)}</button>`;return""}
+function offBar(){if(S.online)return"";const n=S.pending.size;return `<div class="offl">${I("wifi")}<span class="gr">${L("الاتصال متقطع · تعرض آخر نسخة من","Connection lost · showing the copy from")} ${hm(S.syncAt)}</span>${n?`<span class="sm">${L(n===1?"تغيير واحد بانتظار الإرسال":`${n} تغييرات بانتظار الإرسال`,`${n} change(s) waiting to send`)}</span>`:""}</div>`}
+const taskRow=o=>{const s=stateOf(o),d=dist(o);
+if(s==="done")return `<button class="card tk row" onclick="go('task','${o.id}')"><span class="ic r ok">${I("check")}</span><span class="gr"><span class="xb el" style="display:block">${esc(title(o))}</span><span class="mu sm el" style="display:block">${esc(cust(o))}${area(o)?" · "+esc(area(o)):""} · ${dm(doneTs(o))}</span></span><b class="green">${sdg(fee(o))}</b></button>`;
+return `<button class="card tk${s==="cancelled"?" flat":""}" onclick="go('task','${o.id}')"><span class="row" style="flex-wrap:wrap;gap:8px"><span class="bdg ${s}">${stl(s)}</span>${isNew(o)?`<span class="bdg new">${L("جديدة","New")}</span>`:""}<span class="mu sm ltr">${code(o)}</span></span>
+<span class="xb" style="display:block;font-size:17px;margin-top:6px">${esc(title(o))}</span>
+<span class="row sp mu" style="margin-top:2px"><span class="row gr" style="gap:6px">${s==="cancelled"?"":I("pin")}<span class="el">${esc(cust(o))}${area(o)?" · "+esc(area(o)):""}${s==="cancelled"?" · "+dm(Date.parse(job(o).cancelAt||o.date)||tsOf(o)):""}</span></span>${s!=="cancelled"&&d!=null?`<span class="dist">${km(d)}</span>`:""}</span>
+${s==="cancelled"?"":`<span class="mu sm" style="display:block;margin-top:4px">${arrived(o)}${s==="pay"?"":" · "+paid(o)}</span>`}</button>`};
+
+/* ---------- screens ---------- */
+function vLogin(){return `<div class="grad auth"><div class="logo"></div><div class="b">Sudan ICT Marketplace</div><h1>${L("بوابة الفني","Technician Portal")}</h1><p>${L("مهام التركيب من شركتك، في موبايلك","Your company's installation jobs, on your phone")}</p></div>
+<div class="pg lift" style="margin-top:-84px"><form class="card" style="padding:20px" onsubmit="event.preventDefault();login()">
+${S.err?`<div class="ban e">${I("alert")}<span>${esc(S.err)}</span></div>`:""}
+<label class="fl" style="margin-top:0" for="le">${L("البريد الإلكتروني","Email")}</label><input class="f ltr" id="le" type="email" autocomplete="username" placeholder="name@company.sd" style="width:100%" required>
+<label class="fl" for="lp">${L("كلمة المرور","Password")}</label><div class="pw"><input class="f" id="lp" type="password" autocomplete="current-password" dir="ltr" required><button type="button" onclick="eye('lp')" aria-label="${L("إظهار","Show")}">${I("eye")}</button></div>
+<button class="btn" style="margin-top:18px" ${S.busy?"disabled":""}>${S.busy?"…":L("دخول","Sign in")}</button>
+<div style="text-align:center;margin-top:16px"><button type="button" class="link" style="min-height:44px" onclick="forgot()">${L("نسيت كلمة المرور؟","Forgot your password?")}</button></div></form>
+<div class="ban i">${I("info")}<span>${L("حسابك تنشئه شركتك. في أول دخول استخدم كلمة المرور المؤقتة التي أرسلتها الشركة، ثم اختر كلمة جديدة.","Your account is created by your company. On first sign-in use the temporary password the company sent you, then choose a new one.")}</span></div>
+<p style="text-align:center;margin-top:28px" class="mu">${L("لست فنيًا؟","Not a technician?")} <a class="link" href="${MAIN_SITE}">${L("تسوّق في","Shop at")} sictm.net</a></p>
+<p style="text-align:center"><button class="link sm" style="min-height:44px" onclick="setLang('${lang==="ar"?"en":"ar"}')">${lang==="ar"?"English":"العربية"}</button></p></div>`}
+function pwForm(first){return `<label class="fl" for="p1">${L("كلمة المرور الجديدة","New password")}</label><div class="pw"><input class="f" id="p1" type="password" dir="ltr" autocomplete="new-password" oninput="pwChk()"><button type="button" onclick="eye('p1');eye('p2')" aria-label="${L("إظهار","Show")}">${I("eye")}</button></div>
+<label class="fl" for="p2">${L("أعد كتابتها","Type it again")}</label><input class="f" id="p2" type="password" dir="ltr" autocomplete="new-password" oninput="pwChk()">
+<div class="rule" id="r1">${I("check")} ${L("6 أحرف على الأقل","At least 6 characters")}</div><div class="rule" id="r2">${I("check")} ${L("الكلمتان متطابقتان","Both passwords match")}</div>
+<button class="btn" id="pb" style="margin-top:16px" disabled>${first?L("حفظ والمتابعة","Save and continue"):L("حفظ كلمة المرور","Save password")}</button>`}
+const pwTip=()=>`<p class="row mu sm" style="justify-content:center;margin-top:14px">${I("lock")} ${L("لا تشارك كلمة المرور مع أحد، ولا حتى مع الشركة.","Never share your password with anyone, not even the company.")}</p>`;
+function vFirst(){return `<div class="grad auth"><div class="logo" style="width:76px;height:76px;border-radius:20px"></div><h1 style="font-size:24px">${L("أهلاً بك يا","Welcome,")} ${esc(first1())}</h1><p>${L("قبل البدء، اختر كلمة مرور خاصة بك بدل المؤقتة التي أرسلتها شركتك","Before you start, choose your own password instead of the temporary one from your company")}</p></div>
+<div class="pg lift" style="margin-top:-84px"><form class="card" style="padding:20px" onsubmit="event.preventDefault();savePw(1)">${pwForm(1).replace('class="fl"','class="fl" style="margin-top:0"')}</form>${pwTip()}</div>`}
+function vPw(){return `<header class="top">${backBtn("account")}<div class="gr"><h1 style="font-size:20px">${L("تغيير كلمة المرور","Change password")}</h1></div></header>
+<div class="pg"><form class="card" style="padding:20px" onsubmit="event.preventDefault();savePw(0)"><label class="fl" style="margin-top:0" for="p0">${L("كلمة المرور الحالية","Current password")}</label><input class="f" id="p0" type="password" dir="ltr" autocomplete="current-password" oninput="pwChk()">${pwForm(0)}</form>${pwTip()}</div>`}
+const first1=()=>String((S.tech&&S.tech.name)||"").trim().split(/\s+/)[0]||"";
+
+function vHome(){const a=act(),ready=a.filter(o=>stateOf(o)==="prep"),o=ready[0]||a.filter(o=>stateOf(o)!=="pay")[0]||a[0],rest=a.filter(x=>x!==o),ms=monthStats(),done=S.orders.filter(x=>stateOf(x)==="done").length,av=S.tech.avail!==false;
+const sub=!av?L("أنت مشغول الآن، ولن تُسند إليك مهام جديدة","You are busy now and won't get new jobs"):!a.length?L("لا توجد مهام جارية الآن","No jobs in progress right now"):
+L(`لديك ${a.length===1?"مهمة جارية واحدة":a.length===2?"مهمتان جاريتان":a.length<11?a.length+" مهام جارية":a.length+" مهمة جارية"}${ready.length?"، "+(ready.length===1?"واحدة منها جاهزة":ready.length+" منها جاهزة")+" للتنفيذ":""}`,`You have ${a.length} job(s) in progress${ready.length?`, ${ready.length} ready to start`:""}`);
+return `<header class="top"><div class="logo"></div><div class="gr"><div class="xb el brand" style="line-height:1.3">Sudan ICT Marketplace</div><div class="sub">${L("بوابة الفني","Technician Portal")}</div></div>
+<button class="pill${av?"":" off"}" onclick="api.tech({avail:${!av}})" aria-pressed="${av}">${av?L("متاح","Available"):L("مشغول","Busy")}</button>${bell()}</header>${offBar()}
+<div class="grad hero"><h1>${L("مرحبًا،","Hello,")} ${esc(first1())}</h1><p>${sub}</p></div>
+<div class="pg nb lift">${o?`<div class="card"><div class="row" style="flex-wrap:wrap;gap:8px"><span class="bdg">${L("المهمة التالية","Next job")}</span><span class="bdg ${stateOf(o)==="pay"?"pay":"done"}">${stateOf(o)==="pay"?L("بانتظار الدفع","Awaiting payment"):L("الدفع مؤكد","Payment confirmed")}</span><span class="mu sm"><span class="ltr">${code(o)}</span>${dist(o)!=null?" · "+km(dist(o)):""}</span></div>
+<button class="tk" onclick="go('task','${o.id}')"><h2 style="margin-top:10px">${esc(title(o))}</h2><div class="mu">${esc(cust(o))}${area(o)?" · "+esc(area(o)):""}</div></button>${steps(o)}
+<div style="margin-top:12px">${primary(o)||`<div class="ban w" style="margin:0">${I("clock")}<span>${L("بانتظار تأكيد الشركة للدفع","Waiting for the company to confirm payment")}</span></div>`}</div>
+<div class="b3"><a class="btn s m" href="${mapUrl(o)}" target="_blank" rel="noopener">${I("nav")} ${L("الاتجاهات","Directions")}</a><a class="btn s m" href="${tel(phoneOf(o))}">${I("phone")} ${L("اتصال","Call")}</a><button class="btn s m" onclick="go('chat','${o.id}')">${I("chat")} ${L("محادثة","Chat")}</button></div></div>`
+:`<div class="card empty">${I("check")}<div class="xb">${L("لا توجد مهام جارية","No jobs in progress")}</div><div class="sm">${L("عند إسناد مهمة جديدة ستظهر هنا.","New jobs will appear here when assigned.")}</div></div>`}
+<div class="stats"><div class="stat a"><b>${a.length}</b><span>${L("جارية","In progress")}</span></div><div class="stat"><b>${done}</b><span>${L("مكتملة","Completed")}</span></div><div class="stat g"><b>${num(ms.sum)}</b><span>${L("رسوم الشهر SDG","This month, SDG")}</span></div></div>
+${rest.length?`<div class="row sp" style="margin-bottom:10px"><h2>${L("المهام القادمة","Upcoming jobs")}</h2><button class="link" style="min-height:44px" onclick="go('tasks')">${L("عرض الكل","View all")}</button></div>
+${rest.map(x=>`<button class="card tk row" onclick="go('task','${x.id}')"><span class="ic">${I("box")}</span><span class="gr"><span class="xb el" style="display:block">${esc(title(x))}</span><span class="mu sm el" style="display:block">${esc(cust(x))}${area(x)?" · "+esc(area(x)):""}${dist(x)!=null?" · "+km(dist(x)):""}</span></span><span class="bdg ${stateOf(x)}">${stl(stateOf(x),1)}</span></button>`).join("")}`:""}
+</div>${navBar()}`}
+
+function taskList(){const q=S.q.trim().toLowerCase(),f=o=>!q||[title(o),cust(o),addr(o),code(o),phoneOf(o)].join(" ").toLowerCase().includes(q);
+const all=S.orders.filter(f),A=all.filter(active).sort(cmp),D=all.filter(o=>stateOf(o)==="done").sort((a,b)=>doneTs(b)-doneTs(a)),C=all.filter(o=>stateOf(o)==="cancelled");
+const n=S.tab==="all"?all.length:S.tab==="act"?A.length:S.tab==="done"?D.length:C.length,near=S.sort==="near"&&S.geo;
+let h=`<div class="row sp" style="margin-bottom:6px"><span class="mu">${n} ${L("مهمة","job(s)")}</span><button class="btn s m a" onclick="sortT()">${I("sort")} ${L("ترتيب:","Sort:")} ${near?L("الأقرب","Nearest"):L("الأحدث","Newest")}</button></div>`;
+const sec=(t,l)=>l.length?`<div class="sec">${t} · ${l.length}</div>`+l.map(taskRow).join(""):"";
+if(S.tab==="all"||S.tab==="act")h+=sec(L("جارية","In progress"),A);
+if(S.tab==="all"||S.tab==="done"){const cut=S.tab==="all"&&!S.allDone&&!q&&D.length>2;h+=D.length?`<div class="sec">${L("مكتملة","Completed")} · ${D.length}</div>`+(cut?D.slice(0,2):D).map(taskRow).join("")+(cut?`<button class="btn s" onclick="S.allDone=true;render(1)">${L(`عرض ${D.length-2} مهمة مكتملة أخرى`,`Show ${D.length-2} more completed`)}</button>`:""):""}
+if(S.tab==="all"||S.tab==="cancel")h+=sec(L("ملغاة","Cancelled"),C);
+return n?h:h+`<div class="empty">${L("لا توجد مهام هنا.","No jobs here.")}</div>`}
+function vTasks(){const c={all:S.orders.length,act:S.orders.filter(active).length,done:S.orders.filter(o=>stateOf(o)==="done").length,cancel:S.orders.filter(o=>stateOf(o)==="cancelled").length};
+const ch=(k,t)=>`<button class="chip${S.tab===k?" on":""}" onclick="S.tab='${k}';render()">${t} ${c[k]}</button>`;
+return `<header class="top"><div class="gr"><h1>${L("مهامي","My jobs")}</h1><div class="sub">${c.all} ${L("مهمة تركيب مُسندة إليك","installation job(s) assigned to you")}</div></div>${bell()}</header>${offBar()}
+<div class="pg nb"><label class="srch">${I("search")}<input id="tq" type="search" placeholder="${L("ابحث في مهامك","Search your jobs")}" value="${esc(S.q)}" oninput="S.q=this.value;$('tl').innerHTML=taskList()"></label>
+${hasGeoTasks()&&!S.geo?`<div class="ban i" style="align-items:center">${I("pin")}<span class="gr">${L("الموقع غير مفعّل، لذلك لا تظهر المسافات ولا ترتيب «الأقرب»","Location is off, so distances and “Nearest” sorting are hidden")}</span><button class="btn n m a" onclick="geo(1)">${L("تفعيل","Enable")}</button></div>`:""}
+<div class="chips">${ch("all",L("الكل","All"))}${ch("act",L("جارية","In progress"))}${ch("done",L("مكتملة","Completed"))}${ch("cancel",L("ملغاة","Cancelled"))}</div><div id="tl">${taskList()}</div></div>${navBar()}`}
+
+function vTask(){const o=T(S.arg);if(!o)return `<header class="top">${backBtn("tasks")}<div class="gr"><h1 style="font-size:20px">${L("المهمة","Job")}</h1></div></header><div class="pg empty">${L("هذه المهمة غير موجودة أو أُسندت لفني آخر.","This job no longer exists or was reassigned.")}</div>`;
+const s=stateOf(o),j=job(o),d=dist(o),pk=pickup(o),notes=S.notes.filter(n=>n.oid===o.id).sort((a,b)=>String(a.at).localeCompare(String(b.at))),ch=chatOf(o.id),last=ch[ch.length-1],un=chatUnread(o.id),pend=S.pending.has(o.id);
+const dock=s==="pay"?`<div class="ban w" style="margin:0">${I("clock")}<span><b>${L("بانتظار تأكيد الشركة للدفع","Waiting for the company to confirm payment")}</b>${L("يظهر زر بدء التوصيل هنا بعد التأكيد، ويصلك إشعار.","The start button appears here after confirmation, and you'll be notified.")}</span></div>`
+:s==="done"?`<div class="ban o" style="margin:0">${I("check")}<span><b>${L("اكتملت المهمة","Job completed")}</b>${dm(doneTs(o))}${hasTime(j.doneAt)?" "+hm(doneTs(o)):""} · ${L("رسوم التركيب","installation fee")} ${sdg(fee(o))}</span></div>`
+:s==="cancelled"?"":`${pend?`<div class="ban w">${I("sync")}<span>${L("التغيير محفوظ على الجهاز، وسيُرسل عند عودة الاتصال","Your change is saved on this device and will be sent when you're back online")}</span></div>`:""}
+<div class="row"><a class="sq" href="${tel(phoneOf(o))}" aria-label="${L("اتصال","Call")}">${I("phone")}</a>${primary(o)}</div><div class="hint">${s==="prep"&&!pk?L("الخطوة التالية: في الطريق، ثم الإنهاء","Next: on the way, then finish"):L("تفتح قائمة تحقق قصيرة قبل الإنهاء","Opens a short checklist before finishing")}</div>`;
+return `<header class="top">${backBtn("tasks")}<div class="gr"><h1 style="font-size:20px">${L("مهمة تركيب","Installation job")} <span class="ltr">${code(o)}</span></h1><div class="sub el">${arrived(o)} · ${paid(o)}</div></div><span class="tchip">${pk&&s==="prep"?L("استلام من الشركة","Company pickup"):stl(s,1)}</span></header>${offBar()}
+<div class="pg">
+${s==="cancelled"?`<div class="ban e"><span class="ic r er">${I("x")}</span><span><b class="xb" style="font-size:17px">${L("ألغت الشركة هذه المهمة","The company cancelled this job")}</b>${j.cancelNote?`<span style="color:var(--tx)">${L("ملاحظة الشركة:","Company note:")} ${esc(j.cancelNote)}</span><br>`:""}<span class="mu sm">${j.cancelAt?dm(Date.parse(j.cancelAt))+" "+hm(Date.parse(j.cancelAt))+" · ":""}${L("لا تحتاج للذهاب إلى العميل","You don't need to go to the customer")}</span></span></div>`
+:`<div class="card"><p class="lbl">${L("تقدّم المهمة","Job progress")}</p>${steps(o)}</div>`}
+${j.status==="issue"?`<div class="ban e">${I("alert")}<span><b>${L("العميل أبلغ عن مشكلة بعد التركيب","The customer reported a problem after installation")}</b>${esc(j.issue||"")}</span></div>`:""}
+<div class="card">${pk?"":`<div class="map"><span class="p"></span>${d!=null?`<span class="d">${km(d)} ${L("منك","away")}</span>`:""}</div>`}<p class="lbl">${L("العميل والموقع","Customer & location")}</p>
+<div class="row"><span class="av">${esc(cust(o).trim()[0]||"?")}</span><div class="gr"><div class="xb" style="font-size:18px">${esc(cust(o))}</div><div class="mu ltr">${esc(phoneOf(o))}</div></div></div>
+${pk?`<div class="ban i" style="margin:12px 0">${I("build")}<span><b>${L("العميل يستلم المنتج من الشركة.","The customer picks the product up from the company.")}</b>${L("اتصل به لتأكيد مكان التركيب قبل الذهاب.","Call to confirm the installation place before you go.")}</span></div><a class="btn n" href="${tel(phoneOf(o))}">${I("phone")} ${L("اتصل بالعميل","Call the customer")}</a>`
+:`<div class="row" style="align-items:flex-start;margin-top:10px">${I("pin")}<span class="gr">${esc(addr(o))||"—"}</span></div>
+<div class="b3"><a class="btn n m" href="${mapUrl(o)}" target="_blank" rel="noopener">${I("nav")} ${L("الاتجاهات","Directions")}</a><a class="btn s m" href="${tel(phoneOf(o))}">${I("phone")} ${L("اتصال","Call")}</a><button class="btn s m" onclick="copyAddr('${o.id}')">${I("copy")} ${L("نسخ","Copy")}</button></div>`}</div>
+<div class="card"><p class="lbl">${L("ماذا ستركّب","What you'll install")}</p>${(o.items||[]).filter(i=>i.inst).map(i=>`<div class="row" style="margin-bottom:8px"><span class="ic">${I("box")}</span><div class="gr"><div class="xb">${esc(nm(i))}</div><div class="mu sm">${L("الكمية:","Qty:")} ${i.qty||1} · ${pk?L("استلام من الشركة وتركيب","pickup & installation"):L("توصيل وتركيب","delivery & installation")}</div></div></div>`).join("")}
+<div class="kv"><div><span>${L("رسوم التركيب","Installation fee")}</span><b class="green">${sdg(fee(o))}</b></div><div><span>${L("تاريخ الطلب","Order date")}</span><b class="ltr">${esc(o.date||"")}</b></div></div>
+${j.date||j.note?`<div class="mu sm" style="margin-top:10px">${j.date?L("موعد الزيارة:","Visit date:")+` <b class="ltr">${esc(j.date)}</b>`:""}${j.note?(j.date?" · ":"")+esc(j.note):""}</div>`:""}</div>
+<div class="card"><div class="row sp" style="margin-bottom:10px"><span class="lbl" style="margin:0">${L("ملاحظاتي","My notes")}</span><span class="mu sm row" style="gap:5px">${I("lock")} ${L("للشركة فقط، العميل لا يراها","Company only, hidden from the customer")}</span></div>
+${notes.map(n=>`<div class="note"><div class="gr"><div style="white-space:pre-wrap">${esc(n.text)}</div><div class="mu sm">${when(Date.parse(n.at))==hm(Date.parse(n.at))?L("اليوم","Today"):when(Date.parse(n.at))} ${hm(Date.parse(n.at))}</div></div><button onclick="delNote('${n.id}')" aria-label="${L("حذف","Delete")}">${I("trash")}</button></div>`).join("")}
+<div class="nin"><textarea id="ni" maxlength="500" placeholder="${L("اكتب ملاحظة عن المهمة","Write a note about this job")}"></textarea><button class="btn n m a" onclick="addNote('${o.id}')">${L("إضافة","Add")}</button></div></div>
+<button class="card tk row" onclick="go('chat','${o.id}')"><span class="ic" style="position:relative">${I("chat")}${un?`<span class="n" style="position:absolute;top:-6px;inset-inline-start:-6px;min-width:20px;height:20px;border-radius:7px;background:var(--green);color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center">${un}</span>`:""}</span><span class="gr"><span class="xb" style="display:block">${L("محادثة مع الشركة","Chat with the company")}</span><span class="mu sm el" style="display:block">${last?(last.by==="co"?L("الشركة: ","Company: "):L("أنت: ","You: "))+esc(last.text):L("اسأل الشركة عن هذه المهمة","Ask the company about this job")}</span></span>${I("fwd",1)}</button>
+</div>${dock?`<div class="dock">${dock}</div>`:""}`}
+
+function vDone(){const o=T(S.arg);if(!o)return vHome();const ms=monthStats(),nx=act().filter(x=>stateOf(x)!=="pay")[0]||act()[0];
+return `<div class="grad auth" style="padding-bottom:120px"><div style="width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;margin:0 auto 18px"><div style="width:96px;height:96px;border-radius:50%;background:var(--green);display:grid;place-items:center"><svg class="i" style="width:48px;height:48px;stroke-width:3" viewBox="0 0 24 24">${P.check}</svg></div></div>
+<h1>${L("تمت المهمة، أحسنت!","Job done, well done!")}</h1><p>${esc(title(o))} · ${esc(cust(o))}</p></div>
+<div class="pg lift" style="margin-top:-96px"><div class="card"><div class="row"><span class="ic ok">${I("cash")}</span><div><div class="mu sm">${L("رسوم التركيب لهذه المهمة","Installation fee for this job")}</div><div class="xb green" style="font-size:24px"><span class="ltr">+${num(fee(o))} SDG</span></div></div></div>
+<div class="kv"><div><span>${L("مهام هذا الشهر","Jobs this month")}</span><b>${ms.n}</b></div><div><span>${L("رسوم الشهر","Fees this month")}</span><b>${sdg(ms.sum)}</b></div></div>
+<p class="row mu sm" style="margin:12px 0 0">${I("bell")} ${L("وصل الشركة إشعار بالإنجاز مع ملاحظتك","The company was notified, with your note")}</p></div>
+${nx?`<button class="card tk" onclick="go('task','${nx.id}')"><p class="lbl">${L("المهمة التالية","Next job")}</p><span class="row sp"><span class="gr"><span class="xb el" style="display:block;font-size:17px">${esc(title(nx))}</span><span class="mu sm">${esc(cust(nx))}${area(nx)?" · "+esc(area(nx)):""}${dist(nx)!=null?" · "+km(dist(nx)):""}</span></span><span class="bdg ${stateOf(nx)}">${stl(stateOf(nx),1)}</span></span></button>`:""}
+<div style="margin-top:28px">${nx?`<button class="btn" onclick="go('task','${nx.id}')">${L("افتح المهمة التالية","Open the next job")} ${I("arrow",1)}</button>`:""}<button class="btn s" style="margin-top:12px" onclick="go('home')">${L("رجوع للرئيسية","Back to home")}</button></div></div>`}
+
+function chatList(){const q=S.cq.trim().toLowerCase(),l=S.orders.map(o=>{const c=chatOf(o.id);return{o,last:c[c.length-1]}}).filter(x=>x.last||active(x.o))
+.filter(x=>!q||[title(x.o),cust(x.o),code(x.o)].join(" ").toLowerCase().includes(q)).sort((a,b)=>(Date.parse(b.last?b.last.at:0)||0)-(Date.parse(a.last?a.last.at:0)||0)||tsOf(b.o)-tsOf(a.o));
+return l.map(({o,last})=>{const un=chatUnread(o.id),s=stateOf(o);return `<button class="card tk row${un?" un":""}" style="align-items:flex-start" onclick="go('chat','${o.id}')"><span class="ic r nv" style="width:54px;height:54px">${I("build")}</span><span class="gr">
+<span class="row sp"><span class="xb el">${esc(title(o))} · ${esc(cust(o))}</span>${last?`<span class="sm ${un?"green b":"mu"}" style="flex:none">${when(Date.parse(last.at))}</span>`:""}</span>
+<span class="row sp"><span class="el ${un?"b":"mu"}">${last?(last.by==="co"?L("الشركة: ","Company: "):L("أنت: ","You: "))+esc(last.text):L("لا رسائل بعد","No messages yet")}</span>${un?`<span class="bdg new" style="padding:0 8px;flex:none">${un}</span>`:""}</span>
+<span class="row" style="margin-top:6px;gap:8px"><span class="mu sm ltr">${code(o)}</span><span class="bdg ${s}">${stl(s,1)}</span></span></span></button>`}).join("")||`<div class="empty">${L("لا توجد محادثات بعد.","No chats yet.")}</div>`}
+function vChats(){return `<header class="top"><div class="gr"><h1>${L("المحادثات","Chats")}</h1><div class="sub">${L("محادثة لكل مهمة، بينك وبين الشركة","One chat per job, between you and the company")}</div></div>${bell()}</header>${offBar()}
+<div class="pg nb"><label class="srch">${I("search")}<input id="cq" type="search" placeholder="${L("ابحث بالمنتج أو العميل أو رقم المهمة","Search by product, customer or job number")}" value="${esc(S.cq)}" oninput="S.cq=this.value;$('cl').innerHTML=chatList()"></label><div id="cl">${chatList()}</div></div>${navBar()}`}
+function vChat(){const o=T(S.arg);if(!o)return vChats();const l=chatOf(o.id),s=stateOf(o);let day="";
+if(l.length){S.chatSeen[o.id]=Date.now();if(!DEMO)sv("chatSeen",S.chatSeen)}
+return `<header class="top">${backBtn("chats")}<span class="ic r" style="background:#fff;color:var(--navy)">${I("build")}</span><div class="gr"><h1 style="font-size:19px" class="el">${esc(lang==="en"&&S.co&&S.co.nameEn||S.co&&S.co.name||L("الشركة","Company"))}</h1><div class="sub">${L("محادثة مهمة","Job chat")} <span class="ltr">${code(o)}</span></div></div></header>
+<button class="strip tk" onclick="go('task','${o.id}')"><span class="ic" style="width:40px;height:40px;border-radius:12px">${I("box")}</span><span class="gr xb el">${esc(title(o))} · ${esc(cust(o))}</span><span class="bdg ${s}">${stl(s,1)}</span></button>
+<div class="msgs"><span class="priv">${I("lock")} ${L("بينك وبين الشركة فقط، العميل لا يراها","Only you and the company see this, not the customer")}</span>
+${l.map(m=>{const t=Date.parse(m.at),d=daysAgo(t)<=0?L("اليوم","Today"):when(t),h=d!==day?`<span class="day">${d}</span>`:"";day=d;return h+`<div class="bub${m.by==="tech"?" me":""}">${esc(m.text)}<time>${hm(t)}</time></div>`}).join("")}</div>
+<div class="quick">${[L("وصلت للعميل","I've arrived"),L("العميل لا يرد","Customer not answering"),L("أحتاج قطعة إضافية","I need an extra part")].map(t=>`<button class="chip" onclick="sendMsg('${o.id}','${t.replace(/'/g,"\\'")}')">${t}</button>`).join("")}</div>
+<form class="send" onsubmit="event.preventDefault();sendMsg('${o.id}')"><input id="mi" autocomplete="off" maxlength="1000" placeholder="${L("اكتب رسالة","Write a message")}"><button aria-label="${L("إرسال","Send")}">${I("arrow",1)}</button></form>`}
+
+const iOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1),standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+function vNotifs(){const l=notifs(),perm="Notification"in window?Notification.permission:"none",t0=day0(Date.now()),A=l.filter(n=>n.at>=t0),B=l.filter(n=>n.at<t0).slice(0,40);
+const ic={msg:["chat",""],ready:["check","ok"],new:["wrench",""],cancel:["x","er"]};
+const row=n=>`<button class="card tk row${unreadN(n)?" un":""}" style="align-items:flex-start" onclick="openN('${n.id}')"><span class="ic r ${ic[n.k][1]}">${I(ic[n.k][0])}</span><span class="gr"><span class="xb" style="display:block;font-size:17px">${n.ti}</span><span style="display:block">${esc(n.tx)}</span><span class="mu sm">${n.at>=t0?(hasTime(n.raw??"T")?rel(n.at):L("اليوم","Today")):dm(n.at)}${n.c?` · ${L("مهمة","job")} <span class="ltr">${n.c}</span>`:""}</span></span>${unreadN(n)?`<span class="dot"></span>`:""}</button>`;
+const promo=iOS&&!standalone?`<div class="grad promo" style="align-items:flex-start"><span class="ic">${I("dev")}</span><div><div class="xb" style="font-size:17px">${L("في الآيفون: ثبّت الصفحة أولاً","On iPhone: install the page first")}</div><div class="sm" style="opacity:.9">${L("الآيفون لا يرسل الإشعارات إلا للصفحة المثبّتة","iPhone only sends notifications to installed pages")}</div><ol><li>${L("في Safari اضغط زر المشاركة","In Safari tap the Share button")}</li><li>${L("اختر «إضافة إلى الشاشة الرئيسية»","Choose “Add to Home Screen”")}</li><li>${L("افتح الصفحة من الأيقونة الجديدة، ثم اضغط «تفعيل»","Open the page from the new icon, then tap “Enable”")}</li></ol></div></div>`
+:perm==="default"?`<div class="grad promo"><span class="ic">${I("bell")}</span><div class="gr"><div class="xb" style="font-size:17px">${L("فعّل الإشعارات على موبايلك","Turn on notifications on your phone")}</div><div class="sm" style="opacity:.9">${L("تنبيه عند: مهمة جديدة، تأكيد دفع، رسالة","Alerts for: new job, payment confirmed, message")}</div></div><button class="btn m a" onclick="askN()">${L("تفعيل","Enable")}</button></div>`
+:perm==="granted"?`<div class="ban o" style="align-items:center">${I("check")}<span class="gr b">${L("الإشعارات مفعّلة على هذا الجهاز","Notifications are on for this device")}</span></div>`
+:perm==="denied"?`<div class="ban w">${I("alert")}<span>${L("الإشعارات محظورة لهذه الصفحة. فعّلها من إعدادات المتصفح.","Notifications are blocked for this page. Allow them in your browser settings.")}</span></div>`:"";
+return `<header class="top">${backBtn("home")}<div class="gr"><h1>${L("الإشعارات","Notifications")}</h1></div>${l.some(unreadN)?`<button class="tbtn" onclick="readAll()">${L("قراءة الكل","Mark all read")}</button>`:""}</header>${offBar()}
+<div class="pg">${promo}${A.length?`<div class="sec" style="margin-top:4px">${L("اليوم","Today")}</div>`+A.map(row).join(""):""}${B.length?`<div class="sec">${L("أقدم","Earlier")}</div>`+B.map(row).join(""):""}${l.length?"":`<div class="empty">${L("لا توجد إشعارات بعد.","No notifications yet.")}</div>`}</div>`}
+
+function vAccount(){const t=S.tech,c=S.co||{},ms=monthStats(),done=S.orders.filter(o=>stateOf(o)==="done").length,av=t.avail!==false,cn=lang==="en"&&c.nameEn||c.name||"",cc=lang==="en"&&c.cityEn||c.city||"";
+const perm="Notification"in window?Notification.permission:"none",pOn=perm==="granted";
+return `<div class="grad acct"><span class="av">${esc((t.name||"?").trim()[0])}</span><div class="gr"><div class="xb" style="font-size:24px;line-height:1.3">${esc(t.name)}</div><div style="opacity:.9">${L("فني تركيب","Installation technician")}${cn?" · "+esc(cn):""}</div></div></div>${offBar()}
+<div class="pg nb lift" style="margin-top:-66px"><div class="card two"><div><b>${done}</b><span class="mu sm">${L("مهمة منجزة","jobs completed")}</span></div><div><b class="g">${sdg(ms.sum)}</b><span class="mu sm">${L("رسوم هذا الشهر","fees this month")}</span></div></div>
+<label class="card row sp" style="cursor:pointer"><span><span class="xb" style="display:block;font-size:17px">${L("أنا متاح للمهام","I'm available for jobs")}</span><span class="mu sm">${L("عند إيقافه تراك الشركة غير متاح عند إسناد المهام","When off, the company sees you as unavailable when assigning jobs")}</span></span><input type="checkbox" class="sw" ${av?"checked":""} onchange="api.tech({avail:this.checked})"></label>
+<div class="card"><div class="row sp"><p class="lbl" style="margin:0">${L("بياناتي","My details")}</p><button class="btn s m a" onclick="sheet('edit')">${L("تعديل","Edit")}</button></div>
+<div class="mu sm">${L("الاسم","Name")}</div><div class="xb">${esc(t.name)}</div><div class="hr"></div><div class="mu sm">${L("رقم الهاتف","Phone")}</div><div class="xb ltr">${esc(t.phone||"—")}</div><div class="hr"></div><div class="mu sm">${L("البريد الإلكتروني","Email")}</div><div class="xb ltr" style="overflow-wrap:anywhere">${esc(t.email||(S.user&&S.user.email)||"")}</div><div class="hr"></div>
+<button class="tk row sp xb" style="min-height:44px" onclick="go('pw')">${L("تغيير كلمة المرور","Change password")} ${I("fwd",1)}</button></div>
+${cn?`<div class="card"><p class="lbl">${L("شركتي","My company")}</p><div class="row"><span class="ic nv xb" style="font-size:20px">${esc(cn.trim()[0])}</span><div class="gr"><div class="xb">${esc(cn)}</div><div class="mu sm">${esc(cc)}</div></div><a class="btn s m a" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name+" "+(c.city||""))}">${I("nav")} ${L("الموقع","Location")}</a></div></div>`:""}
+<div class="card"><p class="lbl">${L("الإشعارات على هذا الجهاز","Notifications on this device")}</p>
+<label class="row sp" style="cursor:pointer"><span>${L("المهام: جديدة، جاهزة، ملغاة","Jobs: new, ready, cancelled")}</span><input type="checkbox" class="sw" ${pOn&&S.prefs.tasks?"checked":""} onchange="pref('tasks',this.checked)"></label><div class="hr"></div>
+<label class="row sp" style="cursor:pointer"><span>${L("رسائل الشركة","Company messages")}</span><input type="checkbox" class="sw" ${pOn&&S.prefs.msgs?"checked":""} onchange="pref('msgs',this.checked)"></label></div>
+<div class="card"><p class="lbl">${L("الصفحة","Page")}</p>
+<div class="row sp" style="margin-bottom:10px"><span>${L("المظهر","Appearance")}</span><span class="seg"><button class="${theme==="light"?"on":""}" onclick="setTheme('light')">${L("فاتح","Light")}</button><button class="${theme==="dark"?"on":""}" onclick="setTheme('dark')">${L("داكن","Dark")}</button></span></div>
+<div class="row sp"><span>${L("اللغة","Language")}</span><span class="seg"><button class="${lang==="ar"?"on":""}" onclick="setLang('ar')">العربية</button><button class="${lang==="en"?"on":""}" onclick="setLang('en')">English</button></span></div>
+${standalone?"":`<button class="btn s" style="margin-top:14px" onclick="install()">${I("dl")} ${L("ثبّت الصفحة على الشاشة الرئيسية","Install this page on your home screen")}</button>`}</div>
+<button class="btn d" onclick="logout()">${I("out",1)} ${L("تسجيل الخروج","Sign out")}</button>
+<p style="text-align:center;margin-top:18px" class="mu sm"><a class="link" href="${MAIN_SITE}">sictm.net</a> · © 2026 Sudan ICT Marketplace</p></div>${navBar()}`}
+
+/* ---------- sheets ---------- */
+function sheet(k,id){S.sheet={k,id,ck:[0,0,0]};render(1)}
+function closeSheet(){S.sheet=null;render(1)}
+function vSheet(){const s=S.sheet,o=s.id&&T(s.id);let h="";
+if(s.k==="start"&&o)h=`<div class="row"><span class="ic ok" style="width:56px;height:56px;border-radius:16px">${I("truck")}</span><div><h2 style="font-size:22px">${L("تبدأ التوصيل الآن؟","Start the delivery now?")}</h2><div class="mu">${L("مهمة","Job")} <span class="ltr">${code(o)}</span></div></div></div>
+<div class="tbl"><div><span>${L("المنتج","Product")}</span><b>${esc(title(o))}</b></div><div><span>${L("العميل","Customer")}</span><b>${esc(cust(o))}</b></div><div><span>${L("العنوان","Address")}</span><b>${esc(addr(o))}${dist(o)!=null?" · "+km(dist(o)):""}</b></div></div>
+<div class="ban w">${I("alert")}<span>${L("ستتغيّر حالة الطلب إلى «في الطريق» عند العميل والشركة، ولا يمكن التراجع عن هذه الخطوة.","The order will show as “On the way” to the customer and the company. This step can't be undone.")}</span></div>
+<div class="row"><button class="btn s a" style="min-width:110px" onclick="closeSheet()">${L("إلغاء","Cancel")}</button><button class="btn" onclick="startJob('${o.id}')">${I("check")} ${L("نعم، أنا في الطريق","Yes, I'm on my way")}</button></div>`;
+if(s.k==="finish"&&o){const CK=[L("ركّبت المنتج وتأكدت من عمله","I installed the product and checked it works"),L("شرحت للعميل طريقة الاستخدام","I showed the customer how to use it"),L("سلّمت العميل الفاتورة أو الضمان","I gave the customer the invoice or warranty")];
+h=`<h2 style="font-size:22px">${L("إنهاء المهمة","Finish job")} <span class="ltr">${code(o)}</span></h2><div class="mu">${esc(title(o))} · ${esc(cust(o))}</div>
+<div class="row" style="margin:14px 0"><div class="prog"><i id="fp" style="width:0"></i></div><span class="b mu sm" id="fn">0 ${L("من","of")} 3</span></div>
+<p class="lbl">${L("قبل التأكيد، علّم الخطوات الثلاث","Before confirming, tick the three steps")}</p>${CK.map((t,i)=>`<label class="ck"><input type="checkbox" onchange="S.sheet.ck[${i}]=this.checked;finChk()"><span>${t}</span></label>`).join("")}
+<label class="fl mu" for="fx">${L("ملاحظة للشركة (اختيارية)","Note for the company (optional)")}</label><textarea class="f" id="fx" maxlength="500" placeholder="${L("مثلاً: العميل يحتاج حبرًا إضافيًا خلال أسبوع","e.g. the customer will need extra toner within a week")}" oninput="$('fc').textContent=this.value.length"></textarea><div class="mu sm ltr" style="text-align:end;display:block"><span id="fc">0</span> / 500</div>
+<div class="row" style="margin-top:10px"><button class="btn s a" style="min-width:110px" onclick="closeSheet()">${L("إلغاء","Cancel")}</button><button class="btn" id="fb" disabled onclick="finishJob('${o.id}')">${I("check")} ${L("تأكيد الإنجاز","Confirm completion")}</button></div>
+<div class="hint mu sm" style="text-align:center;margin-top:10px">${L("بعد التأكيد يصل الشركة إشعار، ولا يمكن التراجع.","After confirming, the company is notified and it can't be undone.")}</div>`}
+if(s.k==="edit")h=`<h2 style="font-size:22px">${L("تعديل بياناتي","Edit my details")}</h2><label class="fl" for="en">${L("الاسم","Name")}</label><input class="f" id="en" maxlength="60" value="${esc(S.tech.name)}"><label class="fl" for="ep">${L("رقم الهاتف","Phone")}</label><input class="f" id="ep" dir="ltr" inputmode="tel" maxlength="20" value="${esc(S.tech.phone||"")}">
+<p class="mu sm">${L("البريد الإلكتروني تغيّره شركتك فقط.","Only your company can change your email.")}</p><div class="row" style="margin-top:10px"><button class="btn s a" style="min-width:110px" onclick="closeSheet()">${L("إلغاء","Cancel")}</button><button class="btn" onclick="saveMe()">${L("حفظ","Save")}</button></div>`;
+if(s.k==="ios")h=`<h2 style="font-size:22px">${L("ثبّت الصفحة","Install the page")}</h2><ol style="padding-inline-start:20px;line-height:2.2"><li>${L("اضغط زر المشاركة أو قائمة المتصفح (⋮)","Tap the Share button or the browser menu (⋮)")}</li><li>${L("اختر «إضافة إلى الشاشة الرئيسية»","Choose “Add to Home Screen”")}</li><li>${L("افتح الصفحة من الأيقونة الجديدة","Open the page from the new icon")}</li></ol><button class="btn s" onclick="closeSheet()">${L("حسناً","OK")}</button>`;
+return h?`<div class="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet" role="dialog" aria-modal="true">${h}</div></div>`:""}
+
+/* ---------- actions ---------- */
+function eye(id){const e=$(id);if(e)e.type=e.type==="password"?"text":"password"}
+function login(){const e=$("le").value.trim(),p=$("lp").value;if(!e||!p)return;if(DEMO)return go("home");if(!FB)return toast(L("لا يوجد اتصال","No connection"));S.err="";S.busy=true;render();
+FB.au.signInWithEmailAndPassword(FB.auth,e,p).then(()=>{S.busy=false;go("home")}).catch(x=>{S.busy=false;S.err=emsg(x);render()})}
+function forgot(){const e=$("le").value.trim();if(!e)return toast(L("اكتب بريدك الإلكتروني أولاً","Enter your email first"));if(!FB)return;
+FB.au.sendPasswordResetEmail(FB.auth,e).then(()=>toast(L("أرسلنا رابط تغيير كلمة المرور إلى بريدك","We emailed you a password reset link"))).catch(fail)}
+function pwChk(){const a=$("p1").value,b=$("p2").value,o1=a.length>=6,o2=!!a&&a===b;$("r1").className="rule"+(o1?" ok":"");$("r2").className="rule"+(o2?" ok":"");$("pb").disabled=!(o1&&o2&&(!$("p0")||$("p0").value))}
+async function savePw(first){const p=$("p1").value;if(DEMO){toast(L("تم الحفظ (عرض تجريبي)","Saved (demo)"));return go(first?"home":"account")}
+try{$("pb").disabled=true;if(!first)await FB.au.reauthenticateWithCredential(FB.auth.currentUser,FB.au.EmailAuthProvider.credential(FB.auth.currentUser.email,$("p0").value));
+await FB.au.updatePassword(FB.auth.currentUser,p);if(first)api.tech({pwSet:true});toast(L("تم حفظ كلمة المرور","Password saved"));go(first?"home":"account")}catch(e){fail(e)}}
+function logout(){if(!confirm(L("تسجيل الخروج من بوابة الفني؟","Sign out of the technician portal?")))return;if(DEMO)return location.href=location.pathname;FB.au.signOut(FB.auth);location.hash=""}
+function startJob(id){S.sheet=null;api.job(id,{onWayAt:new Date().toISOString()});toast(L("تم — حالتك الآن «في الطريق»","Done — you're now “On the way”"))}
+function finChk(){const n=S.sheet.ck.filter(Boolean).length;$("fp").style.width=n/3*100+"%";$("fn").textContent=`${n} ${L("من","of")} 3`;$("fb").disabled=n<3}
+function finishJob(id){const o=T(id),note=$("fx").value.trim(),at=new Date().toISOString();S.sheet=null;
+api.msg(id,"✅ "+L("تم إنهاء المهمة","Job finished")+" "+code(o)+(note?"\n"+note:""));
+api.job(id,{status:"done",doneAt:at,doneBy:"tech",...(job(o).onWayAt||pickup(o)?{}:{onWayAt:at})});go("done",id)}
+function addNote(id){const t=$("ni").value.trim();if(!t)return;$("ni").value="";api.note(id,t)}
+function delNote(id){if(confirm(L("حذف هذه الملاحظة؟","Delete this note?")))api.delNote(id)}
+function sendMsg(id,t){t=(t||$("mi").value).trim();if(!t)return;if($("mi"))$("mi").value="";api.msg(id,t);setTimeout(()=>scrollTo(0,1e6),30)}
+function copyAddr(id){const t=addr(T(id));(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(L("تم نسخ العنوان","Address copied"))).catch(()=>toast(t))}
+function sortT(){if(S.sort==="near"&&S.geo){S.sort="new"}else{S.sort="near";if(!S.geo){if(hasGeoTasks())geo(1);else{S.sort="new";toast(L("لا توجد مواقع محددة للعملاء لترتيب الأقرب","Customers have no pinned locations to sort by distance"))}}}sv("sort",S.sort);render(1)}
+function geo(ask){if(DEMO||!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{S.geo={lat:p.coords.latitude,lng:p.coords.longitude};sv("geoOk",1);render(1)},()=>{if(ask)toast(L("تعذّر تحديد موقعك. اسمح للصفحة باستخدام الموقع.","Couldn't get your location. Allow location access for this page."))},{maximumAge:6e4,timeout:1e4})}
+function openN(id){const n=notifs().find(x=>x.id===id);if(!n)return;go(n.chat?"chat":"task",n.oid)}
+function readAll(){S.seenAt=Date.now();S.readN=[];if(!DEMO){sv("seenAt",S.seenAt);sv("readN",[])}render(1)}
+async function askN(){if(!("Notification"in window))return toast(L("هذا المتصفح لا يدعم الإشعارات","This browser doesn't support notifications"));const r=await Notification.requestPermission();if(r==="granted")toast(L("تم تفعيل الإشعارات","Notifications enabled"));render(1)}
+async function pref(k,v){if(v&&"Notification"in window&&Notification.permission!=="granted"){await askN();if(Notification.permission!=="granted")return render(1)}S.prefs[k]=v;sv("prefs",S.prefs);render(1)}
+function saveMe(){const n=$("en").value.trim(),p=$("ep").value.trim();if(!n)return toast(L("اكتب الاسم","Enter your name"));S.sheet=null;api.tech({name:n,phone:p});toast(L("تم الحفظ","Saved"))}
+function install(){if(installEvt){installEvt.prompt();installEvt=null}else sheet("ios")}
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e});
+addEventListener("online",()=>{S.online=true;render(1)});addEventListener("offline",()=>{S.online=false;render(1)});
+
+/* ---------- render ---------- */
+function render(keep){const app=$("app");let h;
+if(!S.ready)h=`<div class="load">…</div>`;
+else if(!S.user||!S.tech)h=vLogin();
+else if(S.tech.pwSet===false&&!DEMO)h=vFirst();
+else h=({home:vHome,tasks:vTasks,task:vTask,done:vDone,chats:vChats,chat:vChat,notifs:vNotifs,account:vAccount,pw:vPw,first:vFirst,login:vLogin}[S.view]||vHome)();
+const a=document.activeElement,id=a&&a.id&&app.contains(a)?a.id:"",st=id?[a.value,a.selectionStart,a.selectionEnd]:0,y=scrollY,keepV=[...app.querySelectorAll("input[id],textarea[id]")].map(e=>[e.id,e.value,e.type]);
+app.innerHTML=(DEMO?`<div class="demo">${L("عرض تجريبي · بيانات غير حقيقية","Demo preview · sample data")}</div>`:"")+h+(S.sheet?vSheet():"");
+keepV.forEach(([i,v])=>{const e=$(i);if(e&&v&&!e.value)e.value=v});
+if(id){const n=$(id);if(n){n.focus({preventScroll:true});try{n.setSelectionRange(st[1],st[2])}catch(e){}}}
+if($("p1")&&$("p1").value)pwChk();
+if(keep)scrollTo(0,y)}
+
+/* ---------- start ---------- */
+document.documentElement.dataset.theme=theme;setLang(lang);
+if(DEMO){demo();route()}else{route();fbInit();if(ls("geoOk",0))geo()}
+if("serviceWorker"in navigator&&location.protocol==="https:")navigator.serviceWorker.register("/sw.js").catch(()=>{});
+</script>
+</body>
+</html>
