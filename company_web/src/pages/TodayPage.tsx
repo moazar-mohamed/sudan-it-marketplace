@@ -10,6 +10,7 @@ import { db } from '../firebase';
 import { Icon } from '../ui/Icon';
 import { Banner, Chip, Empty, Loading, PageHeader, useNow } from '../ui/kit';
 import { StockDialog } from '../ui/StockDialog';
+import { usesDollars } from '../data/usdPricing';
 import { UsdRateCard } from '../ui/UsdRate';
 import { t } from '../i18n';
 
@@ -90,8 +91,8 @@ export function TodayPage() {
         }
       />
 
-      {/* The dollar rate comes first: the one place it is kept. */}
-      {company && <UsdRateCard company={company} products={products} />}
+      {/* The dollar rate comes first once the company sells in dollars: the one place it is kept. */}
+      {company && usesDollars(company, products) && <UsdRateCard company={company} products={products} />}
 
       {soon.length > 0 && oldest && (
         <div style={{ marginBottom: 20 }}>

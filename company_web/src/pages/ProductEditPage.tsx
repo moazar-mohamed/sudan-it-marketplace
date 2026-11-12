@@ -4,12 +4,13 @@ import { useCompanyData } from '../data/CompanyData';
 import { useCategoryLookup } from '../data/categories';
 import { discountPercent, hasActiveOffer, hasEndedOffer, LOW_STOCK_THRESHOLD, money, parseNumber, unitsText } from '../data/format';
 import { createProduct, productImageFolder, updateProductFields, type ProductDraft } from '../data/products';
-import type { Product, ProductStatus } from '../data/types';
+import type { Company, Product, ProductStatus } from '../data/types';
 import { usdPrice, usdText } from '../data/usdPricing';
 import { CategorySelect } from '../ui/CategorySelect';
 import { GalleryField } from '../ui/GalleryField';
 import { Icon } from '../ui/Icon';
 import { Banner, Chip, Empty, Loading, PageHeader, Spinner, Switch } from '../ui/kit';
+import { UsdRateDialog } from '../ui/UsdRate';
 import { StockDialog } from '../ui/StockDialog';
 import { useToast } from '../ui/toast';
 import { t } from '../i18n';
@@ -160,7 +161,7 @@ function validate(
   }
   if (f.priceMode === 'usd') {
     const usd = parseNumber(f.usd);
-    if (rate === null) e.price = t('حدّد سعر الدولار أولًا من بطاقة «سعر الدولار» في صفحة اليوم.');
+    if (rate === null) e.price = t('حدّد سعر الدولار أولًا.');
     else if (usd === null || usd <= 0) e.price = t('اكتب السعر بالدولار (أكبر من صفر).');
     else if (offerPrice !== null && offerActive && ((offerPriceUsd !== null && usd <= offerPriceUsd) || usdPrice(usd, rate) <= offerPrice)) {
       e.price = t('السعر يجب أن يبقى أعلى من سعر العرض الجاري ({0}). أنهِ العرض أولًا.', money(offerPrice));
@@ -213,6 +214,8 @@ export function ProductEditPage() {
       companyId={companyId}
       companyName={company?.name ?? ''}
       usdRate={usdRate}
+      company={company ?? null}
+      allProducts={products}
       lookup={lookup}
       brands={[...new Set(products.map((p) => p.brand).filter(Boolean))]}
       demand={pendingPayment.filter((o) => o.productId === product?.id && !o.stockReserved).reduce((n, o) => n + o.quantity, 0)}
@@ -221,13 +224,15 @@ export function ProductEditPage() {
 }
 
 function Editor({
-  product, companyId, companyName, usdRate, lookup, brands, demand,
+  product, companyId, companyName, usdRate, company, allProducts, lookup, brands, demand,
 }: {
   product: Product | undefined;
   companyId: string;
   companyName: string;
-  /** The company's dollar rate; null until it sets one (on Today). */
+  /** The company's dollar rate; null until it sets one (asked for here when "in dollars" is picked). */
   usdRate: number | null;
+  company: Company | null;
+  allProducts: Product[];
   lookup: ReturnType<typeof useCategoryLookup>;
   brands: string[];
   demand: number;
@@ -241,6 +246,7 @@ function Editor({
   const [saveError, setSaveError] = useState('');
   const [stockOpen, setStockOpen] = useState(false);
   const [tried, setTried] = useState(false);
+  const [rateOpen, setRateOpen] = useState(false);
   const saved = useRef(false);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm((f) => ({ ...f, [k]: v }));
@@ -394,8 +400,8 @@ function Editor({
                   <span className="hint">{t('«عند الطلب»: يتواصل العميل معك بدل الشراء المباشر.')}</span>
                 </div>
                 {form.priceMode === 'usd' && usdRate === null && (
-                  <Banner tone="warn" icon="alert" tight action={<Link to="/" className="btn sm">{t('إلى صفحة اليوم')}</Link>}>
-                    {t('حدّد سعر الدولار أولًا من بطاقة «سعر الدولار» في صفحة اليوم.')}
+                  <Banner tone="info" icon="alert" tight action={company ? <button type="button" className="btn sm p" onClick={() => setRateOpen(true)}>{t('حدّد سعر الدولار')}</button> : undefined}>
+                    {t('التسعير بالدولار يحتاج سعر الدولار أولًا. حدّده مرة واحدة وتتحدّث به كل أسعارك بالدولار.')}
                   </Banner>
                 )}
                 {form.priceMode === 'usd' && usdRate !== null && (
@@ -563,6 +569,7 @@ function Editor({
         </button>
       </div>
       {stockOpen && product && <StockDialog product={product} demand={demand} onClose={() => setStockOpen(false)} />}
+      {rateOpen && company && <UsdRateDialog company={company} products={allProducts} onClose={() => setRateOpen(false)} />}
     </>
   );
 }

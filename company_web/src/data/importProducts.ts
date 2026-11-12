@@ -112,7 +112,7 @@ export function readImport(text: string, choices: CategoryChoice[], usdRate: num
     if (usdText !== '') {
       priceUsd = parseNumber(usdText);
       if (priceText !== '') errors.push(t('اكتب «السعر» أو «السعر بالدولار»، لا الاثنين'));
-      else if (usdRate === null) errors.push(t('حدّد سعر الدولار في صفحة اليوم قبل استيراد أسعار بالدولار'));
+      else if (usdRate === null) errors.push(t('حدّد سعر الدولار أولًا (من صفحة أي منتج اختر «بالدولار») قبل استيراد أسعار بالدولار'));
       else if (priceUsd === null || priceUsd <= 0) errors.push(t('السعر بالدولار يجب أن يكون أكبر من صفر'));
       else price = usdPrice(priceUsd, usdRate);
       if (price === null) priceUsd = null;

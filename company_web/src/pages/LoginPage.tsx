@@ -35,7 +35,9 @@ export function LoginPage({ notice }: { notice: AccessNotice | null }) {
       return;
     }
     try {
-      await sendPasswordResetEmail(auth, email.trim());
+      // On company.sictm.net the e-mail's "Continue" button returns here, not to the old web.app link.
+      const back = window.location.hostname === 'company.sictm.net' ? { url: 'https://company.sictm.net/' } : undefined;
+      await sendPasswordResetEmail(auth, email.trim(), back);
       setInfo(t('إن كان البريد مسجَّلًا فقد أرسلنا إليه رابطًا لاختيار كلمة مرور جديدة.'));
     } catch (err) {
       setError(authErrorText(err));

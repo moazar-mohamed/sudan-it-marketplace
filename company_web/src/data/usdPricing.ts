@@ -1,6 +1,6 @@
 import { doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-import type { Product } from './types';
+import type { Company, Product } from './types';
 
 // Dollar pricing. A company may type a product's prices in US dollars; the
 // Sudanese-pound prices customers see (and orders are checked against) are
@@ -9,6 +9,15 @@ import type { Product } from './types';
 //
 // Keep the sums in step with lib/features/products/domain/usd_pricing.dart:
 // the panel and the app must give the same pounds for the same dollars.
+
+/**
+ * Whether a company sells in dollars: it has set a rate, or already has a
+ * product priced in dollars. Only then does Today show the dollar-rate card;
+ * a company that never chose dollar pricing never sees it. It starts by
+ * picking "in dollars" on a product, which asks for the rate right there.
+ */
+export const usesDollars = (company: Pick<Company, 'usdRate'>, products: readonly Product[]): boolean =>
+  company.usdRate !== null || products.some((p) => p.priceUsd !== null);
 
 /** Pound prices are rounded to this step. */
 export const USD_STEP = 500;

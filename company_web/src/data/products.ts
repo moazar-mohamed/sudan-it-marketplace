@@ -105,6 +105,8 @@ export async function createProduct(
     priceUsd: draft.priceUsd ?? null,
     installationPriceUsd: draft.isInstallationAvailable && draft.priceUsd != null ? draft.installationPriceUsd ?? null : null,
     usdRateApplied: draft.priceUsd != null ? draft.usdRateApplied ?? null : null,
+    // Customers list products with where hidden == false, so every product carries it.
+    hidden: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });

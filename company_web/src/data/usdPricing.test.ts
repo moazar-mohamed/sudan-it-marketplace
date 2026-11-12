@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readImport } from './importProducts';
 import { mapProduct } from './mappers';
 import type { Product } from './types';
-import { isBigChange, isValidRate, needsRepricing, rateAge, repricedFields, usdOffer, usdPrice, usdText } from './usdPricing';
+import { isBigChange, isValidRate, needsRepricing, rateAge, repricedFields, usdOffer, usdPrice, usdText, usesDollars } from './usdPricing';
 
 // The same numbers as test/usd_pricing_test.dart: the panel and the app must agree.
 
@@ -91,5 +91,21 @@ describe('importing rows priced in dollars', () => {
   it('a row in pounds stores no dollars', () => {
     const { rows } = readImport(`${head}\nلابتوب,لابتوبات,1000,لا,,`, choices, 3000);
     expect(rows[0].draft).toMatchObject({ price: 1000, priceUsd: null, usdRateApplied: null });
+  });
+});
+
+describe('who sees the dollar-rate card', () => {
+  const usdProduct = { priceUsd: 10 } as Product;
+  const poundProduct = { priceUsd: null } as Product;
+
+  it('is hidden for a company that never chose dollar pricing', () => {
+    expect(usesDollars({ usdRate: null }, [])).toBe(false);
+    expect(usesDollars({ usdRate: null }, [poundProduct, poundProduct])).toBe(false);
+  });
+
+  it('shows once the company has a rate or a product priced in dollars', () => {
+    expect(usesDollars({ usdRate: 2500 }, [])).toBe(true);
+    expect(usesDollars({ usdRate: 2500 }, [poundProduct])).toBe(true);
+    expect(usesDollars({ usdRate: null }, [poundProduct, usdProduct])).toBe(true);
   });
 });

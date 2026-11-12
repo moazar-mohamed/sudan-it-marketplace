@@ -914,4 +914,7 @@ export const EN: Record<string, string> = {
   "تعذّر حفظ التغيير. تحقق من اتصالك وحاول مرة أخرى.": "Could not save the change. Check your connection and try again.",
   "{0} تنبيهات جديدة": "{0} new notifications",
   "على الآيفون: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية»، وافتح اللوحة من الأيقونة الجديدة، ثم شغّل التنبيهات من هنا.": "On an iPhone: press Share, then “Add to Home Screen”, open the panel from the new icon, then turn notifications on here.",
+  "حدّد سعر الدولار أولًا (من صفحة أي منتج اختر «بالدولار») قبل استيراد أسعار بالدولار": "Set your dollar rate first (on any product, pick “In dollars”) before importing prices in dollars",
+  "حدّد سعر الدولار أولًا.": "Set your dollar rate first.",
+  "التسعير بالدولار يحتاج سعر الدولار أولًا. حدّده مرة واحدة وتتحدّث به كل أسعارك بالدولار.": "Dollar pricing needs your dollar rate first. Set it once and all your dollar prices follow it.",
 };
