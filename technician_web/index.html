@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#063b73" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex" />
+    <meta name="description" content="بوابة الفني: مهام التركيب من شركتك، في موبايلك" />
+    <link rel="icon" type="image/png" href="/favicon-mark.png" />
+    <!-- Installed on the Home Screen, the page opens on its own and (on iPhone) can receive notifications. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="بوابة الفني" />
+    <title>بوابة الفني</title>
+    <script>
+      // Before the first paint, so a dark page never flashes light (see src/theme.tsx).
+      try {
+        if (localStorage.getItem('technician-portal-language') === 'en') {
+          document.documentElement.lang = 'en';
+          document.documentElement.dir = 'ltr';
+        }
+        var t = localStorage.getItem('technician-portal-theme');
+        document.documentElement.dataset.theme =
+          t === 'light' || t === 'dark' ? t : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

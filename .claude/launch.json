@@ -50,6 +50,18 @@
       "port": 5196
     },
     {
+      "name": "technician-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "technician_web", "run", "dev"],
+      "port": 5197
+    },
+    {
+      "name": "technician-web-emulator",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set VITE_EMULATOR=1&& npm --prefix technician_web run dev -- --port 5198 --strictPort"],
+      "port": 5198
+    },
+    {
       "name": "platform-admin-web-emulator",
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "set VITE_EMULATOR=1&& npm --prefix platform_admin_web run dev -- --port 5184 --strictPort"],
