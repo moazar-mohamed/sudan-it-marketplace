@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Icon, PATHS } from '../components/Icon';
 import { LANGUAGES, switchLanguage } from '../components/LanguageSwitch';
 import { PushSettings } from '../components/PushSettings';
+import { PageTitle } from '../components/PageTitle';
 import { useCatalog } from '../data/DataProvider';
 import { useTheme } from '../theme';
 import type { ThemeChoice } from '../theme';
@@ -23,6 +24,7 @@ export function SettingsPage() {
 
   return (
     <main className="stack narrow">
+      <PageTitle title={t('الإعدادات')} />
       <h1 className="page-title">{t('الإعدادات')}</h1>
       <section className="tile" aria-label={t('المظهر')}>
         <h2>{t('المظهر')}</h2>

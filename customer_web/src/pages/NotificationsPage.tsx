@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { EmptyState, Skeleton } from '../components/Bits';
 import { PushSwitch } from '../components/PushSettings';
+import { PageTitle } from '../components/PageTitle';
 import { useAccount, useCatalog } from '../data/DataProvider';
 import {
   deleteNotification,
@@ -34,6 +35,7 @@ export function NotificationsPage() {
 
   return (
     <main className="stack narrow">
+      <PageTitle title={t('الإشعارات')} />
       <h1 className="page-title">{t('الإشعارات')}</h1>
       {/* Only while this browser can take pushes and does not yet. */}
       <PushSwitch profile={profile} compact />

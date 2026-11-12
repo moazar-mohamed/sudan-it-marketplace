@@ -5,6 +5,7 @@ import { turnPushOff, turnPushOn, usePushState } from '../data/webPush';
 import type { PushState } from '../data/webPush';
 import type { UserProfile } from '../data/types';
 import { t } from '../i18n';
+import { BusyLabel } from './BusyLabel';
 
 /** The kinds a customer can switch off; the same keys and the same switches as the app's Settings. */
 const KINDS = [
@@ -17,15 +18,15 @@ const KINDS = [
 function stateText(state: PushState): string {
   switch (state) {
     case 'on':
-      return t('الإشعارات شغالة على هذا المتصفح، وتصلك حتى والموقع مقفول.');
+      return t('الإشعارات مفعّلة على هذا المتصفح، وتصلك حتى والموقع مغلق.');
     case 'blocked':
-      return t('المتصفح ممنوع من الإشعارات. اسمح بها من رمز القفل جنب عنوان الموقع، ثم ارجع هنا.');
+      return t('الإشعارات محظورة في هذا المتصفح. اسمح بها من رمز القفل بجانب عنوان الموقع، ثم ارجع إلى هنا.');
     case 'unsupported':
       return t('هذا المتصفح لا يدعم الإشعارات.');
     case 'homeScreen':
       return t('على الآيفون: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية»، وافتح الموقع من الأيقونة الجديدة، ثم فعّل الإشعارات من هنا.');
     default:
-      return t('فعّل الإشعارات لتعرف بتحديثات طلباتك ورسائل الشركات حتى والموقع مقفول.');
+      return t('فعّل الإشعارات لتعرف بتحديثات طلباتك ورسائل الشركات حتى والموقع مغلق.');
   }
 }
 
@@ -56,13 +57,13 @@ export function PushSwitch({ profile, compact = false }: { profile: UserProfile;
     <div className={compact ? 'tile push-invite' : undefined}>
       <p className="pmeta">{stateText(state)}</p>
       {state === 'off' && (
-        <button className="btn" type="button" disabled={busy} onClick={() => void change(true)}>
-          {t('تفعيل الإشعارات على هذا المتصفح')}
+        <button className="btn" type="button" disabled={busy} aria-busy={busy} onClick={() => void change(true)}>
+          <BusyLabel busy={busy} busyText={t('جارٍ التفعيل…')}>{t('تفعيل الإشعارات على هذا المتصفح')}</BusyLabel>
         </button>
       )}
       {state === 'on' && (
-        <button className="btn ghost" type="button" disabled={busy} onClick={() => void change(false)}>
-          {t('إيقاف الإشعارات على هذا المتصفح')}
+        <button className="btn ghost" type="button" disabled={busy} aria-busy={busy} onClick={() => void change(false)}>
+          <BusyLabel busy={busy} busyText={t('جارٍ الإيقاف…')}>{t('إيقاف الإشعارات على هذا المتصفح')}</BusyLabel>
         </button>
       )}
       {failed && <p className="error" role="alert">{t('تعذّر تغيير الإشعارات. تحقق من اتصالك وحاول مرة أخرى.')}</p>}

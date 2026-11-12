@@ -14,6 +14,7 @@ export const PATHS = {
     'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z',
   building: 'M4 21V5l8-2v18 M12 9h8v12 M4 21h16 M8 8h1 M8 12h1 M8 16h1',
   grid: 'M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z',
+  list: 'M9 6h11 M9 12h11 M9 18h11 M4.5 6h.01 M4.5 12h.01 M4.5 18h.01',
   home: 'M3 11 12 3l9 8 M5 10v10h14V10',
   heart: 'M12 20s-8-4.6-8-10.2A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8 2.8C20 15.4 12 20 12 20z',
   bell: 'M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7z M10 20h4',
@@ -21,6 +22,7 @@ export const PATHS = {
   gear: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M12 3v3 M12 18v3 M3 12h3 M18 12h3 M5.6 5.6l2.1 2.1 M16.3 16.3l2.1 2.1 M5.6 18.4l2.1-2.1 M16.3 7.7l2.1-2.1',
   flag: 'M5 21V4 M5 4h12l-2 4 2 4H5',
   compare: 'M12 3v17 M7 20h10 M5 7h14 M5 7l-2.5 6a3 3 0 0 0 5 0z M19 7l-2.5 6a3 3 0 0 0 5 0z',
+  share: 'M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M8.6 13.5l6.8 4 M15.4 6.5l-6.8 4',
 } as const;
 
 export function Icon({ d, size = 22 }: { d: string; size?: number }) {

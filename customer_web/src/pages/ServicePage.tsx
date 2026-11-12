@@ -2,14 +2,16 @@ import { Link, useParams } from 'react-router-dom';
 import { Breadcrumbs, CityTag, EmptyState, ErrorState, PriceText, RatingLine, Skeleton } from '../components/Bits';
 import { CompanyLogo } from '../components/CompanyCard';
 import { servesCity } from '../data/browse';
+import { localCityText } from '../data/cities';
 import { useCatalog } from '../data/DataProvider';
 import { categoryName, ratingKey } from '../data/format';
 import { FavoriteButton } from '../components/FavoriteButton';
+import { PageTitle } from '../components/PageTitle';
 import { t } from '../i18n';
 
 export function ServicePage() {
   const { id = '' } = useParams();
-  const { services, links, companies, tree, cityId, loading, error } = useCatalog();
+  const { services, links, companies, tree, cityId, cities, loading, error } = useCatalog();
   const service = services.find((s) => s.id === id);
 
   if (error) return <main className="stack"><ErrorState /></main>;
@@ -42,13 +44,14 @@ export function ServicePage() {
     <main className="stack">
       <Breadcrumbs
         items={[
-          { label: t('كل التصنيفات'), to: '/browse' },
+          { label: t('كل الأقسام'), to: '/browse' },
           ...path.map((c) => ({ label: categoryName(c), to: `/category/${c.id}` })),
           { label: service.name },
         ]}
       />
       <section className="tile">
         <div className="title-row">
+          <PageTitle title={service.name} />
           <h1 className="page-title">{service.name}</h1>
           <FavoriteButton kind="service" targetId={service.id} name={service.name} />
         </div>
@@ -73,7 +76,7 @@ export function ServicePage() {
                       fallbackCount={company.reviewCount}
                       showCount={false}
                     />
-                    {company.city && <span className="pmeta"> · {company.city}</span>}
+                    {company.city && <span className="pmeta"> · {localCityText(company.city, cities)}</span>}
                   </span>
                 </Link>
                 {offer.price !== null && <PriceText item={offer} />}

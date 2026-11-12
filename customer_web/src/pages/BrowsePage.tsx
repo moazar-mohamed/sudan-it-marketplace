@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Breadcrumbs, EmptyState, ErrorState, Skeleton } from '../components/Bits';
 import { CategoryGlyph } from '../components/CategoryGlyph';
 import { Icon, PATHS } from '../components/Icon';
+import { PageTitle } from '../components/PageTitle';
 import { ProductCard } from '../components/ProductCard';
 import { Select } from '../components/Select';
 import { ServiceCard } from '../components/ServiceCard';
@@ -17,10 +18,31 @@ import {
 import type { BrowseFilters, BrowseKind, ProductSort } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
 import { categoryColor, categoryName, productsCount, servicesCount } from '../data/format';
+import { narrowListings, narrowProducts } from '../data/pageSearch';
 import type { Product, ServiceListing } from '../data/types';
 import { t } from '../i18n';
 
 const PAGE = 24;
+
+/** Products as cards in rows (the default) or one per line; the choice is kept on this device. */
+type ProductView = 'grid' | 'list';
+const VIEW_KEY = 'sudan-it-products-view';
+
+function readProductView(): ProductView {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'grid';
+  } catch {
+    return 'grid';
+  }
+}
+
+function saveProductView(view: ProductView): void {
+  try {
+    localStorage.setItem(VIEW_KEY, view);
+  } catch {
+    // Storage refused (a private window): the choice lasts for this visit only.
+  }
+}
 
 const SORTS: { value: ProductSort; label: string }[] = [
   { value: 'newest', label: t('الأحدث') },
@@ -85,13 +107,19 @@ export function BrowsePage() {
     () => (scope ? allListings.filter((l) => scope.has(l.service.categoryId)) : allListings),
     [scope, allListings],
   );
+  // What is typed in the page's own search box (kept in the address, like the filters).
+  const query = params.get('q') ?? '';
+  const [view, setView] = useState<ProductView>(readProductView);
   const shownProducts = useMemo(() => {
     const serves = servingIds
       ? (p: Product) => p.companyId === '' || servingIds.has(p.companyId)
       : undefined;
-    return sortProducts(filterProducts(products, filters, ratings), sort, ratings, serves);
-  }, [products, filters, ratings, sort, servingIds]);
-  const shownListings = useMemo(() => filterListings(listings, filters), [listings, filters]);
+    return narrowProducts(sortProducts(filterProducts(products, filters, ratings), sort, ratings, serves), query, tree);
+  }, [products, filters, ratings, sort, servingIds, query, tree]);
+  const shownListings = useMemo(
+    () => narrowListings(filterListings(listings, filters), query, tree),
+    [listings, filters, query, tree],
+  );
   const brands = useMemo(() => brandsOf(products), [products]);
   const companies = useMemo(() => companiesOf(products, listings), [products, listings]);
 
@@ -100,8 +128,8 @@ export function BrowsePage() {
   if (id && (!current || !tree.isEffectivelyActive(id))) {
     return (
       <main className="stack">
-        <EmptyState title={t('القسم غير متاح')} message={t('هذا التصنيف لم يعد متاحاً. اختر تصنيفاً آخر.')}>
-          <Link to="/browse" className="pill">{t('تصفح الكل')}</Link>
+        <EmptyState title={t('القسم غير متاح')} message={t('هذا القسم لم يعد متاحاً. اختر قسماً آخر.')}>
+          <Link to="/browse" className="pill">{t('تصفّح المنتجات والخدمات')}</Link>
         </EmptyState>
       </main>
     );
@@ -114,7 +142,11 @@ export function BrowsePage() {
   }
   const setValue = (key: string, value: string) => update((n) => (value ? n.set(key, value) : n.delete(key)));
   const clearFilters = () =>
-    update((n) => ['offers', 'stock', 'delivery', 'install', 'rated', 'brand', 'company'].forEach((k) => n.delete(k)));
+    update((n) => ['offers', 'stock', 'delivery', 'install', 'rated', 'brand', 'company', 'q'].forEach((k) => n.delete(k)));
+  const chooseView = (next: ProductView) => {
+    setView(next);
+    saveProductView(next);
+  };
 
   const hasBoth = products.length > 0 && listings.length > 0;
   const nothingHere = products.length === 0 && listings.length === 0;
@@ -130,10 +162,15 @@ export function BrowsePage() {
   const chips = children.length > 0 ? children : current?.parentId ? shownChildren(current.parentId) : [];
   const title = current
     ? categoryName(current)
-    : filters.kind === 'services' ? t('الخدمات') : filters.offers ? t('العروض') : t('كل المنتجات');
+    : filters.kind === 'services' ? t('الخدمات')
+    : filters.offers ? t('العروض')
+    : filters.kind === 'products' ? t('المنتجات')
+    : t('المنتجات والخدمات');
+  // Brand, stock, delivery, installation, rating and the sort only concern products.
+  const productFilters = filters.kind !== 'services' && products.length > 0;
 
   const crumbs = [
-    { label: t('كل التصنيفات'), to: '/browse' },
+    { label: t('كل الأقسام'), to: '/browse' },
     ...path.map((c) => ({
       label: categoryName(c),
       to: c.id === current?.id ? undefined : `/category/${c.id}`,
@@ -142,10 +179,10 @@ export function BrowsePage() {
 
   const toggles = [
     { key: 'offers', label: t('عروض'), on: filters.offers, shown: true },
-    { key: 'stock', label: t('متوفر'), on: filters.inStock, shown: products.length > 0 },
-    { key: 'delivery', label: t('توصيل'), on: filters.delivery, shown: true },
-    { key: 'install', label: t('تركيب'), on: filters.installation, shown: true },
-    { key: 'rated', label: t('الأعلى تقييمًا'), on: filters.topRated, shown: true },
+    { key: 'stock', label: t('متوفر'), on: filters.inStock, shown: productFilters },
+    { key: 'delivery', label: t('توصيل'), on: filters.delivery, shown: productFilters },
+    { key: 'install', label: t('تركيب'), on: filters.installation, shown: productFilters },
+    { key: 'rated', label: t('الأعلى تقييمًا'), on: filters.topRated, shown: productFilters },
   ];
   const companyName = companies.find((c) => c.id === filters.companyId)?.name ?? filters.companyId;
   const tags = [
@@ -156,12 +193,13 @@ export function BrowsePage() {
 
   return (
     <main className="stack">
+      <PageTitle title={title} />
       <h1 className="sr-only">{title}</h1>
 
       <nav className="cat-strip" aria-label={t('الأقسام')}>
         <Link to="/browse" className={`cat${id ? '' : ' on'}`}>
           <Icon d={PATHS.grid} size={24} />
-          <span>{t('الكل')}</span>
+          <span>{t('كل الأقسام')}</span>
         </Link>
         {roots.map((c) => {
           const on = path[0]?.id === c.id;
@@ -180,7 +218,7 @@ export function BrowsePage() {
       {chips.length > 0 && (
         <div className="scroll-row">
           <Link to={`/category/${chipParent}`} className={`chip-link small${chipParent === id ? ' on' : ''}`}>
-            {t('الكل')}{chipParent && counts ? ` (${countTotal(counts.get(chipParent))})` : ''}
+            {t('كل القسم')}{chipParent && counts ? ` (${countTotal(counts.get(chipParent))})` : ''}
           </Link>
           {chips.map((c) => (
             <Link key={c.id} to={`/category/${c.id}`} className={`chip-link small${c.id === id ? ' on' : ''}`}>
@@ -194,6 +232,18 @@ export function BrowsePage() {
         <EmptyState title={id ? t('لا توجد منتجات في هذا القسم حالياً، تابعنا قريباً') : t('لا يوجد شيء هنا بعد.')} />
       ) : (
         <section className="results" aria-label={t('النتائج')}>
+          <label className="page-search">
+            <Icon d={PATHS.search} size={18} />
+            <span className="sr-only">{t('بحث')}</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setValue('q', e.target.value)}
+              placeholder={current ? t('ابحث في قسم {0}', categoryName(current)) : t('ابحث في المنتجات والخدمات')}
+              autoComplete="off"
+              enterKeyHint="search"
+            />
+          </label>
           <div className="scroll-row filter-row" role="group" aria-label={t('الفلاتر')}>
             {hasBoth && KINDS.map((k) => (
               <button
@@ -211,7 +261,7 @@ export function BrowsePage() {
                 {t.label}
               </button>
             ))}
-            {brands.length > 0 && (
+            {productFilters && brands.length > 0 && (
               <Select
                 variant="pill"
                 active={!!filters.brand}
@@ -231,7 +281,7 @@ export function BrowsePage() {
                 options={[{ value: '', label: t('الشركة') }, ...companies.map((c) => ({ value: c.id, label: c.name }))]}
               />
             )}
-            {products.length > 0 && (
+            {productFilters && (
               <Select
                 variant="pill"
                 className="filter-sort"
@@ -256,18 +306,28 @@ export function BrowsePage() {
               {shownProducts.length > 0 && shownListings.length > 0 && ' · '}
               {shownListings.length > 0 && servicesCount(shownListings.length)}
             </span>
+            {shownProducts.length > 0 && (
+              <span className="view-toggle" role="group" aria-label={t('طريقة العرض')}>
+                <button type="button" className={view === 'grid' ? 'on' : ''} aria-pressed={view === 'grid'} aria-label={t('عرض شبكة')} title={t('عرض شبكة')} onClick={() => chooseView('grid')}>
+                  <Icon d={PATHS.grid} size={18} />
+                </button>
+                <button type="button" className={view === 'list' ? 'on' : ''} aria-pressed={view === 'list'} aria-label={t('عرض قائمة')} title={t('عرض قائمة')} onClick={() => chooseView('list')}>
+                  <Icon d={PATHS.list} size={18} />
+                </button>
+              </span>
+            )}
           </div>
 
           {nothingMatches ? (
-            <EmptyState title={t('لا شيء يطابق هذه الفلاتر.')}>
+            <EmptyState title={query.trim() ? t('لا نتائج لـ«{0}» هنا.', query.trim()) : t('لا شيء يطابق هذه الفلاتر.')}>
               <button className="pill" onClick={clearFilters}>{t('مسح الفلاتر')}</button>
             </EmptyState>
           ) : (
             <>
               {shownProducts.length > 0 && (
                 <>
-                  <div className="pcards">
-                    {shownProducts.slice(0, limit).map((p) => <ProductCard key={p.id} product={p} />)}
+                  <div className={view === 'list' ? 'pcards list' : 'pcards'}>
+                    {shownProducts.slice(0, limit).map((p) => <ProductCard key={p.id} product={p} highlight={query} />)}
                   </div>
                   {shownProducts.length > limit && (
                     <div className="center">

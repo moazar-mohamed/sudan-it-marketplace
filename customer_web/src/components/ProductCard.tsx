@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { localCityText } from '../data/cities';
 import { useCatalog } from '../data/DataProvider';
 import { categoryColor, categoryName, hasActiveOffer, isNewProduct, ratingKey } from '../data/format';
 import type { Product } from '../data/types';
@@ -10,13 +11,13 @@ import { Icon, PATHS } from './Icon';
 import { t } from '../i18n';
 
 export function ProductCard({ product: p, highlight }: { product: Product; highlight?: string }) {
-  const { tree, companies } = useCatalog();
+  const { tree, companies, cities } = useCatalog();
   const category = tree.byId(p.categoryId);
-  const city = companies.find((c) => c.id === p.companyId)?.city ?? '';
+  const city = localCityText(companies.find((c) => c.id === p.companyId)?.city ?? '', cities);
   const color = categoryColor(category, p.id);
   return (
     <Link to={`/product/${p.id}`} className="pcard">
-      <div className="pimg" style={p.imageUrl ? undefined : { background: `${color}1f`, color }}>
+      <div className="pimg" style={p.imageUrl ? undefined : { background: `linear-gradient(135deg, ${color}, ${color}b3)`, color: '#fff' }}>
         {p.imageUrl ? (
           <img src={p.imageUrl} alt="" loading="lazy" />
         ) : (

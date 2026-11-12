@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { EmptyState, ErrorState, Skeleton } from '../components/Bits';
+import { PageTitle } from '../components/PageTitle';
 import { useAccount } from '../data/DataProvider';
 import { formatDate } from '../data/format';
 import { useMyReports } from '../data/hooks';
@@ -16,6 +17,7 @@ import {
   submitReport,
 } from '../data/reports';
 import { t } from '../i18n';
+import { BusyLabel } from '../components/BusyLabel';
 
 export function ReportFormPage() {
   const nav = useNavigate();
@@ -44,6 +46,7 @@ export function ReportFormPage() {
 
   return (
     <main className="stack narrow">
+      <PageTitle title={t('الإبلاغ عن مشكلة')} />
       <h1 className="page-title">{t('الإبلاغ عن مشكلة')}</h1>
       <form className="tile" onSubmit={submit} noValidate>
         <p className="prose" style={{ marginTop: 0 }}>{t('أخبرنا بما حدث. يقرأ فريق المنصة كل بلاغ ويرد عليك في «بلاغاتي».')}</p>
@@ -71,7 +74,7 @@ export function ReportFormPage() {
           <input value={orderRef} maxLength={ORDER_REF_MAX} onChange={(e) => setOrderRef(e.target.value)} dir="ltr" />
         </label>
         {error && <div className="error" role="alert">{error}</div>}
-        <button className="btn" type="submit" disabled={busy}>{t('إرسال البلاغ')}</button>
+        <button className="btn" type="submit" disabled={busy} aria-busy={busy}><BusyLabel busy={busy} busyText={t('جارٍ الإرسال…')}>{t('إرسال البلاغ')}</BusyLabel></button>
       </form>
     </main>
   );
@@ -85,6 +88,7 @@ export function MyReportsPage() {
   return (
     <main className="stack narrow">
       <div className="section-title" style={{ margin: 0 }}>
+        <PageTitle title={t('بلاغاتي')} />
         <h1 className="page-title">{t('بلاغاتي')}</h1>
         {items && items.length > 0 && <Link to="/reports/new" className="more">{t('الإبلاغ عن مشكلة')}</Link>}
       </div>

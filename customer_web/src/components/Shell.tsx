@@ -68,7 +68,7 @@ export function Shell() {
   const links = (
     <>
       <NavLink to="/" end className={linkClass}>{t('الرئيسية')}</NavLink>
-      <NavLink to="/browse" className={linkClass}>{t('تصفح')}</NavLink>
+      <NavLink to="/browse" className={linkClass}>{t('المنتجات والخدمات')}</NavLink>
       <NavLink to="/companies" className={linkClass}>{t('الشركات')}</NavLink>
       {uid && <NavLink to="/orders" className={linkClass}>{t('طلباتي')}</NavLink>}
       {uid && (
@@ -82,18 +82,21 @@ export function Shell() {
 
   return (
     <div className="shell">
-    <div className="page">
+      {/* The navy bar runs the full width of the screen; its contents keep the page's width. */}
       <header className="nav">
-        <NavLink to="/" className="brand">
-          <span className="brand-mark">{t('س')}</span>
-          <span className="brand-name">{t('سوق التقنية')}</span>
+      <div className="nav-inner">
+        <NavLink to="/" className="brand" aria-label="Sudan ICT Marketplace">
+          <img className="brand-logo" src="/og-logo.png" alt="" width="44" height="44" />
+          <span className="brand-name">
+            <span className="brand-title">Sudan ICT Marketplace</span>
+            <small>{t('سوق التقنية والاتصالات في السودان')}</small>
+          </span>
         </NavLink>
         <nav className="nav-links" aria-label={t('التنقل الرئيسي')}>{links}</nav>
         <span className="grow" />
-        <button className="search-trigger" onClick={() => setOpen(true)} aria-label={t('بحث')}>
-          <Icon d={PATHS.search} size={18} />
-          <span className="label">{t('عن ماذا تبحث')}</span>
-          <span className="grow" />
+        {/* A small button for the site-wide search; each page with a list has its own search box. */}
+        <button className="icon-btn nav-search" onClick={() => setOpen(true)} aria-label={t('بحث')} title={t('بحث')}>
+          <Icon d={PATHS.search} />
         </button>
         {uid && (
           <NavLink to="/favorites" className="icon-btn nav-fav" aria-label={t('المفضلة')} title={t('المفضلة')}>
@@ -117,8 +120,11 @@ export function Shell() {
             <span>{t('تسجيل الدخول')}</span>
           </Link>
         )}
-      </header>
+      </div>
+      {/* On a phone the same links sit in a second row of the navy bar. */}
       <nav className="nav-strip" aria-label={t('التنقل الرئيسي')}>{links}</nav>
+      </header>
+    <div className="page">
       <PageBoundary key={pathname}><Outlet /></PageBoundary>
       <CompareBar />
       {open && <Suspense fallback={null}><CommandPalette onClose={close} /></Suspense>}
@@ -143,9 +149,9 @@ function SiteFooter() {
         </div>
         <nav className="footer-links" aria-label={t('روابط الموقع')}>
           <div className="footer-col">
-            <h3>{t('تصفح')}</h3>
+            <h3>{t('المتجر')}</h3>
             <Link to="/">{t('الرئيسية')}</Link>
-            <Link to="/browse">{t('المنتجات')}</Link>
+            <Link to="/browse?kind=products">{t('المنتجات')}</Link>
             <Link to="/browse?kind=services">{t('الخدمات')}</Link>
             <Link to="/companies">{t('الشركات')}</Link>
           </div>
@@ -159,7 +165,7 @@ function SiteFooter() {
           <div className="footer-col">
             <h3>{t('الدعم والشركات')}</h3>
             <Link to="/terms">{t('الشروط والأحكام')}</Link>
-            <a href="https://sudan-it-company.web.app" target="_blank" rel="noopener noreferrer">{t('بوابة الشركات')}</a>
+            <a href="https://company.sictm.net" target="_blank" rel="noopener noreferrer">{t('بوابة الشركات')}</a>
           </div>
         </nav>
       </div>

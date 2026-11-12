@@ -11,6 +11,7 @@ import { AuthCard } from './AuthCard';
 import { CityPicker } from './CityPicker';
 import { TermsGate } from './TermsGate';
 import { applyLanguage, hasChosenLanguage, language, languageIsPending, markLanguagePending, t } from '../i18n';
+import { BusyLabel } from './BusyLabel';
 
 function AccessMessage({ title, message }: { title: string; message: string }) {
   return (
@@ -23,10 +24,12 @@ function AccessMessage({ title, message }: { title: string; message: string }) {
 function VerifyEmail({ email }: { email: string }) {
   const { user, refresh } = useAuth();
   const [busy, setBusy] = useState(false);
+  const [doing, setDoing] = useState<'check' | 'resend'>('check');
   const [note, setNote] = useState<{ text: string; ok: boolean } | null>(null);
 
   async function check() {
     setBusy(true);
+    setDoing('check');
     setNote(null);
     try {
       const verified = await refreshVerification(user!);
@@ -41,6 +44,7 @@ function VerifyEmail({ email }: { email: string }) {
 
   async function resend() {
     setBusy(true);
+    setDoing('resend');
     setNote(null);
     const error = await resendVerification(user!);
     setNote({ text: error ?? t('تم إرسال رسالة التحقق. يرجى مراجعة بريدك الوارد.'), ok: error === null });
@@ -53,8 +57,8 @@ function VerifyEmail({ email }: { email: string }) {
       subtitle={email ? t('أرسلنا رابط التحقق إلى {0}. يرجى التحقق من بريدك الإلكتروني قبل المتابعة.', email) : t('يرجى التحقق من بريدك الإلكتروني قبل المتابعة.')}
     >
       {note && <div className={note.ok ? 'ok-note' : 'error'} role="status">{note.text}</div>}
-      <button className="btn" disabled={busy} onClick={check}>{t('لقد تحققت من بريدي الإلكتروني')}</button>
-      <button className="btn ghost" disabled={busy} onClick={resend}>{t('إعادة إرسال رسالة التحقق')}</button>
+      <button className="btn" disabled={busy} aria-busy={busy && doing === 'check'} onClick={check}><BusyLabel busy={busy && doing === 'check'} busyText={t('جارٍ التحقق…')}>{t('لقد تحققت من بريدي الإلكتروني')}</BusyLabel></button>
+      <button className="btn ghost" disabled={busy} aria-busy={busy && doing === 'resend'} onClick={resend}><BusyLabel busy={busy && doing === 'resend'} busyText={t('جارٍ الإرسال…')}>{t('إعادة إرسال رسالة التحقق')}</BusyLabel></button>
       <button className="btn ghost" onClick={signOutHere}>{t('تسجيل الخروج')}</button>
     </AuthCard>
   );

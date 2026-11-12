@@ -5,6 +5,7 @@ import { AuthCard } from '../components/AuthCard';
 import { authErrorMessage, signIn, signInWithGoogle } from '../data/account';
 import { safeNext, withNext } from '../data/nextPath';
 import { t } from '../i18n';
+import { BusyLabel } from '../components/BusyLabel';
 
 /** Reached only when an account is needed (checkout, chats...); afterwards back to `?next=`. */
 export function LoginPage() {
@@ -13,6 +14,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [viaGoogle, setViaGoogle] = useState(false);
   const [error, setError] = useState('');
 
   async function submit(e: FormEvent) {
@@ -29,6 +31,7 @@ export function LoginPage() {
 
   async function google() {
     setBusy(true);
+    setViaGoogle(true);
     setError('');
     try {
       if (await signInWithGoogle()) return;
@@ -36,6 +39,7 @@ export function LoginPage() {
       setError(authErrorMessage(err));
     }
     setBusy(false);
+    setViaGoogle(false);
   }
 
   return (
@@ -55,9 +59,9 @@ export function LoginPage() {
         </label>
         <Link to={`${withNext('/forgot-password', next)}${next === '/' ? '?' : '&'}email=${encodeURIComponent(email)}`} className="auth-link end">{t('نسيت كلمة المرور؟')}</Link>
         {error && <div className="error" role="alert">{error}</div>}
-        <button className="btn" type="submit" disabled={busy}>{busy ? t('جارٍ الدخول...') : t('تسجيل الدخول')}</button>
+        <button className="btn" type="submit" disabled={busy} aria-busy={busy && !viaGoogle}><BusyLabel busy={busy && !viaGoogle} busyText={t('جارٍ الدخول...')}>{t('تسجيل الدخول')}</BusyLabel></button>
       </form>
-      <button className="btn ghost" disabled={busy} onClick={google}>{t('المتابعة باستخدام Google')}</button>
+      <button className="btn ghost" disabled={busy} aria-busy={viaGoogle} onClick={google}><BusyLabel busy={viaGoogle} busyText={t('جارٍ فتح Google…')}>{t('المتابعة باستخدام Google')}</BusyLabel></button>
       <p className="auth-foot">{t('ليس لديك حساب؟')}{' '}<Link to={withNext('/register', next)} className="auth-link">{t('إنشاء حساب')}</Link></p>
     </AuthCard>
   );

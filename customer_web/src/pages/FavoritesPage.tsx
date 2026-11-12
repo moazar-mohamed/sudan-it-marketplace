@@ -3,6 +3,7 @@ import { EmptyState, ErrorState, Skeleton } from '../components/Bits';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { ProductCard } from '../components/ProductCard';
 import { ServiceCard } from '../components/ServiceCard';
+import { PageTitle } from '../components/PageTitle';
 import { useCatalog } from '../data/DataProvider';
 import { favoriteKey, useTargetExists } from '../data/favorites';
 import type { Favorite } from '../data/types';
@@ -35,10 +36,11 @@ export function FavoritesPage() {
 
   return (
     <main className="stack">
+      <PageTitle title={t('المفضلة')} />
       <h1 className="page-title">{t('المفضلة')}</h1>
       {favorites.length === 0 ? (
         <EmptyState title={t('لا توجد عناصر في المفضلة')} message={t('اضغط على القلب في أي منتج أو خدمة لتحفظه هنا.')}>
-          <Link to="/browse" className="pill">{t('تصفح السوق')}</Link>
+          <Link to="/browse" className="pill">{t('تصفّح المنتجات والخدمات')}</Link>
         </EmptyState>
       ) : (
         <>

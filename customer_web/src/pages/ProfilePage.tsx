@@ -5,12 +5,14 @@ import { useAuth } from '../auth';
 import { CityPicker } from '../components/CityPicker';
 import { Icon, PATHS } from '../components/Icon';
 import { PhoneInput, phoneError } from '../components/PhoneInput';
+import { PageTitle } from '../components/PageTitle';
 import { changePassword, hasPassword, PASSWORD_MIN, updateProfile } from '../data/account';
 import { useAccount, useCatalog } from '../data/DataProvider';
 import { displayPhone, parsePhone, toE164 } from '../data/phone';
 import { signOutHere } from '../firebase';
 import { cityName } from '../data/cities';
 import { t } from '../i18n';
+import { BusyLabel } from '../components/BusyLabel';
 
 function ChangePassword({ onDone }: { onDone: () => void }) {
   const { user } = useAuth();
@@ -51,7 +53,7 @@ function ChangePassword({ onDone }: { onDone: () => void }) {
         <input type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} dir="ltr" />
       </label>
       {error && <div className="error" role="alert">{error}</div>}
-      <button className="btn" type="submit" disabled={busy}>{t('تحديث كلمة المرور')}</button>
+      <button className="btn" type="submit" disabled={busy} aria-busy={busy}><BusyLabel busy={busy} busyText={t('جارٍ الحفظ…')}>{t('تحديث كلمة المرور')}</BusyLabel></button>
     </form>
   );
 }
@@ -101,6 +103,7 @@ export function ProfilePage() {
         <span className="profile-avatar">
           {profile.photoUrl ? <img src={profile.photoUrl} alt="" /> : [...profile.fullName][0]}
         </span>
+        <PageTitle title={t('حسابي')} />
         <h1>{profile.fullName}</h1>
         <span className="pmeta" dir="ltr">{profile.email}</span>
       </section>
@@ -122,7 +125,7 @@ export function ProfilePage() {
           {error && <div className="error" role="alert">{error}</div>}
           <div className="buy-row" style={{ marginTop: 20 }}>
             <button type="button" className="btn-line" disabled={busy} onClick={() => setEditing(false)}>{t('إلغاء')}</button>
-            <button type="submit" className="btn-solid" disabled={busy}>{t('حفظ التغييرات')}</button>
+            <button type="submit" className="btn-solid" disabled={busy} aria-busy={busy}><BusyLabel busy={busy} busyText={t('جارٍ الحفظ…')}>{t('حفظ التغييرات')}</BusyLabel></button>
           </div>
         </form>
       ) : (

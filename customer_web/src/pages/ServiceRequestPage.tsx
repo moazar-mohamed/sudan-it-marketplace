@@ -6,6 +6,7 @@ import { Icon, PATHS } from '../components/Icon';
 import type { GeoPoint } from '../components/MapPicker';
 import { PhoneInput, phoneError } from '../components/PhoneInput';
 import { Select } from '../components/Select';
+import { PageTitle } from '../components/PageTitle';
 import { servesCity } from '../data/browse';
 import { useAccount, useCatalog } from '../data/DataProvider';
 import { salePrice } from '../data/format';
@@ -84,6 +85,7 @@ function RequestForm({ offer, service, company }: { offer: CompanyService; servi
 
   return (
     <form className="stack narrow" onSubmit={submit} noValidate>
+      <PageTitle title={t('طلب خدمة')} />
       <h1 className="page-title">{t('طلب خدمة')}</h1>
 
       <section className="tile">

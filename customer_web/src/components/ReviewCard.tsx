@@ -6,6 +6,7 @@ import { canEdit, COMMENT_MAX, editableUntil, editReview, rateSubject, STAR_LABE
 import type { ReviewSubject } from '../data/reviews';
 import type { Review } from '../data/types';
 import { t } from '../i18n';
+import { BusyLabel } from './BusyLabel';
 
 function StarPicker({ stars, onChange }: { stars: number; onChange: (n: number) => void }) {
   return (
@@ -75,7 +76,7 @@ function ReviewForm({ subject, existing, initialStars, onClose }: { subject: Rev
           <textarea rows={3} maxLength={COMMENT_MAX} value={comment} placeholder={t('اكتب للآخرين عن تجربتك')} onChange={(e) => setComment(e.target.value)} />
         </label>
         {error && <div className="error" role="alert">{error}</div>}
-        <button className="btn" disabled={busy} onClick={save}>{existing ? t('حفظ التعديل') : t('إرسال التقييم')}</button>
+        <button className="btn" disabled={busy} aria-busy={busy} onClick={save}><BusyLabel busy={busy} busyText={existing ? t('جارٍ الحفظ…') : t('جارٍ الإرسال…')}>{existing ? t('حفظ التعديل') : t('إرسال التقييم')}</BusyLabel></button>
         <button className="btn ghost" disabled={busy} onClick={onClose}>{t('إلغاء')}</button>
       </div>
     </div>

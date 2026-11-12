@@ -114,8 +114,8 @@ function visibleProducts(data, cats, companies, now) {
 // ── HTML ─────────────────────────────────────────────────────────────────────
 
 const CSS = `
-:root{--bg:#f5f7fa;--card:#fff;--ink:#0f1b2d;--muted:#5b6778;--line:#e3e8ef;--brand:#1565c0;--brand-ink:#0f4c9a;--tint:#e7f0fb;--ok:#14693a;--bad:#a3201f}
-@media (prefers-color-scheme:dark){:root{--bg:#0e141c;--card:#161e29;--ink:#e7ecf3;--muted:#97a3b4;--line:#263241;--brand:#2f78d0;--brand-ink:#8dbbf2;--tint:#17304d;--ok:#4cc38a;--bad:#f27a78}}
+:root{--bg:#f4f7fb;--card:#fff;--ink:#12263f;--muted:#5d6f86;--line:#dde5ef;--brand:#1fa35c;--brand-ink:#063b73;--price:#1fa35c;--tint:#e8f0fa;--ok:#14693a;--bad:#a3201f}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1523;--card:#13233a;--ink:#e6eef9;--muted:#93a7c2;--line:#25395a;--brand:#1fa35c;--brand-ink:#4a90e2;--price:#1fa35c;--tint:#182c48;--ok:#4cc38a;--bad:#f27a78}}
 *{box-sizing:border-box}body{margin:0;font-family:Cairo,system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
 a{color:inherit;text-decoration:none}a:hover{color:var(--brand-ink)}
 header.top{background:var(--card);border-bottom:1px solid var(--line)}
@@ -132,13 +132,13 @@ h1{font-size:26px;line-height:1.35;margin:0 0 8px}h2{font-size:19px;margin:28px 
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;height:100%}
 .card .img{aspect-ratio:4/3;background:var(--tint);display:grid;place-items:center;color:var(--muted);font-size:13px}.card .img img{width:100%;height:100%;object-fit:cover;display:block}
 .card .body{padding:12px 14px;display:flex;flex-direction:column;gap:4px}.card .name{font-weight:700}.card .meta{font-size:13px;color:var(--muted)}
-.price{font-weight:800;color:var(--brand-ink)}.price s{font-weight:500;color:var(--muted);margin-inline-start:6px}
+.price{font-weight:800;color:var(--price)}.price s{font-weight:500;color:var(--muted);margin-inline-start:6px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;list-style:none;margin:0;padding:0}.chips a{display:block;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:600}
 .product{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}.product.noimg{grid-template-columns:minmax(0,640px)}
 @media(max-width:760px){.product{grid-template-columns:1fr}}
 .gallery img{width:100%;border-radius:18px;background:var(--tint);display:block}.gallery .thumbs{display:flex;gap:8px;margin-top:8px}.gallery .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:10px}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
-.big{font-size:26px;font-weight:800;color:var(--brand-ink)}.big s{font-size:16px;font-weight:500;color:var(--muted);margin-inline-start:8px}
+.big{font-size:26px;font-weight:800;color:var(--price)}.big s{font-size:16px;font-weight:500;color:var(--muted);margin-inline-start:8px}
 .ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
 table{width:100%;border-collapse:collapse}th,td{text-align:start;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}th{width:34%;color:var(--muted);font-weight:600}
 .logo{width:72px;height:72px;border-radius:16px;object-fit:cover;background:var(--tint)}
@@ -159,7 +159,7 @@ function layout({ siteUrl, path, title, description, image, type = 'website', bo
 <meta name="description" content="${esc(clip(description, 200))}">
 <link rel="canonical" href="${esc(url)}">
 <link rel="icon" type="image/png" href="/favicon-mark.png">
-<meta name="theme-color" content="#1565C0">
+<meta name="theme-color" content="#063B73">
 <meta property="og:site_name" content="${esc(SITE_NAME)}">
 <meta property="og:locale" content="ar_AR">
 <meta property="og:type" content="${esc(type)}">

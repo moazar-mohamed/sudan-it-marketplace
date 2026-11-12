@@ -6,9 +6,11 @@ import { CategoryGlyph } from '../components/CategoryGlyph';
 import { CompanyCard } from '../components/CompanyCard';
 import { Icon, PATHS } from '../components/Icon';
 import { ProductCard } from '../components/ProductCard';
+import { ServiceCard } from '../components/ServiceCard';
 import { companyRating, countTotal, sortProducts } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
-import { categoryColor, categoryName, hasActiveOffer } from '../data/format';
+import { featuredServices } from '../data/featuredServices';
+import { categoryName, hasActiveOffer, itemsCount } from '../data/format';
 import { siteStats } from '../data/homeStats';
 import type { StatKey } from '../data/homeStats';
 import type { Product } from '../data/types';
@@ -46,6 +48,7 @@ export function HomePage() {
     })
     .slice(0, 6);
   const stats = loading ? [] : siteStats(companies, products.length + listings.length, ratings);
+  const featured = loading ? [] : featuredServices(listings);
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -55,10 +58,7 @@ export function HomePage() {
   return (
     <main className="home">
       <section className="home-hero">
-        <span className="orb" style={{ insetInlineEnd: -80, top: -60, width: 360, height: 360, background: '#1565C0' }} />
-        <span className="orb" style={{ insetInlineEnd: 60, bottom: -110, width: 280, height: 280, background: '#00A8E8' }} />
         <div className="hero-inner">
-          <span className="chip">{t('سوق السودان للتقنية')}</span>
           <h1>{t('كل التقنية')}<br />{t('في مكان واحد')}</h1>
           <p>{t('منتجات وشركات وخدمات في مدينتك. اطلب مباشرة وتواصل مع الشركة.')}</p>
           <form className="hero-search" role="search" onSubmit={submit}>
@@ -104,13 +104,12 @@ export function HomePage() {
           ) : (
             <div className="cat-grid">
               {roots.map((c) => {
-                const color = categoryColor(c);
                 const count = counts ? countTotal(counts.get(c.id)) : 0;
                 return (
-                  <Link key={c.id} to={`/category/${c.id}`} className="cat" style={{ background: `${color}1f` }}>
-                    <CategoryGlyph category={c} size={38} />
+                  <Link key={c.id} to={`/category/${c.id}`} className="cat cat-card">
+                    <span className="cat-ico"><CategoryGlyph category={c} size={30} /></span>
                     <span>{categoryName(c)}</span>
-                    {count > 0 && <span className="pmeta">{count}{' '}{t('عنصر')}</span>}
+                    {count > 0 && <span className="pmeta">{itemsCount(count)}</span>}
                   </Link>
                 );
               })}
@@ -155,6 +154,18 @@ export function HomePage() {
               {fresh.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
           )}
+        </section>
+      )}
+
+      {featured.length > 0 && (
+        <section>
+          <div className="section-title">
+            <h2>{t('خدمات مميزة')}</h2>
+            <Link to="/browse?kind=services" className="more">{t('عرض الكل ←')}</Link>
+          </div>
+          <div className="service-list">
+            {featured.map((l) => <ServiceCard key={l.service.id} service={l.service} />)}
+          </div>
         </section>
       )}
 

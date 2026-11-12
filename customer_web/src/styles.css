@@ -1,20 +1,24 @@
 :root {
-  --bg: #eef2f8;
+  /* the SICTM look: navy (#063b73) as the main colour, green (#1fa35c) on action buttons and prices */
+  --bg: #f4f7fb;
   --surface: #ffffff;
-  --surface-2: #f2f4f7;
-  --text: #101828;
-  --muted: #667085;
-  --line: #e4e7ec;
-  --brand: #1565c0;
+  --surface-2: #eef3f9;
+  --text: #12263f;
+  --muted: #5d6f86;
+  --line: #dde5ef;
+  --brand: #063b73;
   --brand-ink: #ffffff;
-  --accent: #00a8e8;
-  --link: #1565c0;
-  --price: #1565c0;
-  --hero: #0f4c9a;
-  --inverse: #101828;
+  --action: #1fa35c;
+  --accent: #1fa35c;
+  --link: #063b73;
+  --price: #1fa35c;
+  --hero: #063b73;
+  --soft: #e8f0fa;
+  --inverse: #063b73;
   --inverse-ink: #ffffff;
-  --shadow: 0 8px 32px rgba(16, 24, 40, 0.08);
-  --nav-bg: rgba(255, 255, 255, 0.86);
+  --shadow: 0 2px 4px rgba(11, 29, 58, 0.08), 0 18px 36px -14px rgba(11, 29, 58, 0.25);
+  --card-shadow: 0 1px 2px rgba(11, 29, 58, 0.06), 0 8px 24px -12px rgba(11, 29, 58, 0.15);
+  --nav-bg: rgba(6, 59, 115, 0.93);
   --ok-bg: #e8f5e9;
   --ok: #1b5e20;
   --warn-bg: #fff4e0;
@@ -24,20 +28,23 @@
 }
 
 :root[data-theme='dark'] {
-  --bg: #0a1020;
-  --surface: #111a2e;
-  --surface-2: #1b2742;
-  --text: #eaf0fa;
-  --muted: #a9b8d0;
-  --line: rgba(255, 255, 255, 0.1);
-  --brand: #1565c0;
-  --link: #7bd3f2;
-  --price: #00a8e8;
-  --hero: #0f4c9a;
-  --inverse: #eaf0fa;
-  --inverse-ink: #0a1020;
+  --bg: #0b1523;
+  --surface: #13233a;
+  --surface-2: #182c48;
+  --text: #e6eef9;
+  --muted: #93a7c2;
+  --line: #25395a;
+  --brand: #4a90e2;
+  --action: #1fa35c;
+  --link: #4a90e2;
+  --price: #1fa35c;
+  --hero: #063b73;
+  --soft: #182c48;
+  --inverse: #4a90e2;
+  --inverse-ink: #ffffff;
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --nav-bg: rgba(17, 26, 46, 0.88);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 24px -12px rgba(0, 0, 0, 0.45);
+  --nav-bg: rgba(6, 59, 115, 0.93);
   --ok-bg: rgba(46, 125, 50, 0.25);
   --ok: #7fd38a;
   --warn-bg: rgba(255, 143, 0, 0.18);
@@ -618,3 +625,152 @@ body:has(.compare-bar) .page { padding-bottom: 112px; }
 .select-option.is-selected { color: var(--link); }
 .select-check { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 @media (prefers-reduced-motion: reduce) { .select-list { animation: none; } .select-chevron { transition: none; } }
+
+/* ===== The SICTM look (the promo video): navy bar, green actions, navy-to-teal hero, softer cards.
+   Kept last so it wins over the older rules above. ===== */
+.nav { position: sticky; top: 0; z-index: 20; display: block; height: auto; padding: 0; gap: 0; border: 0; border-radius: 0; background: var(--nav-bg); backdrop-filter: saturate(1.4) blur(10px); box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.6); color: #fff; }
+.nav-inner { max-width: 1280px; margin: 0 auto; height: 68px; padding: 0 32px; display: flex; align-items: center; gap: 16px; }
+.brand { gap: 10px; color: #fff; }
+.brand-logo { flex: none; width: 44px; height: 44px; padding: 2px; border-radius: 10px; background: #fff; object-fit: contain; }
+.brand-name { display: flex; flex-direction: column; line-height: 1.3; }
+.brand-title { font-size: 16px; font-weight: 800; }
+.brand-name small { font-size: 11.5px; font-weight: 400; opacity: 0.8; }
+.nav-links a { border-radius: 10px; color: rgba(255, 255, 255, 0.85); }
+.nav-links a:hover { color: #fff; background: rgba(255, 255, 255, 0.13); }
+.nav-links a.active { background: rgba(255, 255, 255, 0.17); color: #fff; }
+.nav .nav-count { background: var(--action); }
+.nav .search-trigger { background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.85); }
+.nav .icon-btn, .nav .lang-btn { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.22); color: #fff; }
+.nav .icon-btn:hover, .nav .lang-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.35); }
+.nav .icon-btn.solid { background: var(--action); border-color: transparent; }
+.nav-login, .btn, .btn-solid, .hero-search-btn { background: var(--action); }
+.btn.ghost { background: transparent; }
+.btn-solid:hover:not(:disabled), .btn:hover:not(:disabled):not(.ghost), .hero-search-btn:hover { filter: brightness(1.08); }
+/* the bar's buttons: slightly rounded squares, as on the SICTM page, not round bubbles */
+.nav .icon-btn, .nav .lang-btn, .nav-login, .nav .search-trigger { border-radius: 10px; }
+@media (max-width: 960px) {
+  .nav-inner { height: 64px; padding: 0 16px; gap: 8px; }
+  .nav .nav-strip { gap: 4px; margin: 0; padding: 0 12px 8px; }
+  .nav .nav-strip a { padding: 7px 14px; border: 0; border-radius: 10px; background: transparent; color: rgba(255, 255, 255, 0.85); font-size: 15px; font-weight: 700; }
+  .nav .nav-strip a:hover { color: #fff; background: rgba(255, 255, 255, 0.13); }
+  .nav .nav-strip a.active { background: rgba(255, 255, 255, 0.17); color: #fff; }
+}
+@media (max-width: 560px) {
+  .brand-name { display: none; }
+}
+
+.home-hero { border-radius: 24px; background: radial-gradient(900px 360px at 90% -30%, rgba(52, 211, 192, 0.4), transparent), linear-gradient(135deg, #052b57, #0a5f86 62%, #0f8f7d); }
+.home-hero::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background-image: radial-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px); background-size: 22px 22px; pointer-events: none; }
+.hero-inner { z-index: 1; }
+.home-hero h1 { font-size: clamp(26px, 4.6vw, 40px); line-height: 1.35; letter-spacing: -0.3px; }
+.home-hero p { font-size: 16px; }
+.hero-search { height: 58px; padding-inline: 18px 6px; border-radius: 14px; color: #5d6f86; }
+.hero-search input { color: #12263f; }
+.hero-search input::placeholder { color: #5d6f86; }
+.hero-search-btn { height: 46px; padding: 0 24px; border-radius: 10px; }
+.chip-quick { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.12); }
+.section-title h2, .home .section-title h2 { font-size: 20px; }
+@media (max-width: 560px) {
+  .hero-search { height: 54px; padding-inline: 14px 5px; }
+  .hero-search-btn { height: 44px; padding: 0 18px; }
+}
+
+/* home categories: white cards, the shape in a light-blue square; three in a row on a phone */
+.cat-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--card-shadow); padding: 16px 8px; gap: 8px; }
+.cat-card:hover { border-color: var(--brand); box-shadow: var(--shadow); }
+.cat-ico { display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 16px; background: var(--soft); }
+.cat-card > span:not(.cat-ico) { overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .home .cat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .cat-card { padding: 12px 4px; font-size: 12.5px; }
+  .cat-ico { width: 46px; height: 46px; border-radius: 14px; }
+}
+
+/* «تواصل» and the other second buttons: light blue with navy text */
+.btn-line { border: 0; background: var(--soft); color: var(--link); }
+.btn-line:hover { filter: brightness(0.97); }
+
+/* «اطلب فنيًا»: the site's own light blue and navy, readable in dark mode too */
+.promo { background: var(--soft); color: var(--text); }
+.promo-icon { background: var(--surface); color: var(--brand); }
+.promo-kicker { color: var(--link); }
+.promo-go { background: var(--brand); color: #fff; }
+
+/* the rating on a company card: a small yellow pill */
+.ccard .rating { display: inline-block; margin-top: 4px; padding: 1px 10px; border-radius: 999px; background: var(--warn-bg); font-size: 13px; }
+
+.footer-col h3 { color: #fff; }
+mark { background: rgba(31, 163, 92, 0.22); }
+
+.stat-band > div { border-radius: 16px; box-shadow: var(--card-shadow); }
+.stat-band b { color: var(--brand); }
+.tile, .pcard, .empty-state, .buy-box { border-radius: 18px; }
+.ccard, .scard, .product-media { border-radius: 18px; }
+.pcard, .ccard, .scard { box-shadow: var(--card-shadow); }
+.pcard:hover, .ccard:hover, .scard:hover { box-shadow: var(--shadow); }
+.pimg { border-radius: 12px; }
+.company-box, .rows { border-radius: 16px; }
+.login-card { border-radius: 20px; }
+.status.info, .notice-bar.info { background: color-mix(in srgb, var(--link) 14%, transparent); }
+.footer { background: #052b57; }
+
+/* product page: compare and share side by side */
+.product-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.share-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: none; height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 13px; font-weight: 700; }
+.share-btn:hover { color: var(--link); border-color: var(--link); }
+/* Phones: the search box names itself, and the buy bar stays at the bottom of the screen without hiding what is above it. */
+.search-trigger .label-short { display: none; }
+@media (max-width: 960px) {
+  .search-trigger .label-short { display: inline; font-size: 14px; }
+  .product-media { aspect-ratio: 16 / 10; }
+  .buy-box { position: fixed; inset-inline: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 15; gap: 10px; padding: 12px 14px; box-shadow: 0 -6px 28px rgba(6, 24, 51, 0.22); }
+  .buy-box .stepper button { width: 40px; height: 40px; }
+  body:has(.buy-box) { padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+}
+/* Waiting states: a chat being opened, and a heart being saved. */
+.opening { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 56px 16px; color: var(--muted); font-weight: 600; text-align: center; }
+.fav-btn.busy { pointer-events: none; }
+.fav-btn.busy .ico { display: none; }
+.fav-btn.busy::after { content: ""; width: 18px; height: 18px; border-radius: 50%; border: 2px solid currentColor; border-inline-end-color: transparent; animation: spin 0.8s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .fav-btn.busy::after { animation-duration: 2.4s; } }
+
+/* The header: a small search button instead of the long bar, so the site name fits on a phone too
+   (it shrinks with "…" when the buttons need the room). */
+.nav .nav-search { flex: none; }
+@media (max-width: 560px) {
+  .brand { min-width: 0; flex: 0 1 auto; }
+  .brand-name { display: flex; min-width: 0; }
+  /* English name in an Arabic page: written left to right so the "…" comes at its end. */
+  .brand-title { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: ltr; }
+  .brand-name small { display: none; }
+}
+
+/* The search box inside a page (products and services, a category, companies, orders). */
+.page-search { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--muted); }
+.page-search:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 16%, transparent); }
+.page-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; color: var(--text); font: inherit; font-size: 15px; }
+.page-search input::placeholder { color: var(--muted); }
+.page-search-clear { flex: none; width: 30px; height: 30px; border: 0; border-radius: 50%; background: var(--surface-2); color: var(--muted); font-size: 13px; }
+
+/* Grid or list for the products on a browse page. */
+.view-toggle { display: inline-flex; gap: 4px; margin-inline-start: 10px; }
+.view-toggle button { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); }
+.view-toggle button.on { background: var(--brand); border-color: var(--brand); color: #fff; }
+.pcards.list { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.pcards.list .pcard { display: flex; align-items: stretch; gap: 12px; padding: 10px; }
+.pcards.list .pimg { flex: 0 0 170px; height: auto; min-height: 140px; }
+.pcards.list .pimg-cat { display: none; }
+.pcards.list .pbody { flex: 1; min-width: 0; padding: 4px 4px 4px 0; }
+.pcards.list .pdesc { -webkit-line-clamp: 3; line-clamp: 3; }
+@media (max-width: 560px) {
+  .pcards.list .pimg { flex-basis: 112px; min-height: 120px; }
+  .pcards.list .pimg .compare-btn { display: none; }
+}
+/* Busy buttons: a small spinner with what is happening, and a dimmed button that takes no second press. */
+.btn-spinner { display: inline-block; flex: none; width: 16px; height: 16px; margin-inline-end: 8px; vertical-align: -3px; border-radius: 50%; border: 2px solid currentColor; border-inline-end-color: transparent; animation: spin 0.8s linear infinite; }
+.btn-spinner.alone { margin-inline-end: 0; }
+.btn:disabled, .mini-btn:disabled, .btn-line:disabled, .pill:disabled, .link-btn:disabled, .lang-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+[aria-busy="true"] { cursor: progress; }
+.palette-list .item:disabled { opacity: 0.55; }
+.palette-list .item.pending { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .btn-spinner { animation-duration: 2.4s; } }

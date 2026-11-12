@@ -69,12 +69,15 @@ export const useCategories = () =>
 /** Products with units left, as the app queries them. */
 export const useProducts = () =>
   useCollection<Product>(
-    () => query(collection(db, 'products'), where('stockCount', '>', 0)),
+    // A hidden product is left out by the query: the rules refuse a list that could include one.
+    () => query(collection(db, 'products'), where('hidden', '==', false), where('stockCount', '>', 0)),
     mapProduct,
   );
 
 export const useCompanies = () =>
-  useCollection<Company>(() => query(collection(db, 'companies')), mapCompany);
+  // Only active companies are readable by customers and visitors (the rules
+  // refuse a list that could include a pending, rejected or deactivated one).
+  useCollection<Company>(() => query(collection(db, 'companies'), where('status', '==', 'active')), mapCompany);
 
 export const useServices = () =>
   useCollection<CatalogService>(

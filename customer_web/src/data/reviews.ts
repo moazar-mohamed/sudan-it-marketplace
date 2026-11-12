@@ -4,7 +4,7 @@ import { auth, db } from '../firebase';
 import { notifyCompany } from './orders';
 import { LOW_REVIEW_MAX_STARS, notifyPlatformAdmins } from './platformNotice';
 import type { Order, Review, ServiceRequest } from './types';
-import { t } from '../i18n';
+import { language, t } from '../i18n';
 
 // Port of firestore_reviews_repository.dart: there is no server, so each batch
 // that changes a review's stars moves the averages too, and the rules check both.
@@ -54,7 +54,8 @@ export const requestReviewSubject = (r: ServiceRequest): ReviewSubject => ({
   tags: REQUEST_TAGS,
 });
 
-export const STAR_LABELS = ['', t('سيئ'), t('مقبول'), t('جيد'), t('جيد جدًا'), t('ممتاز')];
+// «مقبول» is also a service request's "Accepted" status, so two stars says "Fair" in English here.
+export const STAR_LABELS = ['', t('سيئ'), language === 'en' ? 'Fair' : 'مقبول', t('جيد'), t('جيد جدًا'), t('ممتاز')];
 
 export interface ReviewDraft {
   stars: number;

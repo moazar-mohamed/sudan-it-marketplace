@@ -29,6 +29,8 @@ export function countText(count: number, one: string, two: string, few: string, 
 export const productsCount = (n: number): string => countText(n, t('منتج واحد'), t('منتجان'), t('منتجات'), t('منتج'));
 export const servicesCount = (n: number): string => countText(n, t('خدمة واحدة'), t('خدمتان'), t('خدمات'), t('خدمة'));
 export const companiesCount = (n: number): string => countText(n, t('شركة واحدة'), t('شركتان'), t('شركات'), t('شركة'));
+export const itemsCount = (n: number): string => countText(n, t('عنصر واحد'), t('عنصران'), t('عناصر'), t('عنصر'));
+export const piecesCount = (n: number): string => countText(n, t('قطعة واحدة'), t('قطعتان'), t('قطع'), t('قطعة'));
 
 // ── offers (lib/features/offers/domain/offer_pricing.dart) ─────────────────
 

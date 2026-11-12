@@ -20,12 +20,14 @@ import {
   useMessages,
 } from '../data/chats';
 import { useAccount, useCatalog } from '../data/DataProvider';
+import { usePageTitle } from '../data/pageTitle';
 import { formatDate, formatDateTime } from '../data/format';
 import { useOrder } from '../data/hooks';
 import { ORDER_STATUS } from '../data/orders';
 import { REQUEST_STATUS, useServiceRequest } from '../data/serviceRequests';
 import type { ChatMessage, Conversation } from '../data/types';
 import { t } from '../i18n';
+import { BusyLabel } from '../components/BusyLabel';
 
 const timeOf = (d: Date): string => formatDateTime(d).split(' ').slice(1).join(' ');
 
@@ -217,7 +219,7 @@ function Composer({ conversation }: { conversation: Conversation }) {
       {error && <div className="error" role="alert">{error}</div>}
       <div className="chat-input">
         <textarea rows={1} maxLength={MESSAGE_MAX} placeholder={t('اكتب رسالة')} aria-label={t('اكتب رسالة')} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onKey} />
-        <button className="btn-solid" disabled={sending || text.trim() === ''} onClick={send}>{t('إرسال')}</button>
+        <button className="btn-solid" disabled={sending || text.trim() === ''} aria-busy={sending} aria-label={sending ? t('جارٍ الإرسال…') : undefined} onClick={send}><BusyLabel busy={sending}>{t('إرسال')}</BusyLabel></button>
       </div>
     </div>
   );
@@ -263,7 +265,8 @@ function ChatPanel({ id }: { id: string }) {
 }
 
 /** Opens the conversation a "Contact" button asked for, then replaces itself with it. */
-function useOpenInquiry(): string {
+/** Opens the chat a «تواصل» button asked for; [opening] stays true until it is ready or refused. */
+function useOpenInquiry(): { opening: boolean; error: string } {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { products, links, companies, services, loading } = useCatalog();
@@ -296,25 +299,34 @@ function useOpenInquiry(): string {
     };
   }, [productId, offerId, loading, products, links, companies, services, profile, navigate]);
 
-  return error;
+  return { opening: (!!productId || !!offerId) && error === '', error };
 }
+
+const Opening = () => (
+  <div className="opening" role="status" aria-live="polite">
+    <span className="spinner" aria-hidden="true" />
+    <span>{t('جارٍ فتح المحادثة مع الشركة…')}</span>
+  </div>
+);
 
 export function ChatsPage() {
   const { id = '' } = useParams();
   const profile = useAccount();
   const { items, error } = useConversations(profile.id);
-  const openError = useOpenInquiry();
+  const { opening, error: openError } = useOpenInquiry();
   const conversations = useMemo(() => items ?? [], [items]);
+  usePageTitle(t('المحادثات'));
 
   if (error) return <main className="stack"><ErrorState /></main>;
   if (items === null) return <main className="stack"><Skeleton height={420} /></main>;
+  if (opening && !id) return <main className="stack narrow"><Opening /></main>;
   if (items.length === 0 && !id) {
     return (
       <main className="stack narrow">
         <h1 className="page-title">{t('المحادثات')}</h1>
         {openError && <div className="error" role="alert">{openError}</div>}
         <EmptyState title={t('لا توجد محادثات بعد')} message={t('اضغط «تواصل» في صفحة أي منتج أو خدمة، أو اطلب شيئاً، وستظهر محادثتك مع الشركة هنا.')}>
-          <Link to="/browse" className="pill">{t('تصفح السوق')}</Link>
+          <Link to="/browse" className="pill">{t('تصفّح المنتجات والخدمات')}</Link>
         </EmptyState>
       </main>
     );

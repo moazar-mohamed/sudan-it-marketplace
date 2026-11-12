@@ -1,4 +1,5 @@
 import { EmptyState, Skeleton } from '../components/Bits';
+import { PageTitle } from '../components/PageTitle';
 import { formatDate } from '../data/format';
 import { termsText, useTerms } from '../data/terms';
 import { language, t } from '../i18n';
@@ -8,6 +9,7 @@ export function TermsPage() {
   const { terms, loaded } = useTerms();
   return (
     <main className="stack narrow">
+      <PageTitle title={t('الشروط والأحكام')} />
       <h1 className="page-title">{t('الشروط والأحكام')}</h1>
       {!loaded ? (
         <Skeleton height={260} />

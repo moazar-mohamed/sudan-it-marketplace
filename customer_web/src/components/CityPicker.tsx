@@ -12,6 +12,7 @@ export function CityPicker({ uid, selectedId, onClose }: { uid: string; selected
   const { cities, companies } = useCatalog();
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
+  const [pendingId, setPendingId] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
 
   const counts = useMemo(() => {
@@ -34,9 +35,11 @@ export function CityPicker({ uid, selectedId, onClose }: { uid: string; selected
       return;
     }
     setBusy(true);
+    setPendingId(id);
     setFailed(false);
     const saved = await saveCity(uid, id);
     setBusy(false);
+    setPendingId(null);
     if (saved) onClose?.();
     else setFailed(true);
   }
@@ -55,12 +58,12 @@ export function CityPicker({ uid, selectedId, onClose }: { uid: string; selected
       <div className="palette-list">
         {shown.length === 0 && <div className="empty">{t('لا توجد مدينة بهذا الاسم.')}</div>}
         {shown.map((city) => (
-          <button key={city.id} className={`item${city.id === selectedId ? ' on' : ''}`} disabled={busy} onClick={() => choose(city.id)}>
+          <button key={city.id} className={`item${city.id === selectedId ? ' on' : ''}${city.id === pendingId ? ' pending' : ''}`} disabled={busy} aria-busy={city.id === pendingId} onClick={() => choose(city.id)}>
             <span className="grow">
               <span style={{ display: 'block', fontWeight: 700 }}>{cityName(city)}</span>
               <span className="pmeta">{companiesCount(counts.get(city.id) ?? 0)}</span>
             </span>
-            {city.id === selectedId && <span className="price">✓</span>}
+            {city.id === pendingId ? <span className="btn-spinner alone" aria-hidden="true" /> : city.id === selectedId && <span className="price">✓</span>}
           </button>
         ))}
       </div>

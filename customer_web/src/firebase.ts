@@ -12,9 +12,18 @@ import {
 // Public identifiers of the existing "sudan-it-marketplace" project (the same
 // values the Flutter app and the admin panel ship). They identify the project,
 // they are not secrets: access is enforced by Firestore security rules.
+// On sictm.net the Google sign-in window opens on sictm.net itself (Hosting serves
+// /__/auth/ there), not on the project's firebaseapp.com address. Anywhere else
+// (the web.app link, a local test) keeps the project's own sign-in address.
+const SITE_DOMAINS = ['sictm.net', 'www.sictm.net'];
+const authDomain =
+  typeof window !== 'undefined' && SITE_DOMAINS.includes(window.location.hostname)
+    ? 'sictm.net'
+    : 'sudan-it-marketplace.firebaseapp.com';
+
 const firebaseConfig = {
   apiKey: 'AIzaSyAfI2D3QwE6ULN6Vq6aiMJIet9z4pHIaAY',
-  authDomain: 'sudan-it-marketplace.firebaseapp.com',
+  authDomain,
   projectId: 'sudan-it-marketplace',
   storageBucket: 'sudan-it-marketplace.firebasestorage.app',
   messagingSenderId: '442723121540',

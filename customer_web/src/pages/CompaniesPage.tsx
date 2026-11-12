@@ -2,11 +2,14 @@ import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { EmptyState, ErrorState, Skeleton } from '../components/Bits';
 import { CompanyCard } from '../components/CompanyCard';
+import { Icon, PATHS } from '../components/Icon';
 import { Select } from '../components/Select';
+import { PageTitle } from '../components/PageTitle';
 import { companyTopCategories, viewCompanies } from '../data/browse';
 import type { CompanySort } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
 import { categoryName, companiesCount } from '../data/format';
+import { narrowCompanies } from '../data/pageSearch';
 import { t } from '../i18n';
 
 const SORTS: { value: CompanySort; label: string }[] = [
@@ -20,14 +23,16 @@ export function CompaniesPage() {
   const [params, setParams] = useSearchParams();
   const sort = SORTS.find((s) => s.value === params.get('sort'))?.value ?? 'topRated';
   const categoryId = params.get('cat');
+  // What is typed in the page's own search box (kept in the address).
+  const query = params.get('q') ?? '';
 
   const topCategories = useMemo(
     () => companyTopCategories(tree, products, links, services),
     [tree, products, links, services],
   );
   const shown = useMemo(
-    () => viewCompanies([...companies], sort, ratings, topCategories, categoryId, cityId),
-    [companies, sort, ratings, topCategories, categoryId, cityId],
+    () => narrowCompanies(viewCompanies([...companies], sort, ratings, topCategories, categoryId, cityId), query),
+    [companies, sort, ratings, topCategories, categoryId, cityId, query],
   );
   const chips = tree.childrenOf(null).filter((c) => [...topCategories.values()].some((ids) => ids.includes(c.id)));
 
@@ -43,6 +48,7 @@ export function CompaniesPage() {
   return (
     <main className="stack">
       <section className="tile browse-head">
+        <PageTitle title={t('الشركات')} />
         <h1>{t('الشركات')}</h1>
         {chips.length > 0 && (
           <div className="chips">
@@ -55,6 +61,18 @@ export function CompaniesPage() {
           </div>
         )}
       </section>
+      <label className="page-search">
+        <Icon d={PATHS.search} size={18} />
+        <span className="sr-only">{t('بحث')}</span>
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => set('q', e.target.value)}
+          placeholder={t('ابحث عن شركة')}
+          autoComplete="off"
+          enterKeyHint="search"
+        />
+      </label>
       <div className="results-bar">
         <span className="grow pmeta">{companiesCount(shown.length)}</span>
         <label className="sort">
@@ -70,10 +88,10 @@ export function CompaniesPage() {
       {loading ? (
         <Skeleton height={320} />
       ) : shown.length === 0 ? (
-        <EmptyState title={t('لا شركات هنا بعد.')} />
+        <EmptyState title={query.trim() ? t('لا نتائج لـ«{0}» هنا.', query.trim()) : t('لا شركات هنا بعد.')} />
       ) : (
         <div className="ccards">
-          {shown.map((c) => <CompanyCard key={c.id} company={c} />)}
+          {shown.map((c) => <CompanyCard key={c.id} company={c} highlight={query} />)}
         </div>
       )}
     </main>

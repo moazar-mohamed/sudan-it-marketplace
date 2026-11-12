@@ -63,3 +63,25 @@ export function cityNamesText(ids: string[], cities: City[]): string {
 export function cityName(city: City | undefined): string {
   return city ? localName(city.nameAr, city.nameEn) : '';
 }
+
+// Spaces, dashes and the common Arabic spelling variants (أ/إ/آ, ة/ه, ى/ي) do not count.
+const cityKey = (s: string): string =>
+  s
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي');
+
+/**
+ * A company's typed city ("Khartoum", "الخرطوم", "khartoum", "أمدرمان") in the
+ * reader's language, correctly spelt, when it names a known city; as typed otherwise.
+ */
+export function localCityText(text: string, cities: City[]): string {
+  const key = cityKey(text);
+  if (key === '') return '';
+  const named = (c: City) => [c.id, c.nameAr, c.nameEn].some((n) => cityKey(n) === key);
+  const city = cities.find(named) ?? BUILT_IN_CITIES.find(named);
+  return city ? cityName(city) : text.trim();
+}

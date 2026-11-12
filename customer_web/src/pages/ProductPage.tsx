@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Breadcrumbs, CityTag, EmptyState, ErrorState, OfferPill, PriceText, RatingLine, Skeleton } from '../components/Bits';
+import { Breadcrumbs, CityTag, EmptyState, ErrorState, OfferPill, PATH_SEPARATOR, PriceText, RatingLine, Skeleton } from '../components/Bits';
 import { CategoryGlyph } from '../components/CategoryGlyph';
 import { CompanyLogo } from '../components/CompanyCard';
 import { Icon, PATHS } from '../components/Icon';
@@ -22,6 +22,8 @@ import { isOnSale } from '../data/mappers';
 import { recordProductView } from '../data/usage';
 import { CompareButton } from '../components/Compare';
 import { FavoriteButton } from '../components/FavoriteButton';
+import { ShareButton } from '../components/ShareButton';
+import { PageTitle } from '../components/PageTitle';
 import { t } from '../i18n';
 
 export function ProductPage() {
@@ -48,7 +50,7 @@ export function ProductPage() {
     return (
       <main className="stack">
         <EmptyState title={t('هذا المنتج لم يعد متاحًا')}>
-          <Link to="/browse" className="pill">{t('تصفح المنتجات')}</Link>
+          <Link to="/browse" className="pill">{t('تصفّح المنتجات والخدمات')}</Link>
         </EmptyState>
       </main>
     );
@@ -75,14 +77,14 @@ export function ProductPage() {
     <main className="stack">
       <Breadcrumbs
         items={[
-          { label: t('كل التصنيفات'), to: '/browse' },
+          { label: t('كل الأقسام'), to: '/browse' },
           ...path.map((c) => ({ label: categoryName(c), to: `/category/${c.id}` })),
           { label: product.name },
         ]}
       />
       <div className="product-grid">
         <div className="product-media-col">
-          <div className="product-media" style={mainImage ? undefined : { background: `${color}1f`, color }}>
+          <div className="product-media" style={mainImage ? undefined : { background: `linear-gradient(135deg, ${color}, ${color}b3)`, color: '#fff' }}>
             {mainImage ? <img src={mainImage} alt={product.name} /> : category ? <CategoryGlyph category={category} size={110} /> : <Icon d={PATHS.box} size={120} />}
             {hasActiveOffer(product) && <OfferPill item={product} />}
           </div>
@@ -102,15 +104,19 @@ export function ProductPage() {
             {available ? t('متوفر ({0})', product.stockCount) : t('غير متوفر في المخزون')}
           </span>
           <div className="title-row">
+            <PageTitle title={product.name} />
             <h1>{product.name}</h1>
             <FavoriteButton kind="product" targetId={product.id} name={product.name} />
           </div>
           <RatingLine ratingsFor={ratingKey('product', product.id)} />
-          <CompareButton productId={product.id} label className="inline" />
+          <div className="product-actions">
+            <CompareButton productId={product.id} label className="inline" />
+            <ShareButton title={product.name} path={`/product/${product.id}`} />
+          </div>
           {(product.brand || path.length > 0) && (
             <div className="ptags">
               {product.brand && <span>{product.brand}</span>}
-              {path.length > 0 && <span>{path.map(categoryName).join(' › ')}</span>}
+              {path.length > 0 && <span>{path.map(categoryName).join(` ${PATH_SEPARATOR} `)}</span>}
             </div>
           )}
           <PriceText item={product} currency={product.currency} big />

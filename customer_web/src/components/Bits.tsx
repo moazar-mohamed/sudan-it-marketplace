@@ -8,7 +8,10 @@ import { useCatalog } from '../data/DataProvider';
 import { averageOf, countText, formatPrice, hasActiveOffer, offerLabel, salePrice } from '../data/format';
 import { searchQueryTokens, searchWordHit } from '../data/searchRanking';
 import type { Priced } from '../data/types';
-import { t } from '../i18n';
+import { language, t } from '../i18n';
+
+/** The arrow between the steps of a path: it points the way the text reads. */
+export const PATH_SEPARATOR = language === 'en' ? '›' : '‹';
 
 /** "(12 تقييم)": the plural forms the app's reviewsCount uses. */
 export const reviewsCountText = (count: number): string =>
@@ -85,7 +88,7 @@ export function Breadcrumbs({ items }: { items: { label: string; to?: string }[]
     <nav className="crumbs" aria-label={t('مسار الصفحة')}>
       {items.map((item, i) => (
         <span key={`${item.label}-${i}`} className="crumb">
-          {i > 0 && <span aria-hidden="true">‹</span>}
+          {i > 0 && <span aria-hidden="true">{PATH_SEPARATOR}</span>}
           {item.to ? <Link to={item.to}>{item.label}</Link> : <strong aria-current="page">{item.label}</strong>}
         </span>
       ))}

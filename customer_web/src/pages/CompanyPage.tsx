@@ -4,13 +4,15 @@ import { CompanyLogo } from '../components/CompanyCard';
 import { Icon, PATHS } from '../components/Icon';
 import { ProductCard } from '../components/ProductCard';
 import { ReviewsSection } from '../components/ReviewsSection';
+import { PageTitle } from '../components/PageTitle';
+import { localCityText } from '../data/cities';
 import { useCatalog } from '../data/DataProvider';
 import { ratingKey } from '../data/format';
 import { t } from '../i18n';
 
 export function CompanyPage() {
   const { id = '' } = useParams();
-  const { companies, products, loading, error } = useCatalog();
+  const { companies, products, cities, loading, error } = useCatalog();
   const company = companies.find((c) => c.id === id);
 
   if (error) return <main className="stack"><ErrorState /></main>;
@@ -37,11 +39,12 @@ export function CompanyPage() {
       <section className="tile company-head">
         <CompanyLogo company={company} size={88} />
         <div className="grow">
+          <PageTitle title={company.name} />
           <h1>{company.name}</h1>
           <RatingLine ratingsFor={ratingKey('company', company.id)} fallbackAverage={company.rating} fallbackCount={company.reviewCount} />
           <div className="company-facts">
             {(address || company.city) && (
-              <span><Icon d={PATHS.pin} size={18} />{address || company.city}</span>
+              <span><Icon d={PATHS.pin} size={18} />{address || localCityText(company.city, cities)}</span>
             )}
             {phone && (
               <a href={`tel:${phone}`} dir="ltr">{phone}</a>

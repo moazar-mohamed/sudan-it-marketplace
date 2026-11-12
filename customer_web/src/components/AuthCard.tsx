@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { LanguageSwitch } from './LanguageSwitch';
+import { PageTitle } from './PageTitle';
 import { t } from '../i18n';
 
 /**
@@ -13,6 +14,7 @@ export function AuthCard({ title, subtitle, back, children }: { title: string; s
   return (
     <div className="login">
       <div className="login-card">
+        <PageTitle title={title} />
         <div className="brand" style={{ fontSize: 20 }}>
           <span className="brand-mark">{t('س')}</span>
           {t('سوق السودان للتقنية')}

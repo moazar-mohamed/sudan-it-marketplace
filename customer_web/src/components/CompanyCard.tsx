@@ -1,20 +1,26 @@
 import { Link } from 'react-router-dom';
+import { localCityText } from '../data/cities';
 import { useCatalog } from '../data/DataProvider';
-import { ratingKey } from '../data/format';
+import { categoryColor, itemsCount, ratingKey } from '../data/format';
 import type { Company } from '../data/types';
-import { t } from '../i18n';
 import { CityTag, Highlighted, RatingLine } from './Bits';
 
-export const CompanyLogo = ({ company, size = 46 }: { company: Company; size?: number }) => (
-  <span className="avatar" style={{ width: size, height: size }}>
-    {company.logoUrl ? <img src={company.logoUrl} alt="" /> : company.name.slice(0, 1)}
-  </span>
-);
+/** The company's logo, else its first letter in white on a colour that stays the same for it. */
+export const CompanyLogo = ({ company, size = 46 }: { company: Company; size?: number }) =>
+  company.logoUrl ? (
+    <span className="avatar" style={{ width: size, height: size }}>
+      <img src={company.logoUrl} alt="" />
+    </span>
+  ) : (
+    <span className="avatar" style={{ width: size, height: size, background: categoryColor(undefined, company.id), color: '#fff' }}>
+      {company.name.slice(0, 1)}
+    </span>
+  );
 
 export function CompanyCard({ company, highlight }: { company: Company; highlight?: string }) {
-  const { itemCounts } = useCatalog();
+  const { itemCounts, cities } = useCatalog();
   const items = itemCounts.get(company.id) ?? 0;
-  const where = [company.city, items > 0 ? `${items} ${t('عنصر')}` : ''].filter((s) => s !== '').join(' · ');
+  const where = [localCityText(company.city, cities), items > 0 ? itemsCount(items) : ''].filter((s) => s !== '').join(' · ');
   return (
     <Link to={`/company/${company.id}`} className="ccard">
       <CompanyLogo company={company} size={56} />

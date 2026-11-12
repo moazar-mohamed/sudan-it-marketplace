@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { EmptyState, Skeleton } from '../components/Bits';
 import { Icon, PATHS } from '../components/Icon';
 import { ReviewCard } from '../components/ReviewCard';
+import { PageTitle } from '../components/PageTitle';
 import { openOrderChat } from '../data/chats';
 import { useAccount, useCatalog } from '../data/DataProvider';
 import { formatDateTime, formatPrice } from '../data/format';
@@ -13,6 +14,7 @@ import { orderReviewSubject } from '../data/reviews';
 import type { Order, OrderStatus } from '../data/types';
 import { cityName } from '../data/cities';
 import { t } from '../i18n';
+import { BusyLabel } from '../components/BusyLabel';
 
 const STEPS: OrderStatus[] = ['processing', 'out_for_delivery', 'completed'];
 
@@ -54,7 +56,7 @@ function ReceiptButton({ orderId }: { orderId: string }) {
 
   return (
     <>
-      <button className="mini-btn" disabled={state === 'loading'} onClick={open}>{t('عرض الإيصال')}</button>
+      <button className="mini-btn" disabled={state === 'loading'} aria-busy={state === 'loading'} onClick={open}><BusyLabel busy={state === 'loading'} busyText={t('جارٍ تحميل الإيصال…')}>{t('عرض الإيصال')}</BusyLabel></button>
       {state === 'none' && <span className="pmeta">{t('لا توجد صورة إيصال لهذا الطلب.')}</span>}
       {state === 'failed' && <span className="error" style={{ marginTop: 0 }}>{t('تعذّر تحميل الإيصال. تحقق من اتصالك وحاول مرة أخرى.')}</span>}
       {url && (
@@ -112,19 +114,27 @@ function OpenChatButton({ order }: { order: Order }) {
   const navigate = useNavigate();
   const profile = useAccount();
   const [error, setError] = useState('');
+  const [opening, setOpening] = useState(false);
+  function open() {
+    // One press opens it; more presses while it opens do nothing.
+    if (opening) return;
+    setOpening(true);
+    setError('');
+    openOrderChat(profile.id, order).then(
+      (id) => navigate(`/chats/${id}`),
+      () => {
+        setOpening(false);
+        setError(t('تعذر بدء المحادثة. يرجى المحاولة مرة أخرى.'));
+      },
+    );
+  }
   return (
     <>
-      <button
-        className="btn-line contact"
-        onClick={() =>
-          openOrderChat(profile.id, order).then(
-            (id) => navigate(`/chats/${id}`),
-            () => setError(t('تعذر بدء المحادثة. يرجى المحاولة مرة أخرى.')),
-          )
-        }
-      >
-        <Icon d={PATHS.chat} size={18} />
-        {t('فتح المحادثة')}
+      <button className="btn-line contact" disabled={opening} aria-busy={opening} onClick={open}>
+        <BusyLabel busy={opening} busyText={t('جارٍ فتح المحادثة…')}>
+          <Icon d={PATHS.chat} size={18} />
+          {t('فتح المحادثة')}
+        </BusyLabel>
       </button>
       {error && <div className="error" role="alert">{error}</div>}
     </>
@@ -156,6 +166,7 @@ export function OrderDetailsPage() {
 
   return (
     <main className="stack narrow">
+      <PageTitle title={`${t('طلب #')}${shortOrderId(order.id)}`} />
       <h1 className="page-title">{t('طلب #')}<span dir="ltr">{shortOrderId(order.id)}</span></h1>
 
       {placed && awaiting && (

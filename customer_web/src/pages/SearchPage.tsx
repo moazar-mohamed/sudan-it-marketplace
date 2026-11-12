@@ -12,6 +12,7 @@ import { useCatalog } from '../data/DataProvider';
 import { categoryName } from '../data/format';
 import { marketplaceSearch } from '../data/marketplaceSearch';
 import { addRecentSearch, clearRecentSearches, readRecentSearches, removeRecentSearch } from '../data/recentSearches';
+import { usePageTitle } from '../data/pageTitle';
 import { suggestCorrection } from '../data/searchRanking';
 import { t } from '../i18n';
 
@@ -53,6 +54,7 @@ export function SearchPage() {
   const products = useMemo(() => arrangeResults(matched.products, sort, inStockOnly), [matched, sort, inStockOnly]);
   const total = products.length + matched.services.length + matched.companies.length;
   const empty = matched.products.length + matched.services.length + matched.companies.length === 0;
+  usePageTitle(q.trim() ? `${t('بحث')}: ${q.trim()}` : t('بحث'));
 
   function setQuery(text: string) {
     setScope('all');

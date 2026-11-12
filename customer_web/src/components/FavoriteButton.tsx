@@ -34,7 +34,7 @@ export function FavoriteButton({ kind, targetId, name, className = '' }: { kind:
   }
 
   return (
-    <button type="button" className={`fav-btn${saved ? ' on' : ''}${failed ? ' failed' : ''} ${className}`} aria-pressed={saved} aria-label={label} title={label} onClick={toggle}>
+    <button type="button" className={`fav-btn${saved ? ' on' : ''}${failed ? ' failed' : ''}${busy ? ' busy' : ''} ${className}`} aria-pressed={saved} aria-busy={busy} aria-label={label} title={label} onClick={toggle}>
       <Icon d={PATHS.heart} size={20} />
     </button>
   );

@@ -5,6 +5,7 @@ import { AuthCard } from '../components/AuthCard';
 import { EMAIL_PATTERN, passwordResetErrorMessage, requestPasswordReset } from '../data/account';
 import { safeNext, withNext } from '../data/nextPath';
 import { t } from '../i18n';
+import { BusyLabel } from '../components/BusyLabel';
 
 const COOLDOWN_SECONDS = 60;
 
@@ -53,8 +54,10 @@ export function ForgotPasswordPage() {
         subtitle={t('إذا كان هناك حساب مرتبط بـ {0}، فقد أرسلنا رابطًا لإعادة تعيين كلمة مروره. تحقّق أيضًا من مجلد الرسائل غير المرغوب فيها.', sentTo)}
       >
         {error && <div className="error" role="alert">{error}</div>}
-        <button className="btn ghost" disabled={busy || secondsLeft > 0} onClick={() => send(sentTo)}>
-          {secondsLeft > 0 ? t('إعادة الإرسال بعد {0} ث', secondsLeft) : t('إعادة إرسال الرسالة')}
+        <button className="btn ghost" disabled={busy || secondsLeft > 0} aria-busy={busy} onClick={() => send(sentTo)}>
+          <BusyLabel busy={busy} busyText={t('جارٍ الإرسال…')}>
+            {secondsLeft > 0 ? t('إعادة الإرسال بعد {0} ث', secondsLeft) : t('إعادة إرسال الرسالة')}
+          </BusyLabel>
         </button>
         <p className="auth-foot"><Link to={withNext('/login', next)} className="auth-link">{t('العودة إلى تسجيل الدخول')}</Link></p>
       </AuthCard>
@@ -69,7 +72,7 @@ export function ForgotPasswordPage() {
           <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} dir="ltr" />
         </label>
         {error && <div className="error" role="alert">{error}</div>}
-        <button className="btn" type="submit" disabled={busy}>{t('إرسال رابط إعادة التعيين')}</button>
+        <button className="btn" type="submit" disabled={busy} aria-busy={busy}><BusyLabel busy={busy} busyText={t('جارٍ الإرسال…')}>{t('إرسال رابط إعادة التعيين')}</BusyLabel></button>
       </form>
       <p className="auth-foot"><Link to={withNext('/login', next)} className="auth-link">{t('العودة إلى تسجيل الدخول')}</Link></p>
     </AuthCard>

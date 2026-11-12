@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { EmptyState, Skeleton } from '../components/Bits';
 import { Icon, PATHS } from '../components/Icon';
 import { ReviewCard } from '../components/ReviewCard';
+import { PageTitle } from '../components/PageTitle';
 import { useCatalog } from '../data/DataProvider';
 import { formatDateTime, formatPrice } from '../data/format';
 import { shortOrderId } from '../data/orders';
@@ -12,6 +13,7 @@ import { cancelRequest, REQUEST_STATUS, REQUEST_STEPS, RequestRefused, useServic
 import type { ServiceRequest } from '../data/types';
 import { cityName } from '../data/cities';
 import { t } from '../i18n';
+import { BusyLabel } from '../components/BusyLabel';
 
 function Steps({ request }: { request: ServiceRequest }) {
   const current = REQUEST_STEPS.indexOf(request.status);
@@ -55,7 +57,7 @@ function CancelButton({ request }: { request: ServiceRequest }) {
             <h2>{t('إلغاء هذا الطلب؟')}</h2>
             <p className="prose">{t('سترى الشركة أنك ألغيت الطلب. لا يمكن التراجع عن ذلك.')}</p>
             {error && <div className="error" role="alert">{error}</div>}
-            <button className="btn" disabled={busy} onClick={cancel}>{t('إلغاء الطلب')}</button>
+            <button className="btn" disabled={busy} aria-busy={busy} onClick={cancel}><BusyLabel busy={busy} busyText={t('جارٍ الإلغاء…')}>{t('إلغاء الطلب')}</BusyLabel></button>
             <button className="btn ghost" disabled={busy} onClick={() => setAsking(false)}>{t('رجوع')}</button>
           </div>
         </div>
@@ -93,6 +95,7 @@ export function RequestDetailsPage() {
 
   return (
     <main className="stack narrow">
+      <PageTitle title={`${t('طلب خدمة #')}${shortOrderId(request.id)}`} />
       <h1 className="page-title">{t('طلب خدمة #')}<span dir="ltr">{shortOrderId(request.id)}</span></h1>
 
       <section className="tile">

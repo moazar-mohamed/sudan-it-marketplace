@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { localCityText } from '../data/cities';
 import { useCatalog } from '../data/DataProvider';
 import { categoryEmoji } from '../data/categoryEmoji';
 import { categoryName, categorySearchText, salePrice, formatPrice } from '../data/format';
@@ -45,7 +46,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
     };
 
     const actions: Entry[] = [
-      { key: 'a-browse', group: t('أوامر سريعة'), title: t('تصفح كل المنتجات'), hint: '', icon: PATHS.grid, run: go('/browse') },
+      { key: 'a-browse', group: t('أوامر سريعة'), title: t('تصفّح المنتجات والخدمات'), hint: '', icon: PATHS.grid, run: go('/browse') },
       { key: 'a-offers', group: t('أوامر سريعة'), title: t('العروض'), hint: '', icon: PATHS.box, run: go('/browse?offers=1') },
       { key: 'a-service', group: t('أوامر سريعة'), title: t('اطلب فنيًا'), hint: '', icon: PATHS.wrench, run: go('/browse?kind=services') },
       { key: 'a-companies', group: t('أوامر سريعة'), title: t('الشركات'), hint: '', icon: PATHS.building, run: go('/companies') },
@@ -88,7 +89,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
       out.push({ key: `s-${s.id}`, group: t('خدمات'), title: s.name, hint: t('خدمة'), icon: PATHS.wrench, run: go(`/service/${s.id}`) });
     }
     for (const c of results.companies.slice(0, 2)) {
-      out.push({ key: `co-${c.id}`, group: t('شركات'), title: c.name, hint: c.city || t('شركة'), icon: PATHS.building, image: c.logoUrl, run: go(`/company/${c.id}`) });
+      out.push({ key: `co-${c.id}`, group: t('شركات'), title: c.name, hint: localCityText(c.city, catalog.cities) || t('شركة'), icon: PATHS.building, image: c.logoUrl, run: go(`/company/${c.id}`) });
     }
     return out.concat(actions.filter((a) => normalizeSearchText(a.title).includes(needle)));
   }, [typed, catalog, nav, onClose, cycle]);

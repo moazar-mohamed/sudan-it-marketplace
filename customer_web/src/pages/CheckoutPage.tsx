@@ -7,9 +7,10 @@ import { Icon, PATHS } from '../components/Icon';
 import type { GeoPoint } from '../components/MapPicker';
 import { PhoneInput, phoneError } from '../components/PhoneInput';
 import { Select } from '../components/Select';
+import { PageTitle } from '../components/PageTitle';
 import { servesCity } from '../data/browse';
 import { useAccount, useCatalog } from '../data/DataProvider';
-import { formatPrice, isAvailable, maxOrderQuantity, salePrice } from '../data/format';
+import { formatPrice, isAvailable, maxOrderQuantity, piecesCount, salePrice } from '../data/format';
 import {
   clip,
   CUSTOMER_NAME_MAX,
@@ -118,6 +119,7 @@ function CheckoutForm({
 
   return (
     <form className="stack narrow" onSubmit={submit} noValidate>
+      <PageTitle title={t('إتمام الطلب')} />
       <h1 className="page-title">{t('إتمام الطلب')}</h1>
 
       <section className="tile line-item">
@@ -228,7 +230,7 @@ function CheckoutForm({
       <section className="tile">
         <h2>{t('ملخص السعر')}</h2>
         <dl className="specs">
-          <div><dt>{t('إجمالي المنتج (')}{quantity}{' '}{t('قطعة)')}</dt><dd>{money(subtotal)}</dd></div>
+          <div><dt>{t('إجمالي المنتج (')}{piecesCount(quantity)}{')'}</dt><dd>{money(subtotal)}</dd></div>
           {installationEligible && <div><dt>{t('خدمة التركيب')}</dt><dd>{installation ? `+${money(installationPrice)}` : t('غير مشمول')}</dd></div>}
           {useDelivery && <div><dt>{t('رسوم التوصيل')}</dt><dd>{money(deliveryFee)}</dd></div>}
           <div className="total-row"><dt>{t('الإجمالي النهائي')}</dt><dd>{money(total)}</dd></div>
@@ -333,6 +335,7 @@ function PaymentStep({ draft, company, onBack }: { draft: OrderDraft; company: C
   const accounts = company.paymentAccounts;
   return (
     <div className="stack narrow">
+      <PageTitle title={t('الدفع اليدوي')} />
       <h1 className="page-title">{t('الدفع اليدوي')}</h1>
       <section className="tile amount">
         <span className="pmeta">{t('المبلغ المطلوب تحويله')}</span>
