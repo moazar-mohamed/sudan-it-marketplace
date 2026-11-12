@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>حسابي — بوابة الفني</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#063b73}a:hover{color:#052b57}
+button{font-family:inherit}
+:focus-visible{outline:3px solid #1fa35c;outline-offset:2px}
+.ico{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ico.sm{width:18px;height:18px}
+.card{background:#ffffff;border:1px solid #dde5ef;border-radius:18px;box-shadow:0 1px 2px rgba(11,29,58,.06),0 8px 24px -12px rgba(11,29,58,.15)}
+.btn-line{display:flex;align-items:center;justify-content:center;gap:6px;height:48px;border-radius:14px;border:0;background:#e8f0fa;color:#063b73;font-size:15px;font-weight:700;text-decoration:none;cursor:pointer}
+.mini{flex:none;height:40px;padding:0 14px;border-radius:10px;border:0;background:#e8f0fa;color:#063b73;font-size:14px;font-weight:700;display:flex;align-items:center;gap:4px;cursor:pointer}
+.bar{background:rgba(6,59,115,.93);color:#ffffff;box-shadow:0 8px 22px -14px rgba(0,0,0,.6)}
+.hero{position:relative;color:#ffffff;background:radial-gradient(900px 360px at 90% -30%,rgba(52,211,192,.4),transparent),linear-gradient(135deg,#052b57,#0a5f86 62%,#0f8f7d)}
+.hero::after{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.09) 1px,transparent 1px);background-size:22px 22px;pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.sec{margin:0;font-size:13px;font-weight:700;color:#5d6f86}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;border-bottom:1px solid #eef3f9}
+.row:last-child{border-bottom:0}
+.lbl{display:block;font-size:12px;color:#5d6f86}
+.val{font-size:15px;font-weight:700}
+.sw{flex:none;width:52px;height:30px;border-radius:15px;border:0;padding:3px;box-sizing:border-box;background:#1fa35c;display:flex;justify-content:flex-end;cursor:pointer}
+.sw span{display:block;width:24px;height:24px;border-radius:12px;background:#ffffff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.seg{display:flex;background:#eef3f9;border-radius:12px;padding:3px}
+.seg button{height:38px;padding:0 14px;border-radius:10px;border:0;background:transparent;color:#5d6f86;font-size:14px;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#ffffff;color:#12263f;box-shadow:0 1px 2px rgba(11,29,58,.12)}
+.tabs{flex:none;height:72px;background:#ffffff;border-top:1px solid #dde5ef;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0 6px}
+.tab{text-decoration:none;color:#5d6f86;font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tab .pill{position:relative;width:56px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center}
+.tab.on{color:#063b73;font-weight:800}.tab.on .pill{background:#e8f0fa}
+.dot{position:absolute;top:-2px;left:8px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:#1fa35c;color:#ffffff;font-size:12px;font-weight:700;line-height:18px;text-align:center}
+</style>
+</helmet>
+<div dir="rtl" style="width: 390px; height: 1040px; box-sizing: border-box; display: flex; flex-direction: column; background: #f4f7fb; font-family: 'Cairo', system-ui, sans-serif; color: #12263f; overflow: hidden">
+
+  <main style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column">
+    <section class="hero" style="flex: none; padding: 22px 16px 58px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="flex: none; width: 62px; height: 62px; border-radius: 31px; background: #ffffff; color: #063b73; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px rgba(255,255,255,0.18)">م</span>
+        <div style="flex: 1; min-width: 0">
+          <h1 style="margin: 0; font-size: 21px; font-weight: 800; line-height: 1.35">محمد الأمين</h1>
+          <p style="margin: 0; font-size: 14px; opacity: 0.88">فني تركيب · سودان برنت هب</p>
+        </div>
+      </div>
+    </section>
+
+    <div style="padding: 0 16px 16px; margin-top: -42px; position: relative; z-index: 1; display: flex; flex-direction: column; gap: 12px">
+      <div class="card" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 4px">
+        <div style="padding: 10px 12px; border-left: 1px solid #eef3f9">
+          <div style="font-size: 22px; font-weight: 800; color: #063b73">18</div>
+          <div style="font-size: 12px; color: #5d6f86">مهمة منجزة</div>
+        </div>
+        <div style="padding: 10px 12px">
+          <div dir="ltr" style="font-size: 22px; font-weight: 800; color: #1fa35c; text-align: right">45,000 SDG</div>
+          <div style="font-size: 12px; color: #5d6f86">رسوم هذا الشهر</div>
+        </div>
+      </div>
+
+      <section class="card" aria-label="حالتي" style="padding: 12px 14px; display: flex; align-items: center; gap: 12px">
+        <div style="flex: 1; min-width: 0">
+          <div style="font-size: 15px; font-weight: 800">أنا متاح للمهام</div>
+          <div style="font-size: 13px; color: #5d6f86">عند إيقافه تراك الشركة غير متاح عند إسناد المهام</div>
+        </div>
+        <button class="sw" role="switch" aria-checked="true" aria-label="أنا متاح للمهام"><span></span></button>
+      </section>
+
+      <section class="card" aria-labelledby="t-me" style="padding: 12px 14px 2px">
+        <h2 id="t-me" class="sec">بياناتي</h2>
+        <div class="row">
+          <span style="flex: 1; min-width: 0"><span class="lbl">الاسم</span><span class="val">محمد الأمين</span></span>
+          <button class="mini">تعديل</button>
+        </div>
+        <div class="row">
+          <span style="flex: 1"><span class="lbl">رقم الهاتف</span><span class="val" dir="ltr">+249 92 555 0142</span></span>
+        </div>
+        <div class="row">
+          <span style="flex: 1"><span class="lbl">البريد الإلكتروني</span><span class="val" dir="ltr">tech.mohamed@printhub.sd</span></span>
+        </div>
+        <a class="row" href="NewPassword.dc.html" style="text-decoration: none; color: #12263f">
+          <span style="flex: 1" class="val">تغيير كلمة المرور</span>
+          <svg class="ico" style="color: #5d6f86" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>
+        </a>
+      </section>
+
+      <section class="card" aria-labelledby="t-company" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 10px">
+        <h2 id="t-company" class="sec">شركتي</h2>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="flex: none; width: 46px; height: 46px; border-radius: 14px; background: #063b73; color: #ffffff; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center">س</span>
+          <span style="flex: 1; min-width: 0"><span style="display: block; font-size: 15px; font-weight: 800">سودان برنت هب</span><span style="font-size: 13px; color: #5d6f86">الخرطوم، شارع المك نمر</span></span>
+          <button class="mini"><svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 21 3l-8 18-2-8z"></path></svg>الموقع</button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="t-notif" style="padding: 12px 14px 2px">
+        <h2 id="t-notif" class="sec">الإشعارات على هذا الجهاز</h2>
+        <div class="row">
+          <span style="flex: 1; font-size: 15px; font-weight: 600">المهام: جديدة، جاهزة، ملغاة</span>
+          <button class="sw" role="switch" aria-checked="true" aria-label="إشعارات المهام"><span></span></button>
+        </div>
+        <div class="row">
+          <span style="flex: 1; font-size: 15px; font-weight: 600">رسائل الشركة</span>
+          <button class="sw" role="switch" aria-checked="true" aria-label="إشعارات الرسائل"><span></span></button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="t-page" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 12px">
+        <h2 id="t-page" class="sec">الصفحة</h2>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="flex: 1; font-size: 15px; font-weight: 600">المظهر</span>
+          <div class="seg" role="group" aria-label="المظهر">
+            <button aria-pressed="true">فاتح</button>
+            <button aria-pressed="false">داكن</button>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="flex: 1; font-size: 15px; font-weight: 600">اللغة</span>
+          <div class="seg" role="group" aria-label="اللغة">
+            <button aria-pressed="true">العربية</button>
+            <button aria-pressed="false" lang="en">English</button>
+          </div>
+        </div>
+        <button class="btn-line">
+          <svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"></path></svg>
+          ثبّت الصفحة على الشاشة الرئيسية
+        </button>
+      </section>
+
+      <a href="Login.dc.html" style="height: 50px; border-radius: 14px; background: rgba(211,47,47,0.08); color: #b3261e; text-decoration: none; font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px">
+        <svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"></path></svg>
+        تسجيل الخروج
+      </a>
+    </div>
+  </main>
+
+  <nav class="tabs" aria-label="التنقل الرئيسي">
+    <a class="tab" href="Main.dc.html">
+      <span class="pill"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg></span>
+      الرئيسية
+    </a>
+    <a class="tab" href="Jobs.dc.html" aria-label="المهام، مهمة جديدة واحدة">
+      <span class="pill"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"></path></svg><span class="dot">1</span></span>
+      المهام
+    </a>
+    <a class="tab" href="Chats.dc.html" aria-label="المحادثات، رسالتان جديدتان">
+      <span class="pill"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg><span class="dot">2</span></span>
+      المحادثات
+    </a>
+    <a class="tab on" href="Profile.dc.html" aria-current="page">
+      <span class="pill"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>
+      حسابي
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1040}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

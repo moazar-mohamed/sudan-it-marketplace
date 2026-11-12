@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>تفاصيل المهمة — بوابة الفني</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#063b73}a:hover{color:#052b57}
+button,input,textarea{font-family:inherit}
+textarea::placeholder{color:#5d6f86}
+:focus-visible{outline:3px solid #1fa35c;outline-offset:2px}
+.ico{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ico.sm{width:18px;height:18px}
+.card{background:#ffffff;border:1px solid #dde5ef;border-radius:18px;box-shadow:0 1px 2px rgba(11,29,58,.06),0 8px 24px -12px rgba(11,29,58,.15)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:14px;border:0;background:#1fa35c;color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;cursor:pointer}
+.btn:hover{color:#ffffff;filter:brightness(1.08)}
+.btn-line{display:flex;align-items:center;justify-content:center;gap:6px;height:48px;border-radius:14px;border:0;background:#e8f0fa;color:#063b73;font-size:15px;font-weight:700;text-decoration:none;cursor:pointer}
+.btn-navy{display:flex;align-items:center;justify-content:center;gap:6px;height:48px;border-radius:14px;border:0;background:#063b73;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;cursor:pointer}
+.st{display:inline-block;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:700;white-space:nowrap}
+.st.ok{background:#e8f5e9;color:#1b5e20}.st.warn{background:#fff4e0;color:#8a5100}.st.info{background:rgba(6,59,115,.12);color:#063b73}.st.go{background:rgba(31,163,92,.16);color:#14532d}.st.off{background:rgba(211,47,47,.12);color:#b3261e}
+.st.onbar{background:rgba(255,255,255,.16);color:#ffffff}
+.bar{background:rgba(6,59,115,.93);color:#ffffff;box-shadow:0 8px 22px -14px rgba(0,0,0,.6)}
+.ib{position:relative;flex:none;width:44px;height:44px;box-sizing:border-box;border-radius:10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#ffffff;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer}
+.ib:hover{color:#ffffff}
+.sec{margin:0;font-size:13px;font-weight:700;color:#5d6f86}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+main>*{flex-shrink:0}
+</style>
+</helmet>
+<div dir="rtl" style="width: 390px; height: 1180px; box-sizing: border-box; display: flex; flex-direction: column; background: #f4f7fb; font-family: 'Cairo', system-ui, sans-serif; color: #12263f; overflow: hidden">
+
+  <header class="bar" style="flex: none; min-height: 64px; padding: 10px 12px; box-sizing: border-box; display: flex; align-items: center; gap: 10px">
+    <a class="ib" href="Jobs.dc.html" aria-label="رجوع إلى المهام">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>
+    </a>
+    <div style="flex: 1; min-width: 0">
+      <h1 style="margin: 0; font-size: 17px; font-weight: 800; line-height: 1.35">مهمة تركيب <span dir="ltr">#7K2Q</span></h1>
+      <p style="margin: 0; font-size: 12px; opacity: 0.8">{{subline}}</p>
+    </div>
+    <span class="st onbar" style="flex: none">{{statusLabel}}</span>
+  </header>
+
+  <main style="flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px">
+
+    <sc-if value="{{isCancelled}}" hint-placeholder-val="{{false}}">
+      <section role="alert" style="background: rgba(211,47,47,0.08); border: 1px solid rgba(211,47,47,0.25); border-radius: 18px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; color: #12263f">
+        <span style="flex: none; width: 40px; height: 40px; border-radius: 20px; background: rgba(211,47,47,0.14); color: #b3261e; display: flex; align-items: center; justify-content: center">
+          <svg class="ico" style="stroke-width: 2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+        </span>
+        <div>
+          <div style="font-size: 16px; font-weight: 800; color: #b3261e">ألغت الشركة هذه المهمة</div>
+          <div style="font-size: 14px; line-height: 1.6">ملاحظة الشركة: العميل طلب تأجيل الطلب للشهر القادم.</div>
+          <div style="font-size: 13px; color: #5d6f86; margin-top: 2px">12 نوفمبر 09:15 · لا تحتاج للذهاب إلى العميل</div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{showProgress}}" hint-placeholder-val="{{true}}">
+      <section class="card" aria-labelledby="t-progress" style="padding: 14px 14px 12px">
+        <h2 id="t-progress" class="sec" style="margin-bottom: 12px">تقدّم المهمة</h2>
+        <ol style="list-style: none; margin: 0; padding: 0; display: flex; align-items: flex-start">
+          <sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+            <sc-if value="{{s.notFirst}}" hint-placeholder-val="{{true}}">
+              <li aria-hidden="true" style="flex: 1; height: 3px; border-radius: 2px; background: {{s.line}}; margin-top: 12px"></li>
+            </sc-if>
+            <li style="width: 62px; display: flex; flex-direction: column; align-items: center; gap: 4px">
+              <span style="width: 26px; height: 26px; border-radius: 13px; box-sizing: border-box; border: {{s.border}}; background: {{s.bg}}; color: #ffffff; display: flex; align-items: center; justify-content: center">
+                <sc-if value="{{s.done}}" hint-placeholder-val="{{false}}"><svg class="ico" style="width: 15px; height: 15px; stroke-width: 3" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"></path></svg></sc-if>
+                <sc-if value="{{s.current}}" hint-placeholder-val="{{false}}"><span style="width: 10px; height: 10px; border-radius: 5px; background: #063b73"></span></sc-if>
+              </span>
+              <span style="font-size: 12px; white-space: nowrap; color: {{s.fg}}; font-weight: {{s.weight}}">{{s.label}}</span>
+            </li>
+          </sc-for>
+        </ol>
+      </section>
+    </sc-if>
+
+    <section class="card" aria-labelledby="t-customer" style="overflow: hidden">
+      <sc-if value="{{showMap}}" hint-placeholder-val="{{true}}">
+        <div aria-hidden="true" style="height: 120px; background-color: #e3ecf6; background-image: linear-gradient(90deg, rgba(6,59,115,0.07) 1px, transparent 1px), linear-gradient(0deg, rgba(6,59,115,0.07) 1px, transparent 1px); background-size: 28px 28px; position: relative">
+          <span style="position: absolute; top: 34px; right: 50%; margin-right: -18px; width: 36px; height: 36px; border-radius: 18px 18px 18px 4px; transform: rotate(-45deg); background: #063b73; box-shadow: 0 4px 10px rgba(6,59,115,0.35)"></span>
+          <span style="position: absolute; bottom: 10px; left: 10px; font-size: 12px; font-weight: 700; color: #063b73; background: #ffffff; border-radius: 8px; padding: 3px 8px">3.2 كم منك</span>
+        </div>
+      </sc-if>
+      <div style="padding: 14px; display: flex; flex-direction: column; gap: 10px">
+        <h2 id="t-customer" class="sec">العميل والموقع</h2>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="flex: none; width: 44px; height: 44px; border-radius: 22px; background: #e8f0fa; color: #063b73; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center">أ</span>
+          <div style="flex: 1; min-width: 0">
+            <div style="font-size: 16px; font-weight: 800">أحمد عثمان</div>
+            <div dir="ltr" style="font-size: 14px; color: #5d6f86; text-align: right">+249 91 234 5678</div>
+          </div>
+        </div>
+        <sc-if value="{{showMap}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; gap: 8px; align-items: flex-start; font-size: 15px; line-height: 1.6">
+            <svg class="ico sm" style="color: #5d6f86; margin-top: 4px" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+            <span>الخرطوم، الرياض، شارع المشتل، جنب صيدلية الرياض، البيت بالباب الأخضر</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+            <button class="btn-navy"><svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 21 3l-8 18-2-8z"></path></svg>الاتجاهات</button>
+            <a class="btn-line" href="tel:+249912345678"><svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"></path></svg>اتصال</a>
+            <button class="btn-line"><svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a1 1 0 0 1 1-1h10"></path></svg>نسخ</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{isPickup}}" hint-placeholder-val="{{false}}">
+          <div style="background: #e8f0fa; color: #063b73; border-radius: 14px; padding: 12px; display: flex; gap: 10px; align-items: flex-start">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"></path></svg>
+            <div style="font-size: 14px; line-height: 1.6"><b>العميل يستلم المنتج من الشركة.</b><br>اتصل به لتأكيد مكان التركيب قبل الذهاب.</div>
+          </div>
+          <a class="btn-navy" href="tel:+249912345678"><svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"></path></svg>اتصل بالعميل</a>
+        </sc-if>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="t-job" style="padding: 14px; display: flex; flex-direction: column; gap: 12px">
+      <h2 id="t-job" class="sec">ماذا ستركّب</h2>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="flex: none; width: 56px; height: 56px; border-radius: 16px; background: #e8f0fa; color: #063b73; display: flex; align-items: center; justify-content: center">
+          <svg class="ico" style="width: 26px; height: 26px" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6"></path><rect x="3" y="9" width="18" height="8" rx="2"></rect><path d="M7 14h10v7H7z"></path></svg>
+        </span>
+        <div style="flex: 1; min-width: 0">
+          <div style="font-size: 16px; font-weight: 800; line-height: 1.4">طابعة HP LaserJet Pro M404dn</div>
+          <div style="font-size: 14px; color: #5d6f86">الكمية: 1 · {{deliveryKind}}</div>
+        </div>
+      </div>
+      <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <div style="background: #eef3f9; border-radius: 12px; padding: 10px 12px">
+          <dt style="font-size: 12px; color: #5d6f86">رسوم التركيب</dt>
+          <dd dir="ltr" style="margin: 0; font-size: 17px; font-weight: 800; color: #1fa35c; text-align: right">7,500 SDG</dd>
+        </div>
+        <div style="background: #eef3f9; border-radius: 12px; padding: 10px 12px">
+          <dt style="font-size: 12px; color: #5d6f86">تاريخ الطلب</dt>
+          <dd dir="ltr" style="margin: 0; font-size: 15px; font-weight: 700; text-align: right">2026-11-10 14:20</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="card" aria-labelledby="t-notes" style="padding: 14px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: center; gap: 6px">
+        <h2 id="t-notes" class="sec">ملاحظاتي</h2>
+        <span style="margin-inline-start: auto; display: flex; align-items: center; gap: 4px; font-size: 12px; color: #5d6f86">
+          <svg class="ico" style="width: 14px; height: 14px" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+          للشركة فقط، العميل لا يراها
+        </span>
+      </div>
+      <sc-for list="{{notes}}" as="n" hint-placeholder-count="2">
+        <div style="background: #eef3f9; border-radius: 14px; padding: 10px 6px 10px 12px; display: flex; gap: 6px; align-items: flex-start">
+          <div style="flex: 1; min-width: 0">
+            <div style="font-size: 15px; line-height: 1.6">{{n.text}}</div>
+            <div style="font-size: 12px; color: #5d6f86">{{n.time}}</div>
+          </div>
+          <button aria-label="حذف الملاحظة" style="flex: none; width: 44px; height: 44px; border-radius: 12px; border: 0; background: transparent; color: #5d6f86; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg>
+          </button>
+        </div>
+      </sc-for>
+      <div style="display: flex; align-items: flex-end; gap: 8px; border: 1px solid #dde5ef; background: #eef3f9; border-radius: 12px; padding: 6px">
+        <label for="note-new" class="sr">ملاحظة جديدة</label>
+        <textarea id="note-new" rows="2" placeholder="اكتب ملاحظة عن المهمة" style="flex: 1; min-width: 0; border: 0; outline: none; resize: none; font-size: 15px; color: #12263f; padding: 4px 6px; background: transparent"></textarea>
+        <button style="flex: none; height: 40px; padding: 0 14px; border-radius: 10px; border: 0; background: #063b73; color: #ffffff; font-size: 14px; font-weight: 700; cursor: pointer">إضافة</button>
+      </div>
+    </section>
+
+    <a href="Chat.dc.html" class="card" style="text-decoration: none; color: #12263f; padding: 12px 14px; display: flex; align-items: center; gap: 12px">
+      <span style="flex: none; position: relative; width: 44px; height: 44px; border-radius: 14px; background: #e8f0fa; color: #063b73; display: flex; align-items: center; justify-content: center">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>
+        <span style="position: absolute; top: -6px; left: -6px; min-width: 20px; height: 20px; border-radius: 10px; background: #1fa35c; color: #ffffff; font-size: 12px; font-weight: 700; line-height: 20px; text-align: center; border: 2px solid #ffffff">1</span>
+      </span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 15px; font-weight: 700">محادثة مع الشركة</span>
+        <span style="font-size: 13px; color: #5d6f86; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">الشركة: الكيبل جاهز في المخزن، استلمه قبل ما تطلع</span>
+      </span>
+      <svg class="ico" style="color: #5d6f86" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>
+    </a>
+  </main>
+
+  <sc-if value="{{hasFooter}}" hint-placeholder-val="{{true}}">
+    <footer style="flex: none; background: #ffffff; border-top: 1px solid #dde5ef; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 -8px 24px -16px rgba(11,29,58,0.25)">
+      <sc-if value="{{pendingSync}}" hint-placeholder-val="{{false}}">
+        <div role="status" style="display: flex; align-items: center; gap: 8px; background: #fff4e0; color: #8a5100; border-radius: 12px; padding: 8px 12px; font-size: 13px; font-weight: 700">
+          <svg class="ico sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"></path></svg>
+          «في الطريق» محفوظة على الجهاز، وستُرسل عند عودة الاتصال
+        </div>
+      </sc-if>
+      <sc-if value="{{footAction}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; gap: 8px">
+          <a href="tel:+249912345678" aria-label="اتصال بالعميل" style="flex: none; width: 52px; height: 52px; border-radius: 14px; background: #e8f0fa; color: #063b73; display: flex; align-items: center; justify-content: center">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"></path></svg>
+          </a>
+          <a class="btn" href="{{actionHref}}" style="flex: 1">
+            {{actionLabel}}
+            <svg class="ico sm" style="stroke-width: 2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m0 0 6-6m-6 6 6 6"></path></svg>
+          </a>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #5d6f86; text-align: center">{{actionHint}}</p>
+      </sc-if>
+      <sc-if value="{{footWaiting}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; align-items: flex-start; gap: 10px; background: #fff4e0; border-radius: 14px; padding: 12px 14px; color: #8a5100">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          <div>
+            <div style="font-size: 15px; font-weight: 800">بانتظار تأكيد الشركة للدفع</div>
+            <div style="font-size: 13px">يظهر زر بدء التوصيل هنا بعد التأكيد، ويصلك إشعار.</div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{footDone}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; align-items: center; gap: 10px; background: #e8f5e9; border-radius: 14px; padding: 12px 14px; color: #1b5e20">
+          <svg class="ico" style="stroke-width: 2.4" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"></path></svg>
+          <div style="flex: 1">
+            <div style="font-size: 15px; font-weight: 800">اكتملت المهمة</div>
+            <div style="font-size: 13px">12 نوفمبر 16:40 · رسوم التركيب 7,500 SDG</div>
+          </div>
+        </div>
+      </sc-if>
+    </footer>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","default":"processing","options":["processing","onTheWay","waiting","pickup","cancelled","completed"]},"pendingSync":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state ?? 'processing';
+    const pickup = s === 'pickup';
+    const cancelled = s === 'cancelled';
+    const completed = s === 'completed';
+    const waiting = s === 'waiting';
+    const labels = pickup ? ['تأكيد الدفع', 'قيد التجهيز', 'اكتملت'] : ['تأكيد الدفع', 'قيد التجهيز', 'في الطريق', 'اكتملت'];
+    let at = 1;
+    if (waiting) at = 0;
+    if (s === 'onTheWay') at = 2;
+    if (completed) at = labels.length;
+    const steps = labels.map((label, i) => {
+      const done = i < at;
+      const current = i === at;
+      const reached = i <= at;
+      return {
+        label,
+        done,
+        current,
+        notFirst: i > 0,
+        line: done || current ? (current && i > 0 && !done ? '#1fa35c' : '#1fa35c') : '#dde5ef',
+        bg: done ? '#1fa35c' : '#ffffff',
+        border: done ? '0' : current ? '2.5px solid #063b73' : '2px solid #c5d1df',
+        fg: current ? '#063b73' : reached ? '#12263f' : '#5d6f86',
+        weight: current ? '800' : '600'
+      };
+    });
+    const tones = {
+      processing: ['قيد التجهيز'], onTheWay: ['في الطريق'], waiting: ['بانتظار الدفع'],
+      pickup: ['استلام من الشركة'], cancelled: ['ملغاة'], completed: ['مكتملة']
+    };
+    const finishNext = s === 'onTheWay' || pickup;
+    return {
+      statusLabel: tones[s][0],
+      subline: waiting ? 'وصلت منذ يومين · بانتظار تأكيد الدفع' : 'وصلت منذ يومين · الدفع مؤكد',
+      isCancelled: cancelled,
+      isPickup: pickup,
+      showProgress: !cancelled,
+      showMap: !pickup,
+      steps,
+      deliveryKind: pickup ? 'استلام من الشركة وتركيب' : 'توصيل وتركيب',
+      notes: [
+        { text: 'العميل طلب الحضور بعد العصر، والطابعة تحتاج كيبل شبكة طويل.', time: 'أمس 18:05' },
+        { text: 'جرّبت الاتصال الساعة 11 ولم يرد، سأعيد بعد الظهر.', time: 'اليوم 11:10' }
+      ],
+      hasFooter: !cancelled,
+      pendingSync: (this.props.pendingSync ?? false) && !cancelled,
+      footAction: !cancelled && !completed && !waiting,
+      footWaiting: waiting,
+      footDone: completed,
+      actionLabel: finishNext ? 'إنهاء المهمة' : 'بدء التوصيل للعميل',
+      actionHref: finishNext ? 'Finish.dc.html' : 'ConfirmStart.dc.html',
+      actionHint: finishNext ? 'تفتح قائمة تحقق قصيرة قبل الإنهاء' : 'الخطوة التالية: في الطريق، ثم الإنهاء'
+    };
+  }
+}
+</script>
+</body>
+</html>

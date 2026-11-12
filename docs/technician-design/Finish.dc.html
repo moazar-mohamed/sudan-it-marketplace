@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>إنهاء المهمة — بوابة الفني</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#063b73}a:hover{color:#052b57}
+button,input,textarea{font-family:inherit}
+textarea::placeholder{color:#5d6f86}
+:focus-visible{outline:3px solid #1fa35c;outline-offset:2px}
+.ico{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ico.sm{width:18px;height:18px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:14px;border:0;background:#1fa35c;color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;cursor:pointer}
+.btn:hover{color:#ffffff;filter:brightness(1.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.btn-line{display:flex;align-items:center;justify-content:center;gap:6px;height:52px;border-radius:14px;border:0;background:#e8f0fa;color:#063b73;font-size:15px;font-weight:700;text-decoration:none;cursor:pointer}
+</style>
+</helmet>
+<div dir="rtl" style="width: 390px; height: 844px; box-sizing: border-box; position: relative; background: #f4f7fb; font-family: 'Cairo', system-ui, sans-serif; color: #12263f; overflow: hidden">
+
+  <div aria-hidden="true" style="position: absolute; inset: 0; display: flex; flex-direction: column">
+    <div style="height: 64px; background: rgba(6,59,115,0.93)"></div>
+    <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="height: 96px; border-radius: 18px; background: #ffffff"></div>
+      <div style="height: 210px; border-radius: 18px; background: #ffffff"></div>
+    </div>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(4,20,40,0.55)"></div>
+
+  <section role="dialog" aria-modal="true" aria-labelledby="finish-title" style="position: absolute; right: 0; left: 0; bottom: 0; background: #ffffff; border-radius: 24px 24px 0 0; padding: 10px 20px 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 -12px 40px rgba(4,20,40,0.3)">
+    <span aria-hidden="true" style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: #c5d1df"></span>
+
+    <div>
+      <h1 id="finish-title" style="margin: 0; font-size: 20px; font-weight: 800">إنهاء المهمة <span dir="ltr">#7K2Q</span></h1>
+      <p style="margin: 2px 0 0; font-size: 14px; color: #5d6f86">طابعة HP LaserJet Pro M404dn · أحمد عثمان</p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px">
+      <div aria-hidden="true" style="flex: 1; height: 8px; border-radius: 4px; background: #e8f0fa; overflow: hidden; display: flex">
+        <span style="display: block; height: 8px; width: {{barWidth}}; background: #1fa35c; border-radius: 4px"></span>
+      </div>
+      <span style="flex: none; font-size: 13px; font-weight: 700; color: #5d6f86">{{progress}}</span>
+    </div>
+
+    <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+      <legend style="font-size: 14px; font-weight: 700; color: #5d6f86; margin-bottom: 8px; padding: 0">قبل التأكيد، علّم الخطوات الثلاث</legend>
+      <sc-for list="{{checks}}" as="c" hint-placeholder-count="3">
+        <label style="min-height: 56px; box-sizing: border-box; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; border: 1px solid {{c.border}}; background: {{c.bg}}; cursor: pointer">
+          <input type="checkbox" checked="{{c.checked}}" onChange="{{c.toggle}}" style="flex: none; width: 22px; height: 22px; margin: 0; accent-color: #1fa35c">
+          <span style="font-size: 15px; font-weight: 600; line-height: 1.5">{{c.label}}</span>
+        </label>
+      </sc-for>
+    </fieldset>
+
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <label for="finish-note" style="font-size: 14px; font-weight: 700; color: #5d6f86">ملاحظة للشركة (اختيارية)</label>
+      <textarea id="finish-note" rows="3" maxlength="500" placeholder="مثلاً: العميل يحتاج حبرًا إضافيًا خلال أسبوع" style="border: 1px solid #dde5ef; background: #eef3f9; border-radius: 12px; padding: 10px 14px; font-size: 15px; color: #12263f; resize: none; outline: none"></textarea>
+      <span style="font-size: 12px; color: #5d6f86; text-align: left">0 / 500</span>
+    </div>
+
+    <div style="display: flex; gap: 10px">
+      <a class="btn-line" href="JobDetails.dc.html" style="flex: 1">إلغاء</a>
+      <sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+        <a class="btn" href="Done.dc.html" style="flex: 2">
+          <svg class="ico sm" style="stroke-width: 2.4" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"></path></svg>
+          تأكيد الإنجاز
+        </a>
+      </sc-if>
+      <sc-if value="{{notReady}}" hint-placeholder-val="{{true}}">
+        <button class="btn" disabled="{{true}}" style="flex: 2">
+          <svg class="ico sm" style="stroke-width: 2.4" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"></path></svg>
+          تأكيد الإنجاز
+        </button>
+      </sc-if>
+    </div>
+    <p style="margin: -4px 0 0; font-size: 13px; color: #5d6f86; text-align: center">بعد التأكيد يصل الشركة إشعار، ولا يمكن التراجع.</p>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { done: [true, true, false] };
+  }
+  renderVals() {
+    const done = this.state.done;
+    const labels = [
+      'ركّبت المنتج وتأكدت من عمله',
+      'شرحت للعميل طريقة الاستخدام',
+      'سلّمت العميل الفاتورة أو الضمان'
+    ];
+    const count = done.filter(Boolean).length;
+    const ready = count === 3;
+    return {
+      checks: labels.map((label, i) => ({
+        label,
+        checked: done[i],
+        border: done[i] ? '#1fa35c' : '#dde5ef',
+        bg: done[i] ? 'rgba(31,163,92,0.08)' : '#ffffff',
+        toggle: () => {
+          const next = done.slice();
+          next[i] = !next[i];
+          this.setState({ done: next });
+        }
+      })),
+      progress: count + ' من 3',
+      barWidth: Math.round((count / 3) * 100) + '%',
+      ready,
+      notReady: !ready
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -26,6 +26,12 @@
       "port": 9099
     },
     {
+      "name": "customer-web-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--prefix", "customer_web", "vite", "preview", "--port", "5195", "--strictPort", "customer_web"],
+      "port": 5195
+    },
+    {
       "name": "customer-web",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "customer_web", "run", "dev"],
