@@ -167,15 +167,14 @@ export function mapCompany(id: string, d: DocumentData): Company {
     latitude: numOrNull(d.latitude),
     longitude: numOrNull(d.longitude),
     phone: str(d.phone),
-    email: str(d.email),
     pickupAddress: str(d.pickupAddress),
     pickupPoints: Array.isArray(d.pickupPoints)
       ? d.pickupPoints.slice(0, 5).map(mapPickupPoint).filter((p): p is PickupPoint => p !== null)
       : [],
     status,
-    paymentAccounts: Array.isArray(d.paymentAccounts)
-      ? d.paymentAccounts.map(mapPaymentAccount).filter((a): a is PaymentAccount => a !== null)
-      : [],
+    // Filled from company_private / company_payment (CompanyData), never public.
+    email: '',
+    paymentAccounts: [],
     serviceCityIds: strList(d.serviceCityIds),
     rating: n(d.rating, 0),
     reviewCount: Math.trunc(n(d.reviewCount, 0)),
@@ -282,4 +281,9 @@ export function mapMessage(id: string, d: DocumentData): ChatMessage {
     text: str(d.text),
     createdAt: toDate(d.createdAt),
   };
+}
+
+/** The accounts in `company_payment/{companyId}`. */
+export function mapPaymentAccounts(value: unknown): PaymentAccount[] {
+  return Array.isArray(value) ? value.map(mapPaymentAccount).filter((a): a is PaymentAccount => a !== null) : [];
 }

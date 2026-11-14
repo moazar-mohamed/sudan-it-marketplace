@@ -139,8 +139,15 @@ function pickupPointsOf(input: CompanyInput) {
     .slice(0, 5);
 }
 
-/** The company document exactly as before; the email is stored in login form. */
-export function companyDocument(input: CompanyInput, email: string, logoUrl: string) {
+/**
+ * The public company document. Its email (in login form) is NOT part of it:
+ * everyone reads this document, so the email goes to company_private.
+ */
+export function companyPrivateDocument(companyId: string, email: string) {
+  return { companyId, email, updatedAt: serverTimestamp() };
+}
+
+export function companyDocument(input: CompanyInput, logoUrl: string) {
   // Coordinates are saved as numbers and only when a real point was picked;
   // a text-only company simply has no latitude/longitude fields.
   const point = toGeoPoint(input.latitude, input.longitude);
@@ -154,7 +161,6 @@ export function companyDocument(input: CompanyInput, email: string, logoUrl: str
     address: input.address.trim(),
     ...(point ? { latitude: point.latitude, longitude: point.longitude } : {}),
     phone: input.phone.trim(),
-    email,
     pickupAddress:
       pickupPoints.length > 0
         ? `${pickupPoints[0].name}${pickupPoints[0].address ? ` — ${pickupPoints[0].address}` : ''}`
@@ -198,7 +204,8 @@ export async function createCompanyWithAdminAccount(
 
   try {
     const batch = writeBatch(deps.db);
-    batch.set(companyRef, companyDocument(input, email, logoUrl));
+    batch.set(companyRef, companyDocument(input, logoUrl));
+    batch.set(doc(deps.db, 'company_private', companyRef.id), companyPrivateDocument(companyRef.id, email));
     batch.set(
       doc(deps.db, 'company_documents', companyRef.id),
       companyDocumentData(companyRef.id, input.registrationNumber, registrationDocument),

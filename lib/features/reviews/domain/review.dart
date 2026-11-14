@@ -74,6 +74,10 @@ class Review {
 
   final String id;
   final ReviewSource source;
+
+  /// Who wrote it. Known only to the app that holds it: reviews are public, so
+  /// the stored review does not name its customer (the rules find them through
+  /// the order or request with the review's id). Empty on a review read back.
   final String customerId;
 
   /// The customer's first name and initial, as shown to everyone.
@@ -96,6 +100,26 @@ class Review {
   final DateTime? updatedAt;
 
   bool get hasReply => (reply ?? '').trim().isNotEmpty;
+
+  /// The same review, known to be [customerId]'s.
+  Review withCustomerId(String customerId) => Review(
+        id: id,
+        source: source,
+        customerId: customerId,
+        authorName: authorName,
+        companyId: companyId,
+        companyName: companyName,
+        targetId: targetId,
+        targetName: targetName,
+        stars: stars,
+        tags: tags,
+        comment: comment,
+        hidden: hidden,
+        reply: reply,
+        replyAt: replyAt,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
 
   /// Whether its customer may still change it at [now].
   bool canEditAt(DateTime now) =>

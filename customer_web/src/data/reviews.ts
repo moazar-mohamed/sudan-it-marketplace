@@ -103,7 +103,8 @@ export async function rateSubject(subject: ReviewSubject, customerId: string, fu
   batch.set(doc(db, 'reviews', subject.id), {
     id: subject.id,
     sourceType: subject.sourceType,
-    customerId,
+    // No customerId: everyone reads reviews, and the rules find the customer
+    // through the order or request that has the review's id.
     authorName: reviewAuthorName(fullName),
     companyId: subject.companyId,
     companyName: subject.companyName,

@@ -34,7 +34,6 @@ const profile = {
   city: 'Khartoum',
   address: 'Street 1',
   phone: '1',
-  email: 'e@x.test',
   pickupAddress: 'p',
 };
 
@@ -287,7 +286,6 @@ describe('Platform Admin adds a company with a location', () => {
     city: '',
     address: '',
     phone: '',
-    email: '',
     pickupAddress: '',
     rating: 0,
     reviewCount: 0,

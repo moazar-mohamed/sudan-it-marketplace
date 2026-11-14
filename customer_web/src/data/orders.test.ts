@@ -55,7 +55,7 @@ describe('pickup', () => {
   const company = (over: Partial<Company>): Company => ({
     id: 'c', name: 'C', rating: 0, reviewCount: 0, logoUrl: '', description: '', city: '', address: '',
     latitude: null, longitude: null, phone: '', status: 'active', serviceCityIds: [], pickupAddress: '',
-    pickupPoints: [], paymentAccounts: [], ...over,
+    pickupPoints: [], ...over,
   });
 
   it('uses the points, else the one written address, else nothing', () => {

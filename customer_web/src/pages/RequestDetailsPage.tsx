@@ -6,6 +6,7 @@ import { ReviewCard } from '../components/ReviewCard';
 import { PageTitle } from '../components/PageTitle';
 import { useCatalog } from '../data/DataProvider';
 import { formatDateTime, formatPrice } from '../data/format';
+import { mapsPointUrl, mapsSearchUrl } from '../data/maps';
 import { shortOrderId } from '../data/orders';
 import { displayPhone } from '../data/phone';
 import { requestReviewSubject } from '../data/reviews';
@@ -88,9 +89,9 @@ export function RequestDetailsPage() {
   const address = request.address.trim();
   const hasPoint = request.latitude !== null && request.longitude !== null;
   const mapLink = hasPoint
-    ? `https://www.openstreetmap.org/?mlat=${request.latitude}&mlon=${request.longitude}#map=16/${request.latitude}/${request.longitude}`
+    ? mapsPointUrl(request.latitude!, request.longitude!)
     : address
-      ? `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`
+      ? mapsSearchUrl(address)
       : null;
 
   return (

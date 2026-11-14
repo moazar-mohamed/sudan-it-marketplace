@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useReviews } from '../data/hooks';
-import { reviewsCountText } from './Bits';
+import { reviewsCountText, Stars } from './Bits';
 import { t } from '../i18n';
 
 const TAG_LABEL: Record<string, string> = {
@@ -10,13 +10,6 @@ const TAG_LABEL: Record<string, string> = {
   service: t('حسن التعامل'),
   price: t('سعر مناسب'),
 };
-
-const Stars = ({ value }: { value: number }) => (
-  <span className="stars" role="img" aria-label={t('{0} من 5', value)}>
-    {'★'.repeat(value)}
-    <span className="stars-off">{'★'.repeat(5 - value)}</span>
-  </span>
-);
 
 const PREVIEW = 3;
 
@@ -33,7 +26,7 @@ export function ReviewsSection({ field, id }: { field: 'targetId' | 'companyId';
       <div className="review-summary">
         <strong>{average.toFixed(1)}</strong>
         <span>
-          <Stars value={Math.round(average)} />
+          <Stars value={average} />
           <span className="pmeta" style={{ display: 'block' }}>{reviewsCountText(reviews.length)}</span>
         </span>
       </div>

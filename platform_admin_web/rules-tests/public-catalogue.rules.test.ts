@@ -43,8 +43,10 @@ beforeEach(async () => {
     await setDoc(doc(db, 'companies/c1'), { name: 'Print Hub', status: 'active' });
     await setDoc(doc(db, 'company_services/on'), { companyId: 'c1', serviceId: 's1', isActive: true });
     await setDoc(doc(db, 'company_services/off'), { companyId: 'c1', serviceId: 's1', isActive: false });
-    await setDoc(doc(db, 'reviews/shown'), { targetId: 'p1', companyId: 'c1', customerId: 'cust1', hidden: false, stars: 5 });
-    await setDoc(doc(db, 'reviews/hidden'), { targetId: 'p1', companyId: 'c1', customerId: 'cust1', hidden: true, stars: 1 });
+    // A review's customer is the one who placed the order with its id.
+    await setDoc(doc(db, 'reviews/shown'), { sourceType: 'order', targetId: 'p1', companyId: 'c1', hidden: false, stars: 5 });
+    await setDoc(doc(db, 'reviews/hidden'), { sourceType: 'order', targetId: 'p1', companyId: 'c1', hidden: true, stars: 1 });
+    await setDoc(doc(db, 'orders/hidden'), { customerId: 'cust1', companyId: 'c1' });
     await setDoc(doc(db, 'ratings/product_p1'), { sum: 5, count: 1 });
     await setDoc(doc(db, 'orders/o1'), { customerId: 'cust1', companyId: 'c1' });
     await setDoc(doc(db, 'chats/o1'), { customerId: 'cust1', companyId: 'c1' });

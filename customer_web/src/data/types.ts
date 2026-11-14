@@ -42,7 +42,6 @@ export interface Company {
   serviceCityIds: string[];
   pickupAddress: string;
   pickupPoints: PickupPoint[];
-  paymentAccounts: PaymentAccount[];
 }
 
 export interface PickupPoint {

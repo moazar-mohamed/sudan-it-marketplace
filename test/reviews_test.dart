@@ -78,6 +78,10 @@ class _FakeReviews implements ReviewsRepository {
   Future<void> replyToReview(String reviewId, String reply) async {
     replies[reviewId] = reply;
   }
+
+  @override
+  Future<String?> orderCustomerId(String orderId) async =>
+      reviews[orderId]?.customerId;
 }
 
 const _subject = ReviewSubject(

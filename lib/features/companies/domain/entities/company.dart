@@ -114,6 +114,7 @@ class Company {
     String? pickupAddress,
     List<PickupPoint>? pickupPoints,
     List<String>? serviceCityIds,
+    List<PaymentAccount>? paymentAccounts,
   }) {
     return Company(
       id: id,
@@ -131,7 +132,7 @@ class Company {
       pickupAddress: pickupAddress ?? this.pickupAddress,
       pickupPoints: pickupPoints ?? this.pickupPoints,
       status: status,
-      paymentAccounts: paymentAccounts,
+      paymentAccounts: paymentAccounts ?? this.paymentAccounts,
       serviceCityIds: serviceCityIds ?? this.serviceCityIds,
       usdRate: usdRate,
       usdRateUpdatedAt: usdRateUpdatedAt,

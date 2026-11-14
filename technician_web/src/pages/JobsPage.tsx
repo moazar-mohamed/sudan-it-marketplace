@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { arrived, dayMonth, sdg } from '../data/format';
+import { arrived, byCount, dayMonth, sdg } from '../data/format';
 import { completedAt, formatKm, isOpenJob, jobDistanceKm, searchJobs, shortId } from '../data/jobs';
 import { useTechData } from '../data/TechData';
 import type { Job } from '../data/types';
@@ -103,7 +103,14 @@ export default function JobsPage() {
       <header className="bar">
         <div className="bar-title" style={{ paddingInlineStart: 4 }}>
           <h1 style={{ fontSize: 19 }}>{t('مهامي')}</h1>
-          <p>{counts.all === 1 ? t('مهمة تركيب واحدة مُسندة إليك') : t('{0} مهمة تركيب مُسندة إليك', counts.all)}</p>
+          <p>
+            {byCount(counts.all, {
+              one: t('مهمة تركيب واحدة مُسندة إليك'),
+              two: t('مهمتا تركيب مُسندتان إليك'),
+              few: t('{0} مهام تركيب مُسندة إليك', counts.all),
+              many: t('{0} مهمة تركيب مُسندة إليك', counts.all),
+            })}
+          </p>
         </div>
         <BellButton />
       </header>
@@ -137,7 +144,9 @@ export default function JobsPage() {
         </div>
         <div className="row" style={{ justifyContent: 'space-between' }}>
           <span className="sub" role="status">
-            {searching ? t('{0} نتيجة', shownCount) : shownCount === 1 ? t('مهمة واحدة') : t('{0} مهمة', shownCount)}
+            {searching
+              ? t('{0} نتيجة', shownCount)
+              : byCount(shownCount, { one: t('مهمة واحدة'), two: t('مهمتان'), few: t('{0} مهام', shownCount), many: t('{0} مهمة', shownCount) })}
           </span>
           <div className="menu-wrap" ref={menuRef}>
             <button

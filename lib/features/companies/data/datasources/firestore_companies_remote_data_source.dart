@@ -33,19 +33,67 @@ class FirestoreCompaniesRemoteDataSource implements CompaniesRemoteDataSource {
         );
   }
 
+  /// The public profile, and the email in company_private with it (one
+  /// batch). An empty email is never written: the email is the admin's login.
   @override
   Future<void> updateCompanyProfile(Company company) {
-    return _update(company.id, CompanyModel.toEditableFields(company));
+    return _guardWrite(() {
+      final email = (company.email ?? '').trim();
+      final batch = _firestore.batch()
+        ..update(_companies.doc(company.id), {
+          ...CompanyModel.toEditableFields(company),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      if (email.isNotEmpty) {
+        batch.set(_firestore.collection('company_private').doc(company.id), {
+          'companyId': company.id,
+          'email': email,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      return batch.commit();
+    });
   }
 
+  /// In their own document: everyone reads the company document, visitors
+  /// too, while only signed-in customers may read the accounts.
   @override
   Future<void> updatePaymentAccounts(
     String companyId,
     List<PaymentAccount> accounts,
   ) {
-    return _update(companyId, {
-      'paymentAccounts': CompanyModel.paymentAccountsToFirestore(accounts),
-    });
+    return _guardWrite(
+      () => _firestore.collection('company_payment').doc(companyId).set({
+        'companyId': companyId,
+        'paymentAccounts': CompanyModel.paymentAccountsToFirestore(accounts),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }),
+    );
+  }
+
+  @override
+  Stream<List<PaymentAccount>> watchPaymentAccounts(String companyId) {
+    return _firestore
+        .collection('company_payment')
+        .doc(companyId)
+        .snapshots()
+        .map(
+          (doc) => CompanyModel.paymentAccountsFromFirestore(
+            doc.data()?['paymentAccounts'],
+          ),
+        );
+  }
+
+  @override
+  Stream<String?> watchCompanyEmail(String companyId) {
+    return _firestore
+        .collection('company_private')
+        .doc(companyId)
+        .snapshots()
+        .map((doc) {
+          final email = doc.data()?['email'];
+          return email is String ? email : null;
+        });
   }
 
   /// Writes per batch, under Firestore's 500 with room to spare.
@@ -104,23 +152,6 @@ class FirestoreCompaniesRemoteDataSource implements CompaniesRemoteDataSource {
   Future<void> _guardWrite(Future<void> Function() write) async {
     try {
       await write();
-    } on FirebaseException catch (error) {
-      if (error.code == 'permission-denied') {
-        throw const AppException(AppErrorCode.companyUpdateDenied);
-      }
-      throw AppException(
-        AppErrorCode.companyUpdateFailed,
-        detail: '${error.code}: ${error.message}',
-      );
-    }
-  }
-
-  Future<void> _update(String companyId, Map<String, dynamic> fields) async {
-    try {
-      await _companies.doc(companyId).update({
-        ...fields,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
     } on FirebaseException catch (error) {
       if (error.code == 'permission-denied') {
         throw const AppException(AppErrorCode.companyUpdateDenied);

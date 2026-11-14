@@ -134,7 +134,10 @@ describe('the dashboard conversion', () => {
     expect(profile).not.toHaveProperty('mustChangePassword');
 
     const company = await read(`companies/${done.companyId}`);
-    expect(company).toMatchObject({ name: 'Nile Systems', email: 'cust1@x.test', status: 'active', rating: 0 });
+    expect(company).toMatchObject({ name: 'Nile Systems', status: 'active', rating: 0 });
+    // The login email is kept apart from the public company document.
+    expect(company).not.toHaveProperty('email');
+    expect((await read(`company_private/${done.companyId}`))?.email).toBe('cust1@x.test');
     expect((await read(`company_documents/${done.companyId}`))?.registrationNumber).toBe('CR-2024-0091');
 
     const notice = await read(`notifications/${done.noticeId}`);
@@ -194,9 +197,9 @@ describe('the dashboard conversion', () => {
       input({ description: '', city: '', address: '', phone: '', pickupAddress: '', serviceCityIds: [] }),
       deps(),
     );
+    expect((await read(`company_private/${done.companyId}`))?.email).toBe('cust2@x.test');
     expect(await read(`companies/${done.companyId}`)).toMatchObject({
       name: 'Nile Systems',
-      email: 'cust2@x.test',
       status: 'active',
       description: '',
       city: '',
@@ -249,7 +252,6 @@ function raw(options: Raw = {}) {
       city: '',
       address: '',
       phone: '',
-      email: companyEmail,
       pickupAddress: '',
       rating: 0,
       reviewCount: 0,
@@ -257,6 +259,7 @@ function raw(options: Raw = {}) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+    batch.set(doc(db, 'company_private', companyId), { companyId, email: companyEmail, updatedAt: serverTimestamp() });
   }
   if (withDocument) {
     batch.set(doc(db, 'company_documents', companyId), companyDocumentData(companyId, 'CR-1', image));

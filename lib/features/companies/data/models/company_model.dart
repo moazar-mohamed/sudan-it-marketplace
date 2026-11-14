@@ -72,6 +72,11 @@ class CompanyModel {
         : 'active';
   }
 
+  /// The accounts in `company_payment/{companyId}`, apart from the public
+  /// company document: visitors never read them.
+  static List<PaymentAccount> paymentAccountsFromFirestore(Object? value) =>
+      _parsePaymentAccounts(value);
+
   /// Payment accounts are saved on their own (see `updatePaymentAccounts`), so
   /// editing the profile never touches them.
   static List<Map<String, dynamic>> paymentAccountsToFirestore(
@@ -93,7 +98,8 @@ class CompanyModel {
       'latitude': coordinates?.latitude ?? FieldValue.delete(),
       'longitude': coordinates?.longitude ?? FieldValue.delete(),
       'phone': company.phone ?? '',
-      'email': company.email ?? '',
+      // The email is not here: it lives in company_private (see
+      // updateCompanyProfile), since everyone reads the company document.
       // The first point is mirrored into the single written address, so the
       // admin panel and older app versions still show where orders are
       // collected.

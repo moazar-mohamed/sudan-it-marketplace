@@ -140,7 +140,6 @@ describe('Company pickup points', () => {
       city: 'Khartoum',
       address: 'Street',
       phone: '1',
-      email: 'n@x.test',
       pickupAddress: 'Branch — Street 9',
       serviceCityIds: [],
       rating: 0,

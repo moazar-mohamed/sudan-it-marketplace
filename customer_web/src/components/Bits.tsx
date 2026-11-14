@@ -17,7 +17,22 @@ export const PATH_SEPARATOR = language === 'en' ? '›' : '‹';
 export const reviewsCountText = (count: number): string =>
   countText(count, t('تقييم واحد'), t('تقييمان'), t('تقييمات'), t('تقييم'));
 
-/** Stars and count; "جديد" until someone rates (nothing with [showNew] false). */
+/**
+ * Five stars filled to [value] (0 to 5), so 4.5 shows four and a half. The
+ * gold copy sits on the grey one from the side the text starts, so in Arabic
+ * the stars fill from the right.
+ */
+export function Stars({ value }: { value: number }) {
+  const clamped = Math.max(0, Math.min(5, value));
+  return (
+    <span className="stars-meter" role="img" aria-label={t('{0} من 5', clamped.toFixed(1))}>
+      <span className="stars-base" aria-hidden="true">★★★★★</span>
+      <span className="stars-fill" aria-hidden="true" style={{ width: `${(clamped / 5) * 100}%` }}>★★★★★</span>
+    </span>
+  );
+}
+
+/** Stars, the average and the count; "جديد" until someone rates (nothing with [showNew] false). */
 export function RatingLine({
   ratingsFor,
   fallbackAverage = 0,
@@ -39,8 +54,9 @@ export function RatingLine({
   if (count === 0) return showNew ? <span className="new-rating">{t('جديد')}</span> : null;
   return (
     <span className="rating">
-      ★ {average.toFixed(1)}
-      {showCount && <span className="pmeta"> ({reviewsCountText(count)})</span>}
+      <Stars value={average} />
+      <span className="rating-value">{average.toFixed(1)}</span>
+      {showCount && <span className="pmeta">({reviewsCountText(count)})</span>}
     </span>
   );
 }
@@ -48,7 +64,7 @@ export function RatingLine({
 /** The price to pay, with the struck-through normal price while an offer runs. */
 export function PriceText({ item, currency = 'SDG', big }: { item: Priced; currency?: string; big?: boolean }) {
   const sale = salePrice(item);
-  if (sale === null) return <span className="on-request">{t('السعر عند التواصل')}</span>;
+  if (sale === null) return <span className="on-request">{t('تواصل لمعرفة السعر')}</span>;
   return (
     <span className="price-line">
       <span className={big ? 'price big' : 'price'}>{formatPrice(sale, currency)}</span>

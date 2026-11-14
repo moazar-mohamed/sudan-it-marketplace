@@ -15,8 +15,10 @@ export interface SiteStat {
  * marketplace never advertises "0 reviews".
  */
 export function siteStats(companies: Company[], items: number, ratings: Ratings): SiteStat[] {
+  // Each review counts in two averages: its company's and its product's (or
+  // service's). Only the company ones are summed, so it is counted once.
   let reviews = 0;
-  for (const stats of ratings.values()) reviews += stats.count;
+  for (const [key, stats] of ratings) if (key.startsWith('company_')) reviews += stats.count;
   const cities = new Set(companies.map((c) => c.city.trim()).filter((c) => c !== '')).size;
   const all: SiteStat[] = [
     { key: 'companies', value: companies.length },

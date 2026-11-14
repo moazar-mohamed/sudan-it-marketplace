@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { EmptyState, ErrorState, PriceText, Skeleton } from '../components/Bits';
 import { Icon, PATHS } from '../components/Icon';
 import type { GeoPoint } from '../components/MapPicker';
@@ -91,7 +91,11 @@ function RequestForm({ offer, service, company }: { offer: CompanyService; servi
       <section className="tile">
         <h2>{service.name}</h2>
         <div className="pmeta">{company.name}</div>
-        {offer.price !== null && <PriceText item={offer} />}
+        {offer.price !== null ? (
+          <PriceText item={offer} />
+        ) : (
+          <Link to={`/chats?offer=${offer.id}`} className="more">{t('تواصل لمعرفة السعر')}</Link>
+        )}
       </section>
 
       <section className="tile">
@@ -161,10 +165,13 @@ function RequestForm({ offer, service, company }: { offer: CompanyService; servi
 export function ServiceRequestPage() {
   const [params] = useSearchParams();
   const { links, services, companies, loading, error } = useCatalog();
-  const offer = links.find((l) => l.id === params.get('offer') && l.isActive);
+  const offerId = params.get('offer');
+  const offer = links.find((l) => l.id === offerId && l.isActive);
   const service = services.find((s) => s.id === offer?.serviceId);
   const company = companies.find((c) => c.id === offer?.companyId);
 
+  // No service chosen yet (an old link to /service-request): the customer picks one first.
+  if (!offerId) return <Navigate to="/browse?kind=services" replace />;
   if (error) return <main className="stack"><ErrorState /></main>;
   if (loading) return <main className="stack narrow"><Skeleton height={420} /></main>;
   if (!offer || !service || !company) {

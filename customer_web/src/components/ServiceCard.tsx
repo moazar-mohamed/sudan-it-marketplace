@@ -38,6 +38,8 @@ export function ServiceCard({ service, highlight }: { service: CatalogService; h
         {from !== null && (
           <span className="from">{t('يبدأ من')}{' '}<strong className="price">{formatPrice(from)}</strong></span>
         )}
+        {/* No company has set a price: the service page offers the chat. */}
+        {listing && from === null && <span className="on-request">{t('تواصل لمعرفة السعر')}</span>}
       </span>
       <FavoriteButton kind="service" targetId={service.id} name={service.name} />
     </Link>

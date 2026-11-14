@@ -3,8 +3,8 @@ import { collection, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { isUnreadChat, useChats, useNotices, type Notice } from './inbox';
 import { awaitsRefund, expireOverdueOrders } from './orders';
-import { mapCategory, mapCompany, mapOrder, mapProduct } from './mappers';
-import type { Category, Chat, Company, Order, Product } from './types';
+import { mapCategory, mapCompany, mapOrder, mapPaymentAccounts, mapProduct } from './mappers';
+import type { Category, Chat, Company, Order, PaymentAccount, Product } from './types';
 
 interface CompanyDataValue {
   companyId: string;
@@ -40,6 +40,9 @@ const byNewest = (a: { createdAt: Date | null }, b: { createdAt: Date | null }) 
  */
 export function CompanyDataProvider({ companyId, children }: { companyId: string; children: ReactNode }) {
   const [company, setCompany] = useState<Company | null>(null);
+  // Kept apart from the public company document: its email and bank accounts.
+  const [email, setEmail] = useState('');
+  const [paymentAccounts, setPaymentAccounts] = useState<PaymentAccount[]>([]);
   const [products, setProducts] = useState<Product[] | null>(null);
   const [openOrders, setOpenOrders] = useState<Order[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -53,6 +56,8 @@ export function CompanyDataProvider({ companyId, children }: { companyId: string
     const ok = () => setFailed(false);
     const unsubs = [
       onSnapshot(doc(db, 'companies', companyId), (s) => { ok(); setCompany(s.exists() ? mapCompany(s.id, s.data()) : null); }, fail),
+      onSnapshot(doc(db, 'company_private', companyId), (s) => setEmail(String(s.data()?.email ?? '')), () => undefined),
+      onSnapshot(doc(db, 'company_payment', companyId), (s) => setPaymentAccounts(mapPaymentAccounts(s.data()?.paymentAccounts)), () => undefined),
       onSnapshot(
         query(collection(db, 'products'), where('companyId', '==', companyId)),
         (s) => { ok(); setProducts(s.docs.map((d) => mapProduct(d.id, d.data())).sort(byNewest)); },
@@ -90,7 +95,7 @@ export function CompanyDataProvider({ companyId, children }: { companyId: string
   const value = useMemo<CompanyDataValue>(
     () => ({
       companyId,
-      company,
+      company: company ? { ...company, email, paymentAccounts } : null,
       products,
       openOrders,
       pendingPayment: (openOrders ?? []).filter((o) => o.orderStatus === 'processing' && o.paymentStatus === 'pending_verification'),
@@ -102,7 +107,7 @@ export function CompanyDataProvider({ companyId, children }: { companyId: string
       categories,
       failed,
     }),
-    [companyId, company, products, openOrders, cancelledPaid, notices, chats, categories, failed],
+    [companyId, company, email, paymentAccounts, products, openOrders, cancelledPaid, notices, chats, categories, failed],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

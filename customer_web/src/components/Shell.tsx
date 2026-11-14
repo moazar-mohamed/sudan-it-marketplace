@@ -159,7 +159,8 @@ function SiteFooter() {
             <h3>{t('حسابي')}</h3>
             <Link to="/orders">{t('طلباتي')}</Link>
             <Link to="/favorites">{t('المفضلة')}</Link>
-            <Link to="/service-request">{t('اطلب فنيًا')}</Link>
+            {/* A request is made from a service's page: first the customer picks the service. */}
+            <Link to="/browse?kind=services">{t('اطلب فنيًا')}</Link>
             <Link to="/settings">{t('الإعدادات')}</Link>
           </div>
           <div className="footer-col">

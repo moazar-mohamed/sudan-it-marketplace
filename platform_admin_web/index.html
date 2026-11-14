@@ -2,6 +2,15 @@
 <html lang="en" dir="ltr" data-ui="v2">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Old addresses open the same page on the new domain.
+      (function () {
+        var h = location.hostname;
+        if (h === 'sudan-it-marketplace.web.app' || h === 'sudan-it-marketplace.firebaseapp.com') {
+          location.replace('https://admin.sictm.net' + location.pathname + location.search + location.hash);
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="icon"

@@ -35,7 +35,7 @@ export function ComparePage() {
   const specs = specNames(picked);
 
   const rows: { label: string; cell: (p: Product, i: number) => ReactNode }[] = [
-    { label: t('السعر'), cell: (p, i) => (prices[i] === null ? t('السعر عند التواصل') : <strong className={prices[i] === cheapest ? 'best' : undefined}>{formatPrice(prices[i] as number, p.currency)}</strong>) },
+    { label: t('السعر'), cell: (p, i) => (prices[i] === null ? t('تواصل لمعرفة السعر') : <strong className={prices[i] === cheapest ? 'best' : undefined}>{formatPrice(prices[i] as number, p.currency)}</strong>) },
     { label: t('الشركة'), cell: (p) => (p.companyId ? <Link to={`/company/${p.companyId}`} className="link-btn">{p.companyName}</Link> : '—') },
     { label: t('الماركة'), cell: (p) => p.brand || '—' },
     { label: t('القسم'), cell: (p) => { const c = tree.byId(p.categoryId); return c ? categoryName(c) : '—'; } },

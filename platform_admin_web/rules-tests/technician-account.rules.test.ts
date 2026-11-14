@@ -318,8 +318,10 @@ describe('company payment accounts', () => {
     ...extra,
   });
 
+  // In their own document (company_payment), never on the public company.
   const save = (who: string, companyId: string, accounts: unknown) =>
-    updateDoc(doc(as(who), 'companies', companyId), {
+    setDoc(doc(as(who), 'company_payment', companyId), {
+      companyId,
       paymentAccounts: accounts,
       updatedAt: serverTimestamp(),
     });
@@ -340,8 +342,10 @@ describe('company payment accounts', () => {
 
   it('customers can read them', async () => {
     await assertSucceeds(save('adminC1', 'c1', [account(1)]));
-    const company = (await assertSucceeds(getDoc(doc(as('cust1'), 'companies', 'c1')))).data();
-    expect(company?.paymentAccounts).toHaveLength(1);
+    const payment = (await assertSucceeds(getDoc(doc(as('cust1'), 'company_payment', 'c1')))).data();
+    expect(payment?.paymentAccounts).toHaveLength(1);
+    // A visitor cannot.
+    await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'company_payment', 'c1')));
   });
 
   it('allows at most 5 accounts', async () => {

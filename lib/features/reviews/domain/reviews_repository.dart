@@ -38,4 +38,8 @@ abstract class ReviewsRepository {
 
   /// The company's one reply (sent again to reword it).
   Future<void> replyToReview(String reviewId, String reply);
+
+  /// Who placed the order [orderId] (a review does not say), or null when it
+  /// cannot be read.
+  Future<String?> orderCustomerId(String orderId);
 }

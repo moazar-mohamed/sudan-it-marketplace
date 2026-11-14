@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { t } from '../i18n';
 import { useTechData } from '../data/TechData';
-import { clock } from '../data/format';
+import { byCount, clock } from '../data/format';
 import type { Job } from '../data/types';
 import { Icon, type IconName } from './Icon';
 
@@ -127,7 +127,12 @@ export function Tabs() {
   return (
     <nav className="tabs" aria-label={t('التنقل الرئيسي')}>
       <Tab to="/" icon="home" label={t('الرئيسية')} count={0} countLabel="" />
-      <Tab to="/jobs" icon="wrench" label={t('المهام')} count={newJobIds.size} countLabel={t('{0} مهام جديدة', newJobIds.size)} />
+      <Tab to="/jobs" icon="wrench" label={t('المهام')} count={newJobIds.size} countLabel={byCount(newJobIds.size, {
+          one: t('مهمة جديدة واحدة'),
+          two: t('مهمتان جديدتان'),
+          few: t('{0} مهام جديدة', newJobIds.size),
+          many: t('{0} مهمة جديدة', newJobIds.size),
+        })} />
       <Tab to="/chats" icon="chat" label={t('المحادثات')} count={unreadChats} countLabel={t('{0} رسائل جديدة', unreadChats)} />
       <Tab to="/profile" icon="user" label={t('حسابي')} count={0} countLabel="" />
     </nav>

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useProfile } from '../auth/AuthProvider';
 import { setAvailability } from '../data/actions';
-import { money } from '../data/format';
+import { byCount, money } from '../data/format';
 import { actionOf, directionsUrl, firstName, formatKm, isOpenJob, jobDistanceKm, monthFees, nextJob, shortId } from '../data/jobs';
 import { useTechData } from '../data/TechData';
 import type { Job } from '../data/types';
@@ -57,9 +57,25 @@ export default function HomePage() {
   if (!available) greetLine = t('أنت مشغول الآن، ولن تُسند إليك مهام جديدة');
   else if (open.length === 0) greetLine = t('لا مهام جارية الآن. ستصلك المهمة الجديدة هنا وفي الإشعارات.');
   else if (open.length === 1) greetLine = ready === 1 ? t('لديك مهمة جارية واحدة، وهي جاهزة للتنفيذ') : t('لديك مهمة جارية واحدة');
-  else if (ready === 0) greetLine = t('لديك {0} مهام جارية', open.length);
-  else if (ready === 1) greetLine = t('لديك {0} مهام جارية، واحدة منها جاهزة للتنفيذ', open.length);
-  else greetLine = t('لديك {0} مهام جارية، {1} منها جاهزة للتنفيذ', open.length, ready);
+  else if (open.length === 2)
+    greetLine =
+      ready === 0
+        ? t('لديك مهمتان جاريتان')
+        : ready === 1
+          ? t('لديك مهمتان جاريتان، واحدة منهما جاهزة للتنفيذ')
+          : t('لديك مهمتان جاريتان، وكلتاهما جاهزة للتنفيذ');
+  else {
+    const few = byCount(open.length, { one: true, two: true, few: true, many: false });
+    if (ready === 0) greetLine = few ? t('لديك {0} مهام جارية', open.length) : t('لديك {0} مهمة جارية', open.length);
+    else if (ready === 1)
+      greetLine = few
+        ? t('لديك {0} مهام جارية، واحدة منها جاهزة للتنفيذ', open.length)
+        : t('لديك {0} مهمة جارية، واحدة منها جاهزة للتنفيذ', open.length);
+    else
+      greetLine = few
+        ? t('لديك {0} مهام جارية، {1} منها جاهزة للتنفيذ', open.length, ready)
+        : t('لديك {0} مهمة جارية، {1} منها جاهزة للتنفيذ', open.length, ready);
+  }
 
   return (
     <>

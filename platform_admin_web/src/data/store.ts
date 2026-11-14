@@ -123,6 +123,11 @@ export const stores = {
     mapCompany,
     (a, b) => a.name.localeCompare(b.name),
   ),
+  // Each company's email, kept apart from its public document (company_private).
+  companyPrivate: new LiveCollection<{ id: string; email: string }>(
+    () => collection(db, 'company_private'),
+    (id, d) => ({ id, email: typeof d.email === 'string' ? d.email : '' }),
+  ),
   // Customers are the users whose role is "customer"; other roles are never
   // requested (and the security rules would not return them anyway).
   customers: new LiveCollection<Customer>(

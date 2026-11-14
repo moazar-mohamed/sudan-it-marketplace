@@ -62,7 +62,7 @@ export function suggestCorrection(query: string, vocabulary: Iterable<string>): 
   const tokens = toTokens(query);
   if (tokens.length === 0) return null;
   const words = new Set<string>();
-  for (const text of vocabulary) toTokens(text).forEach((word) => words.add(word));
+  for (const text of vocabulary) fieldTokens(text).forEach((word) => words.add(word));
   if (words.size === 0) return null;
 
   let changed = false;
@@ -110,7 +110,7 @@ function scoreOf(queryTokens: string[], wholeQuery: string, fields: SearchField[
     .filter((field) => field.text.trim() !== '')
     .map((field) => {
       const words = toTokens(field.text);
-      return { words, tokens: withJoined(words), weight: field.weight ?? 1 };
+      return { words, tokens: fieldTokens(field.text), weight: field.weight ?? 1 };
     });
   let total = 0;
   for (const queryToken of queryTokens) {
@@ -194,11 +194,41 @@ function toTokens(value: string): string[] {
   return tokens;
 }
 
-function computeTokens(value: string): string[] {
-  let text = normalizeSearchText(value).replace(PUNCTUATION, ' ').replace(SPACES, ' ').trim();
+const fieldTokenCache = new Map<string, string[]>();
+
+/**
+ * What a piece of data can be found by: its words after synonyms (and run
+ * together), each word on its own after synonyms, and each word as written.
+ * A phrase synonym swallows its words ("كاميرات مراقبة" becomes "cctv"), so
+ * without the single words "كاميرات" (= "camera") would find nothing, and
+ * without the written words a typo such as "رواتر" has nothing to be corrected to.
+ */
+function fieldTokens(value: string): string[] {
+  const cached = fieldTokenCache.get(value);
+  if (cached) return cached;
+  const all = new Set(withJoined(toTokens(value)));
+  for (const word of rawWords(value)) {
+    all.add(word);
+    toTokens(word).forEach((token) => all.add(token));
+  }
+  const tokens = [...all];
+  if (fieldTokenCache.size >= 4000) fieldTokenCache.clear();
+  fieldTokenCache.set(value, tokens);
+  return tokens;
+}
+
+/** The normalized words of [value], articles stripped, before any synonym. */
+function rawWords(value: string): string[] {
+  const text = normalizeSearchText(value).replace(PUNCTUATION, ' ').replace(SPACES, ' ').trim();
   if (text === '') return [];
   // Articles go first so "الطابعة" becomes the same word as "طابعة".
-  text = text.split(' ').map(stripArticle).join(' ');
+  return text.split(' ').map(stripArticle);
+}
+
+function computeTokens(value: string): string[] {
+  const words = rawWords(value);
+  if (words.length === 0) return [];
+  let text = words.join(' ');
   for (const rule of synonymRules()) {
     text = text.replace(rule.pattern, () => rule.canonical);
   }

@@ -101,7 +101,12 @@ a.tile:hover, .tile.lift:hover { transform: translateY(-4px); box-shadow: var(--
 .company-row { display: flex; align-items: center; gap: 12px; }
 .avatar { width: 46px; height: 46px; border-radius: 14px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--link); overflow: hidden; flex: none; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
-.rating { font-weight: 700; color: var(--warn); font-size: 14px; }
+.rating { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; font-weight: 700; color: var(--warn); font-size: 14px; }
+/* Five stars: a gold copy, cut to the average, over a grey one. */
+.stars-meter { position: relative; display: inline-block; line-height: 1; white-space: nowrap; font-size: 1.1em; }
+.stars-base { color: color-mix(in srgb, var(--muted) 35%, transparent); }
+.stars-fill { position: absolute; inset-block-start: 0; inset-inline-start: 0; overflow: hidden; color: #f59e0b; }
+.rating-value { color: var(--text); }
 .section-title { display: flex; justify-content: space-between; align-items: center; margin: 24px 4px 16px; }
 .section-title h2 { margin: 0; font-size: 24px; font-weight: 800; }
 .pcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
@@ -697,7 +702,7 @@ body:has(.compare-bar) .page { padding-bottom: 112px; }
 .promo-go { background: var(--brand); color: #fff; }
 
 /* the rating on a company card: a small yellow pill */
-.ccard .rating { display: inline-block; margin-top: 4px; padding: 1px 10px; border-radius: 999px; background: var(--warn-bg); font-size: 13px; }
+.ccard .rating { display: inline-flex; margin-top: 4px; padding: 2px 10px; border-radius: 999px; background: var(--warn-bg); font-size: 13px; }
 
 .footer-col h3 { color: #fff; }
 mark { background: rgba(31, 163, 92, 0.22); }

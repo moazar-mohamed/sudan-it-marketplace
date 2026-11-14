@@ -89,7 +89,6 @@ export function mapCompany(id: string, d: DocumentData): Company {
       : [],
     pickupAddress: str(d.pickupAddress),
     pickupPoints: pickupPoints(d.pickupPoints),
-    paymentAccounts: paymentAccounts(d.paymentAccounts),
   };
 }
 
@@ -108,7 +107,8 @@ function pickupPoints(value: unknown): PickupPoint[] {
   });
 }
 
-function paymentAccounts(value: unknown): PaymentAccount[] {
+/** The accounts in `company_payment/{companyId}`: only signed-in customers may read them. */
+export function paymentAccounts(value: unknown): PaymentAccount[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((entry) => {
     if (typeof entry !== 'object' || entry === null) return [];

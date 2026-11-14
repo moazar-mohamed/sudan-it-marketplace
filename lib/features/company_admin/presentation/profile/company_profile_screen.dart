@@ -30,7 +30,7 @@ class CompanyProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(citiesProvider);
-    final companyAsync = ref.watch(companyStreamProvider(companyId));
+    final companyAsync = ref.watch(ownCompanyProvider(companyId));
     final signOutButton = AppButton.destructiveOutlined(
       onPressed: () {
         // Back to the root first: this screen sits above the shell, and the

@@ -15,6 +15,12 @@ abstract interface class CompaniesRepository {
     List<PaymentAccount> accounts,
   );
 
+  /// The company's bank accounts, kept apart from the public company document.
+  Stream<List<PaymentAccount>> watchPaymentAccounts(String companyId);
+
+  /// The company's email, readable only by its own admin and Platform Admin.
+  Stream<String?> watchCompanyEmail(String companyId);
+
   /// Sets the company's dollar rate (or confirms it unchanged) and writes the
   /// pounds of its dollar-priced products worked out from it ([repricing]:
   /// product id to the fields to set). The rate goes with the first products

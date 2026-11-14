@@ -2,6 +2,15 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Old addresses open the same page on the new domain.
+      (function () {
+        var h = location.hostname;
+        if (h === 'sudan-it-market.web.app' || h === 'sudan-it-market.firebaseapp.com') {
+          location.replace('https://sictm.net' + location.pathname + location.search + location.hash);
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#063B73" />
     <meta name="description" content="سوق السودان للتقنية - منتجات وشركات وفنيون في مدينتك" />

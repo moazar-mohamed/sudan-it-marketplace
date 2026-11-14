@@ -362,8 +362,11 @@ function NotesCard({ job }: { job: Job }) {
     }
   };
 
+  // The bin asks once in place ("حذف؟"), in the page's own look, instead of the browser's box.
+  const [confirming, setConfirming] = useState<string | null>(null);
+
   const remove = async (note: Note) => {
-    if (!window.confirm(t('حذف هذه الملاحظة؟'))) return;
+    setConfirming(null);
     try {
       await deleteNote(job.id, note.id);
     } catch {
@@ -390,10 +393,20 @@ function NotesCard({ job }: { job: Job }) {
             <div style={{ fontSize: 15, lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{n.text}</div>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>{n.pending ? t('بانتظار الإرسال') : dayTime(n.createdAt)}</div>
           </div>
-          {n.authorId === profile.uid && (
-            <button type="button" aria-label={t('حذف الملاحظة')} onClick={() => void remove(n)} style={{ flex: 'none', width: 44, height: 44, borderRadius: 12, border: 0, background: 'transparent', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {n.authorId === profile.uid && confirming !== n.id && (
+            <button type="button" aria-label={t('حذف الملاحظة')} onClick={() => setConfirming(n.id)} style={{ flex: 'none', width: 44, height: 44, borderRadius: 12, border: 0, background: 'transparent', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Icon name="trash" small />
             </button>
+          )}
+          {n.authorId === profile.uid && confirming === n.id && (
+            <div role="group" aria-label={t('حذف هذه الملاحظة؟')} style={{ flex: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <button type="button" onClick={() => void remove(n)} style={{ height: 40, padding: '0 14px', borderRadius: 10, border: 0, background: 'var(--err-ink)', color: '#fff', fontWeight: 700, fontSize: 14 }}>
+                {t('حذف')}
+              </button>
+              <button type="button" onClick={() => setConfirming(null)} style={{ height: 40, padding: '0 14px', borderRadius: 10, border: 0, background: 'var(--soft)', color: 'var(--soft-ink)', fontWeight: 700, fontSize: 14 }}>
+                {t('إلغاء')}
+              </button>
+            </div>
           )}
         </div>
       ))}

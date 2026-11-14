@@ -10,6 +10,7 @@ import { Select } from '../components/Select';
 import { PageTitle } from '../components/PageTitle';
 import { servesCity } from '../data/browse';
 import { useAccount, useCatalog } from '../data/DataProvider';
+import { usePaymentAccounts } from '../data/hooks';
 import { formatPrice, isAvailable, maxOrderQuantity, piecesCount, salePrice } from '../data/format';
 import {
   clip,
@@ -24,7 +25,7 @@ import {
 } from '../data/orders';
 import { displayPhone, parsePhone, toE164 } from '../data/phone';
 import { prepareReceipt, ReceiptProblem } from '../data/receiptImage';
-import type { Company, OrderDraft, Product, ReceiptImage } from '../data/types';
+import type { Company, OrderDraft, PaymentAccount, Product, ReceiptImage } from '../data/types';
 import { cityName } from '../data/cities';
 import { t } from '../i18n';
 
@@ -260,7 +261,7 @@ function CheckoutForm({
   );
 }
 
-function AccountCard({ account }: { account: Company['paymentAccounts'][number] }) {
+function AccountCard({ account }: { account: PaymentAccount }) {
   const [copied, setCopied] = useState('');
   function copy(text: string, label: string) {
     void navigator.clipboard?.writeText(text).then(() => {
@@ -332,7 +333,7 @@ function PaymentStep({ draft, company, onBack }: { draft: OrderDraft; company: C
     }
   }
 
-  const accounts = company.paymentAccounts;
+  const { accounts, failed } = usePaymentAccounts(company.id);
   return (
     <div className="stack narrow">
       <PageTitle title={t('الدفع اليدوي')} />
@@ -348,7 +349,11 @@ function PaymentStep({ draft, company, onBack }: { draft: OrderDraft; company: C
       </div>
 
       <h2 className="group-title">{t('حسابات الدفع')}</h2>
-      {accounts.length === 0 ? (
+      {accounts === null ? (
+        <Skeleton height={120} />
+      ) : failed ? (
+        <div className="error" role="alert" style={{ marginTop: 0 }}>{t('تعذّر تحميل حسابات الدفع. تحقق من اتصالك وحاول مرة أخرى.')}</div>
+      ) : accounts.length === 0 ? (
         <div className="error" role="alert" style={{ marginTop: 0 }}>{t('لم تضف هذه الشركة حسابات دفع بعد، لذلك لا تستطيع استلام دفعة الآن. يرجى التواصل مع الشركة.')}</div>
       ) : (
         accounts.map((account, i) => <AccountCard key={`${account.accountNumber}-${i}`} account={account} />)
@@ -380,7 +385,7 @@ function PaymentStep({ draft, company, onBack }: { draft: OrderDraft; company: C
 
       <div className="warn-note">{t('يُرسل طلبك مع هذا الإيصال. الإيصال ليس تأكيداً للدفع: تتحقق الشركة من التحويل ثم تؤكده، وعندها فقط يُحجز المنتج لك.')}</div>
       {error && <div className="error" role="alert" style={{ marginTop: 0 }}>{error}</div>}
-      <button className="btn" style={{ marginTop: 0 }} disabled={accounts.length === 0 || preparing || sending} onClick={submit}>
+      <button className="btn" style={{ marginTop: 0 }} disabled={!accounts || accounts.length === 0 || preparing || sending} onClick={submit}>
         {sending ? t('جارٍ الإرسال...') : t('إرسال الإيصال للتحقق')}
       </button>
       <button className="btn ghost" style={{ marginTop: 0 }} disabled={sending} onClick={onBack}>{t('تعديل بيانات الطلب')}</button>

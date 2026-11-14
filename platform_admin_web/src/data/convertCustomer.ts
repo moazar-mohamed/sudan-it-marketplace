@@ -18,7 +18,7 @@ import {
   type PreparedDocumentFile,
 } from './companyDocuments';
 import { NO_IMAGE, type ImageSelection } from './imageRules';
-import { companyDocument } from './provisionCompany';
+import { companyDocument, companyPrivateDocument } from './provisionCompany';
 import type { AuditInput } from './auditLog';
 
 /*
@@ -133,7 +133,8 @@ export async function convertCustomerToCompany(
   const logoUrl = await deps.resolveLogo(input.logo ?? NO_IMAGE, `company-logos/${companyRef.id}`);
 
   const batch = writeBatch(deps.db);
-  batch.set(companyRef, companyDocument({ ...input, email }, email, logoUrl));
+  batch.set(companyRef, companyDocument({ ...input, email }, logoUrl));
+  batch.set(doc(deps.db, 'company_private', companyRef.id), companyPrivateDocument(companyRef.id, email));
   batch.set(
     doc(deps.db, 'company_documents', companyRef.id),
     companyDocumentData(companyRef.id, input.registrationNumber, registrationDocument),

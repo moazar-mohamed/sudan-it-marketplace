@@ -86,7 +86,7 @@ String? suggestCorrection(String query, Iterable<String> vocabulary) {
   if (tokens.isEmpty) return null;
   final words = <String>{};
   for (final text in vocabulary) {
-    words.addAll(_tokens(text));
+    words.addAll(_fieldTokens(text));
   }
   if (words.isEmpty) return null;
 
@@ -142,7 +142,7 @@ int _score(List<String> queryTokens, String wholeQuery, List<SearchField> fields
       if (field.text.trim().isNotEmpty)
         (
           words: _tokens(field.text),
-          tokens: _withJoined(_tokens(field.text)),
+          tokens: _fieldTokens(field.text),
           weight: field.weight,
         ),
   ];
@@ -243,12 +243,42 @@ List<String> _tokens(String value) {
 
 final _tokenCache = <String, List<String>>{};
 
-List<String> _computeTokens(String value) {
-  var text = normalizeSearchText(value).replaceAll(_punctuation, ' ');
-  text = text.replaceAll(_spaces, ' ').trim();
+final _fieldTokenCache = <String, List<String>>{};
+
+/// What a piece of data can be found by: its words after synonyms (and run
+/// together), each word on its own after synonyms, and each word as written.
+/// A phrase synonym swallows its words ("كاميرات مراقبة" becomes "cctv"), so
+/// without the single words "كاميرات" (= "camera") would find nothing, and
+/// without the written words a typo such as "رواتر" has nothing to be
+/// corrected to.
+List<String> _fieldTokens(String value) {
+  final cached = _fieldTokenCache[value];
+  if (cached != null) return cached;
+  final all = <String>{..._withJoined(_tokens(value))};
+  for (final word in _rawWords(value)) {
+    all
+      ..add(word)
+      ..addAll(_tokens(word));
+  }
+  if (_fieldTokenCache.length >= 4000) _fieldTokenCache.clear();
+  return _fieldTokenCache[value] = all.toList();
+}
+
+/// The normalized words of [value], articles stripped, before any synonym.
+List<String> _rawWords(String value) {
+  final text = normalizeSearchText(value)
+      .replaceAll(_punctuation, ' ')
+      .replaceAll(_spaces, ' ')
+      .trim();
   if (text.isEmpty) return const [];
   // Articles go first so "الطابعة" becomes the same word as "طابعة".
-  text = [for (final word in text.split(' ')) _stripArticle(word)].join(' ');
+  return [for (final word in text.split(' ')) _stripArticle(word)];
+}
+
+List<String> _computeTokens(String value) {
+  final words = _rawWords(value);
+  if (words.isEmpty) return const [];
+  var text = words.join(' ');
   for (final rule in _synonymRules) {
     text = text.replaceAllMapped(rule.pattern, (_) => rule.canonical);
   }

@@ -79,7 +79,11 @@ export function ServicePage() {
                     {company.city && <span className="pmeta"> · {localCityText(company.city, cities)}</span>}
                   </span>
                 </Link>
-                {offer.price !== null && <PriceText item={offer} />}
+                {offer.price !== null ? (
+                  <PriceText item={offer} />
+                ) : (
+                  <Link to={`/chats?offer=${offer.id}`} className="more">{t('تواصل لمعرفة السعر')}</Link>
+                )}
                 {offer.note && <p className="pmeta">{offer.note}</p>}
                 <CityTag companyId={company.id} />
                 <div className="buy-row">

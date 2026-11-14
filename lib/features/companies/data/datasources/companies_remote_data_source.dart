@@ -13,6 +13,15 @@ abstract interface class CompaniesRemoteDataSource {
     List<PaymentAccount> accounts,
   );
 
+  /// The company's bank accounts (`company_payment/{companyId}`): signed-in
+  /// customers, the company's admin and Platform Admin read them; empty when
+  /// there are none or they cannot be read.
+  Stream<List<PaymentAccount>> watchPaymentAccounts(String companyId);
+
+  /// The company's email (`company_private/{companyId}`): only its own admin
+  /// and Platform Admin read it. Null when it cannot be read.
+  Stream<String?> watchCompanyEmail(String companyId);
+
   /// Sets the company's dollar rate (or confirms it unchanged) and writes the
   /// pounds of its dollar-priced products worked out from it ([repricing]:
   /// product id to the fields to set). The rate goes with the first products

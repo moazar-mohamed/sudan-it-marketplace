@@ -166,7 +166,7 @@ export function ProductPage() {
               </div>
               <span className="total">
                 {total !== null && <span className="pmeta">{t('الإجمالي')}</span>}
-                <strong>{total === null ? t('السعر عند التواصل') : formatPrice(total, product.currency)}</strong>
+                <strong>{total === null ? t('تواصل لمعرفة السعر') : formatPrice(total, product.currency)}</strong>
               </span>
             </div>
             <div className="buy-row">

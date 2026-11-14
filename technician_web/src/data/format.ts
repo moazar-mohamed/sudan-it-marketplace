@@ -3,6 +3,17 @@ import { language, t } from '../i18n';
 /** The locale for month names (digits stay 0-9 in both). */
 const LOCALE = language === 'en' ? 'en-GB' : 'ar-SD-u-nu-latn';
 
+/**
+ * The Arabic counted noun: [one] for 1, [two] for 2, [few] for 3–10 (plural
+ * noun), [many] for 0 and 11 up (the noun is singular again: "11 مهمة").
+ */
+export function byCount<T>(n: number, forms: { one: T; two: T; few: T; many: T }): T {
+  if (n === 1) return forms.one;
+  if (n === 2) return forms.two;
+  const lastTwo = n % 100;
+  return lastTwo >= 3 && lastTwo <= 10 ? forms.few : forms.many;
+}
+
 /** 7500 → "7,500" (whole numbers, as the app). */
 export const money = (value: number): string => Math.round(value).toLocaleString('en-US');
 

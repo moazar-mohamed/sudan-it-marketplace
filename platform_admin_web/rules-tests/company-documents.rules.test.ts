@@ -145,7 +145,6 @@ describe('adding and updating', () => {
       city: '',
       address: '',
       phone: '',
-      email: 'new@x.test',
       pickupAddress: '',
       rating: 0,
       reviewCount: 0,

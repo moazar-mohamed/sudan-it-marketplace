@@ -95,7 +95,8 @@ class FirestoreReviewsRepository implements ReviewsRepository {
     batch.set(_reviews.doc(review.id), {
       'id': review.id,
       'sourceType': review.source.value,
-      'customerId': review.customerId,
+      // No customerId: everyone reads reviews, and the rules find the
+      // customer through the order or request that has the review's id.
       'authorName': review.authorName,
       'companyId': review.companyId,
       'companyName': review.companyName,
@@ -129,6 +130,17 @@ class FirestoreReviewsRepository implements ReviewsRepository {
     // Only a change down to a low rating is news (the notice is sent once).
     if (review.stars > lowReviewMaxStars) {
       await _tellAboutLowRating(review, draft.stars);
+    }
+  }
+
+  @override
+  Future<String?> orderCustomerId(String orderId) async {
+    try {
+      final order = await _firestore.collection('orders').doc(orderId).get();
+      final customerId = order.data()?['customerId'];
+      return customerId is String && customerId.isNotEmpty ? customerId : null;
+    } on FirebaseException {
+      return null;
     }
   }
 

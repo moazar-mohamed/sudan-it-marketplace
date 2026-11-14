@@ -109,6 +109,11 @@ async function findWhileCompanyExists(db: Firestore, id: string) {
   const company = (await getDoc(companyRef)).exists() ? companyRef : null;
   const registrationRef = doc(db, 'company_documents', id);
   const registration = (await getDoc(registrationRef)).exists() ? [registrationRef] : [];
+  // The company's email and bank accounts, kept apart from its public document.
+  for (const name of ['company_private', 'company_payment']) {
+    const ref = doc(db, name, id);
+    if ((await getDoc(ref)).exists()) registration.push(ref);
+  }
   const [technicians, invites, products, services, reviews, ratings] = await Promise.all([
     byCompany(db, 'technicians', id),
     byCompany(db, 'technicianInvites', id),

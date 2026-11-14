@@ -6,6 +6,7 @@ import '../data/datasources/companies_remote_data_source.dart';
 import '../data/datasources/firestore_companies_remote_data_source.dart';
 import '../data/repositories/companies_repository_impl.dart';
 import '../domain/entities/company.dart';
+import '../domain/entities/payment_account.dart';
 import '../domain/repositories/companies_repository.dart';
 
 final companiesRemoteDataSourceProvider =
@@ -120,6 +121,35 @@ final companyServesMyCityProvider = Provider.family<bool, String>((
 final companyStreamProvider =
     StreamProvider.family<Company?, String>((ref, companyId) {
   return ref.watch(companiesRepositoryProvider).watchCompany(companyId);
+});
+
+/// The bank accounts a customer pays [companyId] into (their own document,
+/// never public).
+final companyPaymentAccountsProvider =
+    StreamProvider.family<List<PaymentAccount>, String>((ref, companyId) {
+  return ref.watch(companiesRepositoryProvider).watchPaymentAccounts(companyId);
+});
+
+/// The company's email: only its own admin and Platform Admin can read it.
+final companyEmailProvider =
+    StreamProvider.family<String?, String>((ref, companyId) {
+  return ref.watch(companiesRepositoryProvider).watchCompanyEmail(companyId);
+});
+
+/// The company as its own admin sees it: the public document with its email
+/// and bank accounts, which live in their own documents.
+final ownCompanyProvider =
+    Provider.family<AsyncValue<Company?>, String>((ref, companyId) {
+  final company = ref.watch(companyStreamProvider(companyId));
+  final accounts =
+      ref.watch(companyPaymentAccountsProvider(companyId)).asData?.value;
+  final email = ref.watch(companyEmailProvider(companyId)).asData?.value;
+  return company.whenData(
+    (c) => c?.copyWith(
+      paymentAccounts: accounts ?? c.paymentAccounts,
+      email: email ?? c.email,
+    ),
+  );
 });
 
 /// Resolves a company from Firestore; null while it loads or when it is gone.

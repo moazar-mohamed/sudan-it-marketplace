@@ -110,7 +110,6 @@ function rate(db: Firestore, id: string, o: Opts = {}) {
   batch.set(doc(db, 'reviews', id), {
     id,
     sourceType,
-    customerId: 'cust1',
     authorName: 'Cust O.',
     companyId: 'c1',
     companyName: 'Company c1',
@@ -219,7 +218,9 @@ describe('rating an order or a service request', () => {
 
   it("refuses someone else's order", async () => {
     await assertFails(rate(as('cust1'), 'o3'));
-    await assertFails(rate(as('cust2'), 'o1', { extra: { customerId: 'cust2' } }));
+    await assertFails(rate(as('cust2'), 'o1'));
+    // Naming a customer is refused outright, even the right one.
+    await assertFails(rate(as('cust1'), 'o1', { extra: { customerId: 'cust1' } }));
   });
 
   it('refuses a product the order is not for', async () => {

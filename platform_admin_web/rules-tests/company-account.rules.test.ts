@@ -71,7 +71,6 @@ const companyDoc = (extra: Record<string, unknown> = {}) => ({
   city: '',
   address: '',
   phone: '',
-  email: EMAIL,
   pickupAddress: '',
   rating: 0,
   reviewCount: 0,
@@ -107,7 +106,11 @@ const provision = (
   const db = as(opts.who ?? 'admin');
   const companyId = opts.companyId ?? 'AbC123xYz';
   const batch = writeBatch(db);
-  if (!opts.skipCompany) batch.set(doc(db, 'companies', companyId), companyDoc(opts.company));
+  if (!opts.skipCompany) {
+    batch.set(doc(db, 'companies', companyId), companyDoc(opts.company));
+    // The login email lives apart from the public company document.
+    batch.set(doc(db, 'company_private', companyId), { companyId, email: EMAIL, updatedAt: serverTimestamp() });
+  }
   batch.set(
     doc(db, 'users', 'newUid'),
     adminDoc('newUid', opts.profileCompanyId ?? companyId, opts.profile),

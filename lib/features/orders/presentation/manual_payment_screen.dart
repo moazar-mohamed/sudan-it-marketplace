@@ -192,15 +192,15 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // The accounts live in their own document, which only signed-in
+    // customers may read (never the public company document).
+    final accountsAsync = ref.watch(
+      companyPaymentAccountsProvider(widget.draft.companyId),
+    );
     final paymentAccounts =
-        ref
-            .watch(resolvedCompanyProvider(widget.draft.companyId))
-            ?.paymentAccounts ??
-        const <PaymentAccount>[];
-    // Until the company has loaded, its accounts are unknown, not missing.
-    final accountsLoading =
-        paymentAccounts.isEmpty &&
-        ref.watch(companyStreamProvider(widget.draft.companyId)).isLoading;
+        accountsAsync.asData?.value ?? const <PaymentAccount>[];
+    // Until they have loaded, the accounts are unknown, not missing.
+    final accountsLoading = paymentAccounts.isEmpty && accountsAsync.isLoading;
     final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
 
     return Scaffold(

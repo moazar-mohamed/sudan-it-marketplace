@@ -6,7 +6,7 @@ import {
   sendPasswordResetEmail,
   signOut as signOutOf,
 } from 'firebase/auth';
-import { collection, doc, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { auth, db, firebaseConfig } from '../firebase';
 import { mapReview } from './mappers';
@@ -28,7 +28,6 @@ function profileBase(company: Company) {
     city: company.city,
     address: company.address,
     phone: company.phone,
-    email: company.email,
     pickupAddress: company.pickupAddress,
   };
 }
@@ -50,9 +49,10 @@ export async function saveProfile(
   });
 }
 
+/** The bank accounts live in their own document: only signed-in customers read them, never visitors. */
 export async function savePaymentAccounts(company: Company, accounts: PaymentAccount[]): Promise<void> {
-  await updateDoc(doc(db, 'companies', company.id), {
-    ...profileBase(company),
+  await setDoc(doc(db, 'company_payment', company.id), {
+    companyId: company.id,
     paymentAccounts: accounts.map((a) => ({
       bankName: a.bankName.trim(),
       accountName: a.accountName.trim(),
@@ -206,7 +206,10 @@ export async function replyToReview(review: Review, reply: string): Promise<bool
   const first = !review.reply;
   await updateDoc(doc(db, 'reviews', review.id), { reply: text, replyAt: serverTimestamp() });
   if (first && review.source === 'order') {
-    return sendNotice({ type: 'review_reply', recipientType: 'customer', recipientId: review.customerId, orderId: review.id, productName: review.targetName });
+    // A review does not name its customer (everyone reads it); the order does.
+    const customerId = await getDoc(doc(db, 'orders', review.id)).then((s) => String(s.data()?.customerId ?? ''), () => '');
+    if (!customerId) return false;
+    return sendNotice({ type: 'review_reply', recipientType: 'customer', recipientId: customerId, orderId: review.id, productName: review.targetName });
   }
   return true;
 }

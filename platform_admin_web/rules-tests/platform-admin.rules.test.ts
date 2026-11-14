@@ -36,7 +36,6 @@ const profile = {
   city: 'Khartoum',
   address: 'a',
   phone: '1',
-  email: 'e@x.test',
   pickupAddress: 'p',
 };
 
@@ -278,6 +277,9 @@ describe('Companies', () => {
   });
   it('can add an active, unrated company with only profile fields', async () => {
     await assertSucceeds(setDoc(doc(admin(), 'companies', 'new1'), newCompany()));
+    // Never its email or bank accounts: everyone reads this document.
+    await assertFails(setDoc(doc(admin(), 'companies', 'new3'), newCompany({ email: 'e@x.test' })));
+    await assertFails(setDoc(doc(admin(), 'companies', 'new4'), newCompany({ paymentAccounts: [] })));
     await assertSucceeds(
       setDoc(doc(admin(), 'companies', 'new2'), { name: 'Minimal', status: 'active', createdAt: serverTimestamp() }),
     );

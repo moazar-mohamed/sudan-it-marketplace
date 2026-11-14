@@ -28,6 +28,14 @@ class CompaniesRepositoryImpl implements CompaniesRepository {
       _remoteDataSource.updatePaymentAccounts(companyId, accounts);
 
   @override
+  Stream<List<PaymentAccount>> watchPaymentAccounts(String companyId) =>
+      _remoteDataSource.watchPaymentAccounts(companyId);
+
+  @override
+  Stream<String?> watchCompanyEmail(String companyId) =>
+      _remoteDataSource.watchCompanyEmail(companyId);
+
+  @override
   Future<void> setUsdRate(
     String companyId,
     double rate,

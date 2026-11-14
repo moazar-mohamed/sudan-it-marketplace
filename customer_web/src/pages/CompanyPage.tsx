@@ -8,6 +8,7 @@ import { PageTitle } from '../components/PageTitle';
 import { localCityText } from '../data/cities';
 import { useCatalog } from '../data/DataProvider';
 import { ratingKey } from '../data/format';
+import { mapsPointUrl } from '../data/maps';
 import { t } from '../i18n';
 
 export function CompanyPage() {
@@ -52,7 +53,7 @@ export function CompanyPage() {
             {hasMap && (
               <a
                 className="more"
-                href={`https://www.openstreetmap.org/?mlat=${company.latitude}&mlon=${company.longitude}#map=16/${company.latitude}/${company.longitude}`}
+                href={mapsPointUrl(company.latitude!, company.longitude!)}
                 target="_blank"
                 rel="noreferrer"
               >

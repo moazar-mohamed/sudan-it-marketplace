@@ -20,7 +20,7 @@ const product = (id: string, over: Partial<Product> = {}): Product => ({
 const company = (id: string, over: Partial<Company> = {}): Company => ({
   id, name: id, rating: 0, reviewCount: 0, logoUrl: '', description: '', city: '', address: '',
   latitude: null, longitude: null, phone: '', status: 'active', serviceCityIds: [],
-  pickupAddress: '', pickupPoints: [], paymentAccounts: [], ...over,
+  pickupAddress: '', pickupPoints: [], ...over,
 });
 
 const ids = (items: { id: string }[]) => items.map((i) => i.id);

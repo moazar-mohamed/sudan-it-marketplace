@@ -1,7 +1,16 @@
 import { useMemo } from 'react';
 import { stores, useStore } from './store';
 
-export const useCompanies = () => useStore(stores.companies);
+/** The companies, each with its email from company_private (never on the public document). */
+export function useCompanies() {
+  const state = useStore(stores.companies);
+  const privates = useStore(stores.companyPrivate);
+  const data = useMemo(() => {
+    const emails = new Map(privates.data.map((p) => [p.id, p.email]));
+    return state.data.map((c) => ({ ...c, email: emails.get(c.id) || c.email }));
+  }, [state.data, privates.data]);
+  return { ...state, data };
+}
 export const useCustomers = () => useStore(stores.customers);
 export const useReports = () => useStore(stores.reports);
 export const useNewReports = () => useStore(stores.newReports);

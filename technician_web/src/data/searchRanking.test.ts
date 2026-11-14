@@ -149,3 +149,25 @@ describe('did you mean', () => {
     expect(suggestCorrection('laptop', [])).toBeNull();
   });
 });
+
+describe('Arabic phrase synonyms', () => {
+  const cctv = { name: 'كاميرات مراقبة Hikvision (4)' };
+  const arRouter = { name: 'راوتر TP-Link Archer AX55' };
+  const jobs = [cctv, arRouter];
+
+  it('finds a phrase by one of its words', () => {
+    expect(names(jobs, 'كاميرات')).toEqual([cctv.name]);
+    expect(names(jobs, 'كاميرا')).toEqual([cctv.name]);
+    expect(names(jobs, 'مراقبة')).toEqual([cctv.name]);
+    expect(names(jobs, 'كاميرات مراقبة')).toEqual([cctv.name]);
+  });
+
+  it('forgives a typo in an Arabic word', () => {
+    expect(names(jobs, 'كامرات')).toEqual([cctv.name]);
+    expect(names(jobs, 'رواتر')).toEqual([arRouter.name]);
+  });
+
+  it('suggests the written Arabic word', () => {
+    expect(suggestCorrection('رواتر', ['شاشة سامسونج', arRouter.name])).toBe('راوتر');
+  });
+});

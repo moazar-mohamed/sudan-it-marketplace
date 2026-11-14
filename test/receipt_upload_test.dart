@@ -105,6 +105,9 @@ Widget _app(
     ProviderScope(
       overrides: [
         resolvedCompanyProvider('c1').overrideWithValue(_company),
+        companyPaymentAccountsProvider('c1').overrideWith(
+          (ref) => Stream.value(_company.paymentAccounts),
+        ),
         ordersRepositoryProvider.overrideWithValue(OrdersRepositoryImpl(remote)),
         notificationsRepositoryProvider.overrideWithValue(_FakeNotifications()),
         if (picker != null) receiptPickerProvider.overrideWithValue(picker.call),

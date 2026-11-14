@@ -91,7 +91,7 @@ class _PaymentAccountsScreenState extends ConsumerState<PaymentAccountsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final companyAsync = ref.watch(companyStreamProvider(widget.companyId));
+    final companyAsync = ref.watch(ownCompanyProvider(widget.companyId));
     final accounts = companyAsync.asData?.value?.paymentAccounts ?? const [];
     final atLimit = accounts.length >= PaymentAccount.maxPerCompany;
 

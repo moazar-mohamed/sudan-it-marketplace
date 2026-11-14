@@ -132,7 +132,8 @@ service cloud.firestore {
         && existsAfter(/databases/$(database)/documents/companies/$(data.companyId))
         && getAfter(/databases/$(database)/documents/companies/$(data.companyId))
           .data.get('status', '') == 'active'
-        && getAfter(/databases/$(database)/documents/companies/$(data.companyId))
+        // The company's email is kept apart from its public document.
+        && getAfter(/databases/$(database)/documents/company_private/$(data.companyId))
           .data.get('email', '').lower() == email.lower()
         && existsAfter(/databases/$(database)/documents/company_documents/$(data.companyId));
     }
@@ -294,7 +295,7 @@ service cloud.firestore {
         && data.companyId.size() > 0
         && !exists(/databases/$(database)/documents/companies/$(data.companyId))
         && existsAfter(/databases/$(database)/documents/companies/$(data.companyId))
-        && getAfter(/databases/$(database)/documents/companies/$(data.companyId))
+        && getAfter(/databases/$(database)/documents/company_private/$(data.companyId))
           .data.get('email', '').lower() == data.email;
     }
 
@@ -2840,10 +2841,8 @@ service cloud.firestore {
           'latitude',
           'longitude',
           'phone',
-          'email',
           'pickupAddress',
           'pickupPoints',
-          'paymentAccounts',
           'serviceCityIds',
           'updatedAt'
         ])
@@ -2860,10 +2859,7 @@ service cloud.firestore {
         && data.city is string
         && data.address is string
         && data.phone is string
-        && data.email is string
         && data.pickupAddress is string
-        && (!data.diff(resource.data).affectedKeys().hasAny(['paymentAccounts'])
-          || isValidPaymentAccounts(data.get('paymentAccounts', [])))
         && isValidCoordinatePair(
           data.get('latitude', null),
           data.get('longitude', null))
@@ -2954,7 +2950,6 @@ service cloud.firestore {
           'latitude',
           'longitude',
           'phone',
-          'email',
           'pickupAddress',
           'pickupPoints',
           'serviceCityIds',
@@ -2973,7 +2968,6 @@ service cloud.firestore {
         && optionalString(data, 'city')
         && optionalString(data, 'address')
         && optionalString(data, 'phone')
-        && optionalString(data, 'email')
         && optionalString(data, 'pickupAddress')
         && isValidPickupPoints(data.get('pickupPoints', []))
         && isValidServiceCityIds(data.get('serviceCityIds', []))
@@ -3024,6 +3018,54 @@ service cloud.firestore {
         || (isCompanyAdminOf(companyId) && isCompanyUsdRateUpdate());
 
       allow delete: if isPlatformAdminCompanyDelete();
+    }
+
+    // ── A company's private details ────────────────────────────────────────
+    // The public company document is read by everyone, visitors too, so what
+    // only some may see lives apart from it, one document per company.
+
+    // The bank accounts customers transfer to. A signed-in customer reads them
+    // (to pay an order), the company's own admin and Platform Admin too; a
+    // visitor never. Only the company's admin writes them.
+    function isValidCompanyPaymentWrite(companyId) {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['companyId', 'paymentAccounts', 'updatedAt'])
+        && data.companyId == companyId
+        && isValidPaymentAccounts(data.paymentAccounts)
+        && data.updatedAt == request.time;
+    }
+
+    match /company_payment/{companyId} {
+      allow get: if isSignedIn()
+        && (isActiveCustomer() || isCompanyAdminOf(companyId) || isPlatformAdmin());
+      allow list: if isPlatformAdmin();
+      allow create, update: if isCompanyAdminOf(companyId)
+        && isValidCompanyPaymentWrite(companyId);
+      allow delete: if isPlatformAdmin() && companyIsGoneAfter(companyId);
+    }
+
+    // The company's email: its admin's login address. Only the company's own
+    // admin and Platform Admin read it. Platform Admin writes it when the
+    // company is created (the provisioning rules compare it with the new
+    // admin's login); the company's admin may correct it afterwards.
+    function isValidCompanyPrivateWrite(companyId) {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['companyId', 'email', 'updatedAt'])
+        && data.companyId == companyId
+        && data.email is string
+        && data.email.size() <= 200
+        && data.updatedAt == request.time;
+    }
+
+    match /company_private/{companyId} {
+      allow get: if isSignedIn()
+        && (isCompanyAdminOf(companyId) || isPlatformAdmin());
+      allow list: if isPlatformAdmin();
+      allow create: if (isPlatformAdmin() || isCompanyAdminOf(companyId))
+        && isValidCompanyPrivateWrite(companyId);
+      allow update: if (isPlatformAdmin() || isCompanyAdminOf(companyId))
+        && isValidCompanyPrivateWrite(companyId);
+      allow delete: if isPlatformAdmin() && companyIsGoneAfter(companyId);
     }
 
     match /company_services/{companyServiceId} {
@@ -3885,6 +3927,16 @@ service cloud.firestore {
     // and each side checks the other: a review write must carry the ratings
     // writes, and a ratings write must come with the review write behind it.
 
+    // A review never names its customer: everyone reads it, visitors too. Its
+    // customer is the one who owns the order or request with the review's id.
+    function ownsReviewSource(reviewId, review) {
+      return review.get('sourceType', 'order') == 'service_request'
+        ? get(/databases/$(database)/documents/service_requests/$(reviewId))
+            .data.get('customerId', '') == request.auth.uid
+        : get(/databases/$(database)/documents/orders/$(reviewId))
+            .data.get('customerId', '') == request.auth.uid;
+    }
+
     // How long after rating a customer may still change it.
     function reviewEditWindowOpen(review) {
       return request.time < review.createdAt + duration.value(7, 'd');
@@ -3940,12 +3992,11 @@ service cloud.firestore {
       let data = request.resource.data;
       return isActiveCustomer()
         && data.keys().hasOnly([
-          'id', 'sourceType', 'customerId', 'authorName', 'companyId',
+          'id', 'sourceType', 'authorName', 'companyId',
           'companyName', 'targetType', 'targetId', 'targetName', 'stars',
           'tags', 'comment', 'hidden', 'createdAt', 'updatedAt'
         ])
         && data.id == reviewId
-        && data.customerId == request.auth.uid
         && data.authorName is string
         && data.authorName.size() <= 60
         && data.companyId is string
@@ -3968,7 +4019,7 @@ service cloud.firestore {
     // rating, unless Platform Admin has hidden it.
     function isCustomerReviewEdit(reviewId) {
       let data = request.resource.data;
-      return resource.data.customerId == request.auth.uid
+      return ownsReviewSource(reviewId, resource.data)
         && resource.data.hidden == false
         && reviewEditWindowOpen(resource.data)
         && data.diff(resource.data).affectedKeys()
@@ -4007,14 +4058,13 @@ service cloud.firestore {
       allow get: if (resource != null && resource.data.hidden == false)
         || (isSignedIn()
           && (resource == null
-            || resource.data.customerId == request.auth.uid
             || isCompanyAdminOf(resource.data.companyId)
-            || isPlatformAdmin()));
+            || isPlatformAdmin()
+            || ownsReviewSource(reviewId, resource.data)));
 
       allow list: if resource.data.hidden == false
         || (isSignedIn()
-          && (resource.data.customerId == request.auth.uid
-            || isCompanyAdminOf(resource.data.companyId)
+          && (isCompanyAdminOf(resource.data.companyId)
             || isPlatformAdmin()));
 
       allow create: if isSignedIn() && isValidReviewCreate(reviewId);
@@ -4050,11 +4100,11 @@ service cloud.firestore {
           || key == review.targetType + '_' + review.targetId)
         && data.companyId == review.companyId
         && ((!exists(reviewPath)
-            && review.customerId == request.auth.uid
+            && ownsReviewSource(data.lastReviewId, review)
             && data.count == count + 1
             && data.sum == sum + review.stars)
           || (exists(reviewPath)
-            && review.customerId == request.auth.uid
+            && ownsReviewSource(data.lastReviewId, review)
             && review.hidden == false
             && get(reviewPath).data.hidden == false
             && review.updatedAt == request.time

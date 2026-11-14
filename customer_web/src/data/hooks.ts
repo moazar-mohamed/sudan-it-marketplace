@@ -15,6 +15,7 @@ import {
   mapReport,
   mapReview,
   mapService,
+  paymentAccounts,
 } from './mappers';
 import type {
   AppNotification,
@@ -24,6 +25,7 @@ import type {
   Company,
   CompanyService,
   Order,
+  PaymentAccount,
   Product,
   RatingStats,
   Report,
@@ -227,6 +229,26 @@ export function useCities(): City[] {
     [],
   );
   return cities;
+}
+
+/**
+ * The bank accounts a company is paid into. They live apart from the public
+ * company document, and only a signed-in customer may read them. Null until
+ * they have loaded; empty when the company has none or they cannot be read.
+ */
+export function usePaymentAccounts(companyId: string): { accounts: PaymentAccount[] | null; failed: boolean } {
+  const [state, setState] = useState<{ id: string; accounts: PaymentAccount[] | null; failed: boolean }>({ id: companyId, accounts: null, failed: false });
+  const retry = useRetryKey();
+  useEffect(
+    () =>
+      onSnapshot(
+        doc(db, 'company_payment', companyId),
+        (snap) => setState({ id: companyId, accounts: paymentAccounts(snap.data()?.paymentAccounts), failed: false }),
+        () => setState({ id: companyId, accounts: [], failed: true }),
+      ),
+    [companyId, retry],
+  );
+  return state.id === companyId ? state : { accounts: null, failed: false };
 }
 
 /** One product read directly: for a link to a product that left the marketplace. */

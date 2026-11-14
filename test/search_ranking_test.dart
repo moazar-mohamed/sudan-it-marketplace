@@ -193,4 +193,29 @@ void main() {
       expect(_names(items, 'تي بي لينك'), ['TP-Link Archer Router']);
     });
   });
+
+  group('Arabic phrase synonyms', () {
+    const cctv = _Item('كاميرات مراقبة Hikvision (4)');
+    const router = _Item('راوتر TP-Link Archer AX55');
+    const items = [cctv, router];
+
+    test('a phrase is found by one of its words', () {
+      expect(_names(items, 'كاميرات'), [cctv.name]);
+      expect(_names(items, 'كاميرا'), [cctv.name]);
+      expect(_names(items, 'مراقبة'), [cctv.name]);
+      expect(_names(items, 'كاميرات مراقبة'), [cctv.name]);
+    });
+
+    test('a typo in an Arabic word is forgiven', () {
+      expect(_names(items, 'كامرات'), [cctv.name]);
+      expect(_names(items, 'رواتر'), [router.name]);
+    });
+
+    test('the written Arabic word is suggested', () {
+      expect(
+        suggestCorrection('رواتر', ['شاشة سامسونج', router.name]),
+        'راوتر',
+      );
+    });
+  });
 }

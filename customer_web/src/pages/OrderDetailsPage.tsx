@@ -8,6 +8,7 @@ import { openOrderChat } from '../data/chats';
 import { useAccount, useCatalog } from '../data/DataProvider';
 import { formatDateTime, formatPrice } from '../data/format';
 import { useOrder } from '../data/hooks';
+import { mapsPointUrl, mapsSearchUrl } from '../data/maps';
 import { cancelledLines, isAwaitingVerification, loadReceipt, ORDER_STATUS, paymentLabel, shortOrderId } from '../data/orders';
 import { displayPhone } from '../data/phone';
 import { orderReviewSubject } from '../data/reviews';
@@ -84,11 +85,11 @@ function DeliveryCard({ order }: { order: Order }) {
   const company = companies.find((c) => c.id === order.companyId);
   const text = pickup ? pickupText(order) : order.deliveryAddress.trim();
   const mapLink = hasPoint
-    ? `https://www.openstreetmap.org/?mlat=${order.deliveryLatitude}&mlon=${order.deliveryLongitude}#map=16/${order.deliveryLatitude}/${order.deliveryLongitude}`
+    ? mapsPointUrl(order.deliveryLatitude!, order.deliveryLongitude!)
     : !pickup && text
-      ? `https://www.openstreetmap.org/search?query=${encodeURIComponent(text)}`
-      : pickup && company?.latitude != null
-        ? `https://www.openstreetmap.org/?mlat=${company.latitude}&mlon=${company.longitude}#map=16/${company.latitude}/${company.longitude}`
+      ? mapsSearchUrl(text)
+      : pickup && company?.latitude != null && company.longitude != null
+        ? mapsPointUrl(company.latitude, company.longitude)
         : null;
   return (
     <section className="tile">

@@ -148,9 +148,12 @@ class ReviewActions {
   }
 
   Future<String?> edit(Review review, ReviewDraft draft) {
+    // A review read back does not name its customer; it is this one's.
+    final me = _ref.read(currentUserIdProvider);
+    final mine = me == null ? review : review.withCustomerId(me);
     return _guard(
       () => _ref.read(reviewsRepositoryProvider).editReview(
-            review,
+            mine,
             ReviewDraft(
               stars: draft.stars,
               tags: draft.tags,
@@ -167,13 +170,19 @@ class ReviewActions {
           .read(reviewsRepositoryProvider)
           .replyToReview(review.id, reply.trim());
       if (firstReply && review.source == ReviewSource.order) {
-        await _notify(
-          NotificationEvents.reviewReply(
-            orderId: review.id,
-            customerId: review.customerId,
-            productName: review.targetName,
-          ),
-        );
+        // The review does not name its customer; the order does.
+        final customerId = await _ref
+            .read(reviewsRepositoryProvider)
+            .orderCustomerId(review.id);
+        if (customerId != null) {
+          await _notify(
+            NotificationEvents.reviewReply(
+              orderId: review.id,
+              customerId: customerId,
+              productName: review.targetName,
+            ),
+          );
+        }
       }
     });
   }

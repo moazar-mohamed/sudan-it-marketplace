@@ -31,6 +31,10 @@ Widget _paymentScreen(Company? company) {
   return ProviderScope(
     overrides: [
       resolvedCompanyProvider('c1').overrideWithValue(company),
+      // The accounts come from their own document (company_payment).
+      companyPaymentAccountsProvider('c1').overrideWith(
+        (ref) => Stream.value(company?.paymentAccounts ?? const []),
+      ),
     ],
     child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
