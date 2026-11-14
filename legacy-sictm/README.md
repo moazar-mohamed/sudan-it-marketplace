@@ -1,3 +1,7 @@
+> **Archived.** This folder is the first SICTM site (one HTML file on Netlify) and its PWABuilder Android build, kept for reference. The live marketplace is the project at the root of this repository; see the [main README](../README.md).
+>
+> **أرشيف.** هذا المجلد هو موقع SICTM الأول (ملف HTML واحد على Netlify) وبناء أندرويد الخاص به، محفوظ للرجوع إليه. السوق الحالي هو المشروع في جذر هذا المستودع.
+
 # Sudan ICT Marketplace — سوق السودان للتقنية والاتصالات
 
 A bilingual (Arabic / English) marketplace where Sudanese ICT companies list products and services, and customers browse, compare, request quotes, and contact companies.
