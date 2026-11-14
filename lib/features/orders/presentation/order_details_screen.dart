@@ -1,0 +1,391 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/phone_number.dart';
+import '../../../core/widgets/app_widgets.dart';
+import '../../chats/domain/entities/chat_conversation.dart';
+import '../../chats/presentation/chat_providers.dart';
+import '../../chats/presentation/chat_screen.dart';
+import '../../cities/domain/sudan_city.dart';
+import '../../location/presentation/location_strings.dart';
+import '../../reviews/presentation/review_widgets.dart';
+import '../../reviews/presentation/reviews_providers.dart';
+import '../domain/entities/order_entity.dart';
+import 'order_chat_actions.dart';
+import 'widgets/order_cancelled_note.dart';
+import 'widgets/order_location_widgets.dart';
+import 'widgets/price_summary_row.dart';
+import 'order_labels.dart';
+import '../../../core/localization/l10n_extension.dart';
+import 'widgets/receipt_viewer.dart';
+
+class OrderDetailsScreen extends ConsumerWidget {
+  const OrderDetailsScreen({
+    super.key,
+    required this.order,
+  });
+
+  final OrderEntity order;
+
+  String _formatPrice(double price) {
+    final parts = price.toStringAsFixed(0).split('.');
+    final regExp = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    return parts[0].replaceAllMapped(regExp, (Match m) => '${m[1]},');
+  }
+
+  String _resolveCompanyName() {
+    if (order.companyName.isNotEmpty) {
+      return order.companyName;
+    }
+    return 'IT Partner Co.';
+  }
+
+  String _formatDate(DateTime dt) {
+    final y = dt.year;
+    final m = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    final h = dt.hour.toString().padLeft(2, '0');
+    final min = dt.minute.toString().padLeft(2, '0');
+    return '$y-$m-$d $h:$min';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final companyName = _resolveCompanyName();
+    final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
+    const gap = SizedBox(height: AppSpacing.s16);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          l10n.orderTitleNumber(order.shortId),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Processing -> Out for delivery -> Completed.
+                _buildStatusFlowCard(context),
+                gap,
+
+                // Once delivered, the customer rates it (or sees their rating).
+                if (order.orderStatus == OrderStatus.completed) ...[
+                  SubjectReviewCard(
+                    subject: ReviewSubject.order(order),
+                    asCompany: false,
+                  ),
+                  gap,
+                ],
+
+                SectionCard(
+                  title: l10n.adminContact,
+                  children: [_OrderChatButton(order: order)],
+                ),
+                gap,
+
+                SectionCard(
+                  title: l10n.orderItemOrdered,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppImageTile(),
+                        const SizedBox(width: AppSpacing.s12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                order.productName,
+                                style: AppTextStyles.bodyStrong,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.business_outlined,
+                                    size: AppSize.iconSm,
+                                    color: context.colors.iconDefault,
+                                  ),
+                                  const SizedBox(width: AppSpacing.s4),
+                                  Expanded(
+                                    child: Text(
+                                      companyName,
+                                      style: AppTextStyles.caption.copyWith(
+                                        color: context.colors.textSecondary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: AppSpacing.s6),
+                              PriceSummaryRow(
+                                label: l10n.orderUnitLine(
+                                  _formatPrice(order.unitPrice),
+                                ),
+                                value: l10n.orderQtyLine(order.quantity),
+                                labelStyle: AppTextStyles.caption
+                                    .copyWith(color: context.colors.textSecondary),
+                                valueStyle: AppTextStyles.captionStrong,
+                              ),
+                              Text(
+                                l10n.orderSubtotalLine(
+                                  _formatPrice(order.productSubtotal),
+                                ),
+                                style: AppTextStyles.bodyStrong
+                                    .copyWith(color: context.colors.textBrand),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                gap,
+
+                SectionCard(
+                  title: order.deliveryMethod == DeliveryMethod.pickup
+                      ? l10n.orderPickupDetails
+                      : l10n.orderDeliveryDetails,
+                  gap: AppSpacing.s8,
+                  children: [
+                    KeyValueRow(
+                      label: l10n.orderAddress,
+                      value: orderDeliveryLabel(context, order),
+                    ),
+                    if (order.deliveryMethod == DeliveryMethod.delivery &&
+                        cityById(order.deliveryCityId) != null)
+                      KeyValueRow(
+                        label: l10n.orderDeliveryCity,
+                        value: cityById(order.deliveryCityId)!.name(
+                          Localizations.localeOf(context).languageCode,
+                        ),
+                      ),
+                    OrderLocationButton(
+                      order: order,
+                      label: LocationStrings.of(context).openDeliveryLocation,
+                    ),
+                    PickupCompanyLocationButton(order: order),
+                    KeyValueRow(
+                      label: l10n.orderContactPhone,
+                      value: displayPhone(order.contactPhone),
+                      valueTextDirection: TextDirection.ltr,
+                    ),
+                    if (order.installationSelected)
+                      KeyValueRow(
+                        label: l10n.orderType,
+                        value: l10n.orderTypeInstallation(
+                          _formatPrice(order.installationFee),
+                        ),
+                        valueColor: context.colors.textBrand,
+                      ),
+                    if (order.deliveryMethod == DeliveryMethod.delivery)
+                      KeyValueRow(
+                        label: l10n.orderDeliveryFee,
+                        value: '${_formatPrice(order.deliveryFee)} SDG',
+                      ),
+                    KeyValueRow(
+                      label: l10n.orderOrderedAt,
+                      value: _formatDate(order.createdAt),
+                      valueTextDirection: TextDirection.ltr,
+                    ),
+                  ],
+                ),
+                gap,
+
+                SectionCard(
+                  title: l10n.orderPaymentStatus,
+                  gap: AppSpacing.s8,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.orderStatusLabel,
+                          style: AppTextStyles.body
+                              .copyWith(color: context.colors.textSecondary),
+                        ),
+                        StatusChip(
+                          label: order.paymentLabel(l10n),
+                          tone: order.paymentTone,
+                        ),
+                      ],
+                    ),
+                    if (order.receiptFileName != null)
+                      KeyValueRow(
+                        label: l10n.orderReceiptAttached,
+                        value: order.receiptFileName!,
+                        valueColor: context.colors.successText,
+                      ),
+                    if (order.receiptFileName != null)
+                      ReceiptViewButton(orderId: order.id),
+                    // A receipt is not a confirmed payment: only the
+                    // company's confirmation reserves the product.
+                    if (order.isAwaitingPaymentVerification)
+                      AppBanner(
+                        key: const ValueKey('order-not-reserved-yet'),
+                        icon: Icons.inventory_2_outlined,
+                        message: l10n.orderNotReservedYet,
+                      )
+                    else if (order.paymentStatus == PaymentStatus.confirmed &&
+                        !order.isCancelled)
+                      AppBanner(
+                        key: const ValueKey('order-payment-confirmed-note'),
+                        tone: AppTone.success,
+                        message: l10n.orderPaymentConfirmedNote,
+                      ),
+                  ],
+                ),
+                gap,
+
+                AppCard(
+                  padding: const EdgeInsets.all(AppSpacing.s16),
+                  child: Column(
+                    children: [
+                      PriceSummaryRow(
+                        label: l10n.orderProductSubtotal,
+                        value: '${_formatPrice(order.productSubtotal)} SDG',
+                      ),
+                      if (order.installationSelected) ...[
+                        const SizedBox(height: AppSpacing.s8),
+                        PriceSummaryRow(
+                          label: l10n.orderInstallationFee,
+                          value: '+${_formatPrice(order.installationFee)} SDG',
+                        ),
+                      ],
+                      if (order.deliveryMethod == DeliveryMethod.delivery) ...[
+                        const SizedBox(height: AppSpacing.s8),
+                        PriceSummaryRow(
+                          label: l10n.orderDeliveryFee,
+                          value: '${_formatPrice(order.deliveryFee)} SDG',
+                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.s12),
+                      const Divider(height: 1),
+                      const SizedBox(height: AppSpacing.s12),
+                      PriceSummaryRow(
+                        label: l10n.orderTotal,
+                        value: '${_formatPrice(order.totalAmount)} SDG',
+                        total: true,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusFlowCard(BuildContext context) {
+    final l10n = context.l10n;
+    const steps = [
+      OrderStatus.processing,
+      OrderStatus.outForDelivery,
+      OrderStatus.completed,
+    ];
+    final currentIndex = steps.indexOf(order.orderStatus);
+
+    return SectionCard(
+      title: l10n.orderOrderStatus,
+      trailing: StatusChip(
+        label: order.orderStatus.label(l10n),
+        tone: order.orderStatus.tone,
+      ),
+      gap: AppSpacing.s16,
+      children: [
+        // A cancelled order has no progress to show, only what happened.
+        if (order.isCancelled)
+          OrderCancelledNote(order: order)
+        else
+          AppStepTracker(
+            labels: [for (final step in steps) step.label(l10n)],
+            currentIndex: currentIndex,
+            allDone: order.orderStatus == OrderStatus.completed,
+          ),
+      ],
+    );
+  }
+}
+
+/// Opens the conversation with the order's company: most orders already have
+/// one (opened together with the order); an older order gets one on demand.
+class _OrderChatButton extends ConsumerStatefulWidget {
+  const _OrderChatButton({required this.order});
+
+  final OrderEntity order;
+
+  @override
+  ConsumerState<_OrderChatButton> createState() => _OrderChatButtonState();
+}
+
+class _OrderChatButtonState extends ConsumerState<_OrderChatButton> {
+  bool _starting = false;
+
+  Future<void> _openChat() {
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChatScreen(
+          chatId: widget.order.id,
+          role: ChatParticipantRole.customer,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _start() async {
+    setState(() => _starting = true);
+    final error =
+        await ref.read(orderChatActionsProvider).start(widget.order);
+    if (!mounted) return;
+    setState(() => _starting = false);
+    if (error != null) {
+      showAppSnackBar(context, error, tone: AppTone.error);
+      return;
+    }
+    await _openChat();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final conversationAsync =
+        ref.watch(chatConversationProvider(widget.order.id));
+    return conversationAsync.when(
+      loading: () => const SizedBox(
+        height: AppSize.controlLg,
+        child: Center(child: AppSpinner()),
+      ),
+      error: (_, _) => AppButton.outlined(
+        expand: true,
+        icon: Icons.chat_bubble_outline,
+        label: context.l10n.orderStartChat,
+        loading: _starting,
+        onPressed: _start,
+      ),
+      data: (conversation) => AppButton.outlined(
+        expand: true,
+        icon: Icons.chat_bubble_outline,
+        loading: _starting,
+        label: conversation == null
+            ? context.l10n.orderStartChat
+            : context.l10n.serviceRequestOpenChat,
+        onPressed: conversation == null ? _start : _openChat,
+      ),
+    );
+  }
+}

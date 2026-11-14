@@ -1,0 +1,200 @@
+import { useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { AttentionBanner } from '../components/AttentionBanner';
+import { ServiceRequestStatusBadge } from '../components/StatusBadges';
+import { Chips, DataGate, EmptyState, PageHeader, SearchInput, Text } from '../components/ui';
+import { FilterGroup, SidePanel, SplitView } from '../components/v2';
+import { useServiceRequests } from '../data/hooks';
+import { isStaleServiceRequest, STALE_REQUEST_HOURS } from '../data/stats';
+import { SERVICE_REQUEST_STATUSES, type ServiceRequestStatus } from '../data/types';
+import { useNow } from '../data/useNow';
+import { useI18n } from '../i18n/I18nProvider';
+import { customerLabel, matchesQuery, shortId } from '../utils';
+import { ServiceRequestDetails } from './ServiceRequestDetailsPage';
+
+/** Every service request across the marketplace, read-only (like orders). */
+export function ServiceRequestsPage() {
+  const { t, money, dateTime } = useI18n();
+  const requests = useServiceRequests();
+  // Company and status filters live in the URL, as on the orders list.
+  const [params, setParams] = useSearchParams();
+  const companyId = params.get('company') ?? '';
+  const statusParam = params.get('status');
+  const status: ServiceRequestStatus | 'all' =
+    SERVICE_REQUEST_STATUSES.find((s) => s === statusParam) ?? 'all';
+  // ?attention=stale narrows the list to requests no company has answered in time.
+  const stale = params.get('attention') === 'stale';
+  const updateFilters = (next: {
+    company?: string;
+    status?: ServiceRequestStatus | 'all';
+    stale?: false;
+  }) => {
+    const company = next.company ?? companyId;
+    const nextStatus = next.status ?? status;
+    const nextStale = next.stale === false ? false : stale;
+    setParams(
+      {
+        ...(company ? { company } : {}),
+        ...(nextStatus !== 'all' ? { status: nextStatus } : {}),
+        ...(nextStale ? { attention: 'stale' } : {}),
+      },
+      { replace: true },
+    );
+  };
+  const [query, setQuery] = useState('');
+  // A row opens its details in a panel beside the list (?open=<id>); the full page stays one click away.
+  const openId = params.get('open');
+  const setOpen = (id: string | null) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (id) next.set('open', id);
+        else next.delete('open');
+        return next;
+      },
+      { replace: true },
+    );
+  const panel = openId ? (
+    <SidePanel title={`${t('serviceRequest.details')} #${shortId(openId)}`} subtitle={t('serviceRequests.title')} closeLabel={t('common.close')} onClose={() => setOpen(null)}>
+      <Link to={`/service-requests/${openId}`} className="link-sm">
+        {t('common.openDetails')}
+      </Link>
+      <ServiceRequestDetails id={openId} />
+    </SidePanel>
+  ) : null;
+
+  const companyOptions = useMemo(() => {
+    const byId = new Map<string, string>();
+    for (const r of requests.data) {
+      if (r.companyId && !byId.has(r.companyId)) byId.set(r.companyId, r.companyName || r.companyId);
+    }
+    return [...byId.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [requests.data]);
+
+  const now = useNow();
+  const inCompany = requests.data.filter(
+    (r) => (!companyId || r.companyId === companyId) && (!stale || isStaleServiceRequest(r, now)),
+  );
+  const visible = inCompany.filter(
+    (r) =>
+      (status === 'all' || r.status === status) &&
+      matchesQuery(query, r.id, customerLabel(r), r.companyName, r.serviceName),
+  );
+
+  return (
+    <>
+      <PageHeader
+        title={t('serviceRequests.title')}
+        subtitle={t('serviceRequests.subtitle')}
+        back={{ to: '/', label: t('nav.dashboard') }}
+      />
+      <DataGate gates={[requests]}>
+        {stale && (
+          <AttentionBanner
+            label={t('attention.staleRequests', { hours: STALE_REQUEST_HOURS })}
+            onClear={() => updateFilters({ stale: false })}
+          />
+        )}
+        <div className="toolbar">
+          <Chips
+            value={status}
+            onChange={(next) => updateFilters({ status: next })}
+            options={[
+              { value: 'all', label: t('common.all'), count: inCompany.length },
+              ...SERVICE_REQUEST_STATUSES.map((s) => ({
+                value: s,
+                label: t(`serviceRequest.status.${s}`),
+                count: inCompany.filter((r) => r.status === s).length,
+              })),
+            ]}
+          />
+          <div className="toolbar__end">
+            <FilterGroup count={companyId ? 1 : 0} onClear={() => updateFilters({ company: '' })}>
+              <select
+                className="select"
+                value={companyId}
+                aria-label={t('col.company')}
+                onChange={(e) => updateFilters({ company: e.target.value })}
+              >
+                <option value="">{t('products.allCompanies')}</option>
+                {companyOptions.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </FilterGroup>
+            <SearchInput
+              value={query}
+              onChange={setQuery}
+              placeholder={t('serviceRequests.search')}
+            />
+          </div>
+        </div>
+
+        <SplitView panel={panel}>
+        {requests.data.length === 0 ? (
+          <EmptyState message={t('serviceRequests.empty')} />
+        ) : visible.length === 0 ? (
+          <EmptyState message={t('common.noResults')} />
+        ) : (
+          <div className="card">
+            <div className="table-wrap">
+              <table className="data">
+                <thead>
+                  <tr>
+                    <th>{t('serviceRequest.id')}</th>
+                    <th>{t('col.customer')}</th>
+                    <th>{t('col.company')}</th>
+                    <th>{t('serviceRequest.service')}</th>
+                    <th>{t('col.price')}</th>
+                    <th>{t('col.status')}</th>
+                    <th>{t('col.date')}</th>
+                    <th>{t('common.actions')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visible.map((r) => (
+                    <tr
+                      key={r.id}
+                      className={openId === r.id ? 'row--clickable is-open' : 'row--clickable'}
+                      onClick={(e) => {
+                        if (!(e.target as HTMLElement).closest('a, button')) setOpen(r.id);
+                      }}
+                    >
+                      <td>
+                        <Link to={`/service-requests/${r.id}`} className="mono" dir="ltr">
+                          #{shortId(r.id)}
+                        </Link>
+                      </td>
+                      <td>
+                        <Text>{customerLabel(r)}</Text>
+                      </td>
+                      <td>
+                        <Text>{r.companyName || '—'}</Text>
+                      </td>
+                      <td>
+                        <Text>{r.serviceName || '—'}</Text>
+                      </td>
+                      <td className="nowrap">{r.price !== null ? money(r.price) : '—'}</td>
+                      <td>
+                        <ServiceRequestStatusBadge status={r.status} />
+                      </td>
+                      <td className="nowrap">{dateTime(r.createdAt)}</td>
+                      <td>
+                        <Link to={`/service-requests/${r.id}`} className="btn btn--sm">
+                          {t('common.view')}
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        </SplitView>
+      </DataGate>
+    </>
+  );
+}

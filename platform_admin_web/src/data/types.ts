@@ -1,0 +1,338 @@
+// Shapes mirror the documents the Flutter app already reads and writes.
+
+// Companies are either active or inactive; there is no application/approval
+// workflow, so no count or filter is offered for any other status. (The type
+// still accepts the older values so a legacy document can be read and shown.)
+export type CompanyStatus = 'pending' | 'active' | 'rejected' | 'inactive';
+export const COMPANY_FILTER_STATUSES = ['active', 'inactive'] as const;
+export type CompanyFilterStatus = (typeof COMPANY_FILTER_STATUSES)[number];
+
+/** `cancelled` is final: the company cancelled it while it was Processing, before or after confirming its payment. */
+export type OrderStatus = 'processing' | 'out_for_delivery' | 'completed' | 'cancelled';
+export const ORDER_STATUSES: OrderStatus[] = [
+  'processing',
+  'out_for_delivery',
+  'completed',
+  'cancelled',
+];
+
+/**
+ * Why an order was cancelled: by the company; its payment was not verified
+ * within 24 hours; its product ran out before its payment was confirmed
+ * (`out_of_stock`: the company returns the money outside the app); or Platform
+ * Admin cancelled it while it was stuck (`admin`).
+ */
+export type OrderCancelReason = 'company' | 'expired' | 'out_of_stock' | 'admin';
+
+export type PaymentStatus = 'pending_verification' | 'confirmed';
+export type DeliveryMethod = 'delivery' | 'pickup';
+
+export interface Company {
+  id: string;
+  name: string;
+  rating: number;
+  reviewCount: number;
+  logoUrl: string;
+  description: string;
+  city: string;
+  /** City ids the company serves; empty or absent means every city. */
+  serviceCityIds?: string[];
+  address: string;
+  /** Optional exact map point; null for text-only (legacy) companies. */
+  latitude: number | null;
+  longitude: number | null;
+  phone: string;
+  email: string;
+  pickupAddress: string;
+  /** Where orders are collected: one line per pickup point (empty: the company's own location). */
+  pickupPoints?: string[];
+  /** Companies without a stored status are treated as active. */
+  status: CompanyStatus;
+  /** When Platform Admin moved it to the trash; absent or null while it is not there. */
+  trashedAt?: Date | null;
+  /** The status it had before the trash, which a restore brings back. */
+  statusBeforeTrash?: CompanyStatus | null;
+  /** How many pounds one US dollar costs the company (its dollar products use it); null until it sets one. */
+  usdRate?: number | null;
+  /** When the company last set or confirmed usdRate. */
+  usdRateUpdatedAt?: Date | null;
+  createdAt: Date | null;
+}
+
+export interface Customer {
+  /** The city the customer chose; empty until they pick one. */
+  cityId?: string;
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  isActive: boolean;
+  createdAt: Date | null;
+}
+
+export type ReportStatus = 'new' | 'in_progress' | 'closed';
+export const REPORT_STATUSES: ReportStatus[] = ['new', 'in_progress', 'closed'];
+export type ReportReason = 'order_problem' | 'payment' | 'company_conduct' | 'product_issue' | 'app_problem' | 'other';
+export const REPORT_REASONS: ReportReason[] = [
+  'order_problem',
+  'payment',
+  'company_conduct',
+  'product_issue',
+  'app_problem',
+  'other',
+];
+export type ReporterRole = 'customer' | 'company_admin' | 'technician';
+
+/** A problem a customer, company admin or technician sent to the platform team (reports/{id}). */
+export interface Report {
+  id: string;
+  reporterId: string;
+  reporterRole: ReporterRole | string;
+  reporterName: string;
+  reporterEmail: string;
+  /** Set when the sender is a company admin or technician. */
+  companyId: string;
+  reason: ReportReason | string;
+  subject: string;
+  details: string;
+  /** The order the sender named, as they typed it (may be empty). */
+  orderRef: string;
+  status: ReportStatus;
+  /** What Platform Admin wrote when handling it; the sender can read it in the app. */
+  resolution: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+/** Another Platform Admin account (users/{uid} with role platform_admin). */
+export interface PlatformAdmin {
+  id: string;
+  fullName: string;
+  email: string;
+  isActive: boolean;
+  createdAt: Date | null;
+  /** When another admin moved them to the trash (they are switched off until restored). */
+  trashedAt: Date | null;
+  /** Whether they were active when trashed: what a restore gives back. */
+  activeBeforeTrash: boolean | null;
+}
+
+export interface Product {
+  id: string;
+  companyId: string;
+  companyName: string;
+  /** The category the company picked, or null (older products have none). */
+  categoryId: string | null;
+  name: string;
+  imageUrl: string;
+  /** null = the company left the price out ("price on request"), never 0. */
+  price: number | null;
+  currency: string;
+  stockCount: number;
+  inStock: boolean;
+  description: string;
+  specifications: Record<string, string>;
+  isDeliveryAvailable: boolean;
+  isInstallationAvailable: boolean;
+  installationPrice: number | null;
+  /** A running offer: the price customers pay (below `price`) until `offerEndsAt`; null = no offer. */
+  offerPrice: number | null;
+  offerEndsAt: Date | null;
+  offerBadge: string | null;
+  /** Platform Admin hid it from customers, with this reason (shown to its company). */
+  hidden: boolean;
+  hiddenReason: string;
+  /** A product the company prices in dollars: what it typed, and the rate its pounds use (null otherwise). */
+  priceUsd?: number | null;
+  usdRateApplied?: number | null;
+  createdAt: Date | null;
+}
+
+export interface Order {
+  id: string;
+  customerId: string;
+  customerName: string;
+  companyId: string;
+  companyName: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  productSubtotal: number;
+  installationSelected: boolean;
+  installationFee: number;
+  deliveryFee: number;
+  totalAmount: number;
+  deliveryAddress: string;
+  /** Exact delivery point chosen at checkout; null for text-only/pickup/legacy orders. */
+  deliveryLatitude: number | null;
+  deliveryLongitude: number | null;
+  contactPhone: string;
+  deliveryMethod: DeliveryMethod;
+  paymentStatus: PaymentStatus;
+  orderStatus: OrderStatus;
+  receiptFileName: string;
+  technicianId: string;
+  technicianName: string;
+  /** Set only on a cancelled order. */
+  cancelReason: OrderCancelReason | null;
+  cancelledAt: Date | null;
+  /** A cancellation gave back to its product the stock the order had taken. */
+  stockReleased: boolean;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+export interface Category {
+  id: string;
+  /** The single name kept for every language (and all that older categories have). */
+  name: string;
+  nameAr: string;
+  nameEn: string;
+  /** The category this one sits under; null for a top-level category. */
+  parentId: string | null;
+  /** Ids of every ancestor, top-level first; empty for a top-level category. */
+  ancestorIds: string[];
+  /** True while a deletion of this category (and its tree) is under way. */
+  deletionPending: boolean;
+  /** Position in the customer's list; null sorts after the ones that have one. */
+  sortOrder: number | null;
+  description: string;
+  iconName: string;
+  /** The tile colour Platform Admin picked (a CATEGORY_COLORS key); empty = automatic. */
+  color: string;
+  isActive: boolean;
+  /** When it was moved to the trash (with its whole subtree); absent or null while it is not there. */
+  trashedAt?: Date | null;
+  /** The category the subtree was sent to the trash with (itself, for the one that was chosen). */
+  trashRootId?: string;
+  /** Whether it was active before the trash, which a restore brings back. */
+  activeBeforeTrash?: boolean;
+  createdAt: Date | null;
+}
+
+/** A catalogue service (services/{id}); companies offer it via company_services. */
+export interface CatalogService {
+  id: string;
+  categoryId: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  createdAt: Date | null;
+}
+
+/** A company offering a catalogue service (company_services/{id}), with its price and any offer. */
+export interface CompanyServiceLink {
+  id: string;
+  companyId: string;
+  serviceId: string;
+  isActive: boolean;
+  /** null = the company set no price (never 0). */
+  price: number | null;
+  offerPrice: number | null;
+  offerEndsAt: Date | null;
+  offerBadge: string | null;
+  createdAt: Date | null;
+}
+
+/** Status of a service request (service_requests/{id}); see the Flutter app. */
+export type ServiceRequestStatus =
+  | 'pending'
+  | 'accepted'
+  | 'rejected'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled';
+export const SERVICE_REQUEST_STATUSES: ServiceRequestStatus[] = [
+  'pending',
+  'accepted',
+  'in_progress',
+  'completed',
+  'rejected',
+  'cancelled',
+];
+
+/**
+ * A customer's request for a company's service. Platform Admin reads these
+ * only; their conversations (chats) are private and never loaded here.
+ */
+export interface ServiceRequest {
+  id: string;
+  customerId: string;
+  customerName: string;
+  companyId: string;
+  companyName: string;
+  serviceId: string;
+  serviceName: string;
+  /** null when the company set no price (never 0). */
+  price: number | null;
+  details: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  contactPhone: string;
+  status: ServiceRequestStatus;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+export interface Review {
+  id: string;
+  /** 'order' or 'service_request'; the review id is that order's / request's id. */
+  sourceType: string;
+  customerName: string;
+  companyId: string;
+  companyName: string;
+  /** 'product' or 'service' (a company service link). */
+  targetType: string;
+  targetId: string;
+  targetName: string;
+  /** Stars, 1-5. */
+  rating: number;
+  comment: string;
+  /** The order it rates, when it rates an order. */
+  orderId: string;
+  hidden: boolean;
+  reply: string;
+  createdAt: Date | null;
+}
+
+/** What an audit entry is about (admin_audit_log/{id}.targetType). */
+export type AuditTargetType =
+  | 'company'
+  | 'customer'
+  | 'review'
+  | 'category'
+  | 'service'
+  | 'settings'
+  | 'product'
+  | 'order'
+  | 'admin'
+  | 'report';
+export const AUDIT_TARGET_TYPES: AuditTargetType[] = [
+  'company',
+  'customer',
+  'review',
+  'category',
+  'service',
+  'settings',
+  'product',
+  'order',
+  'admin',
+  'report',
+];
+
+/** One thing Platform Admin did: who, what, to which record, when. Append-only. */
+export interface AuditEntry {
+  id: string;
+  actorId: string;
+  actorName: string;
+  /** Machine code such as `company.status`; shown through the dictionary. */
+  action: string;
+  targetType: AuditTargetType | string;
+  targetId: string;
+  targetName: string;
+  /** The new value where there is one (a status, hidden / shown ...). */
+  detail: string;
+  createdAt: Date | null;
+}

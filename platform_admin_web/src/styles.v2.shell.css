@@ -1,0 +1,365 @@
+/* Sudan ICT Marketplace - Platform Admin, look "v2": the shell (menu and top bar).
+   Like styles.v2.css, nothing here applies unless <html data-ui="v2"> is set. */
+
+/* ---------- Floating sidebar, quiet top bar ---------- */
+
+:root[data-ui='v2'] .sidebar {
+  inset-block: 16px;
+  inset-inline-start: 16px;
+  padding: 22px 14px;
+  gap: 4px;
+  border: 0;
+  border-radius: var(--v2-radius-shell);
+  background: var(--color-bg-surface);
+  box-shadow: var(--elevation-2);
+}
+
+:root[data-ui='v2'] .sidebar__brand {
+  gap: 12px;
+  padding: 2px 10px 12px;
+}
+
+:root[data-ui='v2'] .sidebar__brand strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+:root[data-ui='v2'] .sidebar__logo {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--v2-radius-control);
+}
+
+:root[data-ui='v2'] .sidebar__nav {
+  gap: 4px;
+}
+
+:root[data-ui='v2'] .main {
+  margin-inline-start: calc(var(--sidebar-w) + 32px);
+}
+
+:root[data-ui='v2'] .topbar {
+  height: 72px;
+  padding: 0 24px;
+  background: transparent;
+  border-bottom: 0;
+  gap: 12px;
+}
+
+:root[data-ui='v2'] .search-trigger {
+  min-width: 320px;
+  max-width: 460px;
+  flex: 1;
+  height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--v2-radius-pill);
+  background: var(--color-bg-surface);
+  box-shadow: var(--elevation-1);
+}
+
+:root[data-ui='v2'] .search-trigger:hover {
+  box-shadow: var(--elevation-2);
+}
+
+:root[data-ui='v2'] .topbar .icon-btn {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-bg-surface);
+  box-shadow: var(--elevation-1);
+}
+
+:root[data-ui='v2'] .content {
+  padding: 8px 32px 32px;
+  gap: var(--v2-gap);
+}
+
+/* ---------- The sections of the menu ---------- */
+
+:root[data-ui='v2'] .v2-nav {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+:root[data-ui='v2'] .v2-nav__section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+:root[data-ui='v2'] .v2-nav__label {
+  padding: 10px 16px 4px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+:root[data-ui='v2'] .v2-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+:root[data-ui='v2'] .v2-link:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+:root[data-ui='v2'] .v2-link--active,
+:root[data-ui='v2'] .v2-link--active:hover {
+  background: var(--color-brand-primary);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--elevation-2);
+}
+
+:root[data-ui='v2'] .v2-link .nav-badge,
+:root[data-ui='v2'] .v2-sublink .nav-badge {
+  margin-inline-start: auto;
+  color: #fff;
+  background: var(--color-error);
+}
+
+:root[data-ui='v2'] .v2-link--active .nav-badge {
+  color: var(--color-brand-primary);
+  background: #fff;
+}
+
+:root[data-ui='v2'] .v2-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 8px;
+  padding-inline-start: 28px;
+}
+
+:root[data-ui='v2'] .v2-sublink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+:root[data-ui='v2'] .v2-sublink::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+}
+
+:root[data-ui='v2'] .v2-sublink:hover {
+  background: var(--color-bg-hover);
+  text-decoration: none;
+}
+
+:root[data-ui='v2'] .v2-sublink--active {
+  background: var(--color-brand-primary-subtle);
+  color: var(--color-text-brand);
+}
+
+:root[data-ui='v2'] .v2-sublink--active::before {
+  background: var(--color-brand-primary);
+}
+
+/* ---------- The person's menu ---------- */
+
+:root[data-ui='v2'] .v2-user {
+  position: relative;
+}
+
+:root[data-ui='v2'] .v2-user__button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 6px 14px 6px 8px;
+  border: 0;
+  border-radius: var(--v2-radius-pill);
+  background: var(--color-bg-surface);
+  box-shadow: var(--elevation-1);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+:root[data-ui='v2'] .v2-user__avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-brand-primary-subtle-strong);
+  color: var(--color-text-brand);
+  font-weight: 700;
+}
+
+:root[data-ui='v2'] .v2-user__avatar--lg {
+  width: 44px;
+  height: 44px;
+}
+
+:root[data-ui='v2'] .v2-user__name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:root[data-ui='v2'] .v2-user__menu {
+  position: absolute;
+  inset-block-start: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 60;
+  width: 320px;
+  padding: 8px;
+  border-radius: 20px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  box-shadow: var(--elevation-3);
+}
+
+:root[data-ui='v2'] .v2-user__who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid var(--color-border-default);
+  margin-bottom: 6px;
+}
+
+:root[data-ui='v2'] .v2-user__who strong,
+:root[data-ui='v2'] .v2-user__who small {
+  display: block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:root[data-ui='v2'] .v2-user__who small {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+}
+
+:root[data-ui='v2'] .v2-user__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+}
+
+:root[data-ui='v2'] .v2-user__item:hover {
+  background: var(--color-bg-hover);
+  text-decoration: none;
+}
+
+:root[data-ui='v2'] .v2-user__item--danger {
+  color: var(--color-error-text);
+}
+
+:root[data-ui='v2'] .v2-user__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 12px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+:root[data-ui='v2'] .v2-user__seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--color-bg-muted);
+}
+
+:root[data-ui='v2'] .v2-user__seg button {
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+:root[data-ui='v2'] .v2-user__seg button[aria-checked='true'] {
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--elevation-1);
+}
+
+/* ---------- Phone: the menu slides in from "More"; the floating look is dropped ---------- */
+
+@media (max-width: 960px) {
+  :root[data-ui='v2'] .sidebar {
+    inset-block: 0 var(--tabbar-h);
+    inset-inline-start: 0;
+    border-radius: 0 var(--v2-radius-shell) var(--v2-radius-shell) 0;
+  }
+
+  :root[data-ui='v2'][dir='rtl'] .sidebar {
+    border-radius: var(--v2-radius-shell) 0 0 var(--v2-radius-shell);
+  }
+
+  :root[data-ui='v2'] .main {
+    margin-inline-start: 0;
+  }
+
+  :root[data-ui='v2'] .topbar {
+    height: 64px;
+    padding: 0 12px;
+  }
+
+  :root[data-ui='v2'] .search-trigger {
+    min-width: 0;
+  }
+
+  :root[data-ui='v2'] .search-trigger kbd,
+  :root[data-ui='v2'] .v2-user__name {
+    display: none;
+  }
+
+  :root[data-ui='v2'] .v2-user__button {
+    padding: 6px;
+  }
+
+  :root[data-ui='v2'] .content {
+    padding: 8px 16px calc(var(--tabbar-h) + 16px);
+  }
+
+  :root[data-ui='v2'] .tabbar {
+    border-top: 0;
+    box-shadow: 0 -4px 20px rgba(21, 101, 192, 0.08);
+    background: var(--color-bg-surface);
+  }
+}

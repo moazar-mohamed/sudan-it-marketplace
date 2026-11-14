@@ -1,0 +1,4219 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Arabic (`ar`).
+class AppLocalizationsAr extends AppLocalizations {
+  AppLocalizationsAr([String locale = 'ar']) : super(locale);
+
+  @override
+  String get appName => 'سوق السودان لتقنية المعلومات';
+
+  @override
+  String get commonCancel => 'إلغاء';
+
+  @override
+  String get commonConfirm => 'تأكيد';
+
+  @override
+  String get commonSave => 'حفظ';
+
+  @override
+  String get commonSaveChanges => 'حفظ التغييرات';
+
+  @override
+  String get commonEdit => 'تعديل';
+
+  @override
+  String get commonDelete => 'حذف';
+
+  @override
+  String get commonDeactivate => 'إلغاء التفعيل';
+
+  @override
+  String get commonRetry => 'إعادة المحاولة';
+
+  @override
+  String get commonLoading => 'جارٍ التحميل…';
+
+  @override
+  String get commonSearch => 'بحث';
+
+  @override
+  String get commonClear => 'مسح';
+
+  @override
+  String get commonCopy => 'نسخ';
+
+  @override
+  String get commonQuantityIncrease => 'زيادة الكمية';
+
+  @override
+  String get commonQuantityDecrease => 'تقليل الكمية';
+
+  @override
+  String get commonDone => 'تم';
+
+  @override
+  String get commonOr => 'أو';
+
+  @override
+  String get commonOptional => 'اختياري';
+
+  @override
+  String get commonRemove => 'إزالة';
+
+  @override
+  String get commonSignOut => 'تسجيل الخروج';
+
+  @override
+  String get commonNotifications => 'الإشعارات';
+
+  @override
+  String get commonShowPassword => 'إظهار كلمة المرور';
+
+  @override
+  String get commonHidePassword => 'إخفاء كلمة المرور';
+
+  @override
+  String get commonLanguage => 'اللغة';
+
+  @override
+  String get settingsTitle => 'الإعدادات';
+
+  @override
+  String get settingsLanguageSubtitle => 'اختر لغة التطبيق';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageArabic => 'العربية';
+
+  @override
+  String get settingsLanguageSyncFailed =>
+      'تم تغيير اللغة على هذا الجهاز، لكن تعذر حفظها في حسابك حاليًا.';
+
+  @override
+  String get settingsPreferences => 'التفضيلات';
+
+  @override
+  String get settingsAppearance => 'المظهر';
+
+  @override
+  String get settingsAppearanceSubtitle => 'اختر شكل التطبيق';
+
+  @override
+  String get settingsNotifications => 'الإشعارات';
+
+  @override
+  String get settingsPushTitle => 'إشعارات الهاتف';
+
+  @override
+  String get settingsPushOn => 'مفعّلة على هذا الهاتف';
+
+  @override
+  String get settingsPushOff => 'متوقفة على هذا الهاتف';
+
+  @override
+  String get settingsPushBlocked =>
+      'محظورة من إعدادات الهاتف. اسمح بإشعارات هذا التطبيق من هناك.';
+
+  @override
+  String get themeSystem => 'حسب الجهاز';
+
+  @override
+  String get themeSystemHint => 'يتبع إعداد هاتفك';
+
+  @override
+  String get themeLight => 'فاتح';
+
+  @override
+  String get themeDark => 'داكن';
+
+  @override
+  String get authWelcomeBack => 'مرحبًا بعودتك. سجّل الدخول للمتابعة.';
+
+  @override
+  String get authEmail => 'البريد الإلكتروني';
+
+  @override
+  String get authPassword => 'كلمة المرور';
+
+  @override
+  String get authLogin => 'تسجيل الدخول';
+
+  @override
+  String get authRegister => 'إنشاء حساب';
+
+  @override
+  String get authForgotPassword => 'نسيت كلمة المرور؟';
+
+  @override
+  String get authForgotPasswordTitle => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get authForgotPasswordBody =>
+      'أدخل البريد الإلكتروني الذي سجّلت به. سنرسل لك رابطًا لاختيار كلمة مرور جديدة.';
+
+  @override
+  String get authForgotPasswordSend => 'إرسال رابط إعادة التعيين';
+
+  @override
+  String get authForgotPasswordSentTitle => 'تحقّق من بريدك الإلكتروني';
+
+  @override
+  String authForgotPasswordSentBody(String email) {
+    return 'إذا كان هناك حساب مرتبط بـ ‎$email‎، فقد أرسلنا رابطًا لإعادة تعيين كلمة مروره. تحقّق أيضًا من مجلد الرسائل غير المرغوب فيها.';
+  }
+
+  @override
+  String get authForgotPasswordResend => 'إعادة إرسال الرسالة';
+
+  @override
+  String authForgotPasswordResendIn(int seconds) {
+    return 'إعادة الإرسال بعد $seconds ث';
+  }
+
+  @override
+  String get authForgotPasswordBackToLogin => 'العودة إلى تسجيل الدخول';
+
+  @override
+  String get authForgotPasswordFailed =>
+      'تعذّر إرسال رسالة إعادة التعيين. حاول مرة أخرى.';
+
+  @override
+  String get authContinueWithGoogle => 'المتابعة باستخدام Google';
+
+  @override
+  String get authNoAccount => 'ليس لديك حساب؟';
+
+  @override
+  String get authHaveAccount => 'لديك حساب بالفعل؟';
+
+  @override
+  String get authCreateAccount => 'إنشاء حساب';
+
+  @override
+  String get authJoinTitle => 'انضم إلى سوق السودان لتقنية المعلومات';
+
+  @override
+  String get authCreateAccountSubtitle => 'أنشئ حسابًا للبدء.';
+
+  @override
+  String get authFullName => 'الاسم الكامل';
+
+  @override
+  String get authConfirmPassword => 'تأكيد كلمة المرور';
+
+  @override
+  String get authPasswordHelper => '6 أحرف على الأقل.';
+
+  @override
+  String get authEmailRequired => 'البريد الإلكتروني مطلوب.';
+
+  @override
+  String get authEmailInvalid => 'أدخل بريدًا إلكترونيًا صالحًا.';
+
+  @override
+  String get authPasswordRequired => 'كلمة المرور مطلوبة.';
+
+  @override
+  String get authFullNameRequired => 'الاسم الكامل مطلوب.';
+
+  @override
+  String get authFullNameInvalid =>
+      'يجب أن يحتوي الاسم الكامل على أحرف ومسافات فقط.';
+
+  @override
+  String get authPasswordTooShort => 'يجب ألا تقل كلمة المرور عن 6 أحرف.';
+
+  @override
+  String get authConfirmPasswordRequired => 'تأكيد كلمة المرور مطلوب.';
+
+  @override
+  String get authPasswordsMismatch => 'كلمتا المرور غير متطابقتين.';
+
+  @override
+  String get authAccountDeactivatedTitle => 'تم إلغاء تفعيل الحساب';
+
+  @override
+  String get authAccountDeactivatedMessage =>
+      'تم إلغاء تفعيل حسابك. يرجى التواصل مع الدعم لإعادة تفعيله.';
+
+  @override
+  String get authAccountDeletedTitle => 'تم حذف الحساب';
+
+  @override
+  String get authAccountDeletedMessage =>
+      'حذف فريق المنصة هذا الحساب ولا يمكن استخدامه بعد الآن. إن كنت ترى أن هذا خطأ فيرجى التواصل مع الدعم.';
+
+  @override
+  String get authCompanyNotLinkedTitle => 'الحساب غير مرتبط بشركة';
+
+  @override
+  String get authCompanyAdminNotLinked =>
+      'حساب مدير الشركة الخاص بك غير مرتبط بشركة بعد. يرجى التواصل مع مدير المنصة.';
+
+  @override
+  String get authTechnicianNotLinked =>
+      'حساب الفني الخاص بك غير مرتبط بشركة بعد. يرجى التواصل مع مدير شركتك.';
+
+  @override
+  String get authPlatformAdminTitle => 'مدير المنصة';
+
+  @override
+  String get authPlatformAdminMessage =>
+      'تتم إدارة المنصة بشكل منفصل ولا تتوفر في هذا التطبيق.';
+
+  @override
+  String get authTechnicianAccountTitle => 'حساب الفني';
+
+  @override
+  String get authTechnicianNotSetUp =>
+      'حساب الفني الخاص بك لم يُجهّز بعد. يرجى التواصل مع مدير شركتك.';
+
+  @override
+  String get authTechnicianDeactivated =>
+      'تم إلغاء تفعيل حساب الفني الخاص بك. يرجى التواصل مع مدير شركتك.';
+
+  @override
+  String get authTechnicianLoadFailed =>
+      'تعذر تحميل بيانات الفني الخاصة بك. حاول مرة أخرى أو تواصل مع مدير شركتك.';
+
+  @override
+  String get authVerifyEmailTitle => 'تحقق من بريدك الإلكتروني';
+
+  @override
+  String get authVerifyEmailGeneric =>
+      'يرجى التحقق من بريدك الإلكتروني قبل المتابعة.';
+
+  @override
+  String authVerifyEmailSent(String email) {
+    return 'أرسلنا رابط التحقق إلى $email. يرجى التحقق من بريدك الإلكتروني قبل المتابعة.';
+  }
+
+  @override
+  String get authVerifyEmailResent =>
+      'تم إرسال رسالة التحقق. يرجى مراجعة بريدك الوارد.';
+
+  @override
+  String get authVerifyEmailStillNot =>
+      'لم يتم التحقق بعد. يرجى الضغط على الرابط في الرسالة ثم المحاولة مرة أخرى.';
+
+  @override
+  String get authVerifiedMyEmail => 'لقد تحققت من بريدي الإلكتروني';
+
+  @override
+  String get authResendVerification => 'إعادة إرسال رسالة التحقق';
+
+  @override
+  String get authSignedInTitle => 'تم تسجيل دخولك';
+
+  @override
+  String get authDashboardLater => 'ستتم إضافة لوحة العميل لاحقًا.';
+
+  @override
+  String get authErrorEmailInUse => 'هذا البريد الإلكتروني مسجّل بالفعل.';
+
+  @override
+  String get authErrorWeakPassword => 'اختر كلمة مرور أقوى.';
+
+  @override
+  String get authErrorInvalidCredentials =>
+      'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+
+  @override
+  String get authErrorUserDisabled => 'تم تعطيل هذا الحساب.';
+
+  @override
+  String get authErrorTooManyRequests =>
+      'محاولات كثيرة. يرجى الانتظار ثم المحاولة مرة أخرى.';
+
+  @override
+  String get authErrorNetwork =>
+      'خطأ في الشبكة. تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get authErrorOperationNotAllowed =>
+      'تسجيل الدخول بالبريد الإلكتروني وكلمة المرور غير مفعّل.';
+
+  @override
+  String get authErrorCancelled => 'تم إلغاء تسجيل الدخول.';
+
+  @override
+  String get authErrorDifferentCredential =>
+      'يوجد حساب بهذا البريد الإلكتروني بطريقة تسجيل دخول مختلفة.';
+
+  @override
+  String get authErrorGoogleFailed =>
+      'فشل تسجيل الدخول باستخدام Google. حاول مرة أخرى.';
+
+  @override
+  String get authErrorGoogleReauth =>
+      'لم يتمكن Google من تأكيد حسابك على هذا الجهاز. اضغط «المتابعة باستخدام Google» مرة أخرى، وإذا تكرر ذلك افتح حساب Google من إعدادات الجهاز وسجّل الدخول إليه من جديد.';
+
+  @override
+  String get authErrorGoogleConfig =>
+      'تسجيل الدخول عبر Google غير مُعدّ لهذه النسخة من التطبيق. تواصل مع الدعم.';
+
+  @override
+  String get authErrorPopupBlocked =>
+      'منع المتصفح نافذة تسجيل الدخول باستخدام Google. اسمح بالنوافذ المنبثقة لهذا الموقع ثم حاول مرة أخرى.';
+
+  @override
+  String get authErrorUnauthorizedDomain =>
+      'تسجيل الدخول باستخدام Google غير مفعّل لعنوان هذا الموقع.';
+
+  @override
+  String get authErrorGeneric => 'فشلت المصادقة. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get authErrorSendVerification =>
+      'تعذر إرسال رسالة التحقق. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get authErrorNotAuthenticated => 'لم يتم تسجيل الدخول.';
+
+  @override
+  String get errorProfileSave =>
+      'تعذر حفظ ملفك الشخصي. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get errorProfileLoad =>
+      'تعذر تحميل ملفك الشخصي. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get errorProfileLoadDenied =>
+      'تعذر تحميل ملفك الشخصي: تم رفض الوصول. حاول لاحقًا أو تواصل مع الدعم.';
+
+  @override
+  String get errorProfileLoadOffline =>
+      'تعذر تحميل ملفك الشخصي. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.';
+
+  @override
+  String get errorProfileUpdate =>
+      'تعذر تحديث ملفك الشخصي. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get errorProfileNoEmail =>
+      'حسابك لا يحتوي على بريد إلكتروني، لذلك تعذر إنشاء ملف شخصي. يرجى التواصل مع الدعم.';
+
+  @override
+  String get errorProfileNotFound => 'تعذر العثور على ملفك الشخصي.';
+
+  @override
+  String get errorSetupAccount =>
+      'تعذر إكمال إعداد حسابك. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get errorGeneric => 'حدث خطأ ما. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get errorPermissionDenied => 'ليست لديك صلاحية لتنفيذ هذا الإجراء.';
+
+  @override
+  String get errorNetwork => 'تحقق من اتصالك بالإنترنت وحاول مرة أخرى.';
+
+  @override
+  String get passwordChangeTitle => 'اختر كلمة مرور جديدة';
+
+  @override
+  String get passwordChangeIntro =>
+      'سجّلت الدخول بكلمة مرور مؤقتة. اختر كلمة مرورك الخاصة للمتابعة.';
+
+  @override
+  String get passwordChangeTemporary => 'كلمة المرور المؤقتة';
+
+  @override
+  String get passwordChangeNew => 'كلمة المرور الجديدة';
+
+  @override
+  String get passwordChangeConfirm => 'تأكيد كلمة المرور الجديدة';
+
+  @override
+  String get passwordChangeSubmit => 'تغيير كلمة المرور';
+
+  @override
+  String get passwordChangeCurrentRequired => 'أدخل كلمة المرور المؤقتة.';
+
+  @override
+  String get passwordChangeNewRequired => 'أدخل كلمة مرور جديدة.';
+
+  @override
+  String passwordChangeTooShort(int min) {
+    return 'يجب ألا تقل كلمة المرور عن $min أحرف.';
+  }
+
+  @override
+  String get passwordChangeMismatch => 'كلمتا المرور غير متطابقتين.';
+
+  @override
+  String get passwordErrorCurrentWrong => 'كلمة المرور الحالية غير صحيحة.';
+
+  @override
+  String get passwordErrorNewWeak =>
+      'كلمة المرور الجديدة ضعيفة. استخدم 6 أحرف على الأقل.';
+
+  @override
+  String get passwordErrorRecentLogin =>
+      'يرجى تسجيل الخروج ثم الدخول مجددًا قبل تغيير كلمة المرور.';
+
+  @override
+  String get passwordErrorGeneric =>
+      'تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get imageLabel => 'الصورة';
+
+  @override
+  String get imageAdd => 'إضافة صورة';
+
+  @override
+  String get imageChange => 'تغيير الصورة';
+
+  @override
+  String get imageChooseFromDevice => 'اختيار من الجهاز';
+
+  @override
+  String get imageTakePhoto => 'التقاط صورة';
+
+  @override
+  String get imageUseUrl => 'استخدام رابط صورة';
+
+  @override
+  String get imageUrl => 'رابط الصورة';
+
+  @override
+  String get imageUploading => 'جارٍ رفع الصورة';
+
+  @override
+  String get imageUploadFailed => 'فشل رفع الصورة';
+
+  @override
+  String get imageEmptyUrl => 'أدخل رابط الصورة.';
+
+  @override
+  String get imageInvalidUrl => 'أدخل رابط صورة صالحًا (http/https).';
+
+  @override
+  String get imageUnsupported =>
+      'صورة غير مدعومة. استخدم ملف JPG أو PNG أو WebP أو GIF.';
+
+  @override
+  String get imageTooLarge => 'حجم الصورة كبير جدًا. الحد الأقصى 5 ميغابايت.';
+
+  @override
+  String get imageCameraDenied =>
+      'تم رفض إذن الكاميرا. اسمح بالوصول إلى الكاميرا من الإعدادات لالتقاط صورة.';
+
+  @override
+  String get imageGalleryDenied =>
+      'تم رفض إذن الصور. اسمح بالوصول إلى الصور من الإعدادات لاختيار صورة.';
+
+  @override
+  String get imageCameraUnavailable => 'الكاميرا غير متاحة على هذا الجهاز.';
+
+  @override
+  String get imagePickFailed => 'تعذر فتح الصورة. حاول مرة أخرى.';
+
+  @override
+  String get locationTitle => 'الموقع';
+
+  @override
+  String get locationEnterAddress => 'أدخل العنوان';
+
+  @override
+  String get locationSelectOnMap => 'تحديد من الخريطة';
+
+  @override
+  String get locationUseCurrent => 'استخدام موقعي الحالي';
+
+  @override
+  String get locationConfirm => 'تأكيد الموقع';
+
+  @override
+  String get locationChange => 'تغيير الموقع';
+
+  @override
+  String get locationRemoveMap => 'إزالة موقع الخريطة';
+
+  @override
+  String get locationViewOnMap => 'عرض على الخريطة';
+
+  @override
+  String get locationOpenOrder => 'فتح موقع الطلب';
+
+  @override
+  String get locationOpenCompany => 'فتح موقع الشركة';
+
+  @override
+  String get locationViewCompany => 'عرض موقع الشركة';
+
+  @override
+  String get locationOpenDelivery => 'فتح موقع التوصيل';
+
+  @override
+  String get locationSearchAddress => 'البحث عن العنوان في الخريطة';
+
+  @override
+  String get locationOpenInMaps => 'فتح في تطبيق الخرائط';
+
+  @override
+  String get locationSelected => 'تم تحديد الموقع';
+
+  @override
+  String get locationLatShort => 'خط العرض';
+
+  @override
+  String get locationLngShort => 'خط الطول';
+
+  @override
+  String get locationTapToSelect =>
+      'اضغط على الخريطة لتحديد النقطة بدقة. اضغط مرة أخرى لتحريكها.';
+
+  @override
+  String get locationPinned => 'محدد على الخريطة';
+
+  @override
+  String get locationAddressApproximate =>
+      'عنوان مكتوب فقط (بدون نقطة دقيقة على الخريطة)';
+
+  @override
+  String get locationRequired => 'أدخل العنوان أو حدد الموقع من الخريطة.';
+
+  @override
+  String get locationCouldNotOpenMaps => 'تعذر فتح تطبيق الخرائط.';
+
+  @override
+  String get locationServiceOff =>
+      'خدمات الموقع متوقفة. يمكنك الضغط على الخريطة لتحديد الموقع.';
+
+  @override
+  String get locationPermissionDenied =>
+      'تم رفض إذن الموقع. يمكنك الضغط على الخريطة أو كتابة العنوان.';
+
+  @override
+  String get locationPermissionDeniedForever =>
+      'إذن الموقع محظور من الإعدادات. يمكنك الضغط على الخريطة.';
+
+  @override
+  String get locationCurrentUnavailable =>
+      'تعذر الحصول على موقعك الحالي. يمكنك الضغط على الخريطة.';
+
+  @override
+  String get productPriceOnRequest => 'السعر عند التواصل';
+
+  @override
+  String get orderCreateDenied =>
+      'ليست لديك صلاحية لإرسال هذا الطلب. يرجى تسجيل الدخول مرة أخرى والمحاولة من جديد.';
+
+  @override
+  String get orderCreateNetwork =>
+      'تعذر تأكيد الطلب. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.';
+
+  @override
+  String get orderCreateFailed => 'تعذر إنشاء الطلب. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get orderNotConfirmed =>
+      'تعذر تأكيد طلبك. تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String orderProductNoPrice(String productName) {
+    return 'لا يوجد سعر معلن لـ $productName حتى الآن. يرجى التواصل مع الشركة لطلبه.';
+  }
+
+  @override
+  String orderPriceChanged(String productName) {
+    return 'تغيّر سعر $productName قبل إرسال طلبك، لذلك لم يُسجَّل الطلب. ارجع لمراجعة السعر الجديد، وإذا كنت قد حوّلت المبلغ فيرجى التواصل مع الشركة.';
+  }
+
+  @override
+  String get orderAttachReceiptFailed =>
+      'تعذر إرفاق الإيصال. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get orderFetchFailed => 'تعذر تحميل الطلب. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get orderUpdateStatusDenied =>
+      'ليست لديك صلاحية لتحديث حالة هذا الطلب.';
+
+  @override
+  String get orderUpdateStatusFailed =>
+      'تعذر تحديث حالة الطلب. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get orderConfirmPaymentDenied =>
+      'ليست لديك صلاحية لتأكيد الدفع لهذا الطلب.';
+
+  @override
+  String get orderConfirmPaymentFailed =>
+      'تعذر تأكيد الدفع. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get orderCancelDenied => 'ليست لديك صلاحية لإلغاء هذا الطلب.';
+
+  @override
+  String get orderCancelFailed => 'تعذر إلغاء الطلب. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get orderCancelNotAllowed =>
+      'لا يمكن إلغاء هذا الطلب الآن: أُلغي سابقاً أو تقدّمت حالته، أو أن هذا السبب لا ينطبق على دفع مؤكد.';
+
+  @override
+  String get orderStatusCancelled => 'ملغى';
+
+  @override
+  String get orderCancelledTitle => 'أُلغي هذا الطلب';
+
+  @override
+  String get orderCancelledByCompany => 'ألغته الشركة.';
+
+  @override
+  String get orderCancelledExpired =>
+      'أُلغي تلقائياً: لم يُتحقق من الدفع خلال 24 ساعة.';
+
+  @override
+  String get orderCancelledOutOfStock =>
+      'أُلغي لأن المنتج نفد قبل تأكيد الدفع. تعيد الشركة المبلغ المحوّل خارج التطبيق.';
+
+  @override
+  String get orderCancelledRefundConfirmed =>
+      'كان دفعك قد تأكد: تعيد الشركة إليك المبلغ خارج التطبيق.';
+
+  @override
+  String get orderCancelledRefundIfPaid =>
+      'إذا كنت قد حوّلت مبلغاً لهذا الطلب، فستعيده الشركة إليك خارج التطبيق. يمكنك التواصل معها من محادثة الطلب.';
+
+  @override
+  String get adminCancelledRefundConfirmed =>
+      'كان دفعه قد تأكد: أعد المبلغ إلى العميل خارج التطبيق.';
+
+  @override
+  String get adminCancelledRefundIfPaid =>
+      'إذا كان العميل قد حوّل مبلغاً، فأعده إليه خارج التطبيق.';
+
+  @override
+  String orderCancelNote(String note) {
+    return 'ملاحظة الشركة: $note';
+  }
+
+  @override
+  String orderCancelledRefundDone(String date) {
+    return 'أعادت الشركة المبلغ إليك في $date.';
+  }
+
+  @override
+  String adminCancelledRefundRecorded(String date) {
+    return 'سُجّل أنك أعدت المبلغ إلى العميل في $date.';
+  }
+
+  @override
+  String orderCancelledOn(String date) {
+    return 'أُلغي في $date';
+  }
+
+  @override
+  String get paymentStatusNotVerified => 'لم يُتحقق منه';
+
+  @override
+  String get adminCancelOrderButton => 'إلغاء الطلب';
+
+  @override
+  String get adminCancelOrderTitle => 'إلغاء هذا الطلب؟';
+
+  @override
+  String adminCancelOrderBody(String orderId, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'وتعود وحداته الـ$count',
+      many: 'وتعود وحداته الـ$count',
+      few: 'وتعود وحداته الـ$count',
+      two: 'وتعود وحدتاه',
+      one: 'وتعود وحدته الواحدة',
+    );
+    return 'سيُلغى الطلب #$orderId $_temp0 إلى المخزون. لا يمكن التراجع عن ذلك. إذا كان العميل قد دفع، فاتفق معه على استرداد المبلغ.';
+  }
+
+  @override
+  String adminCancelOrderBodyNoStock(String orderId) {
+    return 'سيُلغى الطلب #$orderId. لم يتأكد دفعه، لذلك لم يأخذ أي مخزون ولن يعود شيء. لا يمكن التراجع عن ذلك. إذا كان العميل قد حوّل مبلغاً، فأعده إليه خارج التطبيق.';
+  }
+
+  @override
+  String adminCancelConfirmedOrderBody(
+    String orderId,
+    int count,
+    String amount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'وتعود وحداته الـ$count',
+      many: 'وتعود وحداته الـ$count',
+      few: 'وتعود وحداته الـ$count',
+      two: 'وتعود وحدتاه',
+      one: 'وتعود وحدته الواحدة',
+    );
+    return 'سيُلغى الطلب #$orderId $_temp0 إلى المخزون. دفعه مؤكد: أعد $amount إلى العميل خارج التطبيق. لا يمكن التراجع عن ذلك.';
+  }
+
+  @override
+  String adminCancelConfirmedOrderBodyNoStock(String orderId, String amount) {
+    return 'سيُلغى الطلب #$orderId. سُجّل قبل أن تحفظ الطلبات مخزونها، لذلك لن يعود أي مخزون تلقائياً. دفعه مؤكد: أعد $amount إلى العميل خارج التطبيق. لا يمكن التراجع عن ذلك.';
+  }
+
+  @override
+  String get adminCancelOutOfStockButton => 'إلغاء لنفاد المخزون';
+
+  @override
+  String get adminCancelOutOfStockTitle => 'إلغاء الطلب لنفاد المخزون؟';
+
+  @override
+  String adminCancelOutOfStockBody(String orderId, String amount) {
+    return 'سيُلغى الطلب #$orderId لأن منتجه لا يكفيه. لن يُخصم أي مخزون ولن يعود. سيُبلَّغ العميل بأن المنتج نفد؛ أعد إليه $amount خارج التطبيق إن كان قد حوّله. لا يمكن التراجع عن ذلك.';
+  }
+
+  @override
+  String get adminOrderCancelledOutOfStock => 'أُلغي الطلب لنفاد المخزون.';
+
+  @override
+  String get adminCancelOrderConfirm => 'إلغاء الطلب';
+
+  @override
+  String get adminCancelOrderKeep => 'إبقاء الطلب';
+
+  @override
+  String get adminOrderCancelled => 'أُلغي الطلب.';
+
+  @override
+  String adminCancelStockReturned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عادت $count وحدة إلى المخزون.',
+      many: 'عادت $count وحدة إلى المخزون.',
+      few: 'عادت $count وحدات إلى المخزون.',
+      two: 'عادت وحدتان إلى المخزون.',
+      one: 'عادت وحدة واحدة إلى المخزون.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adminCancelStockNotReturned =>
+      'لم يعد أي مخزون: لم يكن الطلب قد أخذ مخزوناً (لم يتأكد دفعه)، أو حُذف منتجه.';
+
+  @override
+  String get adminOrdersExpiryNote =>
+      'الطلبات التي لا يتأكد دفعها خلال 24 ساعة تُلغى تلقائياً، أما الطلب المؤكد فلا تنتهي مهلته أبداً. يحدث ذلك عند فتح هذه الصفحة، لذا قد يتأخر الإلغاء حتى فتحها.';
+
+  @override
+  String get orderAssignTechnicianDenied =>
+      'ليست لديك صلاحية لتعيين فني لهذا الطلب.';
+
+  @override
+  String get orderAssignTechnicianFailed =>
+      'تعذر تعيين الفني. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get stockNoLongerAvailable => 'هذا المنتج لم يعد متاحًا.';
+
+  @override
+  String get stockChooseAtLeastOne => 'اختر وحدة واحدة على الأقل للطلب.';
+
+  @override
+  String stockOutOfStock(String productName) {
+    return '$productName غير متوفر في المخزون.';
+  }
+
+  @override
+  String stockOnlyLeft(int available, String productName) {
+    return 'المتوفر من $productName في المخزون $available فقط. يرجى تقليل الكمية.';
+  }
+
+  @override
+  String get productSaveDenied => 'ليست لديك صلاحية لحفظ هذا المنتج.';
+
+  @override
+  String get productSaveFailed => 'تعذر حفظ المنتج. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get productUpdateDenied => 'ليست لديك صلاحية لتحديث هذا المنتج.';
+
+  @override
+  String get productUpdateFailed =>
+      'تعذر تحديث المنتج. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get productDeleteDenied => 'ليست لديك صلاحية لحذف هذا المنتج.';
+
+  @override
+  String get productDeleteFailed => 'تعذر حذف المنتج. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get technicianSaveDenied => 'ليست لديك صلاحية لحفظ هذا الفني.';
+
+  @override
+  String get technicianSaveFailed => 'تعذر حفظ الفني. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get technicianUpdateDenied => 'ليست لديك صلاحية لتحديث هذا الفني.';
+
+  @override
+  String get technicianUpdateFailed =>
+      'تعذر تحديث الفني. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get technicianDeactivateDenied =>
+      'ليست لديك صلاحية لإلغاء تفعيل هذا الفني.';
+
+  @override
+  String get technicianDeactivateFailed =>
+      'تعذر إلغاء تفعيل الفني. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get companyUpdateDenied => 'ليست لديك صلاحية لتعديل هذه الشركة.';
+
+  @override
+  String get companyUpdateFailed =>
+      'تعذر تحديث ملف الشركة. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get navHome => 'الرئيسية';
+
+  @override
+  String get navDashboard => 'لوحة التحكم';
+
+  @override
+  String get navProducts => 'المنتجات';
+
+  @override
+  String get navCompanies => 'الشركات';
+
+  @override
+  String get navOrders => 'الطلبات';
+
+  @override
+  String get navProfile => 'الملف الشخصي';
+
+  @override
+  String get navMyOrders => 'طلباتي';
+
+  @override
+  String reviewsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مراجعة',
+      many: '$count مراجعة',
+      few: '$count مراجعات',
+      two: 'مراجعتان',
+      one: 'مراجعة واحدة',
+      zero: 'لا توجد مراجعات',
+    );
+    return '($_temp0)';
+  }
+
+  @override
+  String get commonPhoneInvalid => 'أدخل رقم هاتف صالحًا.';
+
+  @override
+  String get commonViewOrderStatus => 'عرض حالة الطلب';
+
+  @override
+  String get homeNoProducts => 'لم يتم العثور على منتجات';
+
+  @override
+  String get homeNoCompanies => 'لم يتم العثور على شركات';
+
+  @override
+  String productInStockCount(int count) {
+    return 'متوفر ($count)';
+  }
+
+  @override
+  String get productOutOfStock => 'غير متوفر في المخزون';
+
+  @override
+  String get productVerifiedSeller => 'بائع موثّق';
+
+  @override
+  String get productInstallationAvailable => 'خدمة التركيب الاحترافي متاحة';
+
+  @override
+  String productInstallationNote(String price, String currency) {
+    return 'سعر التركيب: $price $currency. يتم اختيار خيار التركيب في الموقع أثناء إتمام الطلب.';
+  }
+
+  @override
+  String get productDescription => 'الوصف';
+
+  @override
+  String get productSpecifications => 'المواصفات';
+
+  @override
+  String get productBuyNow => 'اشترِ الآن';
+
+  @override
+  String get companyAbout => 'نبذة عن الشركة';
+
+  @override
+  String companyProductsCount(int count) {
+    return 'المنتجات ($count)';
+  }
+
+  @override
+  String get companyNoProducts => 'لا توجد منتجات مدرجة لدى هذه الشركة بعد.';
+
+  @override
+  String get checkoutTitle => 'إتمام الطلب';
+
+  @override
+  String checkoutUnit(String price, String currency) {
+    return 'سعر الوحدة: $price $currency';
+  }
+
+  @override
+  String checkoutQty(int count) {
+    return 'الكمية: $count';
+  }
+
+  @override
+  String checkoutSubtotal(String price, String currency) {
+    return 'المجموع الفرعي: $price $currency';
+  }
+
+  @override
+  String get checkoutDeliveryContact => 'التوصيل والتواصل';
+
+  @override
+  String get checkoutPickupContact => 'الاستلام والتواصل';
+
+  @override
+  String get checkoutDelivery => 'توصيل';
+
+  @override
+  String get checkoutPickup => 'استلام';
+
+  @override
+  String get checkoutPickupLocation => 'موقع الاستلام';
+
+  @override
+  String get checkoutPickupFallback =>
+      'موقع استلام الشركة (ستؤكده الشركة عبر الهاتف)';
+
+  @override
+  String get checkoutAddressHint =>
+      'اسم الشارع، رقم المبنى/المنزل، الحي، المدينة';
+
+  @override
+  String get checkoutContactPhone => 'رقم هاتف التواصل';
+
+  @override
+  String get checkoutContactPhoneHelper =>
+      'ستتصل الشركة بهذا الرقم لتنسيق التوصيل';
+
+  @override
+  String get checkoutPhoneRequired => 'يرجى إدخال رقم هاتف للتواصل';
+
+  @override
+  String get checkoutInstallationOption => 'خيار التركيب';
+
+  @override
+  String get checkoutInstallationTitle => 'تركيب احترافي في الموقع';
+
+  @override
+  String checkoutInstallationNote(String price, String currency) {
+    return 'تركيب بواسطة فني معتمد متاح مقابل $price $currency.';
+  }
+
+  @override
+  String get checkoutProductOnly => 'المنتج فقط';
+
+  @override
+  String get checkoutProductInstallation => 'المنتج + التركيب';
+
+  @override
+  String get checkoutPriceSummary => 'ملخص السعر';
+
+  @override
+  String checkoutProductSubtotal(int count) {
+    return 'إجمالي المنتج ($count قطعة)';
+  }
+
+  @override
+  String get checkoutInstallationService => 'خدمة التركيب';
+
+  @override
+  String get checkoutNotIncluded => 'غير مشمول';
+
+  @override
+  String get checkoutDeliveryFee => 'رسوم التوصيل';
+
+  @override
+  String get checkoutFinalTotal => 'الإجمالي النهائي';
+
+  @override
+  String checkoutConfirmOrder(String price, String currency) {
+    return 'تأكيد الطلب • $price $currency';
+  }
+
+  @override
+  String get paymentTitle => 'الدفع اليدوي';
+
+  @override
+  String paymentCopied(String label) {
+    return 'تم نسخ $label';
+  }
+
+  @override
+  String get paymentAccountNumberLabel => 'رقم الحساب';
+
+  @override
+  String get paymentPhoneNumberLabel => 'رقم الهاتف';
+
+  @override
+  String get paymentReceiptRequired =>
+      'يرجى رفع صورة إيصال التحويل أو اختيارها قبل الإرسال.';
+
+  @override
+  String get paymentSubmitFailed =>
+      'تعذر إرسال الإيصال. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get paymentAmountToTransfer => 'المبلغ المطلوب تحويله';
+
+  @override
+  String get paymentOrderCreatedAfter => 'سيتم إنشاء طلبك بعد إرسال الإيصال.';
+
+  @override
+  String get paymentInstructions =>
+      'يرجى تحويل المبلغ المطلوب بدقة خارج التطبيق باستخدام تطبيق البنك (بنكك، فوري، وغيرها) أو التحويل النقدي. بعد إتمام الدفع، ارفع لقطة شاشة لإيصال التحويل أدناه.';
+
+  @override
+  String get paymentAccounts => 'حسابات الدفع';
+
+  @override
+  String get paymentUploadReceipt => 'رفع إيصال التحويل';
+
+  @override
+  String get paymentUploadHint =>
+      'ارفع لقطة شاشة أو صورة واضحة لإشعار التحويل.';
+
+  @override
+  String get paymentTapToUpload => 'اضغط لرفع الإيصال / لقطة الشاشة';
+
+  @override
+  String get paymentSupports => 'يدعم JPG و PNG أو لقطة شاشة من بنكك/فوري';
+
+  @override
+  String get receiptPreparing => 'جارٍ تجهيز الصورة…';
+
+  @override
+  String get receiptTooLarge =>
+      'ما زالت الصورة كبيرة جدًا بعد الضغط. اختر صورة أصغر.';
+
+  @override
+  String get receiptUnreadable =>
+      'تعذّرت قراءة هذا الملف كصورة. اختر صورة أو لقطة شاشة للإيصال.';
+
+  @override
+  String get receiptViewTitle => 'إيصال الدفع';
+
+  @override
+  String get receiptView => 'عرض الإيصال';
+
+  @override
+  String get receiptNone => 'لا توجد صورة إيصال لهذا الطلب.';
+
+  @override
+  String get receiptLoadFailed =>
+      'تعذّر تحميل الإيصال. تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get paymentReceiptSelected => 'تم اختيار الإيصال';
+
+  @override
+  String get paymentReplace => 'استبدال';
+
+  @override
+  String get paymentPendingNote =>
+      'يُرسل طلبك مع هذا الإيصال. الإيصال ليس تأكيداً للدفع: تتحقق الشركة من التحويل ثم تؤكده، وعندها فقط يُحجز المنتج لك.';
+
+  @override
+  String get paymentSubmitting => 'جارٍ الإرسال...';
+
+  @override
+  String get paymentSubmit => 'إرسال الإيصال للتحقق';
+
+  @override
+  String get paymentAccountName => 'اسم الحساب';
+
+  @override
+  String get paymentAccountMban => 'رقم الحساب / MBAN';
+
+  @override
+  String get paymentPhoneIdentifier => 'رقم الهاتف المعرّف';
+
+  @override
+  String get ordersLoadFailed => 'تعذر تحميل الطلبات';
+
+  @override
+  String get ordersRetry => 'إعادة المحاولة';
+
+  @override
+  String get ordersEmptyTitle => 'لا توجد طلبات بعد';
+
+  @override
+  String get ordersEmptyBody =>
+      'عند شرائك أجهزة أو منتجات تقنية من السوق، ستظهر طلباتك وحالتها المباشرة هنا.';
+
+  @override
+  String orderTitleNumber(String id) {
+    return 'طلب ‎#$id';
+  }
+
+  @override
+  String get orderTotalAmount => 'المبلغ الإجمالي';
+
+  @override
+  String get orderDetailsButton => 'التفاصيل';
+
+  @override
+  String get orderItemOrdered => 'المنتج المطلوب';
+
+  @override
+  String orderUnitLine(String price) {
+    return 'سعر الوحدة: $price SDG';
+  }
+
+  @override
+  String orderQtyLine(int count) {
+    return 'الكمية: $count';
+  }
+
+  @override
+  String orderSubtotalLine(String price) {
+    return 'المجموع الفرعي: $price SDG';
+  }
+
+  @override
+  String get orderPickupDetails => 'تفاصيل الاستلام';
+
+  @override
+  String get orderDeliveryDetails => 'تفاصيل التوصيل';
+
+  @override
+  String get orderAddress => 'العنوان';
+
+  @override
+  String get orderContactPhone => 'هاتف التواصل';
+
+  @override
+  String get orderType => 'نوع الطلب';
+
+  @override
+  String orderTypeInstallation(String fee) {
+    return 'منتج + تركيب (+$fee SDG)';
+  }
+
+  @override
+  String get orderDeliveryFee => 'رسوم التوصيل';
+
+  @override
+  String get orderOrderedAt => 'تاريخ الطلب';
+
+  @override
+  String get orderPaymentStatus => 'حالة الدفع';
+
+  @override
+  String get orderStatusLabel => 'الحالة';
+
+  @override
+  String get orderReceiptAttached => 'الإيصال مرفق';
+
+  @override
+  String get orderProductSubtotal => 'إجمالي المنتج';
+
+  @override
+  String get orderInstallationFee => 'رسوم التركيب';
+
+  @override
+  String get orderTotal => 'الإجمالي';
+
+  @override
+  String get orderOrderStatus => 'حالة الطلب';
+
+  @override
+  String get pendingBanner => 'بانتظار التحقق';
+
+  @override
+  String get pendingTitle => 'تم إرسال طلبك: بانتظار الشركة';
+
+  @override
+  String get pendingBody =>
+      'أُرسل طلبك وإيصال التحويل إلى الشركة. الإيصال ليس تأكيداً للدفع: تتحقق الشركة من وصول المبلغ ثم تؤكده.';
+
+  @override
+  String get orderNotReservedYet =>
+      'المنتج غير محجوز لك بعد: لا يُخصم من المخزون إلا عندما تؤكد الشركة دفعك. وإذا نفد قبل ذلك، قد تلغي الشركة الطلب وتعيد إليك المبلغ المحوّل خارج التطبيق.';
+
+  @override
+  String get orderPaymentConfirmedNote =>
+      'أكدت الشركة دفعك، والمنتج محجوز لطلبك.';
+
+  @override
+  String get orderAwaitingConfirmation => 'بانتظار تأكيد الشركة لدفعك';
+
+  @override
+  String get checkoutReservationNote =>
+      'بعدها تحوّل المبلغ وترفع الإيصال. ثم تؤكد الشركة الدفع، وعندها فقط يُحجز المنتج لك.';
+
+  @override
+  String orderQuotaReached(int count, String time) {
+    return 'قدّمت $count طلبات خلال آخر 24 ساعة، وهذا هو الحد الأقصى. يمكنك الطلب مرة أخرى بعد $time.';
+  }
+
+  @override
+  String orderQuotaReachedNoTime(int count) {
+    return 'قدّمت $count طلبات خلال آخر 24 ساعة، وهذا هو الحد الأقصى. يُرجى المحاولة لاحقاً.';
+  }
+
+  @override
+  String get pendingOrderReference => 'مرجع الطلب';
+
+  @override
+  String get pendingDeliveryAddress => 'عنوان التوصيل';
+
+  @override
+  String get pendingInstallation => 'التركيب';
+
+  @override
+  String pendingInstallationIncluded(String fee) {
+    return 'مشمول ($fee SDG)';
+  }
+
+  @override
+  String get pendingUploaded => 'تم الرفع';
+
+  @override
+  String get pendingTotalAmount => 'المبلغ الإجمالي';
+
+  @override
+  String get pendingBackToMarketplace => 'العودة إلى السوق';
+
+  @override
+  String get pendingViewInMyOrders => 'عرض في طلباتي';
+
+  @override
+  String get orderStatusProcessing => 'قيد المعالجة';
+
+  @override
+  String get orderStatusOutForDelivery => 'في الطريق للتسليم';
+
+  @override
+  String get orderStatusCompleted => 'مكتمل';
+
+  @override
+  String get paymentStatusPending => 'بانتظار التحقق';
+
+  @override
+  String get paymentStatusConfirmed => 'مؤكد';
+
+  @override
+  String get deliveryMethodDelivery => 'توصيل';
+
+  @override
+  String get deliveryMethodPickup => 'استلام';
+
+  @override
+  String get jobStatusPending => 'قيد الانتظار';
+
+  @override
+  String get jobStatusInProgress => 'قيد التنفيذ';
+
+  @override
+  String customerFallback(String id) {
+    return 'عميل $id';
+  }
+
+  @override
+  String get profileMyProfile => 'ملفي الشخصي';
+
+  @override
+  String get profileFullName => 'الاسم الكامل';
+
+  @override
+  String get profilePhoneNumber => 'رقم الهاتف';
+
+  @override
+  String get profileFullNameRequired => 'أدخل اسمك الكامل.';
+
+  @override
+  String get profileEdit => 'تعديل الملف الشخصي';
+
+  @override
+  String get profileUpdated => 'تم تحديث الملف الشخصي بنجاح.';
+
+  @override
+  String get profileChangePassword => 'تغيير كلمة المرور';
+
+  @override
+  String get profileChangePasswordSubtitle => 'حدّث كلمة مرور حسابك';
+
+  @override
+  String get profileCurrentPassword => 'كلمة المرور الحالية';
+
+  @override
+  String get profileCurrentPasswordRequired => 'أدخل كلمة المرور الحالية.';
+
+  @override
+  String get profilePasswordMin => 'استخدم 6 أحرف على الأقل.';
+
+  @override
+  String get profileConfirmPasswordRequired => 'أكّد كلمة المرور الجديدة.';
+
+  @override
+  String get profileUpdatePassword => 'تحديث كلمة المرور';
+
+  @override
+  String get profilePasswordChanged => 'تم تغيير كلمة المرور بنجاح.';
+
+  @override
+  String get notificationsLoadFailed => 'تعذر تحميل الإشعارات.';
+
+  @override
+  String get notificationsEmpty => 'لا توجد إشعارات بعد.';
+
+  @override
+  String get notifGenericTitle => 'إشعار';
+
+  @override
+  String get notifGenericBody => 'يوجد تحديث على أحد طلباتك.';
+
+  @override
+  String get notifDeleteTitle => 'حذف هذا الإشعار؟';
+
+  @override
+  String get notifDeleteBody => 'سيُحذف نهائياً.';
+
+  @override
+  String get notifNewOrderTitle => 'تم استلام طلب جديد';
+
+  @override
+  String notifNewOrderBody(String product) {
+    return 'تم إنشاء طلب جديد لـ \"$product\" وهو بانتظار التحقق من الدفع.';
+  }
+
+  @override
+  String get notifPaymentConfirmedTitle => 'تم تأكيد الدفع';
+
+  @override
+  String notifPaymentConfirmedBody(String product) {
+    return 'تم تأكيد دفعتك لـ \"$product\".';
+  }
+
+  @override
+  String get notifOutForDeliveryTitle => 'طلبك في الطريق إليك';
+
+  @override
+  String notifOutForDeliveryBody(String product) {
+    return 'طلبك \"$product\" في الطريق إليك.';
+  }
+
+  @override
+  String get notifOrderCompletedTitle => 'اكتمل الطلب';
+
+  @override
+  String get notifOrderCompletedBody => 'تم إكمال طلبك';
+
+  @override
+  String get notifTechnicianAssignedTitle => 'تم تعيين مهمة تركيب جديدة';
+
+  @override
+  String notifTechnicianAssignedBody(String product) {
+    return 'تم تعيينك لتركيب \"$product\".';
+  }
+
+  @override
+  String get navTechnicians => 'الفنيون';
+
+  @override
+  String get adminInstallationJobs => 'مهام التركيب';
+
+  @override
+  String get adminCompanyProfile => 'ملف الشركة';
+
+  @override
+  String get adminCompanyDashboard => 'لوحة تحكم الشركة';
+
+  @override
+  String get techShellDashboard => 'لوحة الفني';
+
+  @override
+  String get techShellJobs => 'مهامي';
+
+  @override
+  String get techNavJobs => 'المهام';
+
+  @override
+  String get adminWelcome => 'مرحبًا';
+
+  @override
+  String get adminDashboardOverview => 'نظرة عامة على منتجاتك وطلباتك';
+
+  @override
+  String get adminTotalProducts => 'إجمالي المنتجات';
+
+  @override
+  String get adminTotalOrders => 'إجمالي الطلبات';
+
+  @override
+  String get adminPendingOrders => 'الطلبات قيد الانتظار';
+
+  @override
+  String get adminRecentOrders => 'أحدث الطلبات';
+
+  @override
+  String get adminViewAll => 'عرض الكل';
+
+  @override
+  String get adminOrdersLoadFailedShort => 'تعذر تحميل الطلبات.';
+
+  @override
+  String get adminNoOrdersYet => 'لا توجد طلبات بعد.';
+
+  @override
+  String get orderDetailsTitle => 'تفاصيل الطلب';
+
+  @override
+  String get adminOrderNotFound => 'لم يتم العثور على هذا الطلب.';
+
+  @override
+  String get adminJobNotFound => 'لم يتم العثور على هذه المهمة.';
+
+  @override
+  String get adminProductNotFound => 'لم يتم العثور على هذا المنتج.';
+
+  @override
+  String get adminOrdersLoadFailed => 'تعذر تحميل طلباتك.';
+
+  @override
+  String adminFilterAll(int count) {
+    return 'الكل ($count)';
+  }
+
+  @override
+  String adminFilterStatus(String status, int count) {
+    return '$status ($count)';
+  }
+
+  @override
+  String get adminNoOrdersToShow => 'لا توجد طلبات للعرض.';
+
+  @override
+  String adminQtyShort(int count) {
+    return 'الكمية $count';
+  }
+
+  @override
+  String get adminCustomer => 'العميل';
+
+  @override
+  String get adminName => 'الاسم';
+
+  @override
+  String get adminProduct => 'المنتج';
+
+  @override
+  String get adminQuantity => 'الكمية';
+
+  @override
+  String get adminUnitPrice => 'سعر الوحدة';
+
+  @override
+  String get adminMethod => 'الطريقة';
+
+  @override
+  String get adminSelection => 'الخيار';
+
+  @override
+  String get adminJobStatus => 'حالة المهمة';
+
+  @override
+  String get adminPayment => 'الدفع';
+
+  @override
+  String get adminReceiptReference => 'مرجع الإيصال';
+
+  @override
+  String get adminNotProvided => 'غير متوفر';
+
+  @override
+  String get adminOrderInformation => 'معلومات الطلب';
+
+  @override
+  String get adminOrderNumber => 'رقم الطلب';
+
+  @override
+  String get adminCreated => 'تاريخ الإنشاء';
+
+  @override
+  String get adminLastUpdated => 'آخر تحديث';
+
+  @override
+  String get adminCurrentStatus => 'الحالة الحالية';
+
+  @override
+  String get adminManageOrder => 'إدارة الطلب';
+
+  @override
+  String get adminVerifyReceipt =>
+      'الإيصال مجرد ادعاء من العميل. تحقّق من وصول المبلغ إلى حسابك، ثم أكّد الدفع. التأكيد يخصم وحدات هذا الطلب من المخزون، وقبله لا يُحجز شيء.';
+
+  @override
+  String get adminShipAfterPayment =>
+      'لا يتقدّم الطلب إلى المرحلة التالية إلا بعد تأكيد الدفع.';
+
+  @override
+  String adminStockCannotCover(int available, int count) {
+    return 'المخزون لا يكفي هذا الطلب: المتبقي $available والمطلوب $count. أضف مخزوناً ثم أكّد الدفع، أو ألغِ الطلب لنفاد المخزون.';
+  }
+
+  @override
+  String get adminProductGoneCannotConfirm =>
+      'منتج هذا الطلب لم يعد في كتالوجك، لذا لا يمكن تأكيد دفعه. ألغِ الطلب لنفاد المخزون.';
+
+  @override
+  String adminOutOfStockStillCovers(int available, int count) {
+    return 'ما زال المتوفر من المنتج $available، وهذا يكفي هذا الطلب ($count)، لذا لا يمكن إلغاؤه لنفاد المخزون. أكّد الدفع، أو ألغِ الطلب يدوياً.';
+  }
+
+  @override
+  String get adminStockLabel => 'المخزون';
+
+  @override
+  String adminStockTaken(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خُصمت $count وحدة من المخزون',
+      many: 'خُصمت $count وحدة من المخزون',
+      few: 'خُصمت $count وحدات من المخزون',
+      two: 'خُصمت وحدتان من المخزون',
+      one: 'خُصمت وحدة واحدة من المخزون',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adminStockNotTaken => 'لم يُخصم بعد: يُخصم عند تأكيد الدفع';
+
+  @override
+  String get orderPaymentAlreadyConfirmed =>
+      'سبق تأكيد هذا الدفع، ربما من جهاز آخر. لم يُخصم شيء إضافي من المخزون.';
+
+  @override
+  String get orderPaymentNotAwaiting =>
+      'لم يعد ممكناً تأكيد دفع هذا الطلب: أُلغي الطلب أو تقدّمت حالته.';
+
+  @override
+  String get orderPaymentNoReceipt =>
+      'لا يوجد إيصال محفوظ لهذا الطلب، لذا لا يمكن تأكيد دفعه. اطلب الإيصال من العميل في محادثة الطلب، أو ألغِ الطلب.';
+
+  @override
+  String get adminConfirmPaymentTitle => 'تأكيد الدفع';
+
+  @override
+  String adminConfirmPaymentBody(String id, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تُخصم $count وحدة',
+      many: 'تُخصم $count وحدة',
+      few: 'تُخصم $count وحدات',
+      two: 'تُخصم وحدتان',
+      one: 'تُخصم وحدة واحدة',
+    );
+    return 'هل وصلت دفعة الطلب ‎#$id؟ عند التأكيد $_temp0 من المخزون الآن.';
+  }
+
+  @override
+  String get adminPaymentConfirmed => 'تم تأكيد الدفع وخصم المخزون.';
+
+  @override
+  String get adminConfirmPaymentButton => 'تأكيد الدفع';
+
+  @override
+  String get adminOrderCompleted => 'اكتمل هذا الطلب.';
+
+  @override
+  String get adminMarkCompletedHint =>
+      'حدّد الطلب كمكتمل بعد أن ينهي الفني التركيب.';
+
+  @override
+  String get adminUpdateOrderStatus => 'تحديث حالة الطلب';
+
+  @override
+  String adminChangeOrderStatusBody(String id, String status) {
+    return 'هل تريد تغيير حالة الطلب ‎#$id إلى \"$status\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String adminOrderMarked(String status) {
+    return 'تم تحديث حالة الطلب إلى: $status.';
+  }
+
+  @override
+  String get adminMarkOutForDelivery => 'تحويل إلى: في الطريق للتسليم';
+
+  @override
+  String get adminMarkCompletedInstalled => 'تحويل إلى: مكتمل (تم التركيب)';
+
+  @override
+  String get adminMarkCompleted => 'تحويل إلى: مكتمل';
+
+  @override
+  String get adminMarkProcessing => 'تحويل إلى: قيد المعالجة';
+
+  @override
+  String get adminInstallationJob => 'مهمة تركيب';
+
+  @override
+  String adminJobTitleNumber(String id) {
+    return 'مهمة ‎#$id';
+  }
+
+  @override
+  String get adminJobDetails => 'تفاصيل المهمة';
+
+  @override
+  String get adminJobOrderNumber => 'رقم المهمة / الطلب';
+
+  @override
+  String get adminCustomerLocation => 'العميل والموقع';
+
+  @override
+  String get adminInstallationAddress => 'عنوان التركيب';
+
+  @override
+  String get adminLocation => 'الموقع';
+
+  @override
+  String get adminCustomerPickupConfirm =>
+      'استلام العميل — أكّد موقع التركيب عبر الهاتف';
+
+  @override
+  String get adminCustomerPickupConfirmShort =>
+      'استلام العميل — أكّد الموقع عبر الهاتف';
+
+  @override
+  String get adminCustomerPickup => 'استلام العميل';
+
+  @override
+  String get adminViewFullOrder => 'عرض الطلب الكامل';
+
+  @override
+  String get adminTechnicianAssigned => 'تم تعيين الفني.';
+
+  @override
+  String get adminAssignTechnician => 'تعيين فني';
+
+  @override
+  String get adminChangeTechnician => 'تغيير الفني';
+
+  @override
+  String get adminPickTechnicianHint => 'اختر من سينفّذ هذا التركيب.';
+
+  @override
+  String get adminTechnicianSearchHint => 'ابحث عن فني';
+
+  @override
+  String get adminTechnicianNoMatch => 'لا يوجد فني مطابق لبحثك.';
+
+  @override
+  String get adminTechnicianCurrent => 'معيّن';
+
+  @override
+  String get adminTechnicianSection => 'الفني';
+
+  @override
+  String get adminAssignedTo => 'مُعيَّن إلى';
+
+  @override
+  String get adminNotAssigned => 'غير معيّن';
+
+  @override
+  String get adminTechniciansLoadFailedShort => 'تعذر تحميل الفنيين.';
+
+  @override
+  String get adminAddTechnicianFirst => 'أضف فنيًا أولًا لتعيينه لهذه المهمة.';
+
+  @override
+  String get adminAddProduct => 'إضافة منتج';
+
+  @override
+  String get adminEditProduct => 'تعديل المنتج';
+
+  @override
+  String get adminProductsLoadFailed => 'تعذر تحميل منتجاتك.';
+
+  @override
+  String get adminProductsEmpty =>
+      'لم تضف أي منتجات بعد.\nاضغط على \"إضافة منتج\" لإنشاء أول منتج.';
+
+  @override
+  String adminInStock(int count) {
+    return 'متوفر: $count';
+  }
+
+  @override
+  String get adminUnavailable => 'غير متاح';
+
+  @override
+  String get adminOutOfStock => 'غير متوفر في المخزون';
+
+  @override
+  String get adminInstallationBadge => 'التركيب';
+
+  @override
+  String get adminPickupOnlyBadge => 'استلام فقط';
+
+  @override
+  String get adminDeleteProduct => 'حذف المنتج';
+
+  @override
+  String adminDeleteProductBody(String name) {
+    return 'هل تريد حذف \"$name\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String get adminProductDeleted => 'تم حذف المنتج.';
+
+  @override
+  String get adminProductDetails => 'تفاصيل المنتج';
+
+  @override
+  String get adminEditProductTooltip => 'تعديل المنتج';
+
+  @override
+  String get adminAvailability => 'التوفر';
+
+  @override
+  String get adminStatus => 'الحالة';
+
+  @override
+  String get adminAvailable => 'متاح';
+
+  @override
+  String get adminNotAvailable => 'غير متاح';
+
+  @override
+  String get adminNotAvailablePickup => 'غير متاح (استلام فقط)';
+
+  @override
+  String get adminStock => 'المخزون';
+
+  @override
+  String get adminDeliveryInstallation => 'التوصيل والتركيب';
+
+  @override
+  String get adminInstallationPrice => 'سعر التركيب';
+
+  @override
+  String get formProductAdded => 'تمت إضافة المنتج.';
+
+  @override
+  String get formProductUpdated => 'تم تحديث المنتج.';
+
+  @override
+  String get formProductName => 'اسم المنتج';
+
+  @override
+  String get formProductNameRequired => 'اسم المنتج مطلوب.';
+
+  @override
+  String get formCategoryLabel => 'الفئة';
+
+  @override
+  String adminUnitsLeft(int count) {
+    return 'المتبقي $count';
+  }
+
+  @override
+  String get adminStockLow => 'مخزون منخفض';
+
+  @override
+  String get adminAttentionRestock => 'أعد التخزين';
+
+  @override
+  String get adminAttentionAssignTechnician => 'عيّن فنياً';
+
+  @override
+  String get adminAttentionVerifyPayment => 'تحقق من الدفع';
+
+  @override
+  String get adminStatLowStock => 'مخزون منخفض';
+
+  @override
+  String get adminStatSalesWeek => 'مبيعات الأسبوع';
+
+  @override
+  String get adminStatNewOrders => 'طلبات جديدة';
+
+  @override
+  String get adminNothingToDo => 'لا شيء يحتاج انتباهك الآن.';
+
+  @override
+  String get adminNeedsAttention => 'يحتاج انتباهك';
+
+  @override
+  String get navCatalog => 'الكتالوج';
+
+  @override
+  String get navAccount => 'حسابي';
+
+  @override
+  String get adminAddNew => 'إضافة';
+
+  @override
+  String get adminAddNewTitle => 'إضافة جديد';
+
+  @override
+  String get adminAddService => 'إضافة خدمة';
+
+  @override
+  String adminOrdersPickup(int count) {
+    return 'استلام ($count)';
+  }
+
+  @override
+  String adminOrdersDelivery(int count) {
+    return 'توصيل ($count)';
+  }
+
+  @override
+  String adminOrdersInstallation(int count) {
+    return 'تركيب ($count)';
+  }
+
+  @override
+  String adminOrdersServices(int count) {
+    return 'خدمات ($count)';
+  }
+
+  @override
+  String get adminAccountViewProfile => 'عرض ملف الشركة';
+
+  @override
+  String adminTechniciansActive(int count) {
+    return 'النشطون: $count';
+  }
+
+  @override
+  String get adminSearchOrders => 'ابحث في الطلبات وطلبات الخدمة';
+
+  @override
+  String get adminSearchProducts => 'ابحث في المنتجات';
+
+  @override
+  String get adminServiceOwnBadge => 'أنشأتها أنت';
+
+  @override
+  String get adminServiceCategoryInvalid => 'اختر فئة صالحة.';
+
+  @override
+  String get adminServiceCategoryRequired => 'اختر فئة.';
+
+  @override
+  String get adminServiceDescriptionLabel => 'الوصف';
+
+  @override
+  String get adminServiceNameRequired => 'اسم الخدمة مطلوب.';
+
+  @override
+  String get adminServiceNameLabel => 'اسم الخدمة';
+
+  @override
+  String get adminServiceFormEditTitle => 'تعديل الخدمة';
+
+  @override
+  String get adminServiceCreateFirst => 'أنشئ أول خدمة';
+
+  @override
+  String get adminServiceNew => 'خدمة جديدة';
+
+  @override
+  String get adminServicesYours => 'خدماتك';
+
+  @override
+  String get formCategoryInactiveSuffix => '(غير نشطة)';
+
+  @override
+  String get formCategoryNone => 'بدون فئة';
+
+  @override
+  String get categoryPickerTitle => 'اختر تصنيفاً';
+
+  @override
+  String get categorySearchHint => 'ابحث في التصنيفات';
+
+  @override
+  String get categoryRootCrumb => 'كل التصنيفات';
+
+  @override
+  String get categoryBack => 'رجوع';
+
+  @override
+  String get categorySelect => 'اختيار';
+
+  @override
+  String get categoryNoResults => 'لا يوجد تصنيف يطابق بحثك.';
+
+  @override
+  String get categoryTreeEmpty => 'لم تتم إضافة تصنيفات بعد.';
+
+  @override
+  String get categoryUnavailable =>
+      'هذا التصنيف لم يعد متاحاً. اختر تصنيفاً آخر.';
+
+  @override
+  String categorySubCount(int count) {
+    return '$count تصنيف فرعي';
+  }
+
+  @override
+  String get homeFilterAllCategories => 'الكل';
+
+  @override
+  String get homeCategoriesTitle => 'الأقسام';
+
+  @override
+  String get homeCategoriesMore => 'المزيد';
+
+  @override
+  String get adminProductUncategorized => 'بدون فئة';
+
+  @override
+  String get formPriceOptional => 'السعر (SDG) - اختياري';
+
+  @override
+  String get formPriceInvalid => 'أدخل سعرًا صالحًا أكبر من 0.';
+
+  @override
+  String get formInstallationPriceRequired => 'سعر التركيب مطلوب.';
+
+  @override
+  String get formInstallationPriceInvalid => 'أدخل سعر تركيب صالحًا أكبر من 0.';
+
+  @override
+  String get formStockSection => 'المخزون / التوفر';
+
+  @override
+  String get formStockQuantity => 'كمية المخزون';
+
+  @override
+  String get formStockRequired => 'أدخل كمية المخزون (0 أو أكثر).';
+
+  @override
+  String get formAvailableForSale => 'متاح للبيع';
+
+  @override
+  String get formAvailableHint =>
+      'يمكن للعملاء شراء هذا المنتج طالما توفر في المخزون.';
+
+  @override
+  String get formSpecName => 'الاسم';
+
+  @override
+  String get formSpecValue => 'القيمة';
+
+  @override
+  String get formAddSpec => 'إضافة مواصفة';
+
+  @override
+  String get formDeliveryAvailable => 'التوصيل متاح';
+
+  @override
+  String get formDeliveryOn => 'يمكن للعملاء اختيار التوصيل عند إتمام الطلب.';
+
+  @override
+  String get formDeliveryOff =>
+      'يستلم العملاء هذا المنتج من موقع الاستلام الخاص بك.';
+
+  @override
+  String get formInstallationAvailable => 'التركيب متاح';
+
+  @override
+  String get formInstallationOn => 'يمكن للعملاء اختيار منتج + تركيب.';
+
+  @override
+  String get formInstallationOff => 'لن يرى العملاء أي خيار للتركيب.';
+
+  @override
+  String get formInstallationPrice => 'سعر التركيب (SDG)';
+
+  @override
+  String get adminCompanyLoadFailed => 'تعذر تحميل ملف شركتك.';
+
+  @override
+  String get adminCompanyNotFound =>
+      'لم يتم العثور على سجل شركتك. يرجى التواصل مع مدير المنصة.';
+
+  @override
+  String get adminContact => 'التواصل';
+
+  @override
+  String get adminPhone => 'الهاتف';
+
+  @override
+  String get adminCity => 'المدينة';
+
+  @override
+  String get adminEditCompanyProfile => 'تعديل ملف الشركة';
+
+  @override
+  String get adminCompanyProfileUpdated => 'تم تحديث ملف الشركة.';
+
+  @override
+  String get adminCompanyName => 'اسم الشركة';
+
+  @override
+  String get adminCompanyNameRequired => 'اسم الشركة مطلوب.';
+
+  @override
+  String get adminPickupAddress => 'موقع الاستلام / العنوان';
+
+  @override
+  String get pickupModeCompany => 'الاستلام من موقع الشركة';
+
+  @override
+  String get pickupModeCompanyHint =>
+      'يستلم العملاء من عنوان الشركة ونقطتها على الخريطة أعلاه.';
+
+  @override
+  String get pickupModeCustom => 'نقاط استلام مخصّصة';
+
+  @override
+  String pickupPointsHint(int max) {
+    return 'يختار العميل إحداها عند الطلب. حتى $max نقاط.';
+  }
+
+  @override
+  String pickupPointTitle(int n) {
+    return 'نقطة الاستلام $n';
+  }
+
+  @override
+  String get pickupPointName => 'اسم النقطة';
+
+  @override
+  String get pickupPointNameHint => 'مثلاً: فرع الخرطوم';
+
+  @override
+  String get pickupPointNameRequired => 'أدخل اسماً لهذه النقطة.';
+
+  @override
+  String get pickupPointPlaceRequired =>
+      'أدخل عنواناً أو حدّد نقطة على الخريطة.';
+
+  @override
+  String get pickupAddPoint => 'إضافة نقطة استلام';
+
+  @override
+  String get pickupRemovePoint => 'حذف هذه النقطة';
+
+  @override
+  String get checkoutChoosePickupPoint => 'اختر مكان استلام طلبك';
+
+  @override
+  String get adminShortDescription => 'وصف مختصر';
+
+  @override
+  String get adminAddTechnician => 'إضافة فني';
+
+  @override
+  String get adminEditTechnician => 'تعديل الفني';
+
+  @override
+  String get adminDeactivateTechnician => 'إلغاء تفعيل الفني';
+
+  @override
+  String adminDeactivateTechnicianBody(String name) {
+    return 'هل تريد إلغاء تفعيل \"$name\"؟ لن يكون متاحًا لمهام التركيب الجديدة.';
+  }
+
+  @override
+  String get adminTechnicianDeactivated => 'تم إلغاء تفعيل الفني.';
+
+  @override
+  String get adminTechniciansLoadFailed => 'تعذر تحميل الفنيين.';
+
+  @override
+  String get adminTechniciansEmpty =>
+      'لم تضف أي فنيين بعد.\nاضغط على \"إضافة فني\" لإنشاء حساب أول فني.';
+
+  @override
+  String get adminActive => 'نشط';
+
+  @override
+  String get adminInactive => 'غير نشط';
+
+  @override
+  String get adminTechnicianUpdated => 'تم تحديث بيانات الفني.';
+
+  @override
+  String get adminTechnicianNameRequired => 'اسم الفني مطلوب.';
+
+  @override
+  String get adminPhoneRequired => 'رقم الهاتف مطلوب.';
+
+  @override
+  String get adminTechnicianEmailRequired => 'البريد الإلكتروني للفني مطلوب.';
+
+  @override
+  String get adminInactiveTechnicianNote =>
+      'لا يمكن تعيين الفنيين غير النشطين لمهام جديدة.';
+
+  @override
+  String get techDashboardLoadFailed => 'تعذر تحميل لوحتك.';
+
+  @override
+  String techWelcome(String name) {
+    return 'مرحبًا، $name';
+  }
+
+  @override
+  String get techTotalJobs => 'إجمالي المهام';
+
+  @override
+  String get techUpcomingJobs => 'المهام القادمة';
+
+  @override
+  String get techNoPendingJobs => 'لا توجد مهام قيد الانتظار حاليًا.';
+
+  @override
+  String get techJobsLoadFailed => 'تعذر تحميل مهامك.';
+
+  @override
+  String get techNoJobsAssigned => 'لا توجد مهام تركيب مُعيَّنة لك بعد.';
+
+  @override
+  String get techJobCompleted => 'اكتملت هذه المهمة.';
+
+  @override
+  String get techAwaitingPayment => 'بانتظار تأكيد الشركة للدفع.';
+
+  @override
+  String get techAwaitingPaymentHint =>
+      'يمكنك تحريك هذه المهمة بعد تأكيد الدفع.';
+
+  @override
+  String get techUpdateJobStatus => 'تحديث حالة المهمة';
+
+  @override
+  String techChangeJobBody(String id, String status) {
+    return 'هل تريد تغيير حالة المهمة ‎#$id إلى \"$status\"؟ لا يمكن التراجع عن هذا الإجراء.';
+  }
+
+  @override
+  String techJobMarked(String status) {
+    return 'تم تحديث حالة المهمة إلى: $status.';
+  }
+
+  @override
+  String get techMarkInstallationCompleted => 'تأكيد اكتمال التركيب';
+
+  @override
+  String get techProfileLoadFailed => 'تعذر تحميل ملفك الشخصي.';
+
+  @override
+  String get techCompany => 'الشركة';
+
+  @override
+  String get techMyDetails => 'بياناتي';
+
+  @override
+  String get techEditName => 'تعديل الاسم';
+
+  @override
+  String comingSoonTitle(String title) {
+    return '$title قريبًا';
+  }
+
+  @override
+  String get paymentAccountsManage => 'حسابات الدفع';
+
+  @override
+  String get paymentAccountsIntro =>
+      'يحوّل العملاء مدفوعات طلباتهم إلى هذه الحسابات. أضف حسابًا واحدًا على الأقل ليتمكن العملاء من الدفع لك.';
+
+  @override
+  String get paymentAccountsEmpty => 'لا توجد حسابات دفع بعد.';
+
+  @override
+  String get paymentAccountAdd => 'إضافة حساب';
+
+  @override
+  String get paymentAccountEdit => 'تعديل الحساب';
+
+  @override
+  String get paymentAccountBankName => 'اسم البنك / المحفظة';
+
+  @override
+  String get paymentAccountBankRequired => 'أدخل اسم البنك أو المحفظة.';
+
+  @override
+  String get paymentAccountHolderRequired => 'أدخل اسم صاحب الحساب.';
+
+  @override
+  String get paymentAccountNumberRequired => 'أدخل رقم الحساب.';
+
+  @override
+  String get paymentAccountPhoneOptional => 'رقم الهاتف المرتبط (اختياري)';
+
+  @override
+  String get paymentAccountSaved => 'تم حفظ حساب الدفع.';
+
+  @override
+  String get paymentAccountRemoved => 'تم حذف حساب الدفع.';
+
+  @override
+  String get paymentAccountRemoveTitle => 'حذف هذا الحساب؟';
+
+  @override
+  String get paymentAccountRemoveBody =>
+      'لن يظهر للعملاء بعد الآن في شاشة الدفع.';
+
+  @override
+  String paymentAccountLimit(int max) {
+    return 'يمكنك إضافة $max حسابات كحد أقصى.';
+  }
+
+  @override
+  String get paymentNoAccountsForCompany =>
+      'لم تضف هذه الشركة حسابات دفع بعد، لذلك لا تستطيع استلام دفعة الآن. يرجى التواصل مع الشركة.';
+
+  @override
+  String get adminTechnicianAccountNote =>
+      'سيتم إنشاء حساب الفني بكلمة مرور مؤقتة. أعطِ الفني هذا البريد الإلكتروني وكلمة المرور، وسيختار كلمة مروره بنفسه عند أول تسجيل دخول.';
+
+  @override
+  String get adminTechnicianTempPassword => 'كلمة المرور المؤقتة';
+
+  @override
+  String get adminTechnicianPasswordRequired => 'أدخل كلمة مرور مؤقتة.';
+
+  @override
+  String get adminAddTechnicianSubmit => 'إضافة الفني';
+
+  @override
+  String get adminTechnicianCreated =>
+      'تمت إضافة الفني. شارك معه البريد الإلكتروني وكلمة المرور المؤقتة.';
+
+  @override
+  String get technicianEmailInUse => 'يوجد حساب بهذا البريد الإلكتروني مسبقًا.';
+
+  @override
+  String get technicianEmailInvalid => 'البريد الإلكتروني غير صالح.';
+
+  @override
+  String get technicianPasswordWeak =>
+      'كلمة المرور المؤقتة ضعيفة جدًا. اختر كلمة أطول وأصعب.';
+
+  @override
+  String get technicianTooManyRequests =>
+      'محاولات كثيرة. انتظر بضع دقائق ثم حاول مرة أخرى.';
+
+  @override
+  String get technicianAuthDisabled =>
+      'إنشاء الحسابات بالبريد الإلكتروني متوقف في هذا المشروع. تواصل مع مسؤول المنصة.';
+
+  @override
+  String get comingSoonBody => 'سيتوفر هذا القسم في تحديث لاحق.';
+
+  @override
+  String get navServices => 'الخدمات';
+
+  @override
+  String get navChats => 'المحادثات';
+
+  @override
+  String get navMore => 'المزيد';
+
+  @override
+  String get homeNoServices => 'لا توجد خدمات';
+
+  @override
+  String get searchHint => 'ابحث عن منتجات وخدمات وشركات';
+
+  @override
+  String get searchRecent => 'عمليات البحث الأخيرة';
+
+  @override
+  String get searchRemoveRecent => 'حذف من السجل';
+
+  @override
+  String get searchBrowseCategories => 'تصفح الأقسام';
+
+  @override
+  String searchFor(String query) {
+    return 'ابحث عن «$query»';
+  }
+
+  @override
+  String searchAll(int count) {
+    return 'الكل ($count)';
+  }
+
+  @override
+  String searchProducts(int count) {
+    return 'منتجات ($count)';
+  }
+
+  @override
+  String searchServices(int count) {
+    return 'خدمات ($count)';
+  }
+
+  @override
+  String searchCompanies(int count) {
+    return 'شركات ($count)';
+  }
+
+  @override
+  String searchSeeAll(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String searchNoResults(String query) {
+    return 'لا توجد نتائج لـ «$query»';
+  }
+
+  @override
+  String get searchNoResultsTip =>
+      'تأكد من الإملاء، أو جرّب كلمة أقصر، أو تصفح أحد الأقسام.';
+
+  @override
+  String get searchTypeProduct => 'منتج';
+
+  @override
+  String get searchTypeService => 'خدمة';
+
+  @override
+  String get searchTypeCompany => 'شركة';
+
+  @override
+  String get homeServicesLoadFailed => 'تعذر تحميل الخدمات.';
+
+  @override
+  String get ordersTabProducts => 'المنتجات';
+
+  @override
+  String get ordersTabServices => 'الخدمات';
+
+  @override
+  String get serviceDetailsTitle => 'تفاصيل الخدمة';
+
+  @override
+  String get serviceAvailableCompanies => 'الشركات المتاحة';
+
+  @override
+  String get serviceNoCompanies => 'لا توجد شركة تقدم هذه الخدمة حاليًا.';
+
+  @override
+  String get serviceCompaniesLoadFailed => 'تعذر تحميل الشركات.';
+
+  @override
+  String get serviceRequestAction => 'اطلب الخدمة';
+
+  @override
+  String get serviceRequestFormTitle => 'طلب خدمة';
+
+  @override
+  String get serviceRequestDetailsLabel => 'ماذا تحتاج؟';
+
+  @override
+  String get serviceRequestDetailsHint =>
+      'صف العمل المطلوب والجهاز أو النظام، وأي شيء يجب أن تعرفه الشركة.';
+
+  @override
+  String get serviceRequestDetailsRequired => 'يرجى وصف ما تحتاجه.';
+
+  @override
+  String get serviceRequestLocationOptional => 'العنوان (اختياري)';
+
+  @override
+  String get serviceRequestAddressHint => 'أين يجب تنفيذ الخدمة؟';
+
+  @override
+  String get serviceRequestSubmit => 'إرسال الطلب';
+
+  @override
+  String get serviceRequestSent =>
+      'تم إرسال طلبك. يمكنك الآن التحدث مع الشركة.';
+
+  @override
+  String get serviceRequestCreateDenied =>
+      'تعذر إرسال هذا الطلب. ربما لم تعد الشركة تقدم هذه الخدمة.';
+
+  @override
+  String get serviceRequestCreateFailed =>
+      'تعذر إرسال الطلب. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get serviceRequestUpdateFailed =>
+      'تعذر تحديث الطلب. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get serviceRequestsLoadFailed => 'تعذر تحميل طلبات الخدمة.';
+
+  @override
+  String get serviceRequestNotFound => 'لم يتم العثور على طلب الخدمة هذا.';
+
+  @override
+  String get serviceRequestsEmptyCustomer => 'لم تطلب أي خدمة بعد.';
+
+  @override
+  String get serviceRequestsEmptyCompany => 'لا توجد طلبات خدمة بعد.';
+
+  @override
+  String get serviceRequestDetailsTitle => 'طلب خدمة';
+
+  @override
+  String get serviceRequestCustomer => 'العميل';
+
+  @override
+  String get serviceRequestCompany => 'الشركة';
+
+  @override
+  String get serviceRequestPrice => 'السعر';
+
+  @override
+  String get serviceRequestSentAt => 'تاريخ الإرسال';
+
+  @override
+  String get serviceRequestNumber => 'رقم الطلب';
+
+  @override
+  String get serviceRequestContact => 'التواصل والموقع';
+
+  @override
+  String get serviceRequestAddress => 'العنوان';
+
+  @override
+  String get serviceRequestOpenChat => 'فتح المحادثة';
+
+  @override
+  String get serviceRequestViewDetails => 'تفاصيل الطلب';
+
+  @override
+  String get serviceRequestCancel => 'إلغاء الطلب';
+
+  @override
+  String get serviceRequestCancelTitle => 'إلغاء هذا الطلب؟';
+
+  @override
+  String get serviceRequestCancelBody =>
+      'سترى الشركة أنك ألغيت الطلب. لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get serviceRequestAccept => 'قبول';
+
+  @override
+  String get serviceRequestReject => 'رفض';
+
+  @override
+  String get serviceRequestRejectTitle => 'رفض هذا الطلب؟';
+
+  @override
+  String get serviceRequestRejectBody =>
+      'سيرى العميل أن الطلب قد رُفض. لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get serviceRequestStart => 'بدء العمل';
+
+  @override
+  String get serviceRequestComplete => 'تحديد كمكتمل';
+
+  @override
+  String get serviceRequestStatusPending => 'قيد الانتظار';
+
+  @override
+  String get serviceRequestStatusAccepted => 'مقبول';
+
+  @override
+  String get serviceRequestStatusRejected => 'مرفوض';
+
+  @override
+  String get serviceRequestStatusInProgress => 'قيد التنفيذ';
+
+  @override
+  String get serviceRequestStatusCompleted => 'مكتمل';
+
+  @override
+  String get serviceRequestStatusCancelled => 'ملغى';
+
+  @override
+  String serviceRequestStatusLine(String status) {
+    return 'حالة الطلب: $status';
+  }
+
+  @override
+  String orderChatStatusLine(String status) {
+    return 'حالة الطلب: $status';
+  }
+
+  @override
+  String get orderViewDetails => 'تفاصيل الطلب';
+
+  @override
+  String get orderStartChat => 'ابدأ محادثة';
+
+  @override
+  String get chatStartDenied => 'لا يمكنك بدء محادثة حول هذا الطلب.';
+
+  @override
+  String get chatStartFailed => 'تعذر بدء المحادثة. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get chatContactCompany => 'تواصل';
+
+  @override
+  String get pushOpen => 'فتح';
+
+  @override
+  String chatInquirySubject(String subject) {
+    return 'استفسار: $subject';
+  }
+
+  @override
+  String get chatInquiryStatusLine => 'استفسار قبل الطلب، لا يوجد طلب بعد';
+
+  @override
+  String get chatInquiryDenied => 'لا يمكنك مراسلة هذه الشركة الآن.';
+
+  @override
+  String get chatsEmptyCustomer =>
+      'لا توجد محادثات بعد. اضغط «تواصل» في صفحة أي منتج أو خدمة، أو اطلب شيئاً، وستظهر محادثتك مع الشركة هنا.';
+
+  @override
+  String get chatsEmptyCompany =>
+      'لا توجد محادثات بعد. أسئلة العملاء وكل طلب أو طلب خدمة يُرسل إلى شركتك يفتح محادثة هنا.';
+
+  @override
+  String get chatNoMessagesYet => 'لا توجد رسائل بعد';
+
+  @override
+  String get chatEmpty => 'لا توجد رسائل بعد. اكتب لبدء المحادثة.';
+
+  @override
+  String get chatInputHint => 'اكتب رسالة';
+
+  @override
+  String get chatSend => 'إرسال';
+
+  @override
+  String get chatYou => 'أنت';
+
+  @override
+  String chatYouPrefix(String text) {
+    return 'أنت: $text';
+  }
+
+  @override
+  String chatYesterdayAt(String time) {
+    return 'أمس $time';
+  }
+
+  @override
+  String get chatCustomerFallback => 'عميل';
+
+  @override
+  String get chatUnread => 'غير مقروءة';
+
+  @override
+  String get chatNotFound => 'لم يتم العثور على هذه المحادثة.';
+
+  @override
+  String get chatLoadFailed => 'تعذر تحميل المحادثة.';
+
+  @override
+  String get chatSendDenied => 'لا يمكنك إرسال رسائل في هذه المحادثة.';
+
+  @override
+  String get chatSendFailed => 'تعذر إرسال الرسالة. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get chatMessageInvalid => 'اكتب رسالة لا تتجاوز 2000 حرف.';
+
+  @override
+  String get adminServicesLoadFailed => 'تعذر تحميل الخدمات.';
+
+  @override
+  String get adminServicesOffered => 'الخدمات التي تقدمها';
+
+  @override
+  String get adminServicesOfferedEmpty =>
+      'لا تقدم أي خدمة بعد. أنشئ خدمة لتبدأ باستقبال الطلبات.';
+
+  @override
+  String get adminServicesAvailable => 'من كتالوج المنصة';
+
+  @override
+  String get adminServicesCatalogueEmpty => 'دليل الخدمات فارغ حاليًا.';
+
+  @override
+  String get adminServicesAllAdded =>
+      'أنت تقدم بالفعل كل الخدمات الموجودة في الدليل.';
+
+  @override
+  String get adminServiceAdd => 'إضافة';
+
+  @override
+  String get adminServiceSaved => 'تم حفظ الخدمة.';
+
+  @override
+  String get adminServiceRemoved => 'تمت إزالة الخدمة.';
+
+  @override
+  String get adminServiceRemoveTitle => 'إيقاف تقديم هذه الخدمة؟';
+
+  @override
+  String adminServiceRemoveBody(String name) {
+    return 'لن يتمكن العملاء بعد الآن من طلب $name من شركتك. تبقى الطلبات الحالية كما هي.';
+  }
+
+  @override
+  String get adminServicePriceHelper =>
+      'اتركه فارغًا إذا كنت لا تريد إظهار سعر.';
+
+  @override
+  String get adminServiceNoteLabel => 'ملاحظة للعملاء (اختياري)';
+
+  @override
+  String get adminServiceNoteHint =>
+      'مثلًا: في الموقع أو عن بُعد، وما الذي يشمله';
+
+  @override
+  String get companyServiceAlreadyOffered => 'شركتك تقدم هذه الخدمة بالفعل.';
+
+  @override
+  String get companyServiceNotFound => 'هذه الخدمة لم تعد متاحة.';
+
+  @override
+  String offerDiscountBadge(int percent) {
+    return 'خصم $percent%';
+  }
+
+  @override
+  String get homeFeaturedOffers => 'عروض مميزة';
+
+  @override
+  String get adminAddOffer => 'إضافة عرض';
+
+  @override
+  String get offerPickProductTitle => 'اختر المنتج';
+
+  @override
+  String get offerPickProductEmpty =>
+      'أضف منتجًا له سعر أولًا، ثم اعمل عليه عرضًا.';
+
+  @override
+  String offerNormalPrice(String price, String currency) {
+    return 'السعر العادي: $price $currency';
+  }
+
+  @override
+  String get offerPriceTooHigh => 'يجب أن يكون سعر العرض أقل من السعر العادي.';
+
+  @override
+  String get offerNoEndDate => 'بدون تاريخ انتهاء';
+
+  @override
+  String get offerEndsHint =>
+      'بعد هذا التاريخ يعود المنتج لسعره العادي ويختفي من العروض.';
+
+  @override
+  String get offerRemove => 'إنهاء العرض';
+
+  @override
+  String get offerSaved => 'تم حفظ العرض.';
+
+  @override
+  String get offerRemoved => 'تم إنهاء العرض.';
+
+  @override
+  String offerEndsOn(String date) {
+    return 'ينتهي في $date';
+  }
+
+  @override
+  String get offerEdit => 'تعديل العرض';
+
+  @override
+  String get offerNeedsPrice => 'حدّد سعرًا للمنتج أولًا لتعمل عليه عرضًا.';
+
+  @override
+  String formPriceBelowOffer(String price) {
+    return 'على المنتج عرض بسعر $price. يجب أن يكون السعر أكبر منه، أو ألغِ العرض أولًا.';
+  }
+
+  @override
+  String get offerKindProduct => 'منتج';
+
+  @override
+  String get offerKindService => 'خدمة';
+
+  @override
+  String get offerBadgeDiscount => 'خصم %';
+
+  @override
+  String get offerBadgeSpecial => 'عرض خاص';
+
+  @override
+  String get offerBadgeLimited => 'لفترة محدودة';
+
+  @override
+  String get offerNewTitle => 'عرض جديد';
+
+  @override
+  String get offerOnLabel => 'العرض على';
+
+  @override
+  String get offerChooseItem => 'اختر من الكتالوج';
+
+  @override
+  String get offerChange => 'تغيير';
+
+  @override
+  String get offerNewProduct => 'منتج جديد عليه عرض';
+
+  @override
+  String get offerNewService => 'خدمة جديدة عليها عرض';
+
+  @override
+  String get offerPickServiceTitle => 'اختر الخدمة';
+
+  @override
+  String get offerSearchHint => 'ابحث بالاسم';
+
+  @override
+  String get offerItemNoPrice => 'بدون سعر، حدّد سعرًا أولًا';
+
+  @override
+  String get offerPickServiceEmpty =>
+      'أضف خدمة لها سعر أولًا، ثم اعمل عليها عرضًا.';
+
+  @override
+  String get offerDiscountMethod => 'طريقة الخصم';
+
+  @override
+  String get offerModePercent => 'نسبة خصم %';
+
+  @override
+  String get offerModePrice => 'سعر جديد';
+
+  @override
+  String get offerPercentLabel => 'نسبة الخصم (%)';
+
+  @override
+  String get offerPercentInvalid => 'أدخل نسبة بين 1 و 99.';
+
+  @override
+  String offerComputedPrice(String price, String currency) {
+    return 'سعر العرض: $price $currency';
+  }
+
+  @override
+  String get offerDuration => 'مدة العرض';
+
+  @override
+  String get offerDuration3Days => '3 أيام';
+
+  @override
+  String get offerDurationWeek => 'أسبوع';
+
+  @override
+  String get offerDurationMonth => 'شهر';
+
+  @override
+  String get offerDurationNone => 'بدون نهاية';
+
+  @override
+  String get offerDurationCustom => 'تاريخ محدد';
+
+  @override
+  String get offerEndDatePast => 'اختر تاريخ انتهاء قادمًا.';
+
+  @override
+  String get offerBadgeLabel => 'شارة العرض';
+
+  @override
+  String get offerPreviewEmpty =>
+      'اختر منتجًا أو خدمة لتظهر هنا معاينة العرض كما يراه العميل.';
+
+  @override
+  String offerSaves(String amount, String currency) {
+    return 'يوفّر $amount $currency';
+  }
+
+  @override
+  String get offerPublish => 'نشر العرض';
+
+  @override
+  String get offerPublished => 'تم نشر العرض.';
+
+  @override
+  String get offerEndConfirmTitle => 'إنهاء العرض؟';
+
+  @override
+  String offerEndConfirmBody(String name) {
+    return 'سيعود «$name» لسعره العادي ويختفي من العروض.';
+  }
+
+  @override
+  String get offerPickItemRequired => 'اختر منتجًا أو خدمة للعرض.';
+
+  @override
+  String get catalogOffers => 'العروض';
+
+  @override
+  String offersRunning(int count) {
+    return 'العروض الحالية ($count)';
+  }
+
+  @override
+  String offersEnded(int count) {
+    return 'العروض المنتهية ($count)';
+  }
+
+  @override
+  String get offersEmpty =>
+      'لا توجد عروض بعد. أضف عرضًا على أي منتج أو خدمة ليظهر للعملاء في «عروض مميزة».';
+
+  @override
+  String offerEndedOn(String date) {
+    return 'انتهى في $date';
+  }
+
+  @override
+  String get offerAddCta => 'إضافة عرض';
+
+  @override
+  String get reviewsTitle => 'التقييمات';
+
+  @override
+  String get reviewsNew => 'جديد';
+
+  @override
+  String get reviewsEmpty => 'لا توجد تقييمات بعد.';
+
+  @override
+  String reviewsSeeAll(int count) {
+    return 'عرض كل التقييمات ($count)';
+  }
+
+  @override
+  String reviewsBasedOn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تقييم',
+      many: '$count تقييمًا',
+      few: '$count تقييمات',
+      two: 'تقييمان',
+      one: 'تقييم واحد',
+      zero: 'لا تقييمات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewPromptTitle => 'كيف كانت تجربتك؟';
+
+  @override
+  String get reviewPromptBody =>
+      'تقييمك يساعد العملاء الآخرين في الاختيار، ويساعد الشركة على التحسّن.';
+
+  @override
+  String get reviewRateAction => 'قيّم';
+
+  @override
+  String get reviewRateOrderTitle => 'قيّم طلبك';
+
+  @override
+  String get reviewRateServiceTitle => 'قيّم الخدمة';
+
+  @override
+  String get reviewYours => 'تقييمك';
+
+  @override
+  String get reviewEditAction => 'تعديل التقييم';
+
+  @override
+  String reviewEditUntil(String date) {
+    return 'يمكنك تعديله حتى $date.';
+  }
+
+  @override
+  String get reviewStars1 => 'سيئ';
+
+  @override
+  String get reviewStars2 => 'مقبول';
+
+  @override
+  String get reviewStars3 => 'جيد';
+
+  @override
+  String get reviewStars4 => 'جيد جدًا';
+
+  @override
+  String get reviewStars5 => 'ممتاز';
+
+  @override
+  String get reviewTapStars => 'اضغط على النجوم للتقييم';
+
+  @override
+  String get reviewStarsRequired => 'اختر عدد النجوم أولًا.';
+
+  @override
+  String reviewStarsSemantics(int count) {
+    return '$count من 5 نجوم';
+  }
+
+  @override
+  String get reviewTagsLabel => 'ما الذي أعجبك؟ (اختياري)';
+
+  @override
+  String get reviewTagQuality => 'الجودة';
+
+  @override
+  String get reviewTagDelivery => 'سرعة التوصيل';
+
+  @override
+  String get reviewTagPunctual => 'الالتزام بالموعد';
+
+  @override
+  String get reviewTagService => 'حسن التعامل';
+
+  @override
+  String get reviewTagPrice => 'سعر مناسب';
+
+  @override
+  String get reviewCommentLabel => 'تعليق';
+
+  @override
+  String get reviewCommentHint => 'اكتب للآخرين عن تجربتك';
+
+  @override
+  String get reviewSubmit => 'إرسال التقييم';
+
+  @override
+  String get reviewSave => 'حفظ التعديل';
+
+  @override
+  String get reviewThanks => 'شكرًا، تم حفظ تقييمك.';
+
+  @override
+  String get reviewUpdated => 'تم تعديل تقييمك.';
+
+  @override
+  String get reviewVerified => 'عميل مؤكَّد';
+
+  @override
+  String get reviewAnonymous => 'عميل';
+
+  @override
+  String get reviewCompanyReply => 'رد الشركة';
+
+  @override
+  String get reviewReplyAction => 'الرد';
+
+  @override
+  String get reviewEditReplyAction => 'تعديل الرد';
+
+  @override
+  String get reviewReplyTitle => 'الرد على العميل';
+
+  @override
+  String get reviewReplyHint => 'اشكر العميل أو وضّح ما حدث';
+
+  @override
+  String get reviewReplySend => 'إرسال الرد';
+
+  @override
+  String get reviewReplySaved => 'تم حفظ الرد.';
+
+  @override
+  String get reviewReplyRequired => 'اكتب الرد أولًا.';
+
+  @override
+  String get reviewHiddenByAdmin => 'أخفته إدارة المنصة';
+
+  @override
+  String get reviewNotRatedYet => 'لم يقيّم العميل هذا الطلب بعد.';
+
+  @override
+  String get companyReviewsTitle => 'تقييمات العملاء';
+
+  @override
+  String companyReviewsNeedReply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تقييم بدون رد',
+      few: '$count تقييمات بدون رد',
+      two: 'تقييمان بدون رد',
+      one: 'تقييم واحد بدون رد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewSaveDenied => 'لا يمكنك تقييم هذا.';
+
+  @override
+  String get reviewSaveFailed => 'تعذّر حفظ التقييم. حاول مرة أخرى.';
+
+  @override
+  String get reviewReplyFailed => 'تعذّر حفظ الرد. حاول مرة أخرى.';
+
+  @override
+  String get reviewLoadFailed => 'تعذّر تحميل التقييمات.';
+
+  @override
+  String get notifNewReviewTitle => 'تقييم جديد';
+
+  @override
+  String notifNewReviewBody(String product) {
+    return 'قيّم عميل «$product».';
+  }
+
+  @override
+  String get notifReviewReplyTitle => 'ردّت الشركة على تقييمك';
+
+  @override
+  String notifReviewReplyBody(String product) {
+    return 'ردّت الشركة على تقييمك لـ«$product».';
+  }
+
+  @override
+  String phoneCountryCodeOf(String country, String code) {
+    return 'مفتاح الدولة: $country $code';
+  }
+
+  @override
+  String get phoneChooseCountry => 'اختر مفتاح الدولة';
+
+  @override
+  String get phoneCountrySearchHint => 'ابحث باسم الدولة أو المفتاح';
+
+  @override
+  String get phoneCountriesCommon => 'الأكثر استخدامًا';
+
+  @override
+  String get phoneCountriesAll => 'كل الدول';
+
+  @override
+  String get phoneCountryNoMatch => 'لا توجد دولة تطابق بحثك.';
+
+  @override
+  String phoneDigitsExact(int count, String code) {
+    return 'أدخل $count أرقام بعد $code.';
+  }
+
+  @override
+  String get notifNewServiceRequestTitle => 'طلب خدمة جديد';
+
+  @override
+  String notifNewServiceRequestBody(String service) {
+    return 'طلب عميل الخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestAcceptedTitle => 'تم قبول طلبك';
+
+  @override
+  String notifServiceRequestAcceptedBody(String service) {
+    return 'تم قبول طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestRejectedTitle => 'تم رفض طلبك';
+
+  @override
+  String notifServiceRequestRejectedBody(String service) {
+    return 'تم رفض طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestInProgressTitle => 'بدأ تنفيذ طلبك';
+
+  @override
+  String notifServiceRequestInProgressBody(String service) {
+    return 'بدأ تنفيذ طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestCompletedTitle => 'اكتمل طلبك';
+
+  @override
+  String notifServiceRequestCompletedBody(String service) {
+    return 'تم إكمال طلبك للخدمة «$service».';
+  }
+
+  @override
+  String get notifServiceRequestCancelledTitle => 'تم إلغاء الطلب';
+
+  @override
+  String notifServiceRequestCancelledBody(String service) {
+    return 'ألغى عميل طلبه للخدمة «$service».';
+  }
+
+  @override
+  String get homeShopByCategory => 'تسوّق حسب القسم';
+
+  @override
+  String get homeServicesByCategory => 'الخدمات حسب القسم';
+
+  @override
+  String get homeShopNow => 'تسوّق الآن';
+
+  @override
+  String get homeTrustDelivery => 'توصيل لموقعك';
+
+  @override
+  String get homeTrustInstallation => 'تركيب بواسطة فنّي';
+
+  @override
+  String get homeVerifiedCompanies => 'أفضل الشركات';
+
+  @override
+  String get homeAllCompanies => 'كل الشركات';
+
+  @override
+  String get homeOffersEndsIn => 'تنتهي خلال';
+
+  @override
+  String homeOffersEndsInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم واحد',
+    );
+    return 'تنتهي خلال $_temp0';
+  }
+
+  @override
+  String get homeRecentlyAdded => 'وصل حديثًا';
+
+  @override
+  String get homeNewBadge => 'جديد';
+
+  @override
+  String get homeAllProducts => 'كل المنتجات';
+
+  @override
+  String get homeSortNewest => 'الأحدث';
+
+  @override
+  String get homeSortPriceLow => 'السعر: من الأقل';
+
+  @override
+  String get homeSortPriceHigh => 'السعر: من الأعلى';
+
+  @override
+  String get homeSortTopRated => 'الأعلى تقييمًا';
+
+  @override
+  String get homeSortName => 'الاسم';
+
+  @override
+  String get homeSortMostReviewed => 'الأكثر مراجعة';
+
+  @override
+  String get homeFilterOffers => 'عروض';
+
+  @override
+  String get homeFilterDelivery => 'توصيل';
+
+  @override
+  String get homeFilterInstallation => 'تركيب';
+
+  @override
+  String get homeFilterTopRated => 'الأعلى';
+
+  @override
+  String get homeNoRatingsYet => 'لا توجد تقييمات بعد';
+
+  @override
+  String get homeNoMatchingProducts => 'لا توجد منتجات تطابق هذه الفلاتر';
+
+  @override
+  String get homeServiceBannerTitle => 'تحتاج فنّي؟';
+
+  @override
+  String get homeServiceBannerBody =>
+      'صِف طلبك وتصلك عروض أسعار من شركات موثّقة';
+
+  @override
+  String get homeStepDescribe => 'صِف طلبك';
+
+  @override
+  String get homeStepCompare => 'قارن العروض';
+
+  @override
+  String get homeStepArrives => 'فنّي يصلك';
+
+  @override
+  String get homeMostRequested => 'الأكثر طلبًا';
+
+  @override
+  String get homeStartsFrom => 'يبدأ من';
+
+  @override
+  String homeCompaniesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شركة موثّقة',
+      many: '$count شركة موثّقة',
+      few: '$count شركات موثّقة',
+      two: 'شركتان موثّقتان',
+      one: 'شركة موثّقة واحدة',
+      zero: 'لا توجد شركات موثّقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeCompanyVerified => 'الأعلى تقييمًا';
+
+  @override
+  String get homeVisitCompany => 'زيارة الشركة';
+
+  @override
+  String get maintenanceTitle => 'المنصة تحت الصيانة';
+
+  @override
+  String get maintenanceTryLater => 'يرجى المحاولة مرة أخرى بعد قليل.';
+
+  @override
+  String get announcementDismiss => 'إغلاق';
+
+  @override
+  String maintenanceBackAt(Object time) {
+    return 'العودة المتوقعة: $time';
+  }
+
+  @override
+  String maintenanceBackIn(Object duration) {
+    return 'أي بعد نحو $duration.';
+  }
+
+  @override
+  String noticeDurationDays(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يوماً',
+      few: '$count أيام',
+      two: 'يومين',
+      one: 'يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeDurationHoursMinutes(Object hours, Object minutes) {
+    return '$hours س $minutes د';
+  }
+
+  @override
+  String noticeDurationMinutes(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count دقيقة',
+      many: '$count دقيقة',
+      few: '$count دقائق',
+      two: 'دقيقتين',
+      one: 'دقيقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get updateRequiredTitle => 'تحديث مطلوب';
+
+  @override
+  String get updateRequiredBody =>
+      'يلزم إصدار أحدث من التطبيق لمتابعة استخدامه.';
+
+  @override
+  String get updateRequiredButton => 'تحديث';
+
+  @override
+  String get orderCancelledByAdmin => 'ألغته المنصة.';
+
+  @override
+  String get adminProductHidden => 'مخفي من المنصة';
+
+  @override
+  String get adminProductHiddenReason => 'السبب';
+
+  @override
+  String get adminProductHiddenNoReason => 'لم يُذكر سبب.';
+
+  @override
+  String get settingsHelp => 'المساعدة';
+
+  @override
+  String get reportFormTitle => 'الإبلاغ عن مشكلة';
+
+  @override
+  String get reportIntro =>
+      'أخبرنا بما حدث. يقرأ فريق المنصة كل بلاغ ويرد عليك في «بلاغاتي».';
+
+  @override
+  String get reportReasonLabel => 'ما موضوع البلاغ؟';
+
+  @override
+  String get reportReasonOrderProblem => 'مشكلة في طلب';
+
+  @override
+  String get reportReasonPayment => 'مشكلة في الدفع';
+
+  @override
+  String get reportReasonCompanyConduct => 'سلوك شركة';
+
+  @override
+  String get reportReasonProductIssue => 'مشكلة في منتج';
+
+  @override
+  String get reportReasonAppProblem => 'مشكلة في التطبيق';
+
+  @override
+  String get reportReasonOther => 'أخرى';
+
+  @override
+  String get reportSubjectLabel => 'الموضوع';
+
+  @override
+  String get reportSubjectHint => 'بإيجاز';
+
+  @override
+  String get reportSubjectRequired => 'اكتب موضوعاً.';
+
+  @override
+  String get reportDetailsLabel => 'ماذا حدث؟';
+
+  @override
+  String get reportDetailsHint => 'اشرح ما حدث ومتى ومع أي شركة أو طلب.';
+
+  @override
+  String get reportDetailsRequired => 'صف المشكلة.';
+
+  @override
+  String get reportOrderLabel => 'رقم الطلب';
+
+  @override
+  String get reportSubmit => 'إرسال البلاغ';
+
+  @override
+  String get reportSent => 'تم إرسال بلاغك. سنرد عليك في «بلاغاتي».';
+
+  @override
+  String get myReportsTitle => 'بلاغاتي';
+
+  @override
+  String get myReportsEmpty => 'لم ترسل أي بلاغ.';
+
+  @override
+  String get reportStatusNew => 'تم الاستلام';
+
+  @override
+  String get reportStatusInProgress => 'قيد المعالجة';
+
+  @override
+  String get reportStatusClosed => 'مغلق';
+
+  @override
+  String get reportReplyTitle => 'رد فريق المنصة';
+
+  @override
+  String get reportNoReplyYet => 'لا رد بعد.';
+
+  @override
+  String get notifReportInProgressTitle => 'بلاغك قيد المعالجة';
+
+  @override
+  String notifReportInProgressBody(String subject) {
+    return 'بدأنا العمل على «$subject».';
+  }
+
+  @override
+  String get notifReportClosedTitle => 'تم إغلاق بلاغك';
+
+  @override
+  String notifReportClosedBody(String subject) {
+    return 'تم إغلاق بلاغك «$subject». افتح «بلاغاتي» لقراءة ردّنا.';
+  }
+
+  @override
+  String get notifOrderCancelledByAdminTitle => 'تم إلغاء طلبك';
+
+  @override
+  String notifOrderCancelledByAdminBody(String product) {
+    return 'ألغت المنصة طلبك «$product».';
+  }
+
+  @override
+  String get notifOrderCancelledByAdminCompanyTitle => 'تم إلغاء طلب';
+
+  @override
+  String notifOrderCancelledByAdminCompanyBody(String product) {
+    return 'ألغت المنصة الطلب الخاص بـ«$product».';
+  }
+
+  @override
+  String get notifOrderCancelledByCompanyTitle => 'تم إلغاء طلبك';
+
+  @override
+  String notifOrderCancelledByCompanyBody(String product) {
+    return 'ألغت الشركة طلبك «$product». افتحه لمعرفة السبب.';
+  }
+
+  @override
+  String get notifProductHiddenTitle => 'تم إخفاء منتج';
+
+  @override
+  String notifProductHiddenBody(String product) {
+    return 'أُخفي «$product» عن العملاء. افتحه لمعرفة السبب.';
+  }
+
+  @override
+  String get notifProductShownTitle => 'المنتج ظاهر من جديد';
+
+  @override
+  String notifProductShownBody(String product) {
+    return 'أصبح «$product» ظاهراً للعملاء من جديد.';
+  }
+
+  @override
+  String get notifAccountConvertedTitle => 'أصبح حسابك حساب شركة';
+
+  @override
+  String notifAccountConvertedBody(String product) {
+    return 'شركة «$product» جاهزة. سجّل الدخول من جديد لإدارتها.';
+  }
+
+  @override
+  String get settingsPushKindsTitle => 'ما الذي يصلك إشعار عنه';
+
+  @override
+  String get settingsPushKindsHint =>
+      'إيقاف أحدها يوقف إشعارات الهاتف الخاصة به فقط. تبقى كل الإشعارات ظاهرة داخل التطبيق.';
+
+  @override
+  String get pushKindOrders => 'الطلبات';
+
+  @override
+  String get pushKindOrdersHint => 'الطلبات الجديدة والدفع والتوصيل والتقييمات';
+
+  @override
+  String get pushKindChat => 'الرسائل';
+
+  @override
+  String get pushKindChatHint => 'رسائل المحادثات الجديدة';
+
+  @override
+  String get pushKindServiceRequests => 'طلبات الخدمة';
+
+  @override
+  String get pushKindServiceRequestsHint => 'الطلبات الجديدة وتقدّمها';
+
+  @override
+  String get pushKindReports => 'البلاغات';
+
+  @override
+  String get pushKindReportsHint => 'الردود على البلاغات التي أرسلتها';
+
+  @override
+  String get pushKindPlatform => 'رسائل المنصة';
+
+  @override
+  String get pushKindPlatformHint =>
+      'المنتجات التي أخفتها المنصة أو أظهرتها من جديد';
+
+  @override
+  String get pushKindCity => 'شركات جديدة في مدينتي';
+
+  @override
+  String get pushKindCityHint => 'عندما تبدأ شركة بخدمة مدينتك';
+
+  @override
+  String get reportLimitReached =>
+      'يمكنك إرسال 5 بلاغات كل 24 ساعة. يرجى المحاولة لاحقاً.';
+
+  @override
+  String get cityPickerTitle => 'اختر مدينتك';
+
+  @override
+  String get cityPickerSubtitle =>
+      'تظهر لك أولاً الشركات التي تخدم مدينتك، حتى تصلك طلباتك.';
+
+  @override
+  String get cityChangeTooltip => 'تغيير المدينة';
+
+  @override
+  String get citySaveFailed => 'تعذّر حفظ مدينتك. حاول مرة أخرى.';
+
+  @override
+  String get cityServiceAreaTitle => 'المدن التي تخدمها';
+
+  @override
+  String get cityServiceAreaHint =>
+      'يرى العملاء شركتك ومنتجاتك وخدماتك في المدن التي تختارها فقط. اتركها فارغة لتظهر في كل المدن.';
+
+  @override
+  String get cityServiceAreaAll => 'كل المدن';
+
+  @override
+  String get cityServiceAreaChoose => 'اختر المدن';
+
+  @override
+  String cityServiceAreaCount(int count) {
+    return '$count مدن';
+  }
+
+  @override
+  String get cityNotServed => 'هذه الشركة لا تخدم مدينتك.';
+
+  @override
+  String get citySearchHint => 'ابحث عن مدينة';
+
+  @override
+  String get cityDeliveryPickerTitle => 'مدينة التوصيل';
+
+  @override
+  String get cityDeliveryPickerHint =>
+      'يمكنك اختيار المدن التي تخدمها هذه الشركة. هذا لا يغيّر مدينة حسابك.';
+
+  @override
+  String get cityCompanyDoesNotServe => 'الشركة لا تخدمها';
+
+  @override
+  String get cityDeliveryLabel => 'مدينة التوصيل';
+
+  @override
+  String get cityDeliveryChange => 'تغيير';
+
+  @override
+  String get cityDeliveryChangeButton => 'غيّر مدينة التوصيل';
+
+  @override
+  String get cityDeliveryForOther =>
+      'الطلب لشخص آخر؟ اختر مدينته. مدينة حسابك لا تتغير.';
+
+  @override
+  String cityDeliveryServed(String company) {
+    return '$company تخدم هذه المدينة';
+  }
+
+  @override
+  String cityServesCity(String city) {
+    return 'تخدم $city';
+  }
+
+  @override
+  String cityServesList(String cities) {
+    return 'تخدم: $cities';
+  }
+
+  @override
+  String get cityOtherCompaniesTitle => 'شركات أخرى';
+
+  @override
+  String cityOtherCompaniesHint(String city) {
+    return 'لا تخدم $city، لكن يمكنك الطلب منها لتوصيل إلى مدينة أخرى.';
+  }
+
+  @override
+  String cityNotServedOnlyTitle(String cities) {
+    return 'تخدم $cities فقط';
+  }
+
+  @override
+  String cityNotServedOnlyBody(String city) {
+    return 'مدينة التوصيل الحالية هي $city. لإتمام الطلب غيّر مدينة التوصيل إلى مدينة تخدمها الشركة.';
+  }
+
+  @override
+  String cityDeliveringTo(String city) {
+    return 'التوصيل إلى $city';
+  }
+
+  @override
+  String get cityDeliveryChoose => 'اختر مدينة';
+
+  @override
+  String get cityDeliveryNeedsCity => 'اختر مدينة توصيل تخدمها الشركة.';
+
+  @override
+  String get orderDeliveryCity => 'مدينة التوصيل';
+
+  @override
+  String cityCompaniesCount(int count) {
+    return '$count شركة';
+  }
+
+  @override
+  String get cityNoResults => 'لا توجد مدينة بهذا الاسم.';
+
+  @override
+  String get cityCompanyNoCitiesTitle => 'اختر المدن التي تخدمها';
+
+  @override
+  String get cityCompanyNoCitiesBody =>
+      'شركتك لم تحدد مدناً بعد، فيراها كل العملاء في كل المدن ويطلبون منها. اختر المدن التي توصّل إليها.';
+
+  @override
+  String categoryChipAll(int count) {
+    return 'الكل ($count)';
+  }
+
+  @override
+  String categoryItemCount(int count) {
+    return '$count عنصر';
+  }
+
+  @override
+  String get categoryKindAll => 'الكل';
+
+  @override
+  String get categoryKindProducts => 'المنتجات';
+
+  @override
+  String get categoryKindServices => 'الخدمات';
+
+  @override
+  String get categoryFilterInStock => 'متوفر';
+
+  @override
+  String get categoryFilterBrand => 'الماركة';
+
+  @override
+  String get categoryFilterPrice => 'السعر';
+
+  @override
+  String get categoryFilterCompany => 'الشركة';
+
+  @override
+  String get categoryFilterAnyBrand => 'كل الماركات';
+
+  @override
+  String get categoryFilterAnyCompany => 'كل الشركات';
+
+  @override
+  String get categoryFilterPriceFrom => 'من';
+
+  @override
+  String get categoryFilterPriceTo => 'إلى';
+
+  @override
+  String get categoryFilterApply => 'تطبيق';
+
+  @override
+  String get categoryFilterClear => 'مسح';
+
+  @override
+  String categorySectionProducts(int count) {
+    return 'المنتجات ($count)';
+  }
+
+  @override
+  String categorySectionServices(int count) {
+    return 'الخدمات ($count)';
+  }
+
+  @override
+  String get categoryScreenEmpty => 'لا يوجد شيء هنا بعد.';
+
+  @override
+  String get categoryNoMatches => 'لا شيء يطابق هذه الفلاتر.';
+
+  @override
+  String get categoryClearFilters => 'مسح الفلاتر';
+
+  @override
+  String get formBrandLabel => 'الماركة';
+
+  @override
+  String get formBrandHint => 'مثلاً HP أو Cisco أو Samsung';
+
+  @override
+  String get formCategoryRequired => 'التصنيف مطلوب';
+
+  @override
+  String get productBrand => 'الماركة';
+
+  @override
+  String get tjAvailable => 'متاح';
+
+  @override
+  String get tjBusy => 'مشغول';
+
+  @override
+  String tjOpenJobsCount(int count) {
+    return 'لديك $count مهام جارية';
+  }
+
+  @override
+  String get tjNoOpenJobs => 'لا توجد مهام جارية الآن';
+
+  @override
+  String get tjNextJob => 'المهمة التالية';
+
+  @override
+  String get tjNavigate => 'الموقع';
+
+  @override
+  String get tjCall => 'اتصال';
+
+  @override
+  String get tjStatOpen => 'جارية';
+
+  @override
+  String get tjMonthFees => 'رسوم التركيب هذا الشهر';
+
+  @override
+  String get tjMonthFeesHint => 'من المهام المكتملة';
+
+  @override
+  String tjDistanceKm(String km) {
+    return '$km كم';
+  }
+
+  @override
+  String get tjSearchHint => 'ابحث بالعميل أو المنتج';
+
+  @override
+  String get tjSortNewest => 'الأحدث';
+
+  @override
+  String get tjSortNearest => 'الأقرب';
+
+  @override
+  String tjFilterAll(int count) {
+    return 'الكل $count';
+  }
+
+  @override
+  String tjFilterOpen(int count) {
+    return 'جارية $count';
+  }
+
+  @override
+  String tjFilterDone(int count) {
+    return 'مكتملة $count';
+  }
+
+  @override
+  String tjFilterCancelled(int count) {
+    return 'ملغاة $count';
+  }
+
+  @override
+  String get tjSectionOpen => 'جارية';
+
+  @override
+  String get tjSectionDone => 'مكتملة';
+
+  @override
+  String get tjSectionCancelled => 'ملغاة';
+
+  @override
+  String get tjNoMatches => 'لا توجد مهام تطابق بحثك.';
+
+  @override
+  String get tjAwaitingPaymentTag => 'بانتظار تأكيد الدفع';
+
+  @override
+  String get tjCancelledTag => 'ملغاة من الشركة';
+
+  @override
+  String get tjProgressTitle => 'تقدّم المهمة';
+
+  @override
+  String get tjStepPaid => 'تأكيد الدفع';
+
+  @override
+  String get tjStepPreparing => 'قيد التجهيز';
+
+  @override
+  String get tjStepOnTheWay => 'في الطريق';
+
+  @override
+  String get tjStepDone => 'اكتملت';
+
+  @override
+  String get tjCopyAddress => 'نسخ العنوان';
+
+  @override
+  String get tjAddressCopied => 'تم نسخ العنوان';
+
+  @override
+  String get tjNotesTitle => 'ملاحظاتي';
+
+  @override
+  String get tjNotesHint => 'اكتب ملاحظة عن المهمة';
+
+  @override
+  String get tjNotesAdd => 'إضافة';
+
+  @override
+  String get tjNotesEmpty => 'لا توجد ملاحظات بعد.';
+
+  @override
+  String get tjNotesVisibility => 'تظهر للشركة فقط، ولا يراها العميل.';
+
+  @override
+  String get tjNoteDelete => 'حذف الملاحظة';
+
+  @override
+  String get tjTechnicianNotesTitle => 'ملاحظات الفني';
+
+  @override
+  String get tjNoteCompletion => 'عند الإنجاز';
+
+  @override
+  String get tjChatWithCompany => 'محادثة مع الشركة';
+
+  @override
+  String get tjChatWithTechnician => 'محادثة مع الفني';
+
+  @override
+  String get tjChatEmpty => 'لا توجد رسائل بعد. اكتب أول رسالة.';
+
+  @override
+  String get tjChatHint => 'اكتب رسالة';
+
+  @override
+  String get tjChatPrivate => 'هذه المحادثة بين الفني والشركة فقط.';
+
+  @override
+  String get tjChatCompany => 'الشركة';
+
+  @override
+  String get tjChatYou => 'أنت';
+
+  @override
+  String get tjNoTechnicianAssigned => 'لم يُسند فني لهذا الطلب بعد.';
+
+  @override
+  String tjFinishTitle(String id) {
+    return 'إنهاء المهمة $id';
+  }
+
+  @override
+  String get tjCheckInstalled => 'ركّبت المنتج وتأكدت من عمله';
+
+  @override
+  String get tjCheckExplained => 'شرحت للعميل طريقة الاستخدام';
+
+  @override
+  String get tjCheckHandedOver => 'سلّمت العميل ما يلزم من فاتورة أو ضمان';
+
+  @override
+  String get tjFinishNoteHint => 'ملاحظة للشركة (اختيارية)';
+
+  @override
+  String get tjFinishConfirm => 'تأكيد الإنجاز';
+
+  @override
+  String get tjFinishChecklistRequired => 'علّم الخطوات الثلاث قبل التأكيد.';
+
+  @override
+  String get tjNotifToday => 'اليوم';
+
+  @override
+  String get tjNotifEarlier => 'أقدم';
+
+  @override
+  String get tjMarkAllRead => 'قراءة الكل';
+
+  @override
+  String get tjCompletedJobs => 'مهمة منجزة';
+
+  @override
+  String get tjAvailabilityTitle => 'أنا متاح للمهام';
+
+  @override
+  String get tjAvailabilityHint =>
+      'عند إيقافه تراك الشركة غير متاح عند إسناد المهام.';
+
+  @override
+  String get tjAvailabilityFailed => 'تعذّر تغيير حالتك. حاول مرة أخرى.';
+
+  @override
+  String get tjJobNotificationsTitle => 'إشعارات المهام';
+
+  @override
+  String get tjUnavailable => 'غير متاح';
+
+  @override
+  String get notifJobReadyTitle => 'المهمة جاهزة للبدء';
+
+  @override
+  String notifJobReadyBody(String product) {
+    return 'تم تأكيد دفع «$product». يمكنك بدء المهمة.';
+  }
+
+  @override
+  String get notifJobCancelledTitle => 'تم إلغاء المهمة';
+
+  @override
+  String notifJobCancelledBody(String product) {
+    return 'ألغت الشركة مهمة «$product».';
+  }
+
+  @override
+  String get notifJobCompletedTitle => 'اكتمل التركيب';
+
+  @override
+  String notifJobCompletedBody(String product) {
+    return 'أنهى الفني مهمة «$product».';
+  }
+
+  @override
+  String searchDidYouMean(String term) {
+    return 'هل تقصد «$term»؟';
+  }
+
+  @override
+  String get searchSortRelevance => 'الأنسب';
+
+  @override
+  String get searchSortPriceLow => 'الأقل سعراً';
+
+  @override
+  String get searchSortPriceHigh => 'الأعلى سعراً';
+
+  @override
+  String get searchInStockOnly => 'المتوفر فقط';
+
+  @override
+  String get searchTypeCategory => 'قسم';
+
+  @override
+  String tjSearchResults(int count) {
+    return '$count نتيجة';
+  }
+
+  @override
+  String get favoritesTitle => 'المفضلة';
+
+  @override
+  String get favoritesEmptyTitle => 'لا توجد عناصر في المفضلة';
+
+  @override
+  String get favoritesEmptyMessage =>
+      'اضغط على القلب في أي منتج أو خدمة لتحفظه هنا.';
+
+  @override
+  String get favoritesSubtitle => 'المنتجات والخدمات التي حفظتها';
+
+  @override
+  String get favoriteAdd => 'إضافة إلى المفضلة';
+
+  @override
+  String get favoriteRemove => 'إزالة من المفضلة';
+
+  @override
+  String get favoriteUnavailable => 'غير متاح حاليًا';
+
+  @override
+  String get favoriteSaveFailed => 'تعذر حفظ التغيير. حاول مرة أخرى.';
+
+  @override
+  String get favoritesLoadFailed => 'تعذر تحميل المفضلة.';
+
+  @override
+  String get usdRateTitle => 'سعر الدولار';
+
+  @override
+  String usdRateValue(String rate) {
+    return '1\$ = $rate جنيه';
+  }
+
+  @override
+  String get usdRateNotSetTitle => 'حدّد سعر الدولار';
+
+  @override
+  String get usdRateNotSetBody =>
+      'سعّر منتجاتك بالدولار. كل مرة تغيّر السعر هنا، تتحدّث أسعارها كلها بالجنيه.';
+
+  @override
+  String get usdRateSet => 'حدّد السعر';
+
+  @override
+  String get usdRateSame => 'السعر نفسه';
+
+  @override
+  String get usdRateEdit => 'تعديل';
+
+  @override
+  String usdRateUpdatedToday(String time) {
+    return 'محدّث اليوم $time';
+  }
+
+  @override
+  String usdRateUpdatedYesterday(String time) {
+    return 'آخر تحديث أمس $time';
+  }
+
+  @override
+  String usdRateUpdatedDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم',
+    );
+    return 'آخر تحديث قبل $_temp0';
+  }
+
+  @override
+  String get usdRateDue => 'حان وقت تحديث سعر الدولار';
+
+  @override
+  String get usdRateStale =>
+      'سعر الدولار قديم، أسعار منتجاتك بالدولار ممكن تكون غلط';
+
+  @override
+  String usdRateProducts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج بالدولار',
+      many: '$count منتجًا بالدولار',
+      few: '$count منتجات بالدولار',
+      two: 'منتجان بالدولار',
+      one: 'منتج واحد بالدولار',
+      zero: 'لا توجد منتجات بالدولار بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get usdRateConfirmed => 'تم تأكيد سعر الدولار.';
+
+  @override
+  String get usdRateSaved => 'تم حفظ سعر الدولار.';
+
+  @override
+  String get usdRateSaveFailed => 'تعذّر حفظ سعر الدولار. حاول مرة أخرى.';
+
+  @override
+  String get usdRateFieldLabel => 'كم جنيه في الدولار الواحد؟';
+
+  @override
+  String get usdRateInvalid => 'أدخل سعرًا بين 1 و1,000,000.';
+
+  @override
+  String usdRatePreview(int count, String name, String from, String to) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيتغير سعر $count منتج.',
+      many: 'سيتغير سعر $count منتجًا.',
+      few: 'سيتغير سعر $count منتجات.',
+      two: 'سيتغير سعر منتجين.',
+      one: 'سيتغير سعر منتج واحد.',
+    );
+    return '$_temp0 مثلًا $name: $from ← $to';
+  }
+
+  @override
+  String get usdRateNoProducts =>
+      'لا توجد منتجات بالدولار بعد: اختر «بالدولار» في نموذج المنتج.';
+
+  @override
+  String get usdRateBigChangeTitle => 'متأكد من السعر؟';
+
+  @override
+  String usdRateBigChangeBody(String to, String from, int percent) {
+    return 'السعر الجديد $to يبعد عن $from بنسبة $percent%.';
+  }
+
+  @override
+  String get usdRateBigChangeConfirm => 'نعم، احفظه';
+
+  @override
+  String get usdRateSave => 'حفظ السعر';
+
+  @override
+  String get usdRateReminder => 'ذكّرني بتحديث سعر الدولار';
+
+  @override
+  String get usdRateReminderHint =>
+      'إشعار على الهاتف كل 24 ساعة ما دام السعر لم يُحدَّث';
+
+  @override
+  String get pushKindUsdRate => 'تذكير سعر الدولار';
+
+  @override
+  String get pushKindUsdRateHint => 'كل 24 ساعة ما دام سعر الدولار لم يُحدَّث';
+
+  @override
+  String get formPriceCurrency => 'السعر بـ';
+
+  @override
+  String get formPriceInSdg => 'الجنيه';
+
+  @override
+  String get formPriceInUsd => 'الدولار';
+
+  @override
+  String get formPriceUsd => 'السعر (\$)';
+
+  @override
+  String get formPriceUsdRequired => 'أدخل السعر بالدولار.';
+
+  @override
+  String get formInstallationPriceUsd => 'سعر التركيب (\$)';
+
+  @override
+  String formUsdEquals(String price, String rate) {
+    return '= $price SDG بسعر 1\$ = $rate';
+  }
+
+  @override
+  String get formUsdNeedsRate => 'حدّد سعر الدولار أولًا.';
+
+  @override
+  String get offerModePriceUsd => 'سعر جديد (\$)';
+
+  @override
+  String usdPriceLabel(String usd, String rate) {
+    return '$usd \$ بسعر 1\$ = $rate SDG';
+  }
+}

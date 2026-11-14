@@ -1,0 +1,478 @@
+// The push relay: the app calls it right after it wrote a notification or a
+// chat message, and it sends that one thing to the recipients' phones.
+//
+// It never sends text it was handed. It only relays what is already in
+// Firestore (where the security rules decided who may write it), only for the
+// signed-in person who wrote it, only while it is fresh, and only once. An
+// order notification is worded here from its type and product name (texts.js),
+// never from text stored with it; a chat message is the message itself.
+
+import { createFirestore, createTokenSource } from './google.js';
+import {
+  chatMessageText,
+  cityAnnouncementText,
+  jobChatMessageText,
+  cityName,
+  cityTopic,
+  languageOf,
+  orderNotificationText,
+  pushCategoryOf,
+  usdRateReminderText,
+  wantsPush,
+} from './texts.js';
+
+/** How long after it was written something may still be pushed. */
+const MAX_AGE_MS = 10 * 60 * 1000;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The reminder runs every hour, so "24 hours since the last reminder" allows a
+ * few minutes of slack: it then comes at the same hour each day instead of
+ * creeping an hour later.
+ */
+const REMINDER_SLACK_MS = 10 * 60 * 1000;
+
+/** Sudan is UTC+2 all year; no reminder between 22:00 and 08:00 there. */
+export function isNightInSudan(ms) {
+  const hour = (new Date(ms).getUTCHours() + 2) % 24;
+  return hour >= 22 || hour < 8;
+}
+
+/** The Android channel the app creates (MainActivity.kt). */
+const ANDROID_CHANNEL = 'general';
+
+/** The picture a browser shows with a push (the app's emblem, on the customer site). */
+const WEB_ICON = 'https://sudan-it-market.web.app/favicon-mark.png';
+
+/**
+ * What a browser needs on top of the phone fields: an icon, delivery at once,
+ * kept for a day if the computer is off, and (with a tag) one notice per
+ * conversation that a newer message replaces. The page's service worker shows
+ * it and opens the right page when it is pressed.
+ */
+export function webpushOf(tag) {
+  return {
+    headers: { Urgency: 'high', TTL: '86400' },
+    notification: { icon: WEB_ICON, ...(tag ? { tag, renotify: true } : {}) },
+  };
+}
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+};
+
+function reply(status, body) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...CORS },
+  });
+}
+
+/**
+ * env: PROJECT_ID, FIREBASE_API_KEY, SERVICE_ACCOUNT_JSON, and for local tests
+ * FIRESTORE_EMULATOR_HOST / AUTH_EMULATOR_HOST.
+ */
+export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log = () => {} } = {}) {
+  const serviceAccount = JSON.parse(env.SERVICE_ACCOUNT_JSON);
+  const projectId = env.PROJECT_ID || serviceAccount.project_id;
+  const accessToken = createTokenSource(serviceAccount, { fetch, now });
+  const db = createFirestore({
+    projectId,
+    emulatorHost: env.FIRESTORE_EMULATOR_HOST,
+    accessToken,
+    fetch,
+  });
+
+  /** The uid behind a Firebase ID token, or null when it is not valid. */
+  async function verifiedUid(idToken) {
+    const root = env.AUTH_EMULATOR_HOST
+      ? `http://${env.AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com`
+      : 'https://identitytoolkit.googleapis.com';
+    const response = await fetch(`${root}/v1/accounts:lookup?key=${env.FIREBASE_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
+    if (!response.ok) return null;
+    const user = (await response.json()).users?.[0];
+    return user && !user.disabled ? user.localId : null;
+  }
+
+  /** Each recipient's uid, device tokens and language. */
+  async function usersByIds(uids) {
+    const users = await Promise.all(
+      uids.map(async (uid) => ({ uid, ...((await db.get(`users/${uid}`)) ?? {}) })),
+    );
+    return users;
+  }
+
+  async function companyAdmins(companyId) {
+    const admins = await db.where('users', { role: 'company_admin', companyId });
+    return admins.map((user) => ({ uid: user.id, ...user }));
+  }
+
+  /** Every Platform Admin whose account is on. */
+  async function platformAdmins() {
+    const admins = await db.where('users', { role: 'platform_admin', isActive: true });
+    return admins.map((user) => ({ uid: user.id, ...user }));
+  }
+
+  async function recipientsOf(notification) {
+    switch (notification.recipientType) {
+      case 'customer':
+        return usersByIds([notification.recipientId]);
+      case 'company_admin':
+        return companyAdmins(notification.recipientId);
+      // A notice for the whole platform team (a new report, a low rating).
+      case 'platform_admin':
+        return notification.recipientId === 'platform' ? platformAdmins() : [];
+      case 'technician': {
+        const technician = await db.get(`technicians/${notification.recipientId}`);
+        if (!technician) return [];
+        if (technician.uid) return usersByIds([technician.uid]);
+        if (!technician.email) return [];
+        const users = await db.where('users', {
+          role: 'technician',
+          email: technician.email,
+          companyId: technician.companyId,
+        });
+        return users.map((user) => ({ uid: user.id, ...user }));
+      }
+      default:
+        return [];
+    }
+  }
+
+  /**
+   * Sends one message per device token. Tokens FCM reports as gone are
+   * removed from the user's profile.
+   */
+  async function sendTo(recipients, build) {
+    let sent = 0;
+    let failed = 0;
+    for (const recipient of recipients) {
+      const tokens = [...new Set(recipient.fcmTokens ?? [])].filter(
+        (token) => typeof token === 'string' && token.length > 0,
+      );
+      if (tokens.length === 0) continue;
+      const { title, body, data, tag } = build(recipient);
+      const gone = [];
+      for (const token of tokens) {
+        const response = await fetch(
+          `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${await accessToken()}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: {
+                token,
+                notification: { title, body },
+                data,
+                android: {
+                  priority: 'HIGH',
+                  notification: {
+                    channel_id: ANDROID_CHANNEL,
+                    ...(tag ? { tag } : {}),
+                  },
+                },
+                apns: { payload: { aps: { sound: 'default' } } },
+                webpush: webpushOf(tag),
+              },
+            }),
+          },
+        );
+        if (response.ok) {
+          sent++;
+          continue;
+        }
+        failed++;
+        const error = (await response.json().catch(() => ({})))?.error ?? {};
+        const code = (error.details ?? []).find((d) => d.errorCode)?.errorCode;
+        log(`fcm ${response.status} ${code ?? error.status ?? ''} for ${recipient.uid}`);
+        if (response.status === 404 || code === 'UNREGISTERED') gone.push(token);
+      }
+      if (gone.length > 0) {
+        await db.removeFromArray(`users/${recipient.uid}`, 'fcmTokens', gone);
+      }
+    }
+    return { sent, failed };
+  }
+
+  /** Sends one message to every phone subscribed to [topic]. */
+  async function sendToTopic(topic, { title, body, data }) {
+    const response = await fetch(
+      `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${await accessToken()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: {
+            topic,
+            notification: { title, body },
+            data,
+            android: { priority: 'HIGH', notification: { channel_id: ANDROID_CHANNEL } },
+            apns: { payload: { aps: { sound: 'default' } } },
+            webpush: webpushOf(null),
+          },
+        }),
+      },
+    );
+    if (!response.ok) log(`fcm topic ${response.status} for ${topic}`);
+    return response.ok;
+  }
+
+  function isFresh(createdAt) {
+    return createdAt instanceof Date && now() - createdAt.getTime() <= MAX_AGE_MS;
+  }
+
+  async function pushNotification(uid, notificationId) {
+    const notification = await db.get(`notifications/${notificationId}`);
+    if (!notification) return reply(404, { error: 'not_found' });
+    if (notification.senderId !== uid) return reply(403, { error: 'not_sender' });
+    if (!isFresh(notification.createdAt)) return reply(409, { error: 'too_old' });
+    // Only the known kinds of notification are pushed, in the relay's own
+    // words. Anything else is refused: stored text is never sent.
+    if (!orderNotificationText(notification, 'en')) {
+      return reply(422, { error: 'unsupported_notification' });
+    }
+    const logPath = `push_log/n_${notificationId}`;
+    if (!(await db.createOnce(logPath, { kind: 'notification', by: uid, at: new Date(now()) }))) {
+      return reply(200, { skipped: 'already_sent' });
+    }
+    // Anyone who switched this kind of push off in their Settings is left out.
+    const category = pushCategoryOf(notification.type);
+    const recipients = (await recipientsOf(notification)).filter((r) => wantsPush(r, category));
+    const result = await sendTo(recipients, (recipient) => ({
+      ...orderNotificationText(notification, languageOf(recipient)),
+      data: {
+        type: String(notification.type ?? ''),
+        notificationId,
+        // About a report, a review, a product, a service request or an order, as the app opens it.
+        ...(notification.reportId
+          ? { reportId: String(notification.reportId) }
+          : notification.reviewId
+            ? { reviewId: String(notification.reviewId) }
+            : notification.productId
+              ? { productId: String(notification.productId) }
+              : notification.serviceRequestId
+                ? { serviceRequestId: String(notification.serviceRequestId) }
+                : { orderId: String(notification.orderId ?? '') }),
+        recipientType: String(notification.recipientType ?? ''),
+      },
+    }));
+    await db.merge(logPath, result);
+    return reply(200, result);
+  }
+
+  /**
+   * "A company now serves your city": one message to the customers of that
+   * city, in each language. The announcement (written under the security
+   * rules by the company's admin or Platform Admin) names the company and the
+   * city; the words are the relay's own, and the company must still be active
+   * and still serve the city.
+   */
+  async function pushCityAnnouncement(uid, announcementId) {
+    const announcement = await db.get(`city_announcements/${announcementId}`);
+    if (!announcement) return reply(404, { error: 'not_found' });
+    if (announcement.senderId !== uid) return reply(403, { error: 'not_sender' });
+    if (!isFresh(announcement.createdAt)) return reply(409, { error: 'too_old' });
+    const cityId = typeof announcement.cityId === 'string' ? announcement.cityId : '';
+    const company = await db.get(`companies/${announcement.companyId}`);
+    const stillServes =
+      company &&
+      (company.status ?? 'active') === 'active' &&
+      Array.isArray(company.serviceCityIds) &&
+      company.serviceCityIds.includes(cityId);
+    if (!cityId || !stillServes) return reply(422, { error: 'not_serving' });
+    const logPath = `push_log/a_${announcementId}`;
+    if (!(await db.createOnce(logPath, { kind: 'city', by: uid, at: new Date(now()) }))) {
+      return reply(200, { skipped: 'already_sent' });
+    }
+    const saved = (await db.get('platform_settings/cities'))?.items;
+    let sent = 0;
+    let failed = 0;
+    for (const language of ['ar', 'en']) {
+      const text = cityAnnouncementText(company.name, cityName(cityId, language, saved), language);
+      if (!text) continue;
+      const ok = await sendToTopic(cityTopic(cityId, language), {
+        ...text,
+        data: { type: 'city_announcement', companyId: String(announcement.companyId) },
+      });
+      if (ok) sent++;
+      else failed++;
+    }
+    const result = { sent, failed };
+    await db.merge(logPath, result);
+    return reply(200, result);
+  }
+
+  async function pushChatMessage(uid, chatId, messageId) {
+    const [chat, message] = await Promise.all([
+      db.get(`chats/${chatId}`),
+      db.get(`chats/${chatId}/messages/${messageId}`),
+    ]);
+    if (!chat || !message) return reply(404, { error: 'not_found' });
+    if (message.senderId !== uid) return reply(403, { error: 'not_sender' });
+    if (!isFresh(message.createdAt)) return reply(409, { error: 'too_old' });
+    const logPath = `push_log/m_${chatId}_${messageId}`;
+    if (!(await db.createOnce(logPath, { kind: 'chat', by: uid, at: new Date(now()) }))) {
+      return reply(200, { skipped: 'already_sent' });
+    }
+    const toCompany = message.senderRole === 'customer';
+    const recipients = (
+      toCompany ? await companyAdmins(chat.companyId) : await usersByIds([chat.customerId])
+    ).filter((r) => wantsPush(r, 'chat'));
+    const result = await sendTo(recipients, (recipient) => ({
+      ...chatMessageText(chat, message, languageOf(recipient)),
+      data: {
+        type: 'chat_message',
+        chatId,
+        role: toCompany ? 'company' : 'customer',
+      },
+      // A newer message from the same conversation replaces the older one.
+      tag: `chat_${chatId}`,
+    }));
+    await db.merge(logPath, result);
+    return reply(200, result);
+  }
+
+  /**
+   * A message in a job's technician-company conversation (`jobChats/{orderId}`):
+   * to the company's admins when the technician wrote it, to the job's
+   * technician when the company did. The customer is never a recipient.
+   */
+  async function pushJobChatMessage(uid, orderId, messageId) {
+    const [chat, message] = await Promise.all([
+      db.get(`jobChats/${orderId}`),
+      db.get(`jobChats/${orderId}/messages/${messageId}`),
+    ]);
+    if (!chat || !message) return reply(404, { error: 'not_found' });
+    if (message.senderId !== uid) return reply(403, { error: 'not_sender' });
+    if (!isFresh(message.createdAt)) return reply(409, { error: 'too_old' });
+    const logPath = `push_log/j_${orderId}_${messageId}`;
+    if (!(await db.createOnce(logPath, { kind: 'job_chat', by: uid, at: new Date(now()) }))) {
+      return reply(200, { skipped: 'already_sent' });
+    }
+    const toCompany = message.senderRole === 'technician';
+    let recipients;
+    if (toCompany) {
+      recipients = await companyAdmins(chat.companyId);
+    } else {
+      // The technician the job has now (it may have been reassigned).
+      const order = await db.get(`orders/${orderId}`);
+      const technicianId = order?.technicianId || chat.technicianId;
+      recipients = technicianId
+        ? await recipientsOf({ recipientType: 'technician', recipientId: technicianId })
+        : [];
+    }
+    recipients = recipients.filter((r) => wantsPush(r, 'chat'));
+    const result = await sendTo(recipients, (recipient) => ({
+      ...jobChatMessageText(chat, message, languageOf(recipient)),
+      data: {
+        type: 'job_chat_message',
+        orderId,
+        role: toCompany ? 'company' : 'technician',
+      },
+      tag: `job_chat_${orderId}`,
+    }));
+    await db.merge(logPath, result);
+    return reply(200, result);
+  }
+
+  /**
+   * Runs every hour (a Cron Trigger): a company whose dollar rate has gone 24
+   * hours without being set or confirmed has its admins reminded on their
+   * phones, then again every 24 hours until it is. Never at night in Sudan,
+   * only while the company prices products in dollars, and only for admins who
+   * left the reminder on (pushPrefs.usdRate). The time of each reminder is kept
+   * on the company (usdRateRemindedAt, written only here) before it is sent,
+   * so two runs never send it twice.
+   */
+  async function remindUsdRates() {
+    const at = now();
+    const result = { companies: 0, sent: 0, failed: 0 };
+    if (isNightInSudan(at)) return result;
+    const due = await db.query('companies', [
+      { field: 'usdRateUpdatedAt', op: 'LESS_THAN_OR_EQUAL', value: new Date(at - DAY_MS) },
+    ]);
+    for (const company of due) {
+      const updatedAt = company.usdRateUpdatedAt;
+      if (!(updatedAt instanceof Date) || typeof company.usdRate !== 'number') continue;
+      if ((company.status ?? 'active') !== 'active') continue;
+      const reminded = company.usdRateRemindedAt;
+      if (reminded instanceof Date && reminded > updatedAt && at - reminded.getTime() < DAY_MS - REMINDER_SLACK_MS) {
+        continue;
+      }
+      // Only a company that sells in dollars: one of its products uses this rate.
+      const dollarProducts = await db.where(
+        'products',
+        { companyId: company.id, usdRateApplied: company.usdRate },
+        { limit: 1 },
+      );
+      if (dollarProducts.length === 0) continue;
+      await db.merge(`companies/${company.id}`, { usdRateRemindedAt: new Date(at) });
+      const days = Math.floor((at - updatedAt.getTime()) / DAY_MS);
+      const recipients = (await companyAdmins(company.id)).filter((r) => wantsPush(r, 'usdRate'));
+      const sent = await sendTo(recipients, (recipient) => ({
+        ...usdRateReminderText(company.usdRate, days, languageOf(recipient)),
+        data: { type: 'usd_rate_reminder', companyId: String(company.id) },
+        // Today's reminder replaces yesterday's.
+        tag: 'usd_rate',
+      }));
+      result.companies++;
+      result.sent += sent.sent;
+      result.failed += sent.failed;
+    }
+    log(`usd rate reminders: ${JSON.stringify(result)}`);
+    return result;
+  }
+
+  async function handle(request) {
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+    const url = new URL(request.url);
+    if (request.method !== 'POST' || url.pathname !== '/push') {
+      return reply(404, { error: 'not_found' });
+    }
+    const idToken = /^Bearer (.+)$/.exec(request.headers.get('Authorization') ?? '')?.[1];
+    if (!idToken) return reply(401, { error: 'unauthenticated' });
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return reply(400, { error: 'bad_request' });
+    }
+    const isId = (value) => typeof value === 'string' && /^[A-Za-z0-9_-]{1,200}$/.test(value);
+    const wantsNotification = isId(body?.notificationId);
+    const wantsChat = isId(body?.chatId) && isId(body?.messageId);
+    const wantsCity = isId(body?.cityAnnouncementId);
+    const wantsJobChat = isId(body?.jobChatId) && isId(body?.messageId);
+    if ([wantsNotification, wantsChat, wantsCity, wantsJobChat].filter(Boolean).length !== 1) {
+      return reply(400, { error: 'bad_request' });
+    }
+
+    try {
+      const uid = await verifiedUid(idToken);
+      if (!uid) return reply(401, { error: 'unauthenticated' });
+      if (wantsCity) return await pushCityAnnouncement(uid, body.cityAnnouncementId);
+      if (wantsJobChat) return await pushJobChatMessage(uid, body.jobChatId, body.messageId);
+      return wantsNotification
+        ? await pushNotification(uid, body.notificationId)
+        : await pushChatMessage(uid, body.chatId, body.messageId);
+    } catch (error) {
+      log(`relay error: ${error?.message ?? error}`);
+      return reply(502, { error: 'upstream' });
+    }
+  }
+
+  handle.remindUsdRates = remindUsdRates;
+  return handle;
+}

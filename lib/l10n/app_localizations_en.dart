@@ -1,0 +1,4223 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get appName => 'Sudan ICT Marketplace';
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get commonConfirm => 'Confirm';
+
+  @override
+  String get commonSave => 'Save';
+
+  @override
+  String get commonSaveChanges => 'Save changes';
+
+  @override
+  String get commonEdit => 'Edit';
+
+  @override
+  String get commonDelete => 'Delete';
+
+  @override
+  String get commonDeactivate => 'Deactivate';
+
+  @override
+  String get commonRetry => 'Try again';
+
+  @override
+  String get commonLoading => 'Loading…';
+
+  @override
+  String get commonSearch => 'Search';
+
+  @override
+  String get commonClear => 'Clear';
+
+  @override
+  String get commonCopy => 'Copy';
+
+  @override
+  String get commonQuantityIncrease => 'Increase quantity';
+
+  @override
+  String get commonQuantityDecrease => 'Decrease quantity';
+
+  @override
+  String get commonDone => 'Done';
+
+  @override
+  String get commonOr => 'OR';
+
+  @override
+  String get commonOptional => 'Optional';
+
+  @override
+  String get commonRemove => 'Remove';
+
+  @override
+  String get commonSignOut => 'Sign out';
+
+  @override
+  String get commonNotifications => 'Notifications';
+
+  @override
+  String get commonShowPassword => 'Show password';
+
+  @override
+  String get commonHidePassword => 'Hide password';
+
+  @override
+  String get commonLanguage => 'Language';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsLanguageSubtitle => 'Choose the language of the app';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageArabic => 'العربية';
+
+  @override
+  String get settingsLanguageSyncFailed =>
+      'The language was changed on this device, but could not be saved to your account yet.';
+
+  @override
+  String get settingsPreferences => 'Preferences';
+
+  @override
+  String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsAppearanceSubtitle => 'Choose how the app looks';
+
+  @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get settingsPushTitle => 'Phone notifications';
+
+  @override
+  String get settingsPushOn => 'On for this phone';
+
+  @override
+  String get settingsPushOff => 'Off for this phone';
+
+  @override
+  String get settingsPushBlocked =>
+      'Blocked in your phone\'s settings. Allow notifications for this app there.';
+
+  @override
+  String get themeSystem => 'System default';
+
+  @override
+  String get themeSystemHint => 'Follows your phone\'s setting';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get authWelcomeBack => 'Welcome back. Sign in to continue.';
+
+  @override
+  String get authEmail => 'Email';
+
+  @override
+  String get authPassword => 'Password';
+
+  @override
+  String get authLogin => 'Login';
+
+  @override
+  String get authRegister => 'Register';
+
+  @override
+  String get authForgotPassword => 'Forgot password?';
+
+  @override
+  String get authForgotPasswordTitle => 'Reset your password';
+
+  @override
+  String get authForgotPasswordBody =>
+      'Enter the email you signed up with. We will send you a link to choose a new password.';
+
+  @override
+  String get authForgotPasswordSend => 'Send reset link';
+
+  @override
+  String get authForgotPasswordSentTitle => 'Check your email';
+
+  @override
+  String authForgotPasswordSentBody(String email) {
+    return 'If an account exists for $email, we sent a link to reset its password. Check your spam folder too.';
+  }
+
+  @override
+  String get authForgotPasswordResend => 'Resend email';
+
+  @override
+  String authForgotPasswordResendIn(int seconds) {
+    return 'Resend in ${seconds}s';
+  }
+
+  @override
+  String get authForgotPasswordBackToLogin => 'Back to sign in';
+
+  @override
+  String get authForgotPasswordFailed =>
+      'Could not send the reset email. Please try again.';
+
+  @override
+  String get authContinueWithGoogle => 'Continue with Google';
+
+  @override
+  String get authNoAccount => 'Don\'t have an account?';
+
+  @override
+  String get authHaveAccount => 'Already have an account?';
+
+  @override
+  String get authCreateAccount => 'Create account';
+
+  @override
+  String get authJoinTitle => 'Join Sudan ICT Marketplace';
+
+  @override
+  String get authCreateAccountSubtitle => 'Create an account to get started.';
+
+  @override
+  String get authFullName => 'Full Name';
+
+  @override
+  String get authConfirmPassword => 'Confirm Password';
+
+  @override
+  String get authPasswordHelper => 'At least 6 characters.';
+
+  @override
+  String get authEmailRequired => 'Email is required.';
+
+  @override
+  String get authEmailInvalid => 'Enter a valid email address.';
+
+  @override
+  String get authPasswordRequired => 'Password is required.';
+
+  @override
+  String get authFullNameRequired => 'Full name is required.';
+
+  @override
+  String get authFullNameInvalid =>
+      'Full name may only contain letters and spaces.';
+
+  @override
+  String get authPasswordTooShort => 'Password must be at least 6 characters.';
+
+  @override
+  String get authConfirmPasswordRequired => 'Confirm password is required.';
+
+  @override
+  String get authPasswordsMismatch => 'Passwords do not match.';
+
+  @override
+  String get authAccountDeactivatedTitle => 'Account deactivated';
+
+  @override
+  String get authAccountDeactivatedMessage =>
+      'Your account has been deactivated. Please contact support to have it reactivated.';
+
+  @override
+  String get authAccountDeletedTitle => 'Account deleted';
+
+  @override
+  String get authAccountDeletedMessage =>
+      'This account was deleted by the platform team and can no longer be used. If you think this is a mistake, please contact support.';
+
+  @override
+  String get authCompanyNotLinkedTitle => 'Company not linked';
+
+  @override
+  String get authCompanyAdminNotLinked =>
+      'Your company admin account is not linked to a company yet. Please contact the platform administrator.';
+
+  @override
+  String get authTechnicianNotLinked =>
+      'Your technician account is not linked to a company yet. Please contact your company administrator.';
+
+  @override
+  String get authPlatformAdminTitle => 'Platform Admin';
+
+  @override
+  String get authPlatformAdminMessage =>
+      'Platform administration is managed separately and is not available in this app.';
+
+  @override
+  String get authTechnicianAccountTitle => 'Technician account';
+
+  @override
+  String get authTechnicianNotSetUp =>
+      'Your technician account is not yet set up. Please contact your company administrator.';
+
+  @override
+  String get authTechnicianDeactivated =>
+      'Your technician account has been deactivated. Please contact your company administrator.';
+
+  @override
+  String get authTechnicianLoadFailed =>
+      'Could not load your technician record. Please try again or contact your company administrator.';
+
+  @override
+  String get authVerifyEmailTitle => 'Verify your email';
+
+  @override
+  String get authVerifyEmailGeneric =>
+      'Please verify your email address before continuing.';
+
+  @override
+  String authVerifyEmailSent(String email) {
+    return 'We sent a verification link to $email. Please verify your email before continuing.';
+  }
+
+  @override
+  String get authVerifyEmailResent =>
+      'Verification email sent. Please check your inbox.';
+
+  @override
+  String get authVerifyEmailStillNot =>
+      'Still not verified. Please tap the link in the email, then try again.';
+
+  @override
+  String get authVerifiedMyEmail => 'I\'ve verified my email';
+
+  @override
+  String get authResendVerification => 'Resend verification email';
+
+  @override
+  String get authSignedInTitle => 'You are signed in';
+
+  @override
+  String get authDashboardLater => 'Customer dashboard will be added later.';
+
+  @override
+  String get authErrorEmailInUse => 'This email is already registered.';
+
+  @override
+  String get authErrorWeakPassword => 'Choose a stronger password.';
+
+  @override
+  String get authErrorInvalidCredentials => 'Invalid email or password.';
+
+  @override
+  String get authErrorUserDisabled => 'This account has been disabled.';
+
+  @override
+  String get authErrorTooManyRequests =>
+      'Too many attempts. Please wait and try again.';
+
+  @override
+  String get authErrorNetwork =>
+      'Network error. Check your connection and try again.';
+
+  @override
+  String get authErrorOperationNotAllowed =>
+      'Email and password sign-in is not enabled.';
+
+  @override
+  String get authErrorCancelled => 'Sign-in was cancelled.';
+
+  @override
+  String get authErrorDifferentCredential =>
+      'An account already exists with a different sign-in method for this email.';
+
+  @override
+  String get authErrorGoogleFailed =>
+      'Google sign-in failed. Please try again.';
+
+  @override
+  String get authErrorGoogleReauth =>
+      'Google couldn\'t confirm your account on this device. Tap \"Continue with Google\" again. If it keeps happening, open your Google account in the device settings and sign in to it again.';
+
+  @override
+  String get authErrorGoogleConfig =>
+      'Google sign-in is not set up for this version of the app. Please contact support.';
+
+  @override
+  String get authErrorPopupBlocked =>
+      'Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.';
+
+  @override
+  String get authErrorUnauthorizedDomain =>
+      'Google sign-in is not enabled for this website address.';
+
+  @override
+  String get authErrorGeneric => 'Authentication failed. Please try again.';
+
+  @override
+  String get authErrorSendVerification =>
+      'Could not send the verification email. Please try again.';
+
+  @override
+  String get authErrorNotAuthenticated => 'Not authenticated.';
+
+  @override
+  String get errorProfileSave =>
+      'Could not save your profile. Please try again.';
+
+  @override
+  String get errorProfileLoad =>
+      'Could not load your profile. Please try again.';
+
+  @override
+  String get errorProfileLoadDenied =>
+      'Could not load your profile: access was denied. Please try again later or contact support.';
+
+  @override
+  String get errorProfileLoadOffline =>
+      'Could not load your profile. Check your internet connection and try again.';
+
+  @override
+  String get errorProfileUpdate =>
+      'Could not update your profile. Please try again.';
+
+  @override
+  String get errorProfileNoEmail =>
+      'Your account has no email on file, so a profile could not be created. Please contact support.';
+
+  @override
+  String get errorProfileNotFound => 'Your profile could not be found.';
+
+  @override
+  String get errorSetupAccount =>
+      'Could not finish setting up your account. Please try again.';
+
+  @override
+  String get errorGeneric => 'Something went wrong. Please try again.';
+
+  @override
+  String get errorPermissionDenied => 'You do not have permission to do this.';
+
+  @override
+  String get errorNetwork => 'Check your internet connection and try again.';
+
+  @override
+  String get passwordChangeTitle => 'Choose a new password';
+
+  @override
+  String get passwordChangeIntro =>
+      'You signed in with a temporary password. Choose your own password to continue.';
+
+  @override
+  String get passwordChangeTemporary => 'Temporary password';
+
+  @override
+  String get passwordChangeNew => 'New password';
+
+  @override
+  String get passwordChangeConfirm => 'Confirm new password';
+
+  @override
+  String get passwordChangeSubmit => 'Change password';
+
+  @override
+  String get passwordChangeCurrentRequired => 'Enter your temporary password.';
+
+  @override
+  String get passwordChangeNewRequired => 'Enter a new password.';
+
+  @override
+  String passwordChangeTooShort(int min) {
+    return 'The password must be at least $min characters.';
+  }
+
+  @override
+  String get passwordChangeMismatch => 'The passwords do not match.';
+
+  @override
+  String get passwordErrorCurrentWrong => 'Current password is incorrect.';
+
+  @override
+  String get passwordErrorNewWeak =>
+      'New password is too weak. Use at least 6 characters.';
+
+  @override
+  String get passwordErrorRecentLogin =>
+      'Please sign out and sign back in before changing your password.';
+
+  @override
+  String get passwordErrorGeneric =>
+      'Could not change password. Please try again.';
+
+  @override
+  String get imageLabel => 'Image';
+
+  @override
+  String get imageAdd => 'Add Image';
+
+  @override
+  String get imageChange => 'Change Image';
+
+  @override
+  String get imageChooseFromDevice => 'Choose from device';
+
+  @override
+  String get imageTakePhoto => 'Take a photo';
+
+  @override
+  String get imageUseUrl => 'Use image URL';
+
+  @override
+  String get imageUrl => 'Image URL';
+
+  @override
+  String get imageUploading => 'Uploading image';
+
+  @override
+  String get imageUploadFailed => 'Failed to upload image';
+
+  @override
+  String get imageEmptyUrl => 'Enter the image URL.';
+
+  @override
+  String get imageInvalidUrl => 'Enter a valid image link (http/https).';
+
+  @override
+  String get imageUnsupported =>
+      'Unsupported image. Use a JPG, PNG, WebP or GIF file.';
+
+  @override
+  String get imageTooLarge =>
+      'This image is too large. The maximum size is 5 MB.';
+
+  @override
+  String get imageCameraDenied =>
+      'Camera permission was denied. Allow camera access in settings to take a photo.';
+
+  @override
+  String get imageGalleryDenied =>
+      'Photo access was denied. Allow photo access in settings to choose an image.';
+
+  @override
+  String get imageCameraUnavailable =>
+      'The camera is not available on this device.';
+
+  @override
+  String get imagePickFailed => 'Could not open the image. Please try again.';
+
+  @override
+  String get locationTitle => 'Location';
+
+  @override
+  String get locationEnterAddress => 'Enter address';
+
+  @override
+  String get locationSelectOnMap => 'Select on Map';
+
+  @override
+  String get locationUseCurrent => 'Use My Current Location';
+
+  @override
+  String get locationConfirm => 'Confirm Location';
+
+  @override
+  String get locationChange => 'Change Location';
+
+  @override
+  String get locationRemoveMap => 'Remove map location';
+
+  @override
+  String get locationViewOnMap => 'View on Map';
+
+  @override
+  String get locationOpenOrder => 'Open Order Location';
+
+  @override
+  String get locationOpenCompany => 'Open Company Location';
+
+  @override
+  String get locationViewCompany => 'View Company Location';
+
+  @override
+  String get locationOpenDelivery => 'Open Delivery Location';
+
+  @override
+  String get locationSearchAddress => 'Search Address on Map';
+
+  @override
+  String get locationOpenInMaps => 'Open in Maps app';
+
+  @override
+  String get locationSelected => 'Location selected';
+
+  @override
+  String get locationLatShort => 'Lat';
+
+  @override
+  String get locationLngShort => 'Lng';
+
+  @override
+  String get locationTapToSelect =>
+      'Tap the map to choose the exact point. Tap again to move it.';
+
+  @override
+  String get locationPinned => 'Pinned on map';
+
+  @override
+  String get locationAddressApproximate =>
+      'Written address only (no exact map point)';
+
+  @override
+  String get locationRequired =>
+      'Enter an address or select a location on the map.';
+
+  @override
+  String get locationCouldNotOpenMaps => 'Could not open the maps app.';
+
+  @override
+  String get locationServiceOff =>
+      'Location services are turned off. You can still tap the map.';
+
+  @override
+  String get locationPermissionDenied =>
+      'Location permission was denied. You can still tap the map or type an address.';
+
+  @override
+  String get locationPermissionDeniedForever =>
+      'Location permission is blocked in settings. You can still tap the map.';
+
+  @override
+  String get locationCurrentUnavailable =>
+      'Could not get your current location. You can still tap the map.';
+
+  @override
+  String get productPriceOnRequest => 'Price on request';
+
+  @override
+  String get orderCreateDenied =>
+      'You do not have permission to place this order. Please sign in again and try again.';
+
+  @override
+  String get orderCreateNetwork =>
+      'The order could not be confirmed. Check your internet connection and try again.';
+
+  @override
+  String get orderCreateFailed =>
+      'Failed to create the order. Please try again.';
+
+  @override
+  String get orderNotConfirmed =>
+      'Your order could not be confirmed. Check your connection and try again.';
+
+  @override
+  String orderProductNoPrice(String productName) {
+    return '$productName has no listed price yet. Please contact the company to order it.';
+  }
+
+  @override
+  String orderPriceChanged(String productName) {
+    return 'The price of $productName changed before your order was sent, so it was not placed. Go back to see the new price. If you already transferred money, please contact the company.';
+  }
+
+  @override
+  String get orderAttachReceiptFailed =>
+      'Could not attach the receipt. Please try again.';
+
+  @override
+  String get orderFetchFailed => 'Could not load the order. Please try again.';
+
+  @override
+  String get orderUpdateStatusDenied =>
+      'You do not have permission to update the status of this order.';
+
+  @override
+  String get orderUpdateStatusFailed =>
+      'Could not update the order status. Please try again.';
+
+  @override
+  String get orderConfirmPaymentDenied =>
+      'You do not have permission to confirm the payment for this order.';
+
+  @override
+  String get orderConfirmPaymentFailed =>
+      'Could not confirm the payment. Please try again.';
+
+  @override
+  String get orderCancelDenied =>
+      'You do not have permission to cancel this order.';
+
+  @override
+  String get orderCancelFailed =>
+      'Could not cancel the order. Please try again.';
+
+  @override
+  String get orderCancelNotAllowed =>
+      'This order cannot be cancelled now: it was already cancelled or has moved on, or this reason does not apply to a confirmed payment.';
+
+  @override
+  String get orderStatusCancelled => 'Cancelled';
+
+  @override
+  String get orderCancelledTitle => 'This order was cancelled';
+
+  @override
+  String get orderCancelledByCompany => 'Cancelled by the company.';
+
+  @override
+  String get orderCancelledExpired =>
+      'Cancelled automatically: the payment was not verified within 24 hours.';
+
+  @override
+  String get orderCancelledOutOfStock =>
+      'Cancelled because the product ran out of stock before the payment was confirmed. The company returns the transferred money outside the app.';
+
+  @override
+  String get orderCancelledRefundConfirmed =>
+      'Your payment had been confirmed: the company returns the money to you outside the app.';
+
+  @override
+  String get orderCancelledRefundIfPaid =>
+      'If you transferred money for this order, the company returns it outside the app. You can reach them in the order\'s chat.';
+
+  @override
+  String get adminCancelledRefundConfirmed =>
+      'Its payment had been confirmed: return the money to the customer outside the app.';
+
+  @override
+  String get adminCancelledRefundIfPaid =>
+      'If the customer transferred money, return it outside the app.';
+
+  @override
+  String orderCancelNote(String note) {
+    return 'Note from the company: $note';
+  }
+
+  @override
+  String orderCancelledRefundDone(String date) {
+    return 'The company returned your payment on $date.';
+  }
+
+  @override
+  String adminCancelledRefundRecorded(String date) {
+    return 'You recorded returning the payment to the customer on $date.';
+  }
+
+  @override
+  String orderCancelledOn(String date) {
+    return 'Cancelled on $date';
+  }
+
+  @override
+  String get paymentStatusNotVerified => 'Not verified';
+
+  @override
+  String get adminCancelOrderButton => 'Cancel order';
+
+  @override
+  String get adminCancelOrderTitle => 'Cancel this order?';
+
+  @override
+  String adminCancelOrderBody(String orderId, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'its $count units go',
+      one: 'its 1 unit goes',
+    );
+    return 'Order #$orderId will be cancelled and $_temp0 back to stock. This cannot be undone. If the customer already paid, arrange the refund with them.';
+  }
+
+  @override
+  String adminCancelOrderBodyNoStock(String orderId) {
+    return 'Order #$orderId will be cancelled. Its payment is not confirmed, so it took no stock and none goes back. This cannot be undone. If the customer already transferred money, return it outside the app.';
+  }
+
+  @override
+  String adminCancelConfirmedOrderBody(
+    String orderId,
+    int count,
+    String amount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'its $count units go',
+      one: 'its 1 unit goes',
+    );
+    return 'Order #$orderId will be cancelled and $_temp0 back to stock. Its payment was confirmed: return $amount to the customer outside the app. This cannot be undone.';
+  }
+
+  @override
+  String adminCancelConfirmedOrderBodyNoStock(String orderId, String amount) {
+    return 'Order #$orderId will be cancelled. It was placed before orders recorded their stock, so no stock goes back automatically. Its payment was confirmed: return $amount to the customer outside the app. This cannot be undone.';
+  }
+
+  @override
+  String get adminCancelOutOfStockButton => 'Cancel: out of stock';
+
+  @override
+  String get adminCancelOutOfStockTitle => 'Cancel as out of stock?';
+
+  @override
+  String adminCancelOutOfStockBody(String orderId, String amount) {
+    return 'Order #$orderId will be cancelled because its product cannot cover it. No stock is taken or returned. The customer is told the product ran out; return $amount to them outside the app if they transferred it. This cannot be undone.';
+  }
+
+  @override
+  String get adminOrderCancelledOutOfStock =>
+      'Order cancelled as out of stock.';
+
+  @override
+  String get adminCancelOrderConfirm => 'Cancel order';
+
+  @override
+  String get adminCancelOrderKeep => 'Keep order';
+
+  @override
+  String get adminOrderCancelled => 'Order cancelled.';
+
+  @override
+  String adminCancelStockReturned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count units went back to stock.',
+      one: '1 unit went back to stock.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adminCancelStockNotReturned =>
+      'No stock went back: the order had taken none (its payment was not confirmed), or its product was removed.';
+
+  @override
+  String get adminOrdersExpiryNote =>
+      'Orders whose payment is not confirmed within 24 hours are cancelled automatically; a confirmed order never expires. This happens when you open this page, so a cancellation can wait until then.';
+
+  @override
+  String get orderAssignTechnicianDenied =>
+      'You do not have permission to assign a technician to this order.';
+
+  @override
+  String get orderAssignTechnicianFailed =>
+      'Could not assign the technician. Please try again.';
+
+  @override
+  String get stockNoLongerAvailable => 'This product is no longer available.';
+
+  @override
+  String get stockChooseAtLeastOne => 'Choose at least one unit to order.';
+
+  @override
+  String stockOutOfStock(String productName) {
+    return '$productName is out of stock.';
+  }
+
+  @override
+  String stockOnlyLeft(int available, String productName) {
+    return 'Only $available of $productName left in stock. Please reduce the quantity.';
+  }
+
+  @override
+  String get productSaveDenied =>
+      'You do not have permission to save this product.';
+
+  @override
+  String get productSaveFailed =>
+      'Could not save the product. Please try again.';
+
+  @override
+  String get productUpdateDenied =>
+      'You do not have permission to update this product.';
+
+  @override
+  String get productUpdateFailed =>
+      'Could not update the product. Please try again.';
+
+  @override
+  String get productDeleteDenied =>
+      'You do not have permission to delete this product.';
+
+  @override
+  String get productDeleteFailed =>
+      'Could not delete the product. Please try again.';
+
+  @override
+  String get technicianSaveDenied =>
+      'You do not have permission to save this technician.';
+
+  @override
+  String get technicianSaveFailed =>
+      'Could not save the technician. Please try again.';
+
+  @override
+  String get technicianUpdateDenied =>
+      'You do not have permission to update this technician.';
+
+  @override
+  String get technicianUpdateFailed =>
+      'Could not update the technician. Please try again.';
+
+  @override
+  String get technicianDeactivateDenied =>
+      'You do not have permission to deactivate this technician.';
+
+  @override
+  String get technicianDeactivateFailed =>
+      'Could not deactivate the technician. Please try again.';
+
+  @override
+  String get companyUpdateDenied =>
+      'You do not have permission to edit this company.';
+
+  @override
+  String get companyUpdateFailed =>
+      'Could not update the company profile. Please try again.';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navDashboard => 'Dashboard';
+
+  @override
+  String get navProducts => 'Products';
+
+  @override
+  String get navCompanies => 'Companies';
+
+  @override
+  String get navOrders => 'Orders';
+
+  @override
+  String get navProfile => 'Profile';
+
+  @override
+  String get navMyOrders => 'My Orders';
+
+  @override
+  String reviewsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reviews',
+      one: '1 review',
+      zero: 'no reviews',
+    );
+    return '($_temp0)';
+  }
+
+  @override
+  String get commonPhoneInvalid => 'Enter a valid phone number.';
+
+  @override
+  String get commonViewOrderStatus => 'View Order Status';
+
+  @override
+  String get homeNoProducts => 'No products found';
+
+  @override
+  String get homeNoCompanies => 'No companies found';
+
+  @override
+  String productInStockCount(int count) {
+    return 'In Stock ($count)';
+  }
+
+  @override
+  String get productOutOfStock => 'Out of Stock';
+
+  @override
+  String get productVerifiedSeller => 'Verified Seller';
+
+  @override
+  String get productInstallationAvailable =>
+      'Professional Installation Available';
+
+  @override
+  String productInstallationNote(String price, String currency) {
+    return 'Installation price: $price $currency. On-site setup option is selected during checkout.';
+  }
+
+  @override
+  String get productDescription => 'Description';
+
+  @override
+  String get productSpecifications => 'Specifications';
+
+  @override
+  String get productBuyNow => 'Buy Now';
+
+  @override
+  String get companyAbout => 'About Company';
+
+  @override
+  String companyProductsCount(int count) {
+    return 'Products ($count)';
+  }
+
+  @override
+  String get companyNoProducts => 'No products listed by this company yet.';
+
+  @override
+  String get checkoutTitle => 'Checkout';
+
+  @override
+  String checkoutUnit(String price, String currency) {
+    return 'Unit: $price $currency';
+  }
+
+  @override
+  String checkoutQty(int count) {
+    return 'Qty: $count';
+  }
+
+  @override
+  String checkoutSubtotal(String price, String currency) {
+    return 'Subtotal: $price $currency';
+  }
+
+  @override
+  String get checkoutDeliveryContact => 'Delivery & Contact';
+
+  @override
+  String get checkoutPickupContact => 'Pickup & Contact';
+
+  @override
+  String get checkoutDelivery => 'Delivery';
+
+  @override
+  String get checkoutPickup => 'Pickup';
+
+  @override
+  String get checkoutPickupLocation => 'Pickup Location';
+
+  @override
+  String get checkoutPickupFallback =>
+      'Company pickup location (the company will confirm by phone)';
+
+  @override
+  String get checkoutAddressHint =>
+      'Street name, building/house, neighborhood, city';
+
+  @override
+  String get checkoutContactPhone => 'Contact Phone Number';
+
+  @override
+  String get checkoutContactPhoneHelper =>
+      'The company will call this number to coordinate delivery';
+
+  @override
+  String get checkoutPhoneRequired => 'Please enter a contact phone number';
+
+  @override
+  String get checkoutInstallationOption => 'Installation Option';
+
+  @override
+  String get checkoutInstallationTitle => 'On-site Professional Installation';
+
+  @override
+  String checkoutInstallationNote(String price, String currency) {
+    return 'Certified technician setup available for $price $currency.';
+  }
+
+  @override
+  String get checkoutProductOnly => 'Product Only';
+
+  @override
+  String get checkoutProductInstallation => 'Product + Installation';
+
+  @override
+  String get checkoutPriceSummary => 'Price Summary';
+
+  @override
+  String checkoutProductSubtotal(int count) {
+    return 'Product Subtotal ($count items)';
+  }
+
+  @override
+  String get checkoutInstallationService => 'Installation Service';
+
+  @override
+  String get checkoutNotIncluded => 'Not included';
+
+  @override
+  String get checkoutDeliveryFee => 'Delivery Fee';
+
+  @override
+  String get checkoutFinalTotal => 'Final Total';
+
+  @override
+  String checkoutConfirmOrder(String price, String currency) {
+    return 'Confirm Order • $price $currency';
+  }
+
+  @override
+  String get paymentTitle => 'Manual Payment';
+
+  @override
+  String paymentCopied(String label) {
+    return '$label copied to clipboard';
+  }
+
+  @override
+  String get paymentAccountNumberLabel => 'Account number';
+
+  @override
+  String get paymentPhoneNumberLabel => 'Phone number';
+
+  @override
+  String get paymentReceiptRequired =>
+      'Please upload or select a transfer receipt image before submitting.';
+
+  @override
+  String get paymentSubmitFailed =>
+      'Could not submit your receipt. Please try again.';
+
+  @override
+  String get paymentAmountToTransfer => 'Amount to Transfer';
+
+  @override
+  String get paymentOrderCreatedAfter =>
+      'Your order will be created after receipt submission.';
+
+  @override
+  String get paymentInstructions =>
+      'Please transfer the exact amount externally using your mobile banking app (Bankak, Fawry, etc.) or cash transfer. After completing the payment, upload a screenshot of your transfer receipt below.';
+
+  @override
+  String get paymentAccounts => 'Payment Accounts';
+
+  @override
+  String get paymentUploadReceipt => 'Upload Transfer Receipt';
+
+  @override
+  String get paymentUploadHint =>
+      'Upload a clear screenshot or photo of your transfer notification slip.';
+
+  @override
+  String get paymentTapToUpload => 'Tap to Upload Receipt / Screenshot';
+
+  @override
+  String get paymentSupports =>
+      'Supports JPG, PNG, or screenshot from Bankak/Fawry';
+
+  @override
+  String get receiptPreparing => 'Preparing image…';
+
+  @override
+  String get receiptTooLarge =>
+      'This image is still too large after compression. Please choose a smaller one.';
+
+  @override
+  String get receiptUnreadable =>
+      'This file could not be read as an image. Choose a photo or screenshot of your receipt.';
+
+  @override
+  String get receiptViewTitle => 'Payment receipt';
+
+  @override
+  String get receiptView => 'View receipt';
+
+  @override
+  String get receiptNone => 'No receipt image is available for this order.';
+
+  @override
+  String get receiptLoadFailed =>
+      'Could not load the receipt. Check your connection and try again.';
+
+  @override
+  String get paymentReceiptSelected => 'Receipt Selected';
+
+  @override
+  String get paymentReplace => 'Replace';
+
+  @override
+  String get paymentPendingNote =>
+      'Your order is sent together with this receipt. A receipt is not a confirmed payment: the company checks the transfer and confirms it, and only then is the product reserved for you.';
+
+  @override
+  String get paymentSubmitting => 'Submitting...';
+
+  @override
+  String get paymentSubmit => 'Submit Receipt for Verification';
+
+  @override
+  String get paymentAccountName => 'Account Name';
+
+  @override
+  String get paymentAccountMban => 'Account / MBAN';
+
+  @override
+  String get paymentPhoneIdentifier => 'Phone Identifier';
+
+  @override
+  String get ordersLoadFailed => 'Could not load orders';
+
+  @override
+  String get ordersRetry => 'Retry';
+
+  @override
+  String get ordersEmptyTitle => 'No Orders Yet';
+
+  @override
+  String get ordersEmptyBody =>
+      'When you purchase IT hardware or products from the marketplace, your orders and their live status will be tracked here.';
+
+  @override
+  String orderTitleNumber(String id) {
+    return 'Order #$id';
+  }
+
+  @override
+  String get orderTotalAmount => 'Total Amount';
+
+  @override
+  String get orderDetailsButton => 'Details';
+
+  @override
+  String get orderItemOrdered => 'Item Ordered';
+
+  @override
+  String orderUnitLine(String price) {
+    return 'Unit: $price SDG';
+  }
+
+  @override
+  String orderQtyLine(int count) {
+    return 'Qty: $count';
+  }
+
+  @override
+  String orderSubtotalLine(String price) {
+    return 'Subtotal: $price SDG';
+  }
+
+  @override
+  String get orderPickupDetails => 'Pickup Details';
+
+  @override
+  String get orderDeliveryDetails => 'Delivery Details';
+
+  @override
+  String get orderAddress => 'Address';
+
+  @override
+  String get orderContactPhone => 'Contact Phone';
+
+  @override
+  String get orderType => 'Order Type';
+
+  @override
+  String orderTypeInstallation(String fee) {
+    return 'Product + Installation (+$fee SDG)';
+  }
+
+  @override
+  String get orderDeliveryFee => 'Delivery Fee';
+
+  @override
+  String get orderOrderedAt => 'Ordered At';
+
+  @override
+  String get orderPaymentStatus => 'Payment Status';
+
+  @override
+  String get orderStatusLabel => 'Status';
+
+  @override
+  String get orderReceiptAttached => 'Receipt Attached';
+
+  @override
+  String get orderProductSubtotal => 'Product Subtotal';
+
+  @override
+  String get orderInstallationFee => 'Installation Fee';
+
+  @override
+  String get orderTotal => 'Total';
+
+  @override
+  String get orderOrderStatus => 'Order Status';
+
+  @override
+  String get pendingBanner => 'PENDING VERIFICATION';
+
+  @override
+  String get pendingTitle => 'Order sent: waiting for the company';
+
+  @override
+  String get pendingBody =>
+      'Your order and your transfer receipt were sent to the company. A receipt is not a confirmed payment: the company checks that the money arrived, then confirms it.';
+
+  @override
+  String get orderNotReservedYet =>
+      'The product is not reserved for you yet: stock is taken only when the company confirms your payment. If it sells out first, the company may cancel the order and return your transfer outside the app.';
+
+  @override
+  String get orderPaymentConfirmedNote =>
+      'The company confirmed your payment, and the product is reserved for your order.';
+
+  @override
+  String get orderAwaitingConfirmation =>
+      'Waiting for the company to confirm your payment';
+
+  @override
+  String get checkoutReservationNote =>
+      'Next you transfer the amount and upload the receipt. The company then confirms the payment, and only then is the product reserved for you.';
+
+  @override
+  String orderQuotaReached(int count, String time) {
+    return 'You have placed $count orders in the last 24 hours, the most allowed. You can order again after $time.';
+  }
+
+  @override
+  String orderQuotaReachedNoTime(int count) {
+    return 'You have placed $count orders in the last 24 hours, the most allowed. Please try again later.';
+  }
+
+  @override
+  String get pendingOrderReference => 'Order Reference';
+
+  @override
+  String get pendingDeliveryAddress => 'Delivery Address';
+
+  @override
+  String get pendingInstallation => 'Installation';
+
+  @override
+  String pendingInstallationIncluded(String fee) {
+    return 'Included ($fee SDG)';
+  }
+
+  @override
+  String get pendingUploaded => 'Uploaded';
+
+  @override
+  String get pendingTotalAmount => 'Total Amount';
+
+  @override
+  String get pendingBackToMarketplace => 'Back to Marketplace';
+
+  @override
+  String get pendingViewInMyOrders => 'View in My Orders';
+
+  @override
+  String get orderStatusProcessing => 'Processing';
+
+  @override
+  String get orderStatusOutForDelivery => 'Out for Delivery';
+
+  @override
+  String get orderStatusCompleted => 'Completed';
+
+  @override
+  String get paymentStatusPending => 'Pending Verification';
+
+  @override
+  String get paymentStatusConfirmed => 'Confirmed';
+
+  @override
+  String get deliveryMethodDelivery => 'Delivery';
+
+  @override
+  String get deliveryMethodPickup => 'Pickup';
+
+  @override
+  String get jobStatusPending => 'Pending';
+
+  @override
+  String get jobStatusInProgress => 'In Progress';
+
+  @override
+  String customerFallback(String id) {
+    return 'Customer $id';
+  }
+
+  @override
+  String get profileMyProfile => 'My profile';
+
+  @override
+  String get profileFullName => 'Full name';
+
+  @override
+  String get profilePhoneNumber => 'Phone number';
+
+  @override
+  String get profileFullNameRequired => 'Enter your full name.';
+
+  @override
+  String get profileEdit => 'Edit profile';
+
+  @override
+  String get profileUpdated => 'Profile updated successfully.';
+
+  @override
+  String get profileChangePassword => 'Change password';
+
+  @override
+  String get profileChangePasswordSubtitle => 'Update your account password';
+
+  @override
+  String get profileCurrentPassword => 'Current password';
+
+  @override
+  String get profileCurrentPasswordRequired => 'Enter your current password.';
+
+  @override
+  String get profilePasswordMin => 'Use at least 6 characters.';
+
+  @override
+  String get profileConfirmPasswordRequired => 'Confirm your new password.';
+
+  @override
+  String get profileUpdatePassword => 'Update password';
+
+  @override
+  String get profilePasswordChanged => 'Password changed successfully.';
+
+  @override
+  String get notificationsLoadFailed => 'Could not load notifications.';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet.';
+
+  @override
+  String get notifGenericTitle => 'Notification';
+
+  @override
+  String get notifGenericBody => 'There is an update on one of your orders.';
+
+  @override
+  String get notifDeleteTitle => 'Delete this notification?';
+
+  @override
+  String get notifDeleteBody => 'It will be removed for good.';
+
+  @override
+  String get notifNewOrderTitle => 'New order received';
+
+  @override
+  String notifNewOrderBody(String product) {
+    return 'A new order for \"$product\" was placed and is awaiting payment verification.';
+  }
+
+  @override
+  String get notifPaymentConfirmedTitle => 'Payment confirmed';
+
+  @override
+  String notifPaymentConfirmedBody(String product) {
+    return 'Your payment for \"$product\" has been confirmed.';
+  }
+
+  @override
+  String get notifOutForDeliveryTitle => 'Order out for delivery';
+
+  @override
+  String notifOutForDeliveryBody(String product) {
+    return 'Your order \"$product\" is out for delivery.';
+  }
+
+  @override
+  String get notifOrderCompletedTitle => 'Order completed';
+
+  @override
+  String get notifOrderCompletedBody => 'Your order has been completed.';
+
+  @override
+  String get notifTechnicianAssignedTitle => 'New installation job assigned';
+
+  @override
+  String notifTechnicianAssignedBody(String product) {
+    return 'You have been assigned to install \"$product\".';
+  }
+
+  @override
+  String get navTechnicians => 'Technicians';
+
+  @override
+  String get adminInstallationJobs => 'Installation Jobs';
+
+  @override
+  String get adminCompanyProfile => 'Company Profile';
+
+  @override
+  String get adminCompanyDashboard => 'Company Dashboard';
+
+  @override
+  String get techShellDashboard => 'Technician Dashboard';
+
+  @override
+  String get techShellJobs => 'My Jobs';
+
+  @override
+  String get techNavJobs => 'Jobs';
+
+  @override
+  String get adminWelcome => 'Welcome';
+
+  @override
+  String get adminDashboardOverview => 'Overview of your products and orders';
+
+  @override
+  String get adminTotalProducts => 'Total Products';
+
+  @override
+  String get adminTotalOrders => 'Total Orders';
+
+  @override
+  String get adminPendingOrders => 'Pending Orders';
+
+  @override
+  String get adminRecentOrders => 'Recent Orders';
+
+  @override
+  String get adminViewAll => 'View all';
+
+  @override
+  String get adminOrdersLoadFailedShort => 'Could not load orders.';
+
+  @override
+  String get adminNoOrdersYet => 'No orders yet.';
+
+  @override
+  String get orderDetailsTitle => 'Order Details';
+
+  @override
+  String get adminOrderNotFound => 'This order was not found.';
+
+  @override
+  String get adminJobNotFound => 'This job was not found.';
+
+  @override
+  String get adminProductNotFound => 'This product was not found.';
+
+  @override
+  String get adminOrdersLoadFailed => 'Could not load your orders.';
+
+  @override
+  String adminFilterAll(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String adminFilterStatus(String status, int count) {
+    return '$status ($count)';
+  }
+
+  @override
+  String get adminNoOrdersToShow => 'No orders to show.';
+
+  @override
+  String adminQtyShort(int count) {
+    return 'Qty $count';
+  }
+
+  @override
+  String get adminCustomer => 'Customer';
+
+  @override
+  String get adminName => 'Name';
+
+  @override
+  String get adminProduct => 'Product';
+
+  @override
+  String get adminQuantity => 'Quantity';
+
+  @override
+  String get adminUnitPrice => 'Unit Price';
+
+  @override
+  String get adminMethod => 'Method';
+
+  @override
+  String get adminSelection => 'Selection';
+
+  @override
+  String get adminJobStatus => 'Job Status';
+
+  @override
+  String get adminPayment => 'Payment';
+
+  @override
+  String get adminReceiptReference => 'Receipt Reference';
+
+  @override
+  String get adminNotProvided => 'Not provided';
+
+  @override
+  String get adminOrderInformation => 'Order Information';
+
+  @override
+  String get adminOrderNumber => 'Order Number';
+
+  @override
+  String get adminCreated => 'Created';
+
+  @override
+  String get adminLastUpdated => 'Last Updated';
+
+  @override
+  String get adminCurrentStatus => 'Current Status';
+
+  @override
+  String get adminManageOrder => 'Manage Order';
+
+  @override
+  String get adminVerifyReceipt =>
+      'A receipt is only the customer\'s claim. Check that the money arrived in your account, then confirm the payment. Confirming takes this order\'s units from stock; until then nothing is reserved.';
+
+  @override
+  String get adminShipAfterPayment =>
+      'The order can move on only after its payment is confirmed.';
+
+  @override
+  String adminStockCannotCover(int available, int count) {
+    return 'Not enough stock for this order: $available left, $count needed. Restock the product and confirm the payment, or cancel the order as out of stock.';
+  }
+
+  @override
+  String get adminProductGoneCannotConfirm =>
+      'This order\'s product is no longer in your catalogue, so its payment cannot be confirmed. Cancel the order as out of stock.';
+
+  @override
+  String adminOutOfStockStillCovers(int available, int count) {
+    return 'The product still has $available left, enough for this order ($count), so it cannot be cancelled as out of stock. Confirm the payment, or cancel the order by hand.';
+  }
+
+  @override
+  String get adminStockLabel => 'Stock';
+
+  @override
+  String adminStockTaken(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count units taken from stock',
+      one: '1 unit taken from stock',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adminStockNotTaken =>
+      'Not taken yet: taken when you confirm the payment';
+
+  @override
+  String get orderPaymentAlreadyConfirmed =>
+      'This payment was already confirmed, perhaps from another device. Nothing more was taken from stock.';
+
+  @override
+  String get orderPaymentNotAwaiting =>
+      'This order\'s payment can no longer be confirmed: the order was cancelled or has moved on.';
+
+  @override
+  String get orderPaymentNoReceipt =>
+      'This order has no stored receipt, so its payment cannot be confirmed. Ask the customer for the receipt in the order\'s chat, or cancel the order.';
+
+  @override
+  String get adminConfirmPaymentTitle => 'Confirm payment';
+
+  @override
+  String adminConfirmPaymentBody(String id, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count units are',
+      one: '1 unit is',
+    );
+    return 'Confirm that the payment for order #$id has arrived? $_temp0 taken from stock now.';
+  }
+
+  @override
+  String get adminPaymentConfirmed => 'Payment confirmed and stock taken.';
+
+  @override
+  String get adminConfirmPaymentButton => 'Confirm Payment';
+
+  @override
+  String get adminOrderCompleted => 'This order is completed.';
+
+  @override
+  String get adminMarkCompletedHint =>
+      'Mark completed once the technician has finished the installation.';
+
+  @override
+  String get adminUpdateOrderStatus => 'Update order status';
+
+  @override
+  String adminChangeOrderStatusBody(String id, String status) {
+    return 'Change order #$id to \"$status\"? This cannot be undone.';
+  }
+
+  @override
+  String adminOrderMarked(String status) {
+    return 'Order marked $status.';
+  }
+
+  @override
+  String get adminMarkOutForDelivery => 'Mark Out for Delivery';
+
+  @override
+  String get adminMarkCompletedInstalled => 'Mark Completed (Installed)';
+
+  @override
+  String get adminMarkCompleted => 'Mark Completed';
+
+  @override
+  String get adminMarkProcessing => 'Mark Processing';
+
+  @override
+  String get adminInstallationJob => 'Installation Job';
+
+  @override
+  String adminJobTitleNumber(String id) {
+    return 'Job #$id';
+  }
+
+  @override
+  String get adminJobDetails => 'Job Details';
+
+  @override
+  String get adminJobOrderNumber => 'Job / Order Number';
+
+  @override
+  String get adminCustomerLocation => 'Customer & Location';
+
+  @override
+  String get adminInstallationAddress => 'Installation Address';
+
+  @override
+  String get adminLocation => 'Location';
+
+  @override
+  String get adminCustomerPickupConfirm =>
+      'Customer pickup — confirm the installation location by phone';
+
+  @override
+  String get adminCustomerPickupConfirmShort =>
+      'Customer pickup — confirm the location by phone';
+
+  @override
+  String get adminCustomerPickup => 'Customer pickup';
+
+  @override
+  String get adminViewFullOrder => 'View full order';
+
+  @override
+  String get adminTechnicianAssigned => 'Technician assigned.';
+
+  @override
+  String get adminAssignTechnician => 'Assign Technician';
+
+  @override
+  String get adminChangeTechnician => 'Change Technician';
+
+  @override
+  String get adminPickTechnicianHint =>
+      'Choose who will carry out this installation.';
+
+  @override
+  String get adminTechnicianSearchHint => 'Search technicians';
+
+  @override
+  String get adminTechnicianNoMatch => 'No technician matches your search.';
+
+  @override
+  String get adminTechnicianCurrent => 'Assigned';
+
+  @override
+  String get adminTechnicianSection => 'Technician';
+
+  @override
+  String get adminAssignedTo => 'Assigned to';
+
+  @override
+  String get adminNotAssigned => 'Not assigned';
+
+  @override
+  String get adminTechniciansLoadFailedShort => 'Could not load technicians.';
+
+  @override
+  String get adminAddTechnicianFirst =>
+      'Add a technician first to assign this job.';
+
+  @override
+  String get adminAddProduct => 'Add Product';
+
+  @override
+  String get adminEditProduct => 'Edit Product';
+
+  @override
+  String get adminProductsLoadFailed => 'Could not load your products.';
+
+  @override
+  String get adminProductsEmpty =>
+      'You have not added any products yet.\nTap \"Add Product\" to create your first one.';
+
+  @override
+  String adminInStock(int count) {
+    return 'In stock: $count';
+  }
+
+  @override
+  String get adminUnavailable => 'Unavailable';
+
+  @override
+  String get adminOutOfStock => 'Out of stock';
+
+  @override
+  String get adminInstallationBadge => 'Installation';
+
+  @override
+  String get adminPickupOnlyBadge => 'Pickup only';
+
+  @override
+  String get adminDeleteProduct => 'Delete product';
+
+  @override
+  String adminDeleteProductBody(String name) {
+    return 'Delete \"$name\"? This cannot be undone.';
+  }
+
+  @override
+  String get adminProductDeleted => 'Product deleted.';
+
+  @override
+  String get adminProductDetails => 'Product Details';
+
+  @override
+  String get adminEditProductTooltip => 'Edit product';
+
+  @override
+  String get adminAvailability => 'Availability';
+
+  @override
+  String get adminStatus => 'Status';
+
+  @override
+  String get adminAvailable => 'Available';
+
+  @override
+  String get adminNotAvailable => 'Not available';
+
+  @override
+  String get adminNotAvailablePickup => 'Not available (pickup only)';
+
+  @override
+  String get adminStock => 'Stock';
+
+  @override
+  String get adminDeliveryInstallation => 'Delivery & Installation';
+
+  @override
+  String get adminInstallationPrice => 'Installation Price';
+
+  @override
+  String get formProductAdded => 'Product added.';
+
+  @override
+  String get formProductUpdated => 'Product updated.';
+
+  @override
+  String get formProductName => 'Product Name';
+
+  @override
+  String get formProductNameRequired => 'Product name is required.';
+
+  @override
+  String get formCategoryLabel => 'Category';
+
+  @override
+  String adminUnitsLeft(int count) {
+    return '$count left';
+  }
+
+  @override
+  String get adminStockLow => 'Low stock';
+
+  @override
+  String get adminAttentionRestock => 'Restock';
+
+  @override
+  String get adminAttentionAssignTechnician => 'Assign technician';
+
+  @override
+  String get adminAttentionVerifyPayment => 'Verify payment';
+
+  @override
+  String get adminStatLowStock => 'Low stock';
+
+  @override
+  String get adminStatSalesWeek => 'Sales this week';
+
+  @override
+  String get adminStatNewOrders => 'New orders';
+
+  @override
+  String get adminNothingToDo => 'Nothing needs your attention right now.';
+
+  @override
+  String get adminNeedsAttention => 'Needs your attention';
+
+  @override
+  String get navCatalog => 'Catalog';
+
+  @override
+  String get navAccount => 'Account';
+
+  @override
+  String get adminAddNew => 'Add';
+
+  @override
+  String get adminAddNewTitle => 'Add new';
+
+  @override
+  String get adminAddService => 'Add Service';
+
+  @override
+  String adminOrdersPickup(int count) {
+    return 'Pickup ($count)';
+  }
+
+  @override
+  String adminOrdersDelivery(int count) {
+    return 'Delivery ($count)';
+  }
+
+  @override
+  String adminOrdersInstallation(int count) {
+    return 'Installation ($count)';
+  }
+
+  @override
+  String adminOrdersServices(int count) {
+    return 'Services ($count)';
+  }
+
+  @override
+  String get adminAccountViewProfile => 'View company profile';
+
+  @override
+  String adminTechniciansActive(int count) {
+    return '$count active';
+  }
+
+  @override
+  String get adminSearchOrders => 'Search orders and service requests';
+
+  @override
+  String get adminSearchProducts => 'Search products';
+
+  @override
+  String get adminServiceOwnBadge => 'Created by you';
+
+  @override
+  String get adminServiceCategoryInvalid => 'Choose a valid category.';
+
+  @override
+  String get adminServiceCategoryRequired => 'Choose a category.';
+
+  @override
+  String get adminServiceDescriptionLabel => 'Description';
+
+  @override
+  String get adminServiceNameRequired => 'Service name is required.';
+
+  @override
+  String get adminServiceNameLabel => 'Service name';
+
+  @override
+  String get adminServiceFormEditTitle => 'Edit service';
+
+  @override
+  String get adminServiceCreateFirst => 'Create your first service';
+
+  @override
+  String get adminServiceNew => 'New service';
+
+  @override
+  String get adminServicesYours => 'Your services';
+
+  @override
+  String get formCategoryInactiveSuffix => '(inactive)';
+
+  @override
+  String get formCategoryNone => 'No category';
+
+  @override
+  String get categoryPickerTitle => 'Choose a category';
+
+  @override
+  String get categorySearchHint => 'Search categories';
+
+  @override
+  String get categoryRootCrumb => 'All categories';
+
+  @override
+  String get categoryBack => 'Back';
+
+  @override
+  String get categorySelect => 'Select';
+
+  @override
+  String get categoryNoResults => 'No category matches your search.';
+
+  @override
+  String get categoryTreeEmpty => 'No categories have been added yet.';
+
+  @override
+  String get categoryUnavailable =>
+      'This category is no longer available. Choose another one.';
+
+  @override
+  String categorySubCount(int count) {
+    return '$count sub-categories';
+  }
+
+  @override
+  String get homeFilterAllCategories => 'All';
+
+  @override
+  String get homeCategoriesTitle => 'Categories';
+
+  @override
+  String get homeCategoriesMore => 'More';
+
+  @override
+  String get adminProductUncategorized => 'No category';
+
+  @override
+  String get formPriceOptional => 'Price (SDG) - optional';
+
+  @override
+  String get formPriceInvalid => 'Enter a valid price greater than 0.';
+
+  @override
+  String get formInstallationPriceRequired => 'Installation price is required.';
+
+  @override
+  String get formInstallationPriceInvalid =>
+      'Enter a valid installation price greater than 0.';
+
+  @override
+  String get formStockSection => 'Stock / Availability';
+
+  @override
+  String get formStockQuantity => 'Stock Quantity';
+
+  @override
+  String get formStockRequired => 'Enter the stock quantity (0 or more).';
+
+  @override
+  String get formAvailableForSale => 'Available for sale';
+
+  @override
+  String get formAvailableHint =>
+      'Customers can buy this product while it has stock.';
+
+  @override
+  String get formSpecName => 'Name';
+
+  @override
+  String get formSpecValue => 'Value';
+
+  @override
+  String get formAddSpec => 'Add specification';
+
+  @override
+  String get formDeliveryAvailable => 'Delivery Available';
+
+  @override
+  String get formDeliveryOn => 'Customers can choose delivery at checkout.';
+
+  @override
+  String get formDeliveryOff =>
+      'Customers collect this product from your pickup location.';
+
+  @override
+  String get formInstallationAvailable => 'Installation Available';
+
+  @override
+  String get formInstallationOn =>
+      'Customers can choose Product + Installation.';
+
+  @override
+  String get formInstallationOff =>
+      'Customers will not see any installation option.';
+
+  @override
+  String get formInstallationPrice => 'Installation Price (SDG)';
+
+  @override
+  String get adminCompanyLoadFailed => 'Could not load your company profile.';
+
+  @override
+  String get adminCompanyNotFound =>
+      'Your company record was not found. Please contact the platform administrator.';
+
+  @override
+  String get adminContact => 'Contact';
+
+  @override
+  String get adminPhone => 'Phone';
+
+  @override
+  String get adminCity => 'City';
+
+  @override
+  String get adminEditCompanyProfile => 'Edit Company Profile';
+
+  @override
+  String get adminCompanyProfileUpdated => 'Company profile updated.';
+
+  @override
+  String get adminCompanyName => 'Company Name';
+
+  @override
+  String get adminCompanyNameRequired => 'Company name is required.';
+
+  @override
+  String get adminPickupAddress => 'Pickup Location / Address';
+
+  @override
+  String get pickupModeCompany => 'Collect from the company location';
+
+  @override
+  String get pickupModeCompanyHint =>
+      'Customers collect from the company address and map point above.';
+
+  @override
+  String get pickupModeCustom => 'Custom pickup points';
+
+  @override
+  String pickupPointsHint(int max) {
+    return 'Customers pick one of these at checkout. Up to $max points.';
+  }
+
+  @override
+  String pickupPointTitle(int n) {
+    return 'Pickup point $n';
+  }
+
+  @override
+  String get pickupPointName => 'Point name';
+
+  @override
+  String get pickupPointNameHint => 'e.g. Khartoum branch';
+
+  @override
+  String get pickupPointNameRequired => 'Enter a name for this point.';
+
+  @override
+  String get pickupPointPlaceRequired =>
+      'Enter an address or select a point on the map.';
+
+  @override
+  String get pickupAddPoint => 'Add a pickup point';
+
+  @override
+  String get pickupRemovePoint => 'Remove this point';
+
+  @override
+  String get checkoutChoosePickupPoint => 'Choose where to collect your order';
+
+  @override
+  String get adminShortDescription => 'Short Description';
+
+  @override
+  String get adminAddTechnician => 'Add Technician';
+
+  @override
+  String get adminEditTechnician => 'Edit Technician';
+
+  @override
+  String get adminDeactivateTechnician => 'Deactivate technician';
+
+  @override
+  String adminDeactivateTechnicianBody(String name) {
+    return 'Deactivate \"$name\"? They will no longer be available for new installation jobs.';
+  }
+
+  @override
+  String get adminTechnicianDeactivated => 'Technician deactivated.';
+
+  @override
+  String get adminTechniciansLoadFailed => 'Could not load your technicians.';
+
+  @override
+  String get adminTechniciansEmpty =>
+      'You have not added any technicians yet.\nTap \"Add Technician\" to create your first technician account.';
+
+  @override
+  String get adminActive => 'Active';
+
+  @override
+  String get adminInactive => 'Inactive';
+
+  @override
+  String get adminTechnicianUpdated => 'Technician updated.';
+
+  @override
+  String get adminTechnicianNameRequired => 'Technician name is required.';
+
+  @override
+  String get adminPhoneRequired => 'Phone number is required.';
+
+  @override
+  String get adminTechnicianEmailRequired => 'Technician email is required.';
+
+  @override
+  String get adminInactiveTechnicianNote =>
+      'Inactive technicians cannot be assigned to new jobs.';
+
+  @override
+  String get techDashboardLoadFailed => 'Could not load your dashboard.';
+
+  @override
+  String techWelcome(String name) {
+    return 'Welcome, $name';
+  }
+
+  @override
+  String get techTotalJobs => 'Total Jobs';
+
+  @override
+  String get techUpcomingJobs => 'Upcoming Jobs';
+
+  @override
+  String get techNoPendingJobs => 'No pending jobs right now.';
+
+  @override
+  String get techJobsLoadFailed => 'Could not load your jobs.';
+
+  @override
+  String get techNoJobsAssigned => 'No installation jobs assigned to you yet.';
+
+  @override
+  String get techJobCompleted => 'This job is completed.';
+
+  @override
+  String get techAwaitingPayment =>
+      'Waiting for the company to confirm the payment.';
+
+  @override
+  String get techAwaitingPaymentHint =>
+      'You can move this job on once the payment is confirmed.';
+
+  @override
+  String get techUpdateJobStatus => 'Update job status';
+
+  @override
+  String techChangeJobBody(String id, String status) {
+    return 'Change job #$id to \"$status\"? This cannot be undone.';
+  }
+
+  @override
+  String techJobMarked(String status) {
+    return 'Job marked $status.';
+  }
+
+  @override
+  String get techMarkInstallationCompleted => 'Mark Installation Completed';
+
+  @override
+  String get techProfileLoadFailed => 'Could not load your profile.';
+
+  @override
+  String get techCompany => 'Company';
+
+  @override
+  String get techMyDetails => 'My Details';
+
+  @override
+  String get techEditName => 'Edit name';
+
+  @override
+  String comingSoonTitle(String title) {
+    return '$title is coming soon';
+  }
+
+  @override
+  String get paymentAccountsManage => 'Payment accounts';
+
+  @override
+  String get paymentAccountsIntro =>
+      'Customers transfer their order payments to these accounts. Add at least one so customers can pay you.';
+
+  @override
+  String get paymentAccountsEmpty => 'No payment accounts yet.';
+
+  @override
+  String get paymentAccountAdd => 'Add account';
+
+  @override
+  String get paymentAccountEdit => 'Edit account';
+
+  @override
+  String get paymentAccountBankName => 'Bank / wallet name';
+
+  @override
+  String get paymentAccountBankRequired => 'Enter the bank or wallet name.';
+
+  @override
+  String get paymentAccountHolderRequired => 'Enter the account holder name.';
+
+  @override
+  String get paymentAccountNumberRequired => 'Enter the account number.';
+
+  @override
+  String get paymentAccountPhoneOptional => 'Linked phone number (optional)';
+
+  @override
+  String get paymentAccountSaved => 'Payment account saved.';
+
+  @override
+  String get paymentAccountRemoved => 'Payment account removed.';
+
+  @override
+  String get paymentAccountRemoveTitle => 'Remove this account?';
+
+  @override
+  String get paymentAccountRemoveBody =>
+      'Customers will no longer see it on the payment screen.';
+
+  @override
+  String paymentAccountLimit(int max) {
+    return 'You can add up to $max accounts.';
+  }
+
+  @override
+  String get paymentNoAccountsForCompany =>
+      'This company has not added payment accounts yet, so it cannot receive a payment right now. Please contact the company.';
+
+  @override
+  String get adminTechnicianAccountNote =>
+      'This creates the technician\'s account with a temporary password. Give them this email and password; they choose their own password the first time they sign in.';
+
+  @override
+  String get adminTechnicianTempPassword => 'Temporary password';
+
+  @override
+  String get adminTechnicianPasswordRequired => 'Enter a temporary password.';
+
+  @override
+  String get adminAddTechnicianSubmit => 'Add technician';
+
+  @override
+  String get adminTechnicianCreated =>
+      'Technician added. Share the email and temporary password with them.';
+
+  @override
+  String get technicianEmailInUse =>
+      'An account with this email already exists.';
+
+  @override
+  String get technicianEmailInvalid => 'This email address is not valid.';
+
+  @override
+  String get technicianPasswordWeak =>
+      'The temporary password is too weak. Choose a longer, harder one.';
+
+  @override
+  String get technicianTooManyRequests =>
+      'Too many attempts. Wait a few minutes and try again.';
+
+  @override
+  String get technicianAuthDisabled =>
+      'Creating accounts by email is turned off for this project. Contact the platform administrator.';
+
+  @override
+  String get comingSoonBody =>
+      'This section will be available in a later update.';
+
+  @override
+  String get navServices => 'Services';
+
+  @override
+  String get navChats => 'Chats';
+
+  @override
+  String get navMore => 'More';
+
+  @override
+  String get homeNoServices => 'No services found';
+
+  @override
+  String get searchHint => 'Search products, services and companies';
+
+  @override
+  String get searchRecent => 'Recent searches';
+
+  @override
+  String get searchRemoveRecent => 'Remove from history';
+
+  @override
+  String get searchBrowseCategories => 'Browse categories';
+
+  @override
+  String searchFor(String query) {
+    return 'Search for “$query”';
+  }
+
+  @override
+  String searchAll(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String searchProducts(int count) {
+    return 'Products ($count)';
+  }
+
+  @override
+  String searchServices(int count) {
+    return 'Services ($count)';
+  }
+
+  @override
+  String searchCompanies(int count) {
+    return 'Companies ($count)';
+  }
+
+  @override
+  String searchSeeAll(int count) {
+    return 'See all ($count)';
+  }
+
+  @override
+  String searchNoResults(String query) {
+    return 'No results for “$query”';
+  }
+
+  @override
+  String get searchNoResultsTip =>
+      'Check the spelling, try a shorter word, or browse a category.';
+
+  @override
+  String get searchTypeProduct => 'Product';
+
+  @override
+  String get searchTypeService => 'Service';
+
+  @override
+  String get searchTypeCompany => 'Company';
+
+  @override
+  String get homeServicesLoadFailed => 'Services could not be loaded.';
+
+  @override
+  String get ordersTabProducts => 'Products';
+
+  @override
+  String get ordersTabServices => 'Services';
+
+  @override
+  String get serviceDetailsTitle => 'Service details';
+
+  @override
+  String get serviceAvailableCompanies => 'Available companies';
+
+  @override
+  String get serviceNoCompanies => 'No company offers this service yet.';
+
+  @override
+  String get serviceCompaniesLoadFailed => 'The companies could not be loaded.';
+
+  @override
+  String get serviceRequestAction => 'Request service';
+
+  @override
+  String get serviceRequestFormTitle => 'Request service';
+
+  @override
+  String get serviceRequestDetailsLabel => 'What do you need?';
+
+  @override
+  String get serviceRequestDetailsHint =>
+      'Describe the work, the device or system, and anything the company should know.';
+
+  @override
+  String get serviceRequestDetailsRequired => 'Please describe what you need.';
+
+  @override
+  String get serviceRequestLocationOptional => 'Address (optional)';
+
+  @override
+  String get serviceRequestAddressHint => 'Where should the service be done?';
+
+  @override
+  String get serviceRequestSubmit => 'Send request';
+
+  @override
+  String get serviceRequestSent =>
+      'Your request was sent. You can now chat with the company.';
+
+  @override
+  String get serviceRequestCreateDenied =>
+      'This request could not be sent. The company may no longer offer this service.';
+
+  @override
+  String get serviceRequestCreateFailed =>
+      'The request could not be sent. Please try again.';
+
+  @override
+  String get serviceRequestUpdateFailed =>
+      'The request could not be updated. Please try again.';
+
+  @override
+  String get serviceRequestsLoadFailed =>
+      'Service requests could not be loaded.';
+
+  @override
+  String get serviceRequestNotFound => 'This service request was not found.';
+
+  @override
+  String get serviceRequestsEmptyCustomer =>
+      'You have not requested any services yet.';
+
+  @override
+  String get serviceRequestsEmptyCompany => 'No service requests yet.';
+
+  @override
+  String get serviceRequestDetailsTitle => 'Service request';
+
+  @override
+  String get serviceRequestCustomer => 'Customer';
+
+  @override
+  String get serviceRequestCompany => 'Company';
+
+  @override
+  String get serviceRequestPrice => 'Price';
+
+  @override
+  String get serviceRequestSentAt => 'Sent';
+
+  @override
+  String get serviceRequestNumber => 'Request';
+
+  @override
+  String get serviceRequestContact => 'Contact and location';
+
+  @override
+  String get serviceRequestAddress => 'Address';
+
+  @override
+  String get serviceRequestOpenChat => 'Open chat';
+
+  @override
+  String get serviceRequestViewDetails => 'Request details';
+
+  @override
+  String get serviceRequestCancel => 'Cancel request';
+
+  @override
+  String get serviceRequestCancelTitle => 'Cancel this request?';
+
+  @override
+  String get serviceRequestCancelBody =>
+      'The company will see that you cancelled it. This cannot be undone.';
+
+  @override
+  String get serviceRequestAccept => 'Accept';
+
+  @override
+  String get serviceRequestReject => 'Reject';
+
+  @override
+  String get serviceRequestRejectTitle => 'Reject this request?';
+
+  @override
+  String get serviceRequestRejectBody =>
+      'The customer will see that the request was rejected. This cannot be undone.';
+
+  @override
+  String get serviceRequestStart => 'Start work';
+
+  @override
+  String get serviceRequestComplete => 'Mark as completed';
+
+  @override
+  String get serviceRequestStatusPending => 'Pending';
+
+  @override
+  String get serviceRequestStatusAccepted => 'Accepted';
+
+  @override
+  String get serviceRequestStatusRejected => 'Rejected';
+
+  @override
+  String get serviceRequestStatusInProgress => 'In progress';
+
+  @override
+  String get serviceRequestStatusCompleted => 'Completed';
+
+  @override
+  String get serviceRequestStatusCancelled => 'Cancelled';
+
+  @override
+  String serviceRequestStatusLine(String status) {
+    return 'Request status: $status';
+  }
+
+  @override
+  String orderChatStatusLine(String status) {
+    return 'Order status: $status';
+  }
+
+  @override
+  String get orderViewDetails => 'Order details';
+
+  @override
+  String get orderStartChat => 'Start a conversation';
+
+  @override
+  String get chatStartDenied =>
+      'You cannot start a conversation about this order.';
+
+  @override
+  String get chatStartFailed =>
+      'The conversation could not be started. Please try again.';
+
+  @override
+  String get chatContactCompany => 'Contact';
+
+  @override
+  String get pushOpen => 'Open';
+
+  @override
+  String chatInquirySubject(String subject) {
+    return 'Question: $subject';
+  }
+
+  @override
+  String get chatInquiryStatusLine =>
+      'A question before ordering - no order yet';
+
+  @override
+  String get chatInquiryDenied => 'You can\'t message this company right now.';
+
+  @override
+  String get chatsEmptyCustomer =>
+      'No chats yet. Tap Contact on a product or service, or place an order, and your conversation with the company appears here.';
+
+  @override
+  String get chatsEmptyCompany =>
+      'No chats yet. Customers\' questions and every order or service request sent to your company open a conversation here.';
+
+  @override
+  String get chatNoMessagesYet => 'No messages yet';
+
+  @override
+  String get chatEmpty => 'No messages yet. Write to start the conversation.';
+
+  @override
+  String get chatInputHint => 'Write a message';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String get chatYou => 'You';
+
+  @override
+  String chatYouPrefix(String text) {
+    return 'You: $text';
+  }
+
+  @override
+  String chatYesterdayAt(String time) {
+    return 'Yesterday $time';
+  }
+
+  @override
+  String get chatCustomerFallback => 'Customer';
+
+  @override
+  String get chatUnread => 'Unread';
+
+  @override
+  String get chatNotFound => 'This conversation was not found.';
+
+  @override
+  String get chatLoadFailed => 'The chat could not be loaded.';
+
+  @override
+  String get chatSendDenied => 'You cannot send messages in this conversation.';
+
+  @override
+  String get chatSendFailed =>
+      'The message could not be sent. Please try again.';
+
+  @override
+  String get chatMessageInvalid => 'Write a message of up to 2000 characters.';
+
+  @override
+  String get adminServicesLoadFailed => 'Services could not be loaded.';
+
+  @override
+  String get adminServicesOffered => 'Services you offer';
+
+  @override
+  String get adminServicesOfferedEmpty =>
+      'You do not offer any services yet. Create one to start receiving requests.';
+
+  @override
+  String get adminServicesAvailable => 'From the platform catalogue';
+
+  @override
+  String get adminServicesCatalogueEmpty =>
+      'The service catalogue is empty for now.';
+
+  @override
+  String get adminServicesAllAdded =>
+      'You already offer every service in the catalogue.';
+
+  @override
+  String get adminServiceAdd => 'Add';
+
+  @override
+  String get adminServiceSaved => 'Service saved.';
+
+  @override
+  String get adminServiceRemoved => 'Service removed.';
+
+  @override
+  String get adminServiceRemoveTitle => 'Stop offering this service?';
+
+  @override
+  String adminServiceRemoveBody(String name) {
+    return 'Customers will no longer be able to request $name from your company. Existing requests are kept.';
+  }
+
+  @override
+  String get adminServicePriceHelper =>
+      'Leave empty if you do not want to show a price.';
+
+  @override
+  String get adminServiceNoteLabel => 'Note for customers (optional)';
+
+  @override
+  String get adminServiceNoteHint =>
+      'For example: done on site or remotely, what is included';
+
+  @override
+  String get companyServiceAlreadyOffered =>
+      'Your company already offers this service.';
+
+  @override
+  String get companyServiceNotFound => 'This service is no longer available.';
+
+  @override
+  String offerDiscountBadge(int percent) {
+    return '$percent% off';
+  }
+
+  @override
+  String get homeFeaturedOffers => 'Featured offers';
+
+  @override
+  String get adminAddOffer => 'Add Offer';
+
+  @override
+  String get offerPickProductTitle => 'Choose a product';
+
+  @override
+  String get offerPickProductEmpty =>
+      'Add a product with a price first, then put it on offer.';
+
+  @override
+  String offerNormalPrice(String price, String currency) {
+    return 'Normal price: $price $currency';
+  }
+
+  @override
+  String get offerPriceTooHigh =>
+      'The offer price must be lower than the normal price.';
+
+  @override
+  String get offerNoEndDate => 'No end date';
+
+  @override
+  String get offerEndsHint =>
+      'After this date the product goes back to its normal price and leaves the offers.';
+
+  @override
+  String get offerRemove => 'End offer';
+
+  @override
+  String get offerSaved => 'Offer saved.';
+
+  @override
+  String get offerRemoved => 'Offer ended.';
+
+  @override
+  String offerEndsOn(String date) {
+    return 'Ends $date';
+  }
+
+  @override
+  String get offerEdit => 'Edit offer';
+
+  @override
+  String get offerNeedsPrice =>
+      'Set a price for this product first to put it on offer.';
+
+  @override
+  String formPriceBelowOffer(String price) {
+    return 'This product is on offer at $price. The price must be higher than that, or end the offer first.';
+  }
+
+  @override
+  String get offerKindProduct => 'Product';
+
+  @override
+  String get offerKindService => 'Service';
+
+  @override
+  String get offerBadgeDiscount => '% off';
+
+  @override
+  String get offerBadgeSpecial => 'Special offer';
+
+  @override
+  String get offerBadgeLimited => 'Limited time';
+
+  @override
+  String get offerNewTitle => 'New offer';
+
+  @override
+  String get offerOnLabel => 'Offer on';
+
+  @override
+  String get offerChooseItem => 'Choose from your catalog';
+
+  @override
+  String get offerChange => 'Change';
+
+  @override
+  String get offerNewProduct => 'New product on offer';
+
+  @override
+  String get offerNewService => 'New service on offer';
+
+  @override
+  String get offerPickServiceTitle => 'Choose a service';
+
+  @override
+  String get offerSearchHint => 'Search by name';
+
+  @override
+  String get offerItemNoPrice => 'No price - set one first';
+
+  @override
+  String get offerPickServiceEmpty =>
+      'Add a service with a price first, then put it on offer.';
+
+  @override
+  String get offerDiscountMethod => 'Discount';
+
+  @override
+  String get offerModePercent => 'Percentage';
+
+  @override
+  String get offerModePrice => 'New price';
+
+  @override
+  String get offerPercentLabel => 'Discount (%)';
+
+  @override
+  String get offerPercentInvalid => 'Enter a percentage from 1 to 99.';
+
+  @override
+  String offerComputedPrice(String price, String currency) {
+    return 'Offer price: $price $currency';
+  }
+
+  @override
+  String get offerDuration => 'Duration';
+
+  @override
+  String get offerDuration3Days => '3 days';
+
+  @override
+  String get offerDurationWeek => '1 week';
+
+  @override
+  String get offerDurationMonth => '1 month';
+
+  @override
+  String get offerDurationNone => 'No end';
+
+  @override
+  String get offerDurationCustom => 'Pick a date';
+
+  @override
+  String get offerEndDatePast => 'Choose an end date in the future.';
+
+  @override
+  String get offerBadgeLabel => 'Badge';
+
+  @override
+  String get offerPreviewEmpty =>
+      'Choose a product or service to preview the offer as customers will see it.';
+
+  @override
+  String offerSaves(String amount, String currency) {
+    return 'Saves $amount $currency';
+  }
+
+  @override
+  String get offerPublish => 'Publish offer';
+
+  @override
+  String get offerPublished => 'Offer published.';
+
+  @override
+  String get offerEndConfirmTitle => 'End this offer?';
+
+  @override
+  String offerEndConfirmBody(String name) {
+    return '“$name” goes back to its normal price and leaves the offers.';
+  }
+
+  @override
+  String get offerPickItemRequired =>
+      'Choose a product or service for the offer.';
+
+  @override
+  String get catalogOffers => 'Offers';
+
+  @override
+  String offersRunning(int count) {
+    return 'Running ($count)';
+  }
+
+  @override
+  String offersEnded(int count) {
+    return 'Ended ($count)';
+  }
+
+  @override
+  String get offersEmpty =>
+      'No offers yet. Put any product or service on offer to show it to customers in Featured offers.';
+
+  @override
+  String offerEndedOn(String date) {
+    return 'Ended $date';
+  }
+
+  @override
+  String get offerAddCta => 'Add offer';
+
+  @override
+  String get reviewsTitle => 'Ratings';
+
+  @override
+  String get reviewsNew => 'New';
+
+  @override
+  String get reviewsEmpty => 'No ratings yet.';
+
+  @override
+  String reviewsSeeAll(int count) {
+    return 'See all ratings ($count)';
+  }
+
+  @override
+  String reviewsBasedOn(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ratings',
+      one: '1 rating',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewPromptTitle => 'How was your experience?';
+
+  @override
+  String get reviewPromptBody =>
+      'Your rating helps other customers choose, and helps the company improve.';
+
+  @override
+  String get reviewRateAction => 'Rate';
+
+  @override
+  String get reviewRateOrderTitle => 'Rate your order';
+
+  @override
+  String get reviewRateServiceTitle => 'Rate the service';
+
+  @override
+  String get reviewYours => 'Your rating';
+
+  @override
+  String get reviewEditAction => 'Edit rating';
+
+  @override
+  String reviewEditUntil(String date) {
+    return 'You can change it until $date.';
+  }
+
+  @override
+  String get reviewStars1 => 'Poor';
+
+  @override
+  String get reviewStars2 => 'Fair';
+
+  @override
+  String get reviewStars3 => 'Good';
+
+  @override
+  String get reviewStars4 => 'Very good';
+
+  @override
+  String get reviewStars5 => 'Excellent';
+
+  @override
+  String get reviewTapStars => 'Tap the stars to rate';
+
+  @override
+  String get reviewStarsRequired => 'Choose the stars first.';
+
+  @override
+  String reviewStarsSemantics(int count) {
+    return '$count of 5 stars';
+  }
+
+  @override
+  String get reviewTagsLabel => 'What stood out? (optional)';
+
+  @override
+  String get reviewTagQuality => 'Quality';
+
+  @override
+  String get reviewTagDelivery => 'Fast delivery';
+
+  @override
+  String get reviewTagPunctual => 'On time';
+
+  @override
+  String get reviewTagService => 'Good service';
+
+  @override
+  String get reviewTagPrice => 'Fair price';
+
+  @override
+  String get reviewCommentLabel => 'Comment';
+
+  @override
+  String get reviewCommentHint => 'Tell others about your experience';
+
+  @override
+  String get reviewSubmit => 'Send rating';
+
+  @override
+  String get reviewSave => 'Save changes';
+
+  @override
+  String get reviewThanks => 'Thanks, your rating is saved.';
+
+  @override
+  String get reviewUpdated => 'Your rating was updated.';
+
+  @override
+  String get reviewVerified => 'Verified customer';
+
+  @override
+  String get reviewAnonymous => 'Customer';
+
+  @override
+  String get reviewCompanyReply => 'Company\'s reply';
+
+  @override
+  String get reviewReplyAction => 'Reply';
+
+  @override
+  String get reviewEditReplyAction => 'Edit reply';
+
+  @override
+  String get reviewReplyTitle => 'Reply to the customer';
+
+  @override
+  String get reviewReplyHint => 'Thank the customer or explain what happened';
+
+  @override
+  String get reviewReplySend => 'Send reply';
+
+  @override
+  String get reviewReplySaved => 'Reply saved.';
+
+  @override
+  String get reviewReplyRequired => 'Write a reply first.';
+
+  @override
+  String get reviewHiddenByAdmin => 'Hidden by the platform admin';
+
+  @override
+  String get reviewNotRatedYet => 'The customer hasn\'t rated this yet.';
+
+  @override
+  String get companyReviewsTitle => 'Customer ratings';
+
+  @override
+  String companyReviewsNeedReply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count without a reply',
+      one: '1 without a reply',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reviewSaveDenied => 'You can\'t rate this.';
+
+  @override
+  String get reviewSaveFailed => 'Couldn\'t save the rating. Try again.';
+
+  @override
+  String get reviewReplyFailed => 'Couldn\'t save the reply. Try again.';
+
+  @override
+  String get reviewLoadFailed => 'Couldn\'t load the ratings.';
+
+  @override
+  String get notifNewReviewTitle => 'New rating';
+
+  @override
+  String notifNewReviewBody(String product) {
+    return 'A customer rated \"$product\".';
+  }
+
+  @override
+  String get notifReviewReplyTitle => 'The company replied';
+
+  @override
+  String notifReviewReplyBody(String product) {
+    return 'The company replied to your rating of \"$product\".';
+  }
+
+  @override
+  String phoneCountryCodeOf(String country, String code) {
+    return 'Country code: $country $code';
+  }
+
+  @override
+  String get phoneChooseCountry => 'Choose the country code';
+
+  @override
+  String get phoneCountrySearchHint => 'Search by country or code';
+
+  @override
+  String get phoneCountriesCommon => 'Most used';
+
+  @override
+  String get phoneCountriesAll => 'All countries';
+
+  @override
+  String get phoneCountryNoMatch => 'No country matches your search.';
+
+  @override
+  String phoneDigitsExact(int count, String code) {
+    return 'Enter $count digits after $code.';
+  }
+
+  @override
+  String get notifNewServiceRequestTitle => 'New service request';
+
+  @override
+  String notifNewServiceRequestBody(String service) {
+    return 'A customer requested \"$service\".';
+  }
+
+  @override
+  String get notifServiceRequestAcceptedTitle => 'Request accepted';
+
+  @override
+  String notifServiceRequestAcceptedBody(String service) {
+    return 'Your request for \"$service\" was accepted.';
+  }
+
+  @override
+  String get notifServiceRequestRejectedTitle => 'Request declined';
+
+  @override
+  String notifServiceRequestRejectedBody(String service) {
+    return 'Your request for \"$service\" was declined.';
+  }
+
+  @override
+  String get notifServiceRequestInProgressTitle => 'Work has started';
+
+  @override
+  String notifServiceRequestInProgressBody(String service) {
+    return 'Work has started on your request for \"$service\".';
+  }
+
+  @override
+  String get notifServiceRequestCompletedTitle => 'Request completed';
+
+  @override
+  String notifServiceRequestCompletedBody(String service) {
+    return 'Your request for \"$service\" has been completed.';
+  }
+
+  @override
+  String get notifServiceRequestCancelledTitle => 'Request cancelled';
+
+  @override
+  String notifServiceRequestCancelledBody(String service) {
+    return 'A customer cancelled the request for \"$service\".';
+  }
+
+  @override
+  String get homeShopByCategory => 'Shop by category';
+
+  @override
+  String get homeServicesByCategory => 'Services by category';
+
+  @override
+  String get homeShopNow => 'Shop now';
+
+  @override
+  String get homeTrustDelivery => 'Delivery to your location';
+
+  @override
+  String get homeTrustInstallation => 'Installation by a technician';
+
+  @override
+  String get homeVerifiedCompanies => 'Top companies';
+
+  @override
+  String get homeAllCompanies => 'All companies';
+
+  @override
+  String get homeOffersEndsIn => 'Ends in';
+
+  @override
+  String homeOffersEndsInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'Ends in $_temp0';
+  }
+
+  @override
+  String get homeRecentlyAdded => 'Recently added';
+
+  @override
+  String get homeNewBadge => 'New';
+
+  @override
+  String get homeAllProducts => 'All products';
+
+  @override
+  String get homeSortNewest => 'Newest';
+
+  @override
+  String get homeSortPriceLow => 'Price: low to high';
+
+  @override
+  String get homeSortPriceHigh => 'Price: high to low';
+
+  @override
+  String get homeSortTopRated => 'Highest rated';
+
+  @override
+  String get homeSortName => 'Name';
+
+  @override
+  String get homeSortMostReviewed => 'Most reviewed';
+
+  @override
+  String get homeFilterOffers => 'Offers';
+
+  @override
+  String get homeFilterDelivery => 'Delivery';
+
+  @override
+  String get homeFilterInstallation => 'Installation';
+
+  @override
+  String get homeFilterTopRated => 'Top rated';
+
+  @override
+  String get homeNoRatingsYet => 'No ratings yet';
+
+  @override
+  String get homeNoMatchingProducts => 'No products match these filters';
+
+  @override
+  String get homeServiceBannerTitle => 'Need a technician?';
+
+  @override
+  String get homeServiceBannerBody =>
+      'Describe what you need and get price offers from verified companies.';
+
+  @override
+  String get homeStepDescribe => 'Describe your request';
+
+  @override
+  String get homeStepCompare => 'Compare offers';
+
+  @override
+  String get homeStepArrives => 'Your technician arrives';
+
+  @override
+  String get homeMostRequested => 'Most requested';
+
+  @override
+  String get homeStartsFrom => 'Starts from';
+
+  @override
+  String homeCompaniesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count verified companies',
+      one: '1 verified company',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeCompanyVerified => 'Top rated';
+
+  @override
+  String get homeVisitCompany => 'Visit company';
+
+  @override
+  String get maintenanceTitle => 'Under maintenance';
+
+  @override
+  String get maintenanceTryLater => 'Please try again in a little while.';
+
+  @override
+  String get announcementDismiss => 'Dismiss';
+
+  @override
+  String maintenanceBackAt(Object time) {
+    return 'Expected back: $time';
+  }
+
+  @override
+  String maintenanceBackIn(Object duration) {
+    return 'That is in about $duration.';
+  }
+
+  @override
+  String noticeDurationDays(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String noticeDurationHoursMinutes(Object hours, Object minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String noticeDurationMinutes(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get updateRequiredTitle => 'Update required';
+
+  @override
+  String get updateRequiredBody =>
+      'A newer version of the app is needed to keep using it.';
+
+  @override
+  String get updateRequiredButton => 'Update';
+
+  @override
+  String get orderCancelledByAdmin => 'Cancelled by the platform.';
+
+  @override
+  String get adminProductHidden => 'Hidden by the platform';
+
+  @override
+  String get adminProductHiddenReason => 'Reason';
+
+  @override
+  String get adminProductHiddenNoReason => 'No reason was given.';
+
+  @override
+  String get settingsHelp => 'Help';
+
+  @override
+  String get reportFormTitle => 'Report a problem';
+
+  @override
+  String get reportIntro =>
+      'Tell us what went wrong. The platform team reads every report and replies under My reports.';
+
+  @override
+  String get reportReasonLabel => 'What is it about?';
+
+  @override
+  String get reportReasonOrderProblem => 'Order problem';
+
+  @override
+  String get reportReasonPayment => 'Payment';
+
+  @override
+  String get reportReasonCompanyConduct => 'A company\'s conduct';
+
+  @override
+  String get reportReasonProductIssue => 'Product issue';
+
+  @override
+  String get reportReasonAppProblem => 'App problem';
+
+  @override
+  String get reportReasonOther => 'Other';
+
+  @override
+  String get reportSubjectLabel => 'Subject';
+
+  @override
+  String get reportSubjectHint => 'In a few words';
+
+  @override
+  String get reportSubjectRequired => 'Enter a subject.';
+
+  @override
+  String get reportDetailsLabel => 'What happened?';
+
+  @override
+  String get reportDetailsHint =>
+      'Say what happened, when, and with which company or order.';
+
+  @override
+  String get reportDetailsRequired => 'Describe the problem.';
+
+  @override
+  String get reportOrderLabel => 'Order number';
+
+  @override
+  String get reportSubmit => 'Send report';
+
+  @override
+  String get reportSent =>
+      'Your report was sent. We will reply under My reports.';
+
+  @override
+  String get myReportsTitle => 'My reports';
+
+  @override
+  String get myReportsEmpty => 'You have not sent any report.';
+
+  @override
+  String get reportStatusNew => 'Received';
+
+  @override
+  String get reportStatusInProgress => 'Being handled';
+
+  @override
+  String get reportStatusClosed => 'Closed';
+
+  @override
+  String get reportReplyTitle => 'Reply from the platform team';
+
+  @override
+  String get reportNoReplyYet => 'No reply yet.';
+
+  @override
+  String get notifReportInProgressTitle => 'Your report is being handled';
+
+  @override
+  String notifReportInProgressBody(String subject) {
+    return 'We started working on \"$subject\".';
+  }
+
+  @override
+  String get notifReportClosedTitle => 'Your report was closed';
+
+  @override
+  String notifReportClosedBody(String subject) {
+    return 'Your report \"$subject\" was closed. Open My reports to read our reply.';
+  }
+
+  @override
+  String get notifOrderCancelledByAdminTitle => 'Your order was cancelled';
+
+  @override
+  String notifOrderCancelledByAdminBody(String product) {
+    return 'The platform cancelled your order \"$product\".';
+  }
+
+  @override
+  String get notifOrderCancelledByAdminCompanyTitle => 'An order was cancelled';
+
+  @override
+  String notifOrderCancelledByAdminCompanyBody(String product) {
+    return 'The platform cancelled the order for \"$product\".';
+  }
+
+  @override
+  String get notifOrderCancelledByCompanyTitle => 'Your order was cancelled';
+
+  @override
+  String notifOrderCancelledByCompanyBody(String product) {
+    return 'The company cancelled your order \"$product\". Open it to see why.';
+  }
+
+  @override
+  String get notifProductHiddenTitle => 'A product was hidden';
+
+  @override
+  String notifProductHiddenBody(String product) {
+    return '\"$product\" was hidden from customers. Open it to see why.';
+  }
+
+  @override
+  String get notifProductShownTitle => 'A product is visible again';
+
+  @override
+  String notifProductShownBody(String product) {
+    return '\"$product\" is visible to customers again.';
+  }
+
+  @override
+  String get notifAccountConvertedTitle =>
+      'Your account is now a company account';
+
+  @override
+  String notifAccountConvertedBody(String product) {
+    return '\"$product\" is ready. Sign in again to manage your company.';
+  }
+
+  @override
+  String get settingsPushKindsTitle => 'What to be notified about';
+
+  @override
+  String get settingsPushKindsHint =>
+      'Turning one off stops only its phone notifications. You still see everything inside the app.';
+
+  @override
+  String get pushKindOrders => 'Orders';
+
+  @override
+  String get pushKindOrdersHint => 'New orders, payments, delivery and ratings';
+
+  @override
+  String get pushKindChat => 'Messages';
+
+  @override
+  String get pushKindChatHint => 'New chat messages';
+
+  @override
+  String get pushKindServiceRequests => 'Service requests';
+
+  @override
+  String get pushKindServiceRequestsHint => 'New requests and their progress';
+
+  @override
+  String get pushKindReports => 'Reports';
+
+  @override
+  String get pushKindReportsHint => 'Replies to the reports you sent';
+
+  @override
+  String get pushKindPlatform => 'Platform messages';
+
+  @override
+  String get pushKindPlatformHint =>
+      'Products the platform hid or showed again';
+
+  @override
+  String get pushKindCity => 'New companies in my city';
+
+  @override
+  String get pushKindCityHint => 'When a company starts serving your city';
+
+  @override
+  String get reportLimitReached =>
+      'You can send 5 reports in 24 hours. Please try again later.';
+
+  @override
+  String get cityPickerTitle => 'Choose your city';
+
+  @override
+  String get cityPickerSubtitle =>
+      'Companies that serve your city come first, so your orders can be delivered.';
+
+  @override
+  String get cityChangeTooltip => 'Change city';
+
+  @override
+  String get citySaveFailed => 'Could not save your city. Please try again.';
+
+  @override
+  String get cityServiceAreaTitle => 'Cities you serve';
+
+  @override
+  String get cityServiceAreaHint =>
+      'Customers see your company, products and services only in the cities you pick. Leave empty to appear in every city.';
+
+  @override
+  String get cityServiceAreaAll => 'All cities';
+
+  @override
+  String get cityServiceAreaChoose => 'Choose cities';
+
+  @override
+  String cityServiceAreaCount(int count) {
+    return '$count cities';
+  }
+
+  @override
+  String get cityNotServed => 'This company does not serve your city.';
+
+  @override
+  String get citySearchHint => 'Search cities';
+
+  @override
+  String get cityDeliveryPickerTitle => 'Delivery city';
+
+  @override
+  String get cityDeliveryPickerHint =>
+      'You can choose the cities this company serves. This does not change your own city.';
+
+  @override
+  String get cityCompanyDoesNotServe => 'This company does not serve it';
+
+  @override
+  String get cityDeliveryLabel => 'Delivery city';
+
+  @override
+  String get cityDeliveryChange => 'Change';
+
+  @override
+  String get cityDeliveryChangeButton => 'Change delivery city';
+
+  @override
+  String get cityDeliveryForOther =>
+      'Ordering for someone else? Choose their city. Your own city stays the same.';
+
+  @override
+  String cityDeliveryServed(String company) {
+    return '$company serves this city';
+  }
+
+  @override
+  String cityServesCity(String city) {
+    return 'Serves $city';
+  }
+
+  @override
+  String cityServesList(String cities) {
+    return 'Serves: $cities';
+  }
+
+  @override
+  String get cityOtherCompaniesTitle => 'Other companies';
+
+  @override
+  String cityOtherCompaniesHint(String city) {
+    return 'They do not serve $city, but you can order from them for delivery to another city.';
+  }
+
+  @override
+  String cityNotServedOnlyTitle(String cities) {
+    return 'Serves $cities only';
+  }
+
+  @override
+  String cityNotServedOnlyBody(String city) {
+    return 'Your delivery city is $city. To order, change the delivery city to one this company serves.';
+  }
+
+  @override
+  String cityDeliveringTo(String city) {
+    return 'Delivery to $city';
+  }
+
+  @override
+  String get cityDeliveryChoose => 'Choose a city';
+
+  @override
+  String get cityDeliveryNeedsCity =>
+      'Choose a delivery city this company serves.';
+
+  @override
+  String get orderDeliveryCity => 'Delivery city';
+
+  @override
+  String cityCompaniesCount(int count) {
+    return '$count companies';
+  }
+
+  @override
+  String get cityNoResults => 'No city matches your search.';
+
+  @override
+  String get cityCompanyNoCitiesTitle => 'Choose the cities you serve';
+
+  @override
+  String get cityCompanyNoCitiesBody =>
+      'Your company has no service cities yet, so every customer in every city sees it and can order. Choose the cities you deliver to.';
+
+  @override
+  String categoryChipAll(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String categoryItemCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get categoryKindAll => 'All';
+
+  @override
+  String get categoryKindProducts => 'Products';
+
+  @override
+  String get categoryKindServices => 'Services';
+
+  @override
+  String get categoryFilterInStock => 'In stock';
+
+  @override
+  String get categoryFilterBrand => 'Brand';
+
+  @override
+  String get categoryFilterPrice => 'Price';
+
+  @override
+  String get categoryFilterCompany => 'Company';
+
+  @override
+  String get categoryFilterAnyBrand => 'All brands';
+
+  @override
+  String get categoryFilterAnyCompany => 'All companies';
+
+  @override
+  String get categoryFilterPriceFrom => 'From';
+
+  @override
+  String get categoryFilterPriceTo => 'To';
+
+  @override
+  String get categoryFilterApply => 'Apply';
+
+  @override
+  String get categoryFilterClear => 'Clear';
+
+  @override
+  String categorySectionProducts(int count) {
+    return 'Products ($count)';
+  }
+
+  @override
+  String categorySectionServices(int count) {
+    return 'Services ($count)';
+  }
+
+  @override
+  String get categoryScreenEmpty => 'Nothing is listed here yet.';
+
+  @override
+  String get categoryNoMatches => 'Nothing matches these filters.';
+
+  @override
+  String get categoryClearFilters => 'Clear filters';
+
+  @override
+  String get formBrandLabel => 'Brand';
+
+  @override
+  String get formBrandHint => 'For example HP, Cisco, Samsung';
+
+  @override
+  String get formCategoryRequired => 'A category is required';
+
+  @override
+  String get productBrand => 'Brand';
+
+  @override
+  String get tjAvailable => 'Available';
+
+  @override
+  String get tjBusy => 'Busy';
+
+  @override
+  String tjOpenJobsCount(int count) {
+    return 'You have $count open jobs';
+  }
+
+  @override
+  String get tjNoOpenJobs => 'No open jobs right now';
+
+  @override
+  String get tjNextJob => 'Next job';
+
+  @override
+  String get tjNavigate => 'Directions';
+
+  @override
+  String get tjCall => 'Call';
+
+  @override
+  String get tjStatOpen => 'Open';
+
+  @override
+  String get tjMonthFees => 'Installation fees this month';
+
+  @override
+  String get tjMonthFeesHint => 'From completed jobs';
+
+  @override
+  String tjDistanceKm(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get tjSearchHint => 'Search by customer or product';
+
+  @override
+  String get tjSortNewest => 'Newest';
+
+  @override
+  String get tjSortNearest => 'Nearest';
+
+  @override
+  String tjFilterAll(int count) {
+    return 'All $count';
+  }
+
+  @override
+  String tjFilterOpen(int count) {
+    return 'Open $count';
+  }
+
+  @override
+  String tjFilterDone(int count) {
+    return 'Done $count';
+  }
+
+  @override
+  String tjFilterCancelled(int count) {
+    return 'Cancelled $count';
+  }
+
+  @override
+  String get tjSectionOpen => 'Open';
+
+  @override
+  String get tjSectionDone => 'Completed';
+
+  @override
+  String get tjSectionCancelled => 'Cancelled';
+
+  @override
+  String get tjNoMatches => 'No jobs match your search.';
+
+  @override
+  String get tjAwaitingPaymentTag => 'Waiting for payment confirmation';
+
+  @override
+  String get tjCancelledTag => 'Cancelled by the company';
+
+  @override
+  String get tjProgressTitle => 'Job progress';
+
+  @override
+  String get tjStepPaid => 'Payment confirmed';
+
+  @override
+  String get tjStepPreparing => 'Preparing';
+
+  @override
+  String get tjStepOnTheWay => 'On the way';
+
+  @override
+  String get tjStepDone => 'Done';
+
+  @override
+  String get tjCopyAddress => 'Copy address';
+
+  @override
+  String get tjAddressCopied => 'Address copied';
+
+  @override
+  String get tjNotesTitle => 'My notes';
+
+  @override
+  String get tjNotesHint => 'Write a note about the job';
+
+  @override
+  String get tjNotesAdd => 'Add';
+
+  @override
+  String get tjNotesEmpty => 'No notes yet.';
+
+  @override
+  String get tjNotesVisibility =>
+      'Only your company sees these, not the customer.';
+
+  @override
+  String get tjNoteDelete => 'Delete note';
+
+  @override
+  String get tjTechnicianNotesTitle => 'Technician notes';
+
+  @override
+  String get tjNoteCompletion => 'On completion';
+
+  @override
+  String get tjChatWithCompany => 'Chat with the company';
+
+  @override
+  String get tjChatWithTechnician => 'Chat with the technician';
+
+  @override
+  String get tjChatEmpty => 'No messages yet. Write the first one.';
+
+  @override
+  String get tjChatHint => 'Write a message';
+
+  @override
+  String get tjChatPrivate =>
+      'This conversation is between the technician and the company only.';
+
+  @override
+  String get tjChatCompany => 'Company';
+
+  @override
+  String get tjChatYou => 'You';
+
+  @override
+  String get tjNoTechnicianAssigned =>
+      'No technician is assigned to this order yet.';
+
+  @override
+  String tjFinishTitle(String id) {
+    return 'Finish job $id';
+  }
+
+  @override
+  String get tjCheckInstalled => 'I installed the product and checked it works';
+
+  @override
+  String get tjCheckExplained => 'I showed the customer how to use it';
+
+  @override
+  String get tjCheckHandedOver => 'I handed over the invoice or warranty';
+
+  @override
+  String get tjFinishNoteHint => 'Note for the company (optional)';
+
+  @override
+  String get tjFinishConfirm => 'Confirm completion';
+
+  @override
+  String get tjFinishChecklistRequired =>
+      'Tick all three steps before confirming.';
+
+  @override
+  String get tjNotifToday => 'Today';
+
+  @override
+  String get tjNotifEarlier => 'Earlier';
+
+  @override
+  String get tjMarkAllRead => 'Mark all read';
+
+  @override
+  String get tjCompletedJobs => 'Jobs done';
+
+  @override
+  String get tjAvailabilityTitle => 'I am available for jobs';
+
+  @override
+  String get tjAvailabilityHint =>
+      'When off, your company sees you as unavailable when assigning jobs.';
+
+  @override
+  String get tjAvailabilityFailed => 'Could not change your status. Try again.';
+
+  @override
+  String get tjJobNotificationsTitle => 'Job notifications';
+
+  @override
+  String get tjUnavailable => 'Unavailable';
+
+  @override
+  String get notifJobReadyTitle => 'Job ready to start';
+
+  @override
+  String notifJobReadyBody(String product) {
+    return 'The payment for \"$product\" was confirmed. You can start the job.';
+  }
+
+  @override
+  String get notifJobCancelledTitle => 'Job cancelled';
+
+  @override
+  String notifJobCancelledBody(String product) {
+    return 'The company cancelled the job for \"$product\".';
+  }
+
+  @override
+  String get notifJobCompletedTitle => 'Installation completed';
+
+  @override
+  String notifJobCompletedBody(String product) {
+    return 'The technician finished the job for \"$product\".';
+  }
+
+  @override
+  String searchDidYouMean(String term) {
+    return 'Did you mean “$term”?';
+  }
+
+  @override
+  String get searchSortRelevance => 'Best match';
+
+  @override
+  String get searchSortPriceLow => 'Price: low to high';
+
+  @override
+  String get searchSortPriceHigh => 'Price: high to low';
+
+  @override
+  String get searchInStockOnly => 'In stock only';
+
+  @override
+  String get searchTypeCategory => 'Category';
+
+  @override
+  String tjSearchResults(int count) {
+    return '$count results';
+  }
+
+  @override
+  String get favoritesTitle => 'Favorites';
+
+  @override
+  String get favoritesEmptyTitle => 'No favorites yet';
+
+  @override
+  String get favoritesEmptyMessage =>
+      'Tap the heart on any product or service to save it here.';
+
+  @override
+  String get favoritesSubtitle => 'The products and services you saved';
+
+  @override
+  String get favoriteAdd => 'Add to favorites';
+
+  @override
+  String get favoriteRemove => 'Remove from favorites';
+
+  @override
+  String get favoriteUnavailable => 'Not available right now';
+
+  @override
+  String get favoriteSaveFailed =>
+      'Could not save the change. Please try again.';
+
+  @override
+  String get favoritesLoadFailed => 'Could not load your favorites.';
+
+  @override
+  String get usdRateTitle => 'Dollar rate';
+
+  @override
+  String usdRateValue(String rate) {
+    return '\$1 = $rate SDG';
+  }
+
+  @override
+  String get usdRateNotSetTitle => 'Set your dollar rate';
+
+  @override
+  String get usdRateNotSetBody =>
+      'Price your products in dollars. Whenever you change the rate here, all their SDG prices update.';
+
+  @override
+  String get usdRateSet => 'Set the rate';
+
+  @override
+  String get usdRateSame => 'Same rate';
+
+  @override
+  String get usdRateEdit => 'Change';
+
+  @override
+  String usdRateUpdatedToday(String time) {
+    return 'Updated today at $time';
+  }
+
+  @override
+  String usdRateUpdatedYesterday(String time) {
+    return 'Last updated yesterday at $time';
+  }
+
+  @override
+  String usdRateUpdatedDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'Last updated $_temp0 ago';
+  }
+
+  @override
+  String get usdRateDue => 'Time to update the dollar rate';
+
+  @override
+  String get usdRateStale =>
+      'The dollar rate is old: your dollar prices may be wrong';
+
+  @override
+  String usdRateProducts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products in dollars',
+      one: '1 product in dollars',
+      zero: 'No products in dollars yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get usdRateConfirmed => 'Dollar rate confirmed.';
+
+  @override
+  String get usdRateSaved => 'Dollar rate saved.';
+
+  @override
+  String get usdRateSaveFailed =>
+      'Could not save the dollar rate. Please try again.';
+
+  @override
+  String get usdRateFieldLabel => 'How many SDG is one dollar?';
+
+  @override
+  String get usdRateInvalid => 'Enter a rate between 1 and 1,000,000.';
+
+  @override
+  String usdRatePreview(int count, String name, String from, String to) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count product prices will change.',
+      one: '1 product price will change.',
+    );
+    return '$_temp0 For example $name: $from → $to';
+  }
+
+  @override
+  String get usdRateNoProducts =>
+      'No products in dollars yet: choose “In dollars” on a product.';
+
+  @override
+  String get usdRateBigChangeTitle => 'Is this rate right?';
+
+  @override
+  String usdRateBigChangeBody(String to, String from, int percent) {
+    return 'The new rate $to is $percent% away from $from.';
+  }
+
+  @override
+  String get usdRateBigChangeConfirm => 'Yes, save it';
+
+  @override
+  String get usdRateSave => 'Save the rate';
+
+  @override
+  String get usdRateReminder => 'Remind me to update the dollar rate';
+
+  @override
+  String get usdRateReminderHint =>
+      'A phone notification every 24 hours while the rate is not updated';
+
+  @override
+  String get pushKindUsdRate => 'Dollar rate reminder';
+
+  @override
+  String get pushKindUsdRateHint =>
+      'Every 24 hours while your dollar rate is not updated';
+
+  @override
+  String get formPriceCurrency => 'Price in';
+
+  @override
+  String get formPriceInSdg => 'SDG';
+
+  @override
+  String get formPriceInUsd => 'Dollars';
+
+  @override
+  String get formPriceUsd => 'Price (\$)';
+
+  @override
+  String get formPriceUsdRequired => 'Enter the price in dollars.';
+
+  @override
+  String get formInstallationPriceUsd => 'Installation price (\$)';
+
+  @override
+  String formUsdEquals(String price, String rate) {
+    return '= $price SDG at \$1 = $rate';
+  }
+
+  @override
+  String get formUsdNeedsRate => 'Set your dollar rate first.';
+
+  @override
+  String get offerModePriceUsd => 'New price (\$)';
+
+  @override
+  String usdPriceLabel(String usd, String rate) {
+    return '$usd \$ at \$1 = $rate SDG';
+  }
+}

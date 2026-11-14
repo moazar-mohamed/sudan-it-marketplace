@@ -1,0 +1,106 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../domain/entities/product.dart';
+import '../../domain/product_visibility.dart';
+import '../models/product_model.dart';
+import 'products_remote_data_source.dart';
+import '../../../../core/errors/app_exception.dart';
+
+class FirestoreProductsRemoteDataSource implements ProductsRemoteDataSource {
+  FirestoreProductsRemoteDataSource({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  static const _productsCollection = 'products';
+  final FirebaseFirestore _firestore;
+
+  CollectionReference<Map<String, dynamic>> get _products =>
+      _firestore.collection(_productsCollection);
+
+  List<Product> _sorted(QuerySnapshot<Map<String, dynamic>> snapshot) {
+    final list = snapshot.docs.map(ProductModel.fromFirestore).toList();
+    list.sort((a, b) {
+      final aDate = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bDate = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bDate.compareTo(aDate);
+    });
+    return list;
+  }
+
+  /// Products a customer can see: only those with units left, and not hidden
+  /// by Platform Admin. A product at `stockCount == 0` (or with no stock
+  /// field) is left out here but stays in Firestore and in the company's own
+  /// list, and reappears the moment the company restocks it. A product
+  /// Platform Admin hid is left out by the query itself: the rules refuse a
+  /// customer's list that could include one, so every product carries
+  /// `hidden` (written false when it is made). The query uses the composite
+  /// index hidden + stockCount (firestore.indexes.json).
+  @override
+  Stream<List<Product>> watchMarketplaceProducts() {
+    return _products
+        .where('hidden', isEqualTo: false)
+        .where('stockCount', isGreaterThan: 0)
+        .snapshots()
+        .map((snapshot) => withoutHiddenProducts(_sorted(snapshot)));
+  }
+
+  @override
+  Stream<List<Product>> watchCompanyProducts(String companyId) {
+    return _products
+        .where('companyId', isEqualTo: companyId)
+        .snapshots()
+        .map(_sorted);
+  }
+
+  @override
+  String newProductId() => _products.doc().id;
+
+  @override
+  Future<void> createProduct(Product product) async {
+    try {
+      await _products.doc(product.id).set({
+        ...ProductModel.toFirestoreFields(product),
+        // Customers list products with where hidden == false.
+        'hidden': false,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (error) {
+      throw _failure(error, AppErrorCode.productSaveDenied, AppErrorCode.productSaveFailed);
+    }
+  }
+
+  @override
+  Future<void> updateProduct(Product product) async {
+    try {
+      final fields = ProductModel.toFirestoreFields(product)
+        ..remove('id')
+        ..remove('companyId');
+      await _products.doc(product.id).update({
+        ...fields,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (error) {
+      throw _failure(error, AppErrorCode.productUpdateDenied, AppErrorCode.productUpdateFailed);
+    }
+  }
+
+  @override
+  Future<void> deleteProduct(String productId) async {
+    try {
+      await _products.doc(productId).delete();
+    } on FirebaseException catch (error) {
+      throw _failure(error, AppErrorCode.productDeleteDenied, AppErrorCode.productDeleteFailed);
+    }
+  }
+
+  AppException _failure(
+    FirebaseException error,
+    AppErrorCode denied,
+    AppErrorCode failed,
+  ) {
+    if (error.code == 'permission-denied') {
+      return AppException(denied);
+    }
+    return AppException(failed, detail: '${error.code}: ${error.message}');
+  }
+}

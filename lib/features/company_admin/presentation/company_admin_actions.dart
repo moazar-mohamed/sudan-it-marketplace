@@ -1,0 +1,484 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/localization/error_messages.dart';
+import '../../../core/localization/locale_controller.dart';
+import '../../../core/logging/debug_log.dart';
+import '../../companies/domain/entities/company.dart';
+import '../../companies/domain/entities/payment_account.dart';
+import '../../companies/presentation/companies_providers.dart';
+import '../../company_services/presentation/company_service_error_message.dart';
+import '../../company_services/presentation/company_service_providers.dart';
+import '../../notifications/presentation/notification_events.dart';
+import '../../offers/domain/offer_pricing.dart';
+import '../../offers/presentation/offer_price.dart';
+import '../../notifications/presentation/notifications_providers.dart';
+import '../../orders/domain/entities/order_entity.dart';
+import '../../orders/presentation/order_error_message.dart';
+import '../../orders/presentation/orders_providers.dart';
+import '../../products/domain/entities/product.dart';
+import '../../products/domain/usd_pricing.dart';
+import '../../products/presentation/products_providers.dart';
+import '../../services/domain/exceptions/service_exception.dart';
+import '../../services/presentation/service_providers.dart';
+import '../../technicians/domain/entities/technician.dart';
+import '../../technicians/presentation/technicians_providers.dart';
+
+final companyAdminActionsProvider = Provider<CompanyAdminActions>((ref) {
+  return CompanyAdminActions(ref);
+});
+
+/// Write operations used by the Company Admin screens. Each method returns
+/// null on success or a user-facing error message.
+class CompanyAdminActions {
+  CompanyAdminActions(this._ref);
+
+  final Ref _ref;
+
+  String newProductId() =>
+      _ref.read(productsRepositoryProvider).newProductId();
+
+  Future<String?> createProduct(Product product) {
+    return _guard(
+      () => _ref.read(productsRepositoryProvider).createProduct(product),
+    );
+  }
+
+  Future<String?> updateProduct(Product product) {
+    return _guard(
+      () => _ref.read(productsRepositoryProvider).updateProduct(product),
+    );
+  }
+
+  Future<String?> deleteProduct(String productId) {
+    return _guard(
+      () => _ref.read(productsRepositoryProvider).deleteProduct(productId),
+    );
+  }
+
+  Future<String?> advanceOrderStatus(OrderEntity order, OrderStatus status) {
+    return _guardOrder(() async {
+      await _ref.read(ordersRepositoryProvider).updateOrderStatus(
+            orderId: order.id,
+            orderStatus: status,
+          );
+      await _notifyCustomerOfStatus(order, status);
+    });
+  }
+
+  /// Confirms the order's payment, which takes its stock in the same write.
+  Future<String?> confirmPayment(OrderEntity order) {
+    return _guardOrder(() async {
+      await _ref.read(ordersRepositoryProvider).confirmPayment(order.id);
+      final notifications = _ref.read(notificationsRepositoryProvider);
+      await notifications.createNotification(
+        NotificationEvents.paymentConfirmed(
+          orderId: order.id,
+          customerId: order.customerId,
+          productName: order.productName,
+        ),
+      );
+      // A technician who already has the job learns it can start. Best
+      // effort: the payment is confirmed whatever happens to this.
+      final technicianId = order.technicianId?.trim() ?? '';
+      if (technicianId.isNotEmpty) {
+        try {
+          await notifications.createNotification(
+            NotificationEvents.jobReady(
+              orderId: order.id,
+              technicianId: technicianId,
+              productName: order.productName,
+            ),
+          );
+        } catch (error) {
+          debugLog('CompanyAdminActions', 'job_ready not sent: $error');
+        }
+      }
+    });
+  }
+
+  /// Cancels an order that is still Processing, its payment waiting or
+  /// confirmed; any stock it took goes back to its product. [reason] is
+  /// [OrderCancelReason.company] (by hand) or, for an order whose payment is
+  /// still waiting and whose product can no longer cover it,
+  /// [OrderCancelReason.outOfStock]. Any refund happens outside the app.
+  Future<String?> cancelOrder(
+    OrderEntity order, {
+    OrderCancelReason reason = OrderCancelReason.company,
+  }) {
+    return _guardOrder(() async {
+      await _ref.read(ordersRepositoryProvider).cancelOrder(
+            orderId: order.id,
+            reason: reason,
+          );
+      // The technician of the job is told it is off. Best effort.
+      final technicianId = order.technicianId?.trim() ?? '';
+      if (technicianId.isNotEmpty) {
+        try {
+          await _ref.read(notificationsRepositoryProvider).createNotification(
+                NotificationEvents.jobCancelled(
+                  orderId: order.id,
+                  technicianId: technicianId,
+                  productName: order.productName,
+                ),
+              );
+        } catch (error) {
+          debugLog('CompanyAdminActions', 'job_cancelled not sent: $error');
+        }
+      }
+    });
+  }
+
+  /// Cancels as expired the company's orders whose payment was not verified
+  /// within [OrderEntity.paymentVerificationWindow]. With no server, this
+  /// runs when the company opens its Orders page. A best-effort background
+  /// step: it never throws, and whatever it misses is tried again next time.
+  Future<int> expireOverdueOrders(String companyId) async {
+    try {
+      return await _ref
+          .read(ordersRepositoryProvider)
+          .expireOverdueOrders(companyId);
+    } catch (error) {
+      debugLog('CompanyAdminActions', 'expireOverdueOrders failed: $error');
+      return 0;
+    }
+  }
+
+  Future<void> _notifyCustomerOfStatus(
+    OrderEntity order,
+    OrderStatus status,
+  ) async {
+    final notifications = _ref.read(notificationsRepositoryProvider);
+    final event = NotificationEvents.forOrderStatusChange(
+      status: status,
+      orderId: order.id,
+      customerId: order.customerId,
+      productName: order.productName,
+    );
+    if (event != null) {
+      await notifications.createNotification(event);
+    }
+  }
+
+  Future<String?> updateCompanyProfile(Company company) {
+    return _guard(
+      () => _ref.read(companiesRepositoryProvider).updateCompanyProfile(company),
+    );
+  }
+
+  /// Sets the company's dollar rate (confirming the one it has when [rate]
+  /// is the same) and works out again, in the same writes, the pounds of
+  /// every product of [products] priced in dollars that does not use it yet.
+  Future<String?> setUsdRate(
+    String companyId,
+    double rate,
+    List<Product> products,
+  ) {
+    return _guard(
+      () => _ref
+          .read(companiesRepositoryProvider)
+          .setUsdRate(companyId, rate, _repricing(products, rate)),
+    );
+  }
+
+  /// Brings to [rate] the dollar-priced products an earlier rewrite missed
+  /// (the connection dropped half way). A best-effort background step: it
+  /// never throws; whatever it misses is tried again next time.
+  Future<void> repriceStaleProducts(double rate, List<Product> products) async {
+    final repricing = _repricing(products, rate);
+    if (repricing.isEmpty) return;
+    try {
+      await _ref.read(companiesRepositoryProvider).repriceProducts(repricing);
+    } catch (error) {
+      debugLog('CompanyAdminActions', 'repriceStaleProducts failed: $error');
+    }
+  }
+
+  static Map<String, Map<String, Object?>> _repricing(
+    List<Product> products,
+    double rate,
+  ) =>
+      {
+        for (final product in products)
+          if (UsdPricing.needsRepricing(product, rate))
+            product.id: UsdPricing.repricedFields(product, rate),
+      };
+
+  Future<String?> updatePaymentAccounts(
+    String companyId,
+    List<PaymentAccount> accounts,
+  ) {
+    return _guard(
+      () => _ref
+          .read(companiesRepositoryProvider)
+          .updatePaymentAccounts(companyId, accounts),
+    );
+  }
+
+  /// Creates the technician's login with a temporary password. The technician
+  /// is made to choose their own password the first time they sign in.
+  Future<String?> createTechnicianAccount({
+    required String companyId,
+    required String fullName,
+    required String phone,
+    required String email,
+    required String password,
+  }) {
+    return _guard(
+      () => _ref.read(techniciansRepositoryProvider).provisionTechnician(
+            companyId: companyId,
+            fullName: fullName,
+            phone: phone,
+            email: email,
+            password: password,
+          ),
+    );
+  }
+
+  Future<String?> updateTechnician(Technician technician) {
+    return _guard(
+      () => _ref.read(techniciansRepositoryProvider).updateTechnician(technician),
+    );
+  }
+
+  Future<String?> deactivateTechnician(String technicianId) {
+    return _guard(
+      () => _ref
+          .read(techniciansRepositoryProvider)
+          .deactivateTechnician(technicianId),
+    );
+  }
+
+  Future<String?> assignTechnician(
+    OrderEntity order, {
+    required String technicianId,
+    required String technicianName,
+  }) {
+    return _guard(() async {
+      await _ref.read(ordersRepositoryProvider).assignTechnician(
+            orderId: order.id,
+            technicianId: technicianId,
+            technicianName: technicianName,
+          );
+      final notifications = _ref.read(notificationsRepositoryProvider);
+      await notifications.createNotification(
+        NotificationEvents.technicianAssigned(
+          orderId: order.id,
+          technicianId: technicianId,
+          productName: order.productName,
+        ),
+      );
+    });
+  }
+
+  /// Starts offering a catalogue service. [price] is optional: null stores
+  /// no price (never 0).
+  Future<String?> addCompanyService({
+    required String companyId,
+    required String serviceId,
+    double? price,
+    String? note,
+  }) {
+    return _guardCompanyService(
+      () => _ref.read(companyServiceRepositoryProvider).addServiceToCompany(
+            companyId: companyId,
+            serviceId: serviceId,
+            price: price,
+            note: note,
+          ),
+    );
+  }
+
+  /// Puts one company service on offer, or ends its offer when [offerPrice]
+  /// is null.
+  Future<String?> setServiceOffer({
+    required String companyServiceId,
+    double? offerPrice,
+    DateTime? offerEndsAt,
+    OfferBadge? offerBadge,
+  }) {
+    return _guardCompanyService(
+      () => _ref.read(companyServiceRepositoryProvider).setCompanyServiceOffer(
+            companyServiceId: companyServiceId,
+            offerPrice: offerPrice,
+            offerEndsAt: offerEndsAt,
+            offerBadge: offerBadge,
+          ),
+    );
+  }
+
+  /// The price of a service on offer must stay above its offer price; an
+  /// error message when [price] would not, else null.
+  String? priceBelowOffer(double? price, double? offerPrice) {
+    if (offerPrice == null || (price != null && price > offerPrice)) {
+      return null;
+    }
+    return _ref
+        .read(appLocalizationsProvider)
+        .formPriceBelowOffer(formatProductPrice(offerPrice));
+  }
+
+  Future<String?> updateCompanyService({
+    required String companyServiceId,
+    double? price,
+    String? note,
+    double? offerPrice,
+  }) async {
+    final blocked = priceBelowOffer(price, offerPrice);
+    if (blocked != null) return blocked;
+    return _guardCompanyService(
+      () => _ref
+          .read(companyServiceRepositoryProvider)
+          .updateCompanyServiceDetails(
+            companyServiceId: companyServiceId,
+            price: price,
+            note: note,
+          ),
+    );
+  }
+
+  Future<String?> removeCompanyService({
+    required String companyId,
+    required String serviceId,
+  }) {
+    return _guardCompanyService(
+      () => _ref.read(companyServiceRepositoryProvider).removeServiceFromCompany(
+            companyId: companyId,
+            serviceId: serviceId,
+          ),
+    );
+  }
+
+  /// Creates a service owned by this company and starts offering it, so it
+  /// appears to customers straight away. [price] is optional (null stores no
+  /// price). If offering it fails, the new service is switched off again so
+  /// no half-created service stays in the catalogue.
+  Future<String?> createOwnService({
+    required String companyId,
+    required String categoryId,
+    required String name,
+    required String description,
+    double? price,
+    String? note,
+  }) {
+    return _guardOwnService(() async {
+      final services = _ref.read(serviceRepositoryProvider);
+      final serviceId = await services.createService(
+        categoryId: categoryId,
+        name: name,
+        description: description,
+        ownerCompanyId: companyId,
+      );
+      try {
+        await _ref.read(companyServiceRepositoryProvider).addServiceToCompany(
+              companyId: companyId,
+              serviceId: serviceId,
+              price: price,
+              note: note,
+            );
+      } catch (_) {
+        try {
+          await services.setServiceActive(id: serviceId, isActive: false);
+        } catch (_) {}
+        rethrow;
+      }
+    });
+  }
+
+  /// Edits a service this company created (its name, description and
+  /// category) together with the company's own price and note.
+  Future<String?> updateOwnService({
+    required String companyServiceId,
+    required String serviceId,
+    required String categoryId,
+    required String name,
+    required String description,
+    double? price,
+    String? note,
+    double? offerPrice,
+  }) async {
+    final blocked = priceBelowOffer(price, offerPrice);
+    if (blocked != null) return blocked;
+    return _guardOwnService(() async {
+      await _ref.read(serviceRepositoryProvider).updateService(
+            id: serviceId,
+            categoryId: categoryId,
+            name: name,
+            description: description,
+          );
+      await _ref
+          .read(companyServiceRepositoryProvider)
+          .updateCompanyServiceDetails(
+            companyServiceId: companyServiceId,
+            price: price,
+            note: note,
+          );
+    });
+  }
+
+  /// Stops offering a service this company created and hides the service
+  /// itself, so it no longer lists in the catalogue. Past requests are kept.
+  Future<String?> removeOwnService({
+    required String companyId,
+    required String serviceId,
+  }) {
+    return _guardOwnService(() async {
+      await _ref.read(companyServiceRepositoryProvider).removeServiceFromCompany(
+            companyId: companyId,
+            serviceId: serviceId,
+          );
+      await _ref
+          .read(serviceRepositoryProvider)
+          .setServiceActive(id: serviceId, isActive: false);
+    });
+  }
+
+  Future<String?> _guardOwnService(Future<void> Function() action) async {
+    try {
+      await action();
+      return null;
+    } catch (error) {
+      final l10n = _ref.read(appLocalizationsProvider);
+      if (error is ServiceException) {
+        return error.code == 'category-not-found'
+            ? l10n.adminServiceCategoryInvalid
+            : firebaseErrorMessage(l10n, error.code ?? '');
+      }
+      return companyServiceErrorMessage(l10n, error);
+    }
+  }
+
+  Future<String?> _guardCompanyService(Future<void> Function() action) async {
+    try {
+      await action();
+      return null;
+    } catch (error) {
+      return companyServiceErrorMessage(
+        _ref.read(appLocalizationsProvider),
+        error,
+      );
+    }
+  }
+
+  Future<String?> _guard(Future<void> Function() action) async {
+    try {
+      await action();
+      return null;
+    } catch (error) {
+      return localizedErrorMessage(_ref.read(appLocalizationsProvider), error);
+    }
+  }
+
+  /// Like [_guard], for a step on an order: its own refusals (a payment
+  /// already confirmed, not enough stock, ...) get their own message.
+  Future<String?> _guardOrder(Future<void> Function() action) async {
+    try {
+      await action();
+      return null;
+    } catch (error) {
+      return companyOrderErrorMessage(
+        _ref.read(appLocalizationsProvider),
+        error,
+      );
+    }
+  }
+}

@@ -1,0 +1,214 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../../location/domain/geo_location.dart';
+import '../../domain/entities/order_entity.dart';
+
+class OrderModel {
+  const OrderModel({
+    required this.id,
+    required this.customerId,
+    required this.companyId,
+    this.companyName = '',
+    required this.productId,
+    required this.productName,
+    required this.quantity,
+    required this.unitPrice,
+    required this.productSubtotal,
+    required this.installationSelected,
+    required this.installationFee,
+    required this.deliveryFee,
+    required this.totalAmount,
+    required this.deliveryAddress,
+    required this.contactPhone,
+    this.deliveryMethod = DeliveryMethod.delivery,
+    this.deliveryCityId,
+    this.customerName = '',
+    required this.paymentStatus,
+    required this.orderStatus,
+    this.receiptFileName,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
+    this.technicianId,
+    this.technicianName,
+    this.stockReserved = false,
+    this.stockReleased = false,
+    this.cancelReason,
+    this.cancelNote,
+    this.cancelledAt,
+    this.refundedAt,
+    required this.createdAt,
+    this.updatedAt,
+  });
+
+  factory OrderModel.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    final data = snapshot.data() ?? {};
+    return OrderModel.fromMap(data, snapshot.id);
+  }
+
+  factory OrderModel.fromMap(Map<String, dynamic> map, String docId) {
+    DateTime parseTimestamp(dynamic val) {
+      if (val is Timestamp) return val.toDate();
+      if (val is String) return DateTime.tryParse(val) ?? DateTime.now();
+      return DateTime.now();
+    }
+
+    // Older orders have no coordinates; a non-numeric value is ignored.
+    final delivery =
+        GeoLocation.tryCreate(map['deliveryLatitude'], map['deliveryLongitude']);
+
+    return OrderModel(
+      id: docId,
+      customerId: map['customerId'] as String? ?? '',
+      companyId: map['companyId'] as String? ?? '',
+      companyName: map['companyName'] as String? ?? '',
+      productId: map['productId'] as String? ?? '',
+      productName: map['productName'] as String? ?? '',
+      quantity: (map['quantity'] as num?)?.toInt() ?? 1,
+      unitPrice: (map['unitPrice'] as num?)?.toDouble() ?? 0.0,
+      productSubtotal: (map['productSubtotal'] as num?)?.toDouble() ?? 0.0,
+      installationSelected: map['installationSelected'] as bool? ?? false,
+      installationFee: (map['installationFee'] as num?)?.toDouble() ?? 0.0,
+      deliveryFee: (map['deliveryFee'] as num?)?.toDouble() ?? 0.0,
+      totalAmount: (map['totalAmount'] as num?)?.toDouble() ?? 0.0,
+      deliveryAddress: map['deliveryAddress'] as String? ?? '',
+      contactPhone: map['contactPhone'] as String? ?? '',
+      deliveryMethod: DeliveryMethod.fromValue(map['deliveryMethod'] as String?),
+      deliveryCityId: map['deliveryCityId'] as String?,
+      customerName: map['customerName'] as String? ?? '',
+      paymentStatus: PaymentStatus.fromValue(map['paymentStatus'] as String?),
+      orderStatus: OrderStatus.fromValue(map['orderStatus'] as String?),
+      receiptFileName: map['receiptFileName'] as String?,
+      deliveryLatitude: delivery?.latitude,
+      deliveryLongitude: delivery?.longitude,
+      technicianId: map['technicianId'] as String?,
+      technicianName: map['technicianName'] as String?,
+      // Only an explicit false (an order placed since stock moved to the
+      // payment confirmation, not yet confirmed) has not taken its stock. An
+      // order with no stockReserved field was placed before that and took
+      // its stock when it was placed: the same reading as the rules'
+      // orderTookStock.
+      stockReserved: map['stockReserved'] != false,
+      stockReleased: map['stockReleased'] == true,
+      cancelReason: OrderCancelReason.fromValue(map['cancelReason']),
+      cancelNote: (map['cancelNote'] as String? ?? '').trim().isEmpty ? null : (map['cancelNote'] as String).trim(),
+      cancelledAt: map['cancelledAt'] != null ? parseTimestamp(map['cancelledAt']) : null,
+      refundedAt: map['refundedAt'] != null ? parseTimestamp(map['refundedAt']) : null,
+      createdAt: parseTimestamp(map['createdAt']),
+      updatedAt: map['updatedAt'] != null ? parseTimestamp(map['updatedAt']) : null,
+    );
+  }
+
+  final String id;
+  final String customerId;
+  final String companyId;
+  final String companyName;
+  final String productId;
+  final String productName;
+  final int quantity;
+  final double unitPrice;
+  final double productSubtotal;
+  final bool installationSelected;
+  final double installationFee;
+  final double deliveryFee;
+  final double totalAmount;
+  final String deliveryAddress;
+  final String contactPhone;
+  final DeliveryMethod deliveryMethod;
+  final String? deliveryCityId;
+  final String customerName;
+  final PaymentStatus paymentStatus;
+  final OrderStatus orderStatus;
+  final String? receiptFileName;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
+  final String? technicianId;
+  final String? technicianName;
+  final bool stockReserved;
+  final bool stockReleased;
+  final OrderCancelReason? cancelReason;
+  final String? cancelNote;
+  final DateTime? cancelledAt;
+  final DateTime? refundedAt;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+
+  Map<String, dynamic> toFirestoreCreateMap() {
+    final delivery = GeoLocation.tryCreate(deliveryLatitude, deliveryLongitude);
+    return {
+      'id': id,
+      'customerId': customerId,
+      'companyId': companyId,
+      'companyName': companyName,
+      'productId': productId,
+      'productName': productName,
+      'quantity': quantity,
+      'unitPrice': unitPrice,
+      'productSubtotal': productSubtotal,
+      'installationSelected': installationSelected,
+      'installationFee': installationFee,
+      'deliveryFee': deliveryFee,
+      'totalAmount': totalAmount,
+      'deliveryAddress': deliveryAddress,
+      'contactPhone': contactPhone,
+      'deliveryMethod': deliveryMethod.value,
+      // Left out (not null) when there is none: a pickup, or an old order.
+      if (deliveryCityId != null) 'deliveryCityId': deliveryCityId,
+      'customerName': customerName,
+      'paymentStatus': paymentStatus.value,
+      'orderStatus': orderStatus.value,
+      'receiptFileName': receiptFileName,
+      // Only written when the customer picked a point on the map; stored as
+      // numbers, never strings.
+      if (delivery != null) ...{
+        'deliveryLatitude': delivery.latitude,
+        'deliveryLongitude': delivery.longitude,
+      },
+      // A new order takes no stock. The company takes it when it confirms the
+      // payment, and this turns true in that same write, so a cancellation
+      // gives back exactly what was taken.
+      'stockReserved': false,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+  }
+
+  OrderEntity toEntity() {
+    return OrderEntity(
+      id: id,
+      customerId: customerId,
+      companyId: companyId,
+      companyName: companyName,
+      productId: productId,
+      productName: productName,
+      quantity: quantity,
+      unitPrice: unitPrice,
+      productSubtotal: productSubtotal,
+      installationSelected: installationSelected,
+      installationFee: installationFee,
+      deliveryFee: deliveryFee,
+      totalAmount: totalAmount,
+      deliveryAddress: deliveryAddress,
+      contactPhone: contactPhone,
+      deliveryMethod: deliveryMethod,
+      deliveryCityId: deliveryCityId,
+      customerName: customerName,
+      paymentStatus: paymentStatus,
+      orderStatus: orderStatus,
+      receiptFileName: receiptFileName,
+      deliveryLatitude: deliveryLatitude,
+      deliveryLongitude: deliveryLongitude,
+      technicianId: technicianId,
+      technicianName: technicianName,
+      stockReserved: stockReserved,
+      stockReleased: stockReleased,
+      cancelReason: cancelReason,
+      cancelNote: cancelNote,
+      cancelledAt: cancelledAt,
+      refundedAt: refundedAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+}

@@ -1,0 +1,2231 @@
+{
+  "@@locale": "en",
+  "appName": "Sudan ICT Marketplace",
+  "commonCancel": "Cancel",
+  "commonConfirm": "Confirm",
+  "commonSave": "Save",
+  "commonSaveChanges": "Save changes",
+  "commonEdit": "Edit",
+  "commonDelete": "Delete",
+  "commonDeactivate": "Deactivate",
+  "commonRetry": "Try again",
+  "commonLoading": "Loading…",
+  "commonSearch": "Search",
+  "commonClear": "Clear",
+  "commonCopy": "Copy",
+  "commonQuantityIncrease": "Increase quantity",
+  "commonQuantityDecrease": "Decrease quantity",
+  "commonDone": "Done",
+  "commonOr": "OR",
+  "commonOptional": "Optional",
+  "commonRemove": "Remove",
+  "commonSignOut": "Sign out",
+  "commonNotifications": "Notifications",
+  "commonShowPassword": "Show password",
+  "commonHidePassword": "Hide password",
+  "commonLanguage": "Language",
+  "settingsTitle": "Settings",
+  "settingsLanguageSubtitle": "Choose the language of the app",
+  "languageEnglish": "English",
+  "languageArabic": "العربية",
+  "settingsLanguageSyncFailed": "The language was changed on this device, but could not be saved to your account yet.",
+  "settingsPreferences": "Preferences",
+  "settingsAppearance": "Appearance",
+  "settingsAppearanceSubtitle": "Choose how the app looks",
+  "settingsNotifications": "Notifications",
+  "settingsPushTitle": "Phone notifications",
+  "settingsPushOn": "On for this phone",
+  "settingsPushOff": "Off for this phone",
+  "settingsPushBlocked": "Blocked in your phone's settings. Allow notifications for this app there.",
+  "themeSystem": "System default",
+  "themeSystemHint": "Follows your phone's setting",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "authWelcomeBack": "Welcome back. Sign in to continue.",
+  "authEmail": "Email",
+  "authPassword": "Password",
+  "authLogin": "Login",
+  "authRegister": "Register",
+  "authForgotPassword": "Forgot password?",
+  "authForgotPasswordTitle": "Reset your password",
+  "authForgotPasswordBody": "Enter the email you signed up with. We will send you a link to choose a new password.",
+  "authForgotPasswordSend": "Send reset link",
+  "authForgotPasswordSentTitle": "Check your email",
+  "authForgotPasswordSentBody": "If an account exists for {email}, we sent a link to reset its password. Check your spam folder too.",
+  "@authForgotPasswordSentBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authForgotPasswordResend": "Resend email",
+  "authForgotPasswordResendIn": "Resend in {seconds}s",
+  "@authForgotPasswordResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "authForgotPasswordBackToLogin": "Back to sign in",
+  "authForgotPasswordFailed": "Could not send the reset email. Please try again.",
+  "authContinueWithGoogle": "Continue with Google",
+  "authNoAccount": "Don't have an account?",
+  "authHaveAccount": "Already have an account?",
+  "authCreateAccount": "Create account",
+  "authJoinTitle": "Join Sudan ICT Marketplace",
+  "authCreateAccountSubtitle": "Create an account to get started.",
+  "authFullName": "Full Name",
+  "authConfirmPassword": "Confirm Password",
+  "authPasswordHelper": "At least 6 characters.",
+  "authEmailRequired": "Email is required.",
+  "authEmailInvalid": "Enter a valid email address.",
+  "authPasswordRequired": "Password is required.",
+  "authFullNameRequired": "Full name is required.",
+  "authFullNameInvalid": "Full name may only contain letters and spaces.",
+  "authPasswordTooShort": "Password must be at least 6 characters.",
+  "authConfirmPasswordRequired": "Confirm password is required.",
+  "authPasswordsMismatch": "Passwords do not match.",
+  "authAccountDeactivatedTitle": "Account deactivated",
+  "authAccountDeactivatedMessage": "Your account has been deactivated. Please contact support to have it reactivated.",
+  "authAccountDeletedTitle": "Account deleted",
+  "authAccountDeletedMessage": "This account was deleted by the platform team and can no longer be used. If you think this is a mistake, please contact support.",
+  "authCompanyNotLinkedTitle": "Company not linked",
+  "authCompanyAdminNotLinked": "Your company admin account is not linked to a company yet. Please contact the platform administrator.",
+  "authTechnicianNotLinked": "Your technician account is not linked to a company yet. Please contact your company administrator.",
+  "authPlatformAdminTitle": "Platform Admin",
+  "authPlatformAdminMessage": "Platform administration is managed separately and is not available in this app.",
+  "authTechnicianAccountTitle": "Technician account",
+  "authTechnicianNotSetUp": "Your technician account is not yet set up. Please contact your company administrator.",
+  "authTechnicianDeactivated": "Your technician account has been deactivated. Please contact your company administrator.",
+  "authTechnicianLoadFailed": "Could not load your technician record. Please try again or contact your company administrator.",
+  "authVerifyEmailTitle": "Verify your email",
+  "authVerifyEmailGeneric": "Please verify your email address before continuing.",
+  "authVerifyEmailSent": "We sent a verification link to {email}. Please verify your email before continuing.",
+  "@authVerifyEmailSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authVerifyEmailResent": "Verification email sent. Please check your inbox.",
+  "authVerifyEmailStillNot": "Still not verified. Please tap the link in the email, then try again.",
+  "authVerifiedMyEmail": "I've verified my email",
+  "authResendVerification": "Resend verification email",
+  "authSignedInTitle": "You are signed in",
+  "authDashboardLater": "Customer dashboard will be added later.",
+  "authErrorEmailInUse": "This email is already registered.",
+  "authErrorWeakPassword": "Choose a stronger password.",
+  "authErrorInvalidCredentials": "Invalid email or password.",
+  "authErrorUserDisabled": "This account has been disabled.",
+  "authErrorTooManyRequests": "Too many attempts. Please wait and try again.",
+  "authErrorNetwork": "Network error. Check your connection and try again.",
+  "authErrorOperationNotAllowed": "Email and password sign-in is not enabled.",
+  "authErrorCancelled": "Sign-in was cancelled.",
+  "authErrorDifferentCredential": "An account already exists with a different sign-in method for this email.",
+  "authErrorGoogleFailed": "Google sign-in failed. Please try again.",
+  "authErrorGoogleReauth": "Google couldn't confirm your account on this device. Tap \"Continue with Google\" again. If it keeps happening, open your Google account in the device settings and sign in to it again.",
+  "authErrorGoogleConfig": "Google sign-in is not set up for this version of the app. Please contact support.",
+  "authErrorPopupBlocked": "Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.",
+  "authErrorUnauthorizedDomain": "Google sign-in is not enabled for this website address.",
+  "authErrorGeneric": "Authentication failed. Please try again.",
+  "authErrorSendVerification": "Could not send the verification email. Please try again.",
+  "authErrorNotAuthenticated": "Not authenticated.",
+  "errorProfileSave": "Could not save your profile. Please try again.",
+  "errorProfileLoad": "Could not load your profile. Please try again.",
+  "errorProfileLoadDenied": "Could not load your profile: access was denied. Please try again later or contact support.",
+  "errorProfileLoadOffline": "Could not load your profile. Check your internet connection and try again.",
+  "errorProfileUpdate": "Could not update your profile. Please try again.",
+  "errorProfileNoEmail": "Your account has no email on file, so a profile could not be created. Please contact support.",
+  "errorProfileNotFound": "Your profile could not be found.",
+  "errorSetupAccount": "Could not finish setting up your account. Please try again.",
+  "errorGeneric": "Something went wrong. Please try again.",
+  "errorPermissionDenied": "You do not have permission to do this.",
+  "errorNetwork": "Check your internet connection and try again.",
+  "passwordChangeTitle": "Choose a new password",
+  "passwordChangeIntro": "You signed in with a temporary password. Choose your own password to continue.",
+  "passwordChangeTemporary": "Temporary password",
+  "passwordChangeNew": "New password",
+  "passwordChangeConfirm": "Confirm new password",
+  "passwordChangeSubmit": "Change password",
+  "passwordChangeCurrentRequired": "Enter your temporary password.",
+  "passwordChangeNewRequired": "Enter a new password.",
+  "passwordChangeTooShort": "The password must be at least {min} characters.",
+  "@passwordChangeTooShort": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "passwordChangeMismatch": "The passwords do not match.",
+  "passwordErrorCurrentWrong": "Current password is incorrect.",
+  "passwordErrorNewWeak": "New password is too weak. Use at least 6 characters.",
+  "passwordErrorRecentLogin": "Please sign out and sign back in before changing your password.",
+  "passwordErrorGeneric": "Could not change password. Please try again.",
+  "imageLabel": "Image",
+  "imageAdd": "Add Image",
+  "imageChange": "Change Image",
+  "imageChooseFromDevice": "Choose from device",
+  "imageTakePhoto": "Take a photo",
+  "imageUseUrl": "Use image URL",
+  "imageUrl": "Image URL",
+  "imageUploading": "Uploading image",
+  "imageUploadFailed": "Failed to upload image",
+  "imageEmptyUrl": "Enter the image URL.",
+  "imageInvalidUrl": "Enter a valid image link (http/https).",
+  "imageUnsupported": "Unsupported image. Use a JPG, PNG, WebP or GIF file.",
+  "imageTooLarge": "This image is too large. The maximum size is 5 MB.",
+  "imageCameraDenied": "Camera permission was denied. Allow camera access in settings to take a photo.",
+  "imageGalleryDenied": "Photo access was denied. Allow photo access in settings to choose an image.",
+  "imageCameraUnavailable": "The camera is not available on this device.",
+  "imagePickFailed": "Could not open the image. Please try again.",
+  "locationTitle": "Location",
+  "locationEnterAddress": "Enter address",
+  "locationSelectOnMap": "Select on Map",
+  "locationUseCurrent": "Use My Current Location",
+  "locationConfirm": "Confirm Location",
+  "locationChange": "Change Location",
+  "locationRemoveMap": "Remove map location",
+  "locationViewOnMap": "View on Map",
+  "locationOpenOrder": "Open Order Location",
+  "locationOpenCompany": "Open Company Location",
+  "locationViewCompany": "View Company Location",
+  "locationOpenDelivery": "Open Delivery Location",
+  "locationSearchAddress": "Search Address on Map",
+  "locationOpenInMaps": "Open in Maps app",
+  "locationSelected": "Location selected",
+  "locationLatShort": "Lat",
+  "locationLngShort": "Lng",
+  "locationTapToSelect": "Tap the map to choose the exact point. Tap again to move it.",
+  "locationPinned": "Pinned on map",
+  "locationAddressApproximate": "Written address only (no exact map point)",
+  "locationRequired": "Enter an address or select a location on the map.",
+  "locationCouldNotOpenMaps": "Could not open the maps app.",
+  "locationServiceOff": "Location services are turned off. You can still tap the map.",
+  "locationPermissionDenied": "Location permission was denied. You can still tap the map or type an address.",
+  "locationPermissionDeniedForever": "Location permission is blocked in settings. You can still tap the map.",
+  "locationCurrentUnavailable": "Could not get your current location. You can still tap the map.",
+  "productPriceOnRequest": "Price on request",
+  "orderCreateDenied": "You do not have permission to place this order. Please sign in again and try again.",
+  "orderCreateNetwork": "The order could not be confirmed. Check your internet connection and try again.",
+  "orderCreateFailed": "Failed to create the order. Please try again.",
+  "orderNotConfirmed": "Your order could not be confirmed. Check your connection and try again.",
+  "orderProductNoPrice": "{productName} has no listed price yet. Please contact the company to order it.",
+  "@orderProductNoPrice": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "orderPriceChanged": "The price of {productName} changed before your order was sent, so it was not placed. Go back to see the new price. If you already transferred money, please contact the company.",
+  "@orderPriceChanged": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "orderAttachReceiptFailed": "Could not attach the receipt. Please try again.",
+  "orderFetchFailed": "Could not load the order. Please try again.",
+  "orderUpdateStatusDenied": "You do not have permission to update the status of this order.",
+  "orderUpdateStatusFailed": "Could not update the order status. Please try again.",
+  "orderConfirmPaymentDenied": "You do not have permission to confirm the payment for this order.",
+  "orderConfirmPaymentFailed": "Could not confirm the payment. Please try again.",
+  "orderCancelDenied": "You do not have permission to cancel this order.",
+  "orderCancelFailed": "Could not cancel the order. Please try again.",
+  "orderCancelNotAllowed": "This order cannot be cancelled now: it was already cancelled or has moved on, or this reason does not apply to a confirmed payment.",
+  "orderStatusCancelled": "Cancelled",
+  "orderCancelledTitle": "This order was cancelled",
+  "orderCancelledByCompany": "Cancelled by the company.",
+  "orderCancelledExpired": "Cancelled automatically: the payment was not verified within 24 hours.",
+  "orderCancelledOutOfStock": "Cancelled because the product ran out of stock before the payment was confirmed. The company returns the transferred money outside the app.",
+  "orderCancelledRefundConfirmed": "Your payment had been confirmed: the company returns the money to you outside the app.",
+  "orderCancelledRefundIfPaid": "If you transferred money for this order, the company returns it outside the app. You can reach them in the order's chat.",
+  "adminCancelledRefundConfirmed": "Its payment had been confirmed: return the money to the customer outside the app.",
+  "adminCancelledRefundIfPaid": "If the customer transferred money, return it outside the app.",
+  "orderCancelNote": "Note from the company: {note}",
+  "@orderCancelNote": {"placeholders": {"note": {"type": "String"}}},
+  "orderCancelledRefundDone": "The company returned your payment on {date}.",
+  "@orderCancelledRefundDone": {"placeholders": {"date": {"type": "String"}}},
+  "adminCancelledRefundRecorded": "You recorded returning the payment to the customer on {date}.",
+  "@adminCancelledRefundRecorded": {"placeholders": {"date": {"type": "String"}}},
+  "orderCancelledOn": "Cancelled on {date}",
+  "@orderCancelledOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentStatusNotVerified": "Not verified",
+  "adminCancelOrderButton": "Cancel order",
+  "adminCancelOrderTitle": "Cancel this order?",
+  "adminCancelOrderBody": "Order #{orderId} will be cancelled and {count, plural, =1{its 1 unit goes} other{its {count} units go}} back to stock. This cannot be undone. If the customer already paid, arrange the refund with them.",
+  "@adminCancelOrderBody": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCancelOrderBodyNoStock": "Order #{orderId} will be cancelled. Its payment is not confirmed, so it took no stock and none goes back. This cannot be undone. If the customer already transferred money, return it outside the app.",
+  "@adminCancelOrderBodyNoStock": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCancelConfirmedOrderBody": "Order #{orderId} will be cancelled and {count, plural, =1{its 1 unit goes} other{its {count} units go}} back to stock. Its payment was confirmed: return {amount} to the customer outside the app. This cannot be undone.",
+  "@adminCancelConfirmedOrderBody": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCancelConfirmedOrderBodyNoStock": "Order #{orderId} will be cancelled. It was placed before orders recorded their stock, so no stock goes back automatically. Its payment was confirmed: return {amount} to the customer outside the app. This cannot be undone.",
+  "@adminCancelConfirmedOrderBodyNoStock": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "adminCancelOutOfStockButton": "Cancel: out of stock",
+  "adminCancelOutOfStockTitle": "Cancel as out of stock?",
+  "adminCancelOutOfStockBody": "Order #{orderId} will be cancelled because its product cannot cover it. No stock is taken or returned. The customer is told the product ran out; return {amount} to them outside the app if they transferred it. This cannot be undone.",
+  "@adminCancelOutOfStockBody": {
+    "placeholders": {
+      "orderId": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "adminOrderCancelledOutOfStock": "Order cancelled as out of stock.",
+  "adminCancelOrderConfirm": "Cancel order",
+  "adminCancelOrderKeep": "Keep order",
+  "adminOrderCancelled": "Order cancelled.",
+  "adminCancelStockReturned": "{count, plural, =1{1 unit went back to stock.} other{{count} units went back to stock.}}",
+  "@adminCancelStockReturned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCancelStockNotReturned": "No stock went back: the order had taken none (its payment was not confirmed), or its product was removed.",
+  "adminOrdersExpiryNote": "Orders whose payment is not confirmed within 24 hours are cancelled automatically; a confirmed order never expires. This happens when you open this page, so a cancellation can wait until then.",
+  "orderAssignTechnicianDenied": "You do not have permission to assign a technician to this order.",
+  "orderAssignTechnicianFailed": "Could not assign the technician. Please try again.",
+  "stockNoLongerAvailable": "This product is no longer available.",
+  "stockChooseAtLeastOne": "Choose at least one unit to order.",
+  "stockOutOfStock": "{productName} is out of stock.",
+  "@stockOutOfStock": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "stockOnlyLeft": "Only {available} of {productName} left in stock. Please reduce the quantity.",
+  "@stockOnlyLeft": {
+    "placeholders": {
+      "available": {
+        "type": "int"
+      },
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "productSaveDenied": "You do not have permission to save this product.",
+  "productSaveFailed": "Could not save the product. Please try again.",
+  "productUpdateDenied": "You do not have permission to update this product.",
+  "productUpdateFailed": "Could not update the product. Please try again.",
+  "productDeleteDenied": "You do not have permission to delete this product.",
+  "productDeleteFailed": "Could not delete the product. Please try again.",
+  "technicianSaveDenied": "You do not have permission to save this technician.",
+  "technicianSaveFailed": "Could not save the technician. Please try again.",
+  "technicianUpdateDenied": "You do not have permission to update this technician.",
+  "technicianUpdateFailed": "Could not update the technician. Please try again.",
+  "technicianDeactivateDenied": "You do not have permission to deactivate this technician.",
+  "technicianDeactivateFailed": "Could not deactivate the technician. Please try again.",
+  "companyUpdateDenied": "You do not have permission to edit this company.",
+  "companyUpdateFailed": "Could not update the company profile. Please try again.",
+  "navHome": "Home",
+  "navDashboard": "Dashboard",
+  "navProducts": "Products",
+  "navCompanies": "Companies",
+  "navOrders": "Orders",
+  "navProfile": "Profile",
+  "navMyOrders": "My Orders",
+  "reviewsCount": "({count, plural, =0{no reviews} =1{1 review} other{{count} reviews}})",
+  "@reviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonPhoneInvalid": "Enter a valid phone number.",
+  "commonViewOrderStatus": "View Order Status",
+  "homeNoProducts": "No products found",
+  "homeNoCompanies": "No companies found",
+  "productInStockCount": "In Stock ({count})",
+  "@productInStockCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "productOutOfStock": "Out of Stock",
+  "productVerifiedSeller": "Verified Seller",
+  "productInstallationAvailable": "Professional Installation Available",
+  "productInstallationNote": "Installation price: {price} {currency}. On-site setup option is selected during checkout.",
+  "@productInstallationNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "productDescription": "Description",
+  "productSpecifications": "Specifications",
+  "productBuyNow": "Buy Now",
+  "companyAbout": "About Company",
+  "companyProductsCount": "Products ({count})",
+  "@companyProductsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "companyNoProducts": "No products listed by this company yet.",
+  "checkoutTitle": "Checkout",
+  "checkoutUnit": "Unit: {price} {currency}",
+  "@checkoutUnit": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutQty": "Qty: {count}",
+  "@checkoutQty": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutSubtotal": "Subtotal: {price} {currency}",
+  "@checkoutSubtotal": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutDeliveryContact": "Delivery & Contact",
+  "checkoutPickupContact": "Pickup & Contact",
+  "checkoutDelivery": "Delivery",
+  "checkoutPickup": "Pickup",
+  "checkoutPickupLocation": "Pickup Location",
+  "checkoutPickupFallback": "Company pickup location (the company will confirm by phone)",
+  "checkoutAddressHint": "Street name, building/house, neighborhood, city",
+  "checkoutContactPhone": "Contact Phone Number",
+  "checkoutContactPhoneHelper": "The company will call this number to coordinate delivery",
+  "checkoutPhoneRequired": "Please enter a contact phone number",
+  "checkoutInstallationOption": "Installation Option",
+  "checkoutInstallationTitle": "On-site Professional Installation",
+  "checkoutInstallationNote": "Certified technician setup available for {price} {currency}.",
+  "@checkoutInstallationNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutProductOnly": "Product Only",
+  "checkoutProductInstallation": "Product + Installation",
+  "checkoutPriceSummary": "Price Summary",
+  "checkoutProductSubtotal": "Product Subtotal ({count} items)",
+  "@checkoutProductSubtotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checkoutInstallationService": "Installation Service",
+  "checkoutNotIncluded": "Not included",
+  "checkoutDeliveryFee": "Delivery Fee",
+  "checkoutFinalTotal": "Final Total",
+  "checkoutConfirmOrder": "Confirm Order • {price} {currency}",
+  "@checkoutConfirmOrder": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentTitle": "Manual Payment",
+  "paymentCopied": "{label} copied to clipboard",
+  "@paymentCopied": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentAccountNumberLabel": "Account number",
+  "paymentPhoneNumberLabel": "Phone number",
+  "paymentReceiptRequired": "Please upload or select a transfer receipt image before submitting.",
+  "paymentSubmitFailed": "Could not submit your receipt. Please try again.",
+  "paymentAmountToTransfer": "Amount to Transfer",
+  "paymentOrderCreatedAfter": "Your order will be created after receipt submission.",
+  "paymentInstructions": "Please transfer the exact amount externally using your mobile banking app (Bankak, Fawry, etc.) or cash transfer. After completing the payment, upload a screenshot of your transfer receipt below.",
+  "paymentAccounts": "Payment Accounts",
+  "paymentUploadReceipt": "Upload Transfer Receipt",
+  "paymentUploadHint": "Upload a clear screenshot or photo of your transfer notification slip.",
+  "paymentTapToUpload": "Tap to Upload Receipt / Screenshot",
+  "paymentSupports": "Supports JPG, PNG, or screenshot from Bankak/Fawry",
+  "receiptPreparing": "Preparing image…",
+  "receiptTooLarge": "This image is still too large after compression. Please choose a smaller one.",
+  "receiptUnreadable": "This file could not be read as an image. Choose a photo or screenshot of your receipt.",
+  "receiptViewTitle": "Payment receipt",
+  "receiptView": "View receipt",
+  "receiptNone": "No receipt image is available for this order.",
+  "receiptLoadFailed": "Could not load the receipt. Check your connection and try again.",
+  "paymentReceiptSelected": "Receipt Selected",
+  "paymentReplace": "Replace",
+  "paymentPendingNote": "Your order is sent together with this receipt. A receipt is not a confirmed payment: the company checks the transfer and confirms it, and only then is the product reserved for you.",
+  "paymentSubmitting": "Submitting...",
+  "paymentSubmit": "Submit Receipt for Verification",
+  "paymentAccountName": "Account Name",
+  "paymentAccountMban": "Account / MBAN",
+  "paymentPhoneIdentifier": "Phone Identifier",
+  "ordersLoadFailed": "Could not load orders",
+  "ordersRetry": "Retry",
+  "ordersEmptyTitle": "No Orders Yet",
+  "ordersEmptyBody": "When you purchase IT hardware or products from the marketplace, your orders and their live status will be tracked here.",
+  "orderTitleNumber": "Order #{id}",
+  "@orderTitleNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "orderTotalAmount": "Total Amount",
+  "orderDetailsButton": "Details",
+  "orderItemOrdered": "Item Ordered",
+  "orderUnitLine": "Unit: {price} SDG",
+  "@orderUnitLine": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "orderQtyLine": "Qty: {count}",
+  "@orderQtyLine": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "orderSubtotalLine": "Subtotal: {price} SDG",
+  "@orderSubtotalLine": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "orderPickupDetails": "Pickup Details",
+  "orderDeliveryDetails": "Delivery Details",
+  "orderAddress": "Address",
+  "orderContactPhone": "Contact Phone",
+  "orderType": "Order Type",
+  "orderTypeInstallation": "Product + Installation (+{fee} SDG)",
+  "@orderTypeInstallation": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "orderDeliveryFee": "Delivery Fee",
+  "orderOrderedAt": "Ordered At",
+  "orderPaymentStatus": "Payment Status",
+  "orderStatusLabel": "Status",
+  "orderReceiptAttached": "Receipt Attached",
+  "orderProductSubtotal": "Product Subtotal",
+  "orderInstallationFee": "Installation Fee",
+  "orderTotal": "Total",
+  "orderOrderStatus": "Order Status",
+  "pendingBanner": "PENDING VERIFICATION",
+  "pendingTitle": "Order sent: waiting for the company",
+  "pendingBody": "Your order and your transfer receipt were sent to the company. A receipt is not a confirmed payment: the company checks that the money arrived, then confirms it.",
+  "orderNotReservedYet": "The product is not reserved for you yet: stock is taken only when the company confirms your payment. If it sells out first, the company may cancel the order and return your transfer outside the app.",
+  "orderPaymentConfirmedNote": "The company confirmed your payment, and the product is reserved for your order.",
+  "orderAwaitingConfirmation": "Waiting for the company to confirm your payment",
+  "checkoutReservationNote": "Next you transfer the amount and upload the receipt. The company then confirms the payment, and only then is the product reserved for you.",
+  "orderQuotaReached": "You have placed {count} orders in the last 24 hours, the most allowed. You can order again after {time}.",
+  "@orderQuotaReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "orderQuotaReachedNoTime": "You have placed {count} orders in the last 24 hours, the most allowed. Please try again later.",
+  "@orderQuotaReachedNoTime": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pendingOrderReference": "Order Reference",
+  "pendingDeliveryAddress": "Delivery Address",
+  "pendingInstallation": "Installation",
+  "pendingInstallationIncluded": "Included ({fee} SDG)",
+  "@pendingInstallationIncluded": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "pendingUploaded": "Uploaded",
+  "pendingTotalAmount": "Total Amount",
+  "pendingBackToMarketplace": "Back to Marketplace",
+  "pendingViewInMyOrders": "View in My Orders",
+  "orderStatusProcessing": "Processing",
+  "orderStatusOutForDelivery": "Out for Delivery",
+  "orderStatusCompleted": "Completed",
+  "paymentStatusPending": "Pending Verification",
+  "paymentStatusConfirmed": "Confirmed",
+  "deliveryMethodDelivery": "Delivery",
+  "deliveryMethodPickup": "Pickup",
+  "jobStatusPending": "Pending",
+  "jobStatusInProgress": "In Progress",
+  "customerFallback": "Customer {id}",
+  "@customerFallback": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "profileMyProfile": "My profile",
+  "profileFullName": "Full name",
+  "profilePhoneNumber": "Phone number",
+  "profileFullNameRequired": "Enter your full name.",
+  "profileEdit": "Edit profile",
+  "profileUpdated": "Profile updated successfully.",
+  "profileChangePassword": "Change password",
+  "profileChangePasswordSubtitle": "Update your account password",
+  "profileCurrentPassword": "Current password",
+  "profileCurrentPasswordRequired": "Enter your current password.",
+  "profilePasswordMin": "Use at least 6 characters.",
+  "profileConfirmPasswordRequired": "Confirm your new password.",
+  "profileUpdatePassword": "Update password",
+  "profilePasswordChanged": "Password changed successfully.",
+  "notificationsLoadFailed": "Could not load notifications.",
+  "notificationsEmpty": "No notifications yet.",
+  "notifGenericTitle": "Notification",
+  "notifGenericBody": "There is an update on one of your orders.",
+  "notifDeleteTitle": "Delete this notification?",
+  "notifDeleteBody": "It will be removed for good.",
+  "notifNewOrderTitle": "New order received",
+  "notifNewOrderBody": "A new order for \"{product}\" was placed and is awaiting payment verification.",
+  "@notifNewOrderBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPaymentConfirmedTitle": "Payment confirmed",
+  "notifPaymentConfirmedBody": "Your payment for \"{product}\" has been confirmed.",
+  "@notifPaymentConfirmedBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifOutForDeliveryTitle": "Order out for delivery",
+  "notifOutForDeliveryBody": "Your order \"{product}\" is out for delivery.",
+  "@notifOutForDeliveryBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifOrderCompletedTitle": "Order completed",
+  "notifOrderCompletedBody": "Your order has been completed.",
+  "notifTechnicianAssignedTitle": "New installation job assigned",
+  "notifTechnicianAssignedBody": "You have been assigned to install \"{product}\".",
+  "@notifTechnicianAssignedBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "navTechnicians": "Technicians",
+  "adminInstallationJobs": "Installation Jobs",
+  "adminCompanyProfile": "Company Profile",
+  "adminCompanyDashboard": "Company Dashboard",
+  "techShellDashboard": "Technician Dashboard",
+  "techShellJobs": "My Jobs",
+  "techNavJobs": "Jobs",
+  "adminWelcome": "Welcome",
+  "adminDashboardOverview": "Overview of your products and orders",
+  "adminTotalProducts": "Total Products",
+  "adminTotalOrders": "Total Orders",
+  "adminPendingOrders": "Pending Orders",
+  "adminRecentOrders": "Recent Orders",
+  "adminViewAll": "View all",
+  "adminOrdersLoadFailedShort": "Could not load orders.",
+  "adminNoOrdersYet": "No orders yet.",
+  "orderDetailsTitle": "Order Details",
+  "adminOrderNotFound": "This order was not found.",
+  "adminJobNotFound": "This job was not found.",
+  "adminProductNotFound": "This product was not found.",
+  "adminOrdersLoadFailed": "Could not load your orders.",
+  "adminFilterAll": "All ({count})",
+  "@adminFilterAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminFilterStatus": "{status} ({count})",
+  "@adminFilterStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminNoOrdersToShow": "No orders to show.",
+  "adminQtyShort": "Qty {count}",
+  "@adminQtyShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminCustomer": "Customer",
+  "adminName": "Name",
+  "adminProduct": "Product",
+  "adminQuantity": "Quantity",
+  "adminUnitPrice": "Unit Price",
+  "adminMethod": "Method",
+  "adminSelection": "Selection",
+  "adminJobStatus": "Job Status",
+  "adminPayment": "Payment",
+  "adminReceiptReference": "Receipt Reference",
+  "adminNotProvided": "Not provided",
+  "adminOrderInformation": "Order Information",
+  "adminOrderNumber": "Order Number",
+  "adminCreated": "Created",
+  "adminLastUpdated": "Last Updated",
+  "adminCurrentStatus": "Current Status",
+  "adminManageOrder": "Manage Order",
+  "adminVerifyReceipt": "A receipt is only the customer's claim. Check that the money arrived in your account, then confirm the payment. Confirming takes this order's units from stock; until then nothing is reserved.",
+  "adminShipAfterPayment": "The order can move on only after its payment is confirmed.",
+  "adminStockCannotCover": "Not enough stock for this order: {available} left, {count} needed. Restock the product and confirm the payment, or cancel the order as out of stock.",
+  "@adminStockCannotCover": {
+    "placeholders": {
+      "available": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminProductGoneCannotConfirm": "This order's product is no longer in your catalogue, so its payment cannot be confirmed. Cancel the order as out of stock.",
+  "adminOutOfStockStillCovers": "The product still has {available} left, enough for this order ({count}), so it cannot be cancelled as out of stock. Confirm the payment, or cancel the order by hand.",
+  "@adminOutOfStockStillCovers": {
+    "placeholders": {
+      "available": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminStockLabel": "Stock",
+  "adminStockTaken": "{count, plural, =1{1 unit taken from stock} other{{count} units taken from stock}}",
+  "@adminStockTaken": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminStockNotTaken": "Not taken yet: taken when you confirm the payment",
+  "orderPaymentAlreadyConfirmed": "This payment was already confirmed, perhaps from another device. Nothing more was taken from stock.",
+  "orderPaymentNotAwaiting": "This order's payment can no longer be confirmed: the order was cancelled or has moved on.",
+  "orderPaymentNoReceipt": "This order has no stored receipt, so its payment cannot be confirmed. Ask the customer for the receipt in the order's chat, or cancel the order.",
+  "adminConfirmPaymentTitle": "Confirm payment",
+  "adminConfirmPaymentBody": "Confirm that the payment for order #{id} has arrived? {count, plural, =1{1 unit is} other{{count} units are}} taken from stock now.",
+  "@adminConfirmPaymentBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminPaymentConfirmed": "Payment confirmed and stock taken.",
+  "adminConfirmPaymentButton": "Confirm Payment",
+  "adminOrderCompleted": "This order is completed.",
+  "adminMarkCompletedHint": "Mark completed once the technician has finished the installation.",
+  "adminUpdateOrderStatus": "Update order status",
+  "adminChangeOrderStatusBody": "Change order #{id} to \"{status}\"? This cannot be undone.",
+  "@adminChangeOrderStatusBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "adminOrderMarked": "Order marked {status}.",
+  "@adminOrderMarked": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "adminMarkOutForDelivery": "Mark Out for Delivery",
+  "adminMarkCompletedInstalled": "Mark Completed (Installed)",
+  "adminMarkCompleted": "Mark Completed",
+  "adminMarkProcessing": "Mark Processing",
+  "adminInstallationJob": "Installation Job",
+  "adminJobTitleNumber": "Job #{id}",
+  "@adminJobTitleNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "adminJobDetails": "Job Details",
+  "adminJobOrderNumber": "Job / Order Number",
+  "adminCustomerLocation": "Customer & Location",
+  "adminInstallationAddress": "Installation Address",
+  "adminLocation": "Location",
+  "adminCustomerPickupConfirm": "Customer pickup — confirm the installation location by phone",
+  "adminCustomerPickupConfirmShort": "Customer pickup — confirm the location by phone",
+  "adminCustomerPickup": "Customer pickup",
+  "adminViewFullOrder": "View full order",
+  "adminTechnicianAssigned": "Technician assigned.",
+  "adminAssignTechnician": "Assign Technician",
+  "adminChangeTechnician": "Change Technician",
+  "adminPickTechnicianHint": "Choose who will carry out this installation.",
+  "adminTechnicianSearchHint": "Search technicians",
+  "adminTechnicianNoMatch": "No technician matches your search.",
+  "adminTechnicianCurrent": "Assigned",
+  "adminTechnicianSection": "Technician",
+  "adminAssignedTo": "Assigned to",
+  "adminNotAssigned": "Not assigned",
+  "adminTechniciansLoadFailedShort": "Could not load technicians.",
+  "adminAddTechnicianFirst": "Add a technician first to assign this job.",
+  "adminAddProduct": "Add Product",
+  "adminEditProduct": "Edit Product",
+  "adminProductsLoadFailed": "Could not load your products.",
+  "adminProductsEmpty": "You have not added any products yet.\nTap \"Add Product\" to create your first one.",
+  "adminInStock": "In stock: {count}",
+  "@adminInStock": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminUnavailable": "Unavailable",
+  "adminOutOfStock": "Out of stock",
+  "adminInstallationBadge": "Installation",
+  "adminPickupOnlyBadge": "Pickup only",
+  "adminDeleteProduct": "Delete product",
+  "adminDeleteProductBody": "Delete \"{name}\"? This cannot be undone.",
+  "@adminDeleteProductBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminProductDeleted": "Product deleted.",
+  "adminProductDetails": "Product Details",
+  "adminEditProductTooltip": "Edit product",
+  "adminAvailability": "Availability",
+  "adminStatus": "Status",
+  "adminAvailable": "Available",
+  "adminNotAvailable": "Not available",
+  "adminNotAvailablePickup": "Not available (pickup only)",
+  "adminStock": "Stock",
+  "adminDeliveryInstallation": "Delivery & Installation",
+  "adminInstallationPrice": "Installation Price",
+  "formProductAdded": "Product added.",
+  "formProductUpdated": "Product updated.",
+  "formProductName": "Product Name",
+  "formProductNameRequired": "Product name is required.",
+  "formCategoryLabel": "Category",
+  "adminUnitsLeft": "{count} left",
+  "@adminUnitsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminStockLow": "Low stock",
+  "adminAttentionRestock": "Restock",
+  "adminAttentionAssignTechnician": "Assign technician",
+  "adminAttentionVerifyPayment": "Verify payment",
+  "adminStatLowStock": "Low stock",
+  "adminStatSalesWeek": "Sales this week",
+  "adminStatNewOrders": "New orders",
+  "adminNothingToDo": "Nothing needs your attention right now.",
+  "adminNeedsAttention": "Needs your attention",
+  "navCatalog": "Catalog",
+  "navAccount": "Account",
+  "adminAddNew": "Add",
+  "adminAddNewTitle": "Add new",
+  "adminAddService": "Add Service",
+  "adminOrdersPickup": "Pickup ({count})",
+  "@adminOrdersPickup": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminOrdersDelivery": "Delivery ({count})",
+  "@adminOrdersDelivery": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminOrdersInstallation": "Installation ({count})",
+  "@adminOrdersInstallation": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminOrdersServices": "Services ({count})",
+  "@adminOrdersServices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminAccountViewProfile": "View company profile",
+  "adminTechniciansActive": "{count} active",
+  "@adminTechniciansActive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adminSearchOrders": "Search orders and service requests",
+  "adminSearchProducts": "Search products",
+  "adminServiceOwnBadge": "Created by you",
+  "adminServiceCategoryInvalid": "Choose a valid category.",
+  "adminServiceCategoryRequired": "Choose a category.",
+  "adminServiceDescriptionLabel": "Description",
+  "adminServiceNameRequired": "Service name is required.",
+  "adminServiceNameLabel": "Service name",
+  "adminServiceFormEditTitle": "Edit service",
+  "adminServiceCreateFirst": "Create your first service",
+  "adminServiceNew": "New service",
+  "adminServicesYours": "Your services",
+  "formCategoryInactiveSuffix": "(inactive)",
+  "formCategoryNone": "No category",
+  "categoryPickerTitle": "Choose a category",
+  "categorySearchHint": "Search categories",
+  "categoryRootCrumb": "All categories",
+  "categoryBack": "Back",
+  "categorySelect": "Select",
+  "categoryNoResults": "No category matches your search.",
+  "categoryTreeEmpty": "No categories have been added yet.",
+  "categoryUnavailable": "This category is no longer available. Choose another one.",
+  "categorySubCount": "{count} sub-categories",
+  "@categorySubCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeFilterAllCategories": "All",
+  "homeCategoriesTitle": "Categories",
+  "homeCategoriesMore": "More",
+  "adminProductUncategorized": "No category",
+  "formPriceOptional": "Price (SDG) - optional",
+  "formPriceInvalid": "Enter a valid price greater than 0.",
+  "formInstallationPriceRequired": "Installation price is required.",
+  "formInstallationPriceInvalid": "Enter a valid installation price greater than 0.",
+  "formStockSection": "Stock / Availability",
+  "formStockQuantity": "Stock Quantity",
+  "formStockRequired": "Enter the stock quantity (0 or more).",
+  "formAvailableForSale": "Available for sale",
+  "formAvailableHint": "Customers can buy this product while it has stock.",
+  "formSpecName": "Name",
+  "formSpecValue": "Value",
+  "formAddSpec": "Add specification",
+  "formDeliveryAvailable": "Delivery Available",
+  "formDeliveryOn": "Customers can choose delivery at checkout.",
+  "formDeliveryOff": "Customers collect this product from your pickup location.",
+  "formInstallationAvailable": "Installation Available",
+  "formInstallationOn": "Customers can choose Product + Installation.",
+  "formInstallationOff": "Customers will not see any installation option.",
+  "formInstallationPrice": "Installation Price (SDG)",
+  "adminCompanyLoadFailed": "Could not load your company profile.",
+  "adminCompanyNotFound": "Your company record was not found. Please contact the platform administrator.",
+  "adminContact": "Contact",
+  "adminPhone": "Phone",
+  "adminCity": "City",
+  "adminEditCompanyProfile": "Edit Company Profile",
+  "adminCompanyProfileUpdated": "Company profile updated.",
+  "adminCompanyName": "Company Name",
+  "adminCompanyNameRequired": "Company name is required.",
+  "adminPickupAddress": "Pickup Location / Address",
+  "pickupModeCompany": "Collect from the company location",
+  "pickupModeCompanyHint": "Customers collect from the company address and map point above.",
+  "pickupModeCustom": "Custom pickup points",
+  "pickupPointsHint": "Customers pick one of these at checkout. Up to {max} points.",
+  "@pickupPointsHint": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "pickupPointTitle": "Pickup point {n}",
+  "@pickupPointTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "pickupPointName": "Point name",
+  "pickupPointNameHint": "e.g. Khartoum branch",
+  "pickupPointNameRequired": "Enter a name for this point.",
+  "pickupPointPlaceRequired": "Enter an address or select a point on the map.",
+  "pickupAddPoint": "Add a pickup point",
+  "pickupRemovePoint": "Remove this point",
+  "checkoutChoosePickupPoint": "Choose where to collect your order",
+  "adminShortDescription": "Short Description",
+  "adminAddTechnician": "Add Technician",
+  "adminEditTechnician": "Edit Technician",
+  "adminDeactivateTechnician": "Deactivate technician",
+  "adminDeactivateTechnicianBody": "Deactivate \"{name}\"? They will no longer be available for new installation jobs.",
+  "@adminDeactivateTechnicianBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminTechnicianDeactivated": "Technician deactivated.",
+  "adminTechniciansLoadFailed": "Could not load your technicians.",
+  "adminTechniciansEmpty": "You have not added any technicians yet.\nTap \"Add Technician\" to create your first technician account.",
+  "adminActive": "Active",
+  "adminInactive": "Inactive",
+  "adminTechnicianUpdated": "Technician updated.",
+  "adminTechnicianNameRequired": "Technician name is required.",
+  "adminPhoneRequired": "Phone number is required.",
+  "adminTechnicianEmailRequired": "Technician email is required.",
+  "adminInactiveTechnicianNote": "Inactive technicians cannot be assigned to new jobs.",
+  "techDashboardLoadFailed": "Could not load your dashboard.",
+  "techWelcome": "Welcome, {name}",
+  "@techWelcome": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "techTotalJobs": "Total Jobs",
+  "techUpcomingJobs": "Upcoming Jobs",
+  "techNoPendingJobs": "No pending jobs right now.",
+  "techJobsLoadFailed": "Could not load your jobs.",
+  "techNoJobsAssigned": "No installation jobs assigned to you yet.",
+  "techJobCompleted": "This job is completed.",
+  "techAwaitingPayment": "Waiting for the company to confirm the payment.",
+  "techAwaitingPaymentHint": "You can move this job on once the payment is confirmed.",
+  "techUpdateJobStatus": "Update job status",
+  "techChangeJobBody": "Change job #{id} to \"{status}\"? This cannot be undone.",
+  "@techChangeJobBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "techJobMarked": "Job marked {status}.",
+  "@techJobMarked": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "techMarkInstallationCompleted": "Mark Installation Completed",
+  "techProfileLoadFailed": "Could not load your profile.",
+  "techCompany": "Company",
+  "techMyDetails": "My Details",
+  "techEditName": "Edit name",
+  "comingSoonTitle": "{title} is coming soon",
+  "@comingSoonTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentAccountsManage": "Payment accounts",
+  "paymentAccountsIntro": "Customers transfer their order payments to these accounts. Add at least one so customers can pay you.",
+  "paymentAccountsEmpty": "No payment accounts yet.",
+  "paymentAccountAdd": "Add account",
+  "paymentAccountEdit": "Edit account",
+  "paymentAccountBankName": "Bank / wallet name",
+  "paymentAccountBankRequired": "Enter the bank or wallet name.",
+  "paymentAccountHolderRequired": "Enter the account holder name.",
+  "paymentAccountNumberRequired": "Enter the account number.",
+  "paymentAccountPhoneOptional": "Linked phone number (optional)",
+  "paymentAccountSaved": "Payment account saved.",
+  "paymentAccountRemoved": "Payment account removed.",
+  "paymentAccountRemoveTitle": "Remove this account?",
+  "paymentAccountRemoveBody": "Customers will no longer see it on the payment screen.",
+  "paymentAccountLimit": "You can add up to {max} accounts.",
+  "@paymentAccountLimit": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "paymentNoAccountsForCompany": "This company has not added payment accounts yet, so it cannot receive a payment right now. Please contact the company.",
+  "adminTechnicianAccountNote": "This creates the technician's account with a temporary password. Give them this email and password; they choose their own password the first time they sign in.",
+  "adminTechnicianTempPassword": "Temporary password",
+  "adminTechnicianPasswordRequired": "Enter a temporary password.",
+  "adminAddTechnicianSubmit": "Add technician",
+  "adminTechnicianCreated": "Technician added. Share the email and temporary password with them.",
+  "technicianEmailInUse": "An account with this email already exists.",
+  "technicianEmailInvalid": "This email address is not valid.",
+  "technicianPasswordWeak": "The temporary password is too weak. Choose a longer, harder one.",
+  "technicianTooManyRequests": "Too many attempts. Wait a few minutes and try again.",
+  "technicianAuthDisabled": "Creating accounts by email is turned off for this project. Contact the platform administrator.",
+  "comingSoonBody": "This section will be available in a later update.",
+  "navServices": "Services",
+  "navChats": "Chats",
+  "navMore": "More",
+  "homeNoServices": "No services found",
+  "searchHint": "Search products, services and companies",
+  "searchRecent": "Recent searches",
+  "searchRemoveRecent": "Remove from history",
+  "searchBrowseCategories": "Browse categories",
+  "searchFor": "Search for “{query}”",
+  "@searchFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchAll": "All ({count})",
+  "@searchAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchProducts": "Products ({count})",
+  "@searchProducts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchServices": "Services ({count})",
+  "@searchServices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchCompanies": "Companies ({count})",
+  "@searchCompanies": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchSeeAll": "See all ({count})",
+  "@searchSeeAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchNoResults": "No results for “{query}”",
+  "@searchNoResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchNoResultsTip": "Check the spelling, try a shorter word, or browse a category.",
+  "searchTypeProduct": "Product",
+  "searchTypeService": "Service",
+  "searchTypeCompany": "Company",
+  "homeServicesLoadFailed": "Services could not be loaded.",
+  "ordersTabProducts": "Products",
+  "ordersTabServices": "Services",
+  "serviceDetailsTitle": "Service details",
+  "serviceAvailableCompanies": "Available companies",
+  "serviceNoCompanies": "No company offers this service yet.",
+  "serviceCompaniesLoadFailed": "The companies could not be loaded.",
+  "serviceRequestAction": "Request service",
+  "serviceRequestFormTitle": "Request service",
+  "serviceRequestDetailsLabel": "What do you need?",
+  "serviceRequestDetailsHint": "Describe the work, the device or system, and anything the company should know.",
+  "serviceRequestDetailsRequired": "Please describe what you need.",
+  "serviceRequestLocationOptional": "Address (optional)",
+  "serviceRequestAddressHint": "Where should the service be done?",
+  "serviceRequestSubmit": "Send request",
+  "serviceRequestSent": "Your request was sent. You can now chat with the company.",
+  "serviceRequestCreateDenied": "This request could not be sent. The company may no longer offer this service.",
+  "serviceRequestCreateFailed": "The request could not be sent. Please try again.",
+  "serviceRequestUpdateFailed": "The request could not be updated. Please try again.",
+  "serviceRequestsLoadFailed": "Service requests could not be loaded.",
+  "serviceRequestNotFound": "This service request was not found.",
+  "serviceRequestsEmptyCustomer": "You have not requested any services yet.",
+  "serviceRequestsEmptyCompany": "No service requests yet.",
+  "serviceRequestDetailsTitle": "Service request",
+  "serviceRequestCustomer": "Customer",
+  "serviceRequestCompany": "Company",
+  "serviceRequestPrice": "Price",
+  "serviceRequestSentAt": "Sent",
+  "serviceRequestNumber": "Request",
+  "serviceRequestContact": "Contact and location",
+  "serviceRequestAddress": "Address",
+  "serviceRequestOpenChat": "Open chat",
+  "serviceRequestViewDetails": "Request details",
+  "serviceRequestCancel": "Cancel request",
+  "serviceRequestCancelTitle": "Cancel this request?",
+  "serviceRequestCancelBody": "The company will see that you cancelled it. This cannot be undone.",
+  "serviceRequestAccept": "Accept",
+  "serviceRequestReject": "Reject",
+  "serviceRequestRejectTitle": "Reject this request?",
+  "serviceRequestRejectBody": "The customer will see that the request was rejected. This cannot be undone.",
+  "serviceRequestStart": "Start work",
+  "serviceRequestComplete": "Mark as completed",
+  "serviceRequestStatusPending": "Pending",
+  "serviceRequestStatusAccepted": "Accepted",
+  "serviceRequestStatusRejected": "Rejected",
+  "serviceRequestStatusInProgress": "In progress",
+  "serviceRequestStatusCompleted": "Completed",
+  "serviceRequestStatusCancelled": "Cancelled",
+  "serviceRequestStatusLine": "Request status: {status}",
+  "@serviceRequestStatusLine": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "orderChatStatusLine": "Order status: {status}",
+  "@orderChatStatusLine": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "orderViewDetails": "Order details",
+  "orderStartChat": "Start a conversation",
+  "chatStartDenied": "You cannot start a conversation about this order.",
+  "chatStartFailed": "The conversation could not be started. Please try again.",
+  "chatContactCompany": "Contact",
+  "pushOpen": "Open",
+  "chatInquirySubject": "Question: {subject}",
+  "@chatInquirySubject": {
+    "placeholders": {
+      "subject": {
+        "type": "String"
+      }
+    }
+  },
+  "chatInquiryStatusLine": "A question before ordering - no order yet",
+  "chatInquiryDenied": "You can't message this company right now.",
+  "chatsEmptyCustomer": "No chats yet. Tap Contact on a product or service, or place an order, and your conversation with the company appears here.",
+  "chatsEmptyCompany": "No chats yet. Customers' questions and every order or service request sent to your company open a conversation here.",
+  "chatNoMessagesYet": "No messages yet",
+  "chatEmpty": "No messages yet. Write to start the conversation.",
+  "chatInputHint": "Write a message",
+  "chatSend": "Send",
+  "chatYou": "You",
+  "chatYouPrefix": "You: {text}",
+  "@chatYouPrefix": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "chatYesterdayAt": "Yesterday {time}",
+  "@chatYesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatCustomerFallback": "Customer",
+  "chatUnread": "Unread",
+  "chatNotFound": "This conversation was not found.",
+  "chatLoadFailed": "The chat could not be loaded.",
+  "chatSendDenied": "You cannot send messages in this conversation.",
+  "chatSendFailed": "The message could not be sent. Please try again.",
+  "chatMessageInvalid": "Write a message of up to 2000 characters.",
+  "adminServicesLoadFailed": "Services could not be loaded.",
+  "adminServicesOffered": "Services you offer",
+  "adminServicesOfferedEmpty": "You do not offer any services yet. Create one to start receiving requests.",
+  "adminServicesAvailable": "From the platform catalogue",
+  "adminServicesCatalogueEmpty": "The service catalogue is empty for now.",
+  "adminServicesAllAdded": "You already offer every service in the catalogue.",
+  "adminServiceAdd": "Add",
+  "adminServiceSaved": "Service saved.",
+  "adminServiceRemoved": "Service removed.",
+  "adminServiceRemoveTitle": "Stop offering this service?",
+  "adminServiceRemoveBody": "Customers will no longer be able to request {name} from your company. Existing requests are kept.",
+  "@adminServiceRemoveBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "adminServicePriceHelper": "Leave empty if you do not want to show a price.",
+  "adminServiceNoteLabel": "Note for customers (optional)",
+  "adminServiceNoteHint": "For example: done on site or remotely, what is included",
+  "companyServiceAlreadyOffered": "Your company already offers this service.",
+  "companyServiceNotFound": "This service is no longer available.",
+  "offerDiscountBadge": "{percent}% off",
+  "@offerDiscountBadge": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "homeFeaturedOffers": "Featured offers",
+  "adminAddOffer": "Add Offer",
+  "offerPickProductTitle": "Choose a product",
+  "offerPickProductEmpty": "Add a product with a price first, then put it on offer.",
+  "offerNormalPrice": "Normal price: {price} {currency}",
+  "@offerNormalPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "offerPriceTooHigh": "The offer price must be lower than the normal price.",
+  "offerNoEndDate": "No end date",
+  "offerEndsHint": "After this date the product goes back to its normal price and leaves the offers.",
+  "offerRemove": "End offer",
+  "offerSaved": "Offer saved.",
+  "offerRemoved": "Offer ended.",
+  "offerEndsOn": "Ends {date}",
+  "@offerEndsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "offerEdit": "Edit offer",
+  "offerNeedsPrice": "Set a price for this product first to put it on offer.",
+  "formPriceBelowOffer": "This product is on offer at {price}. The price must be higher than that, or end the offer first.",
+  "@formPriceBelowOffer": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "offerKindProduct": "Product",
+  "offerKindService": "Service",
+  "offerBadgeDiscount": "% off",
+  "offerBadgeSpecial": "Special offer",
+  "offerBadgeLimited": "Limited time",
+  "offerNewTitle": "New offer",
+  "offerOnLabel": "Offer on",
+  "offerChooseItem": "Choose from your catalog",
+  "offerChange": "Change",
+  "offerNewProduct": "New product on offer",
+  "offerNewService": "New service on offer",
+  "offerPickServiceTitle": "Choose a service",
+  "offerSearchHint": "Search by name",
+  "offerItemNoPrice": "No price - set one first",
+  "offerPickServiceEmpty": "Add a service with a price first, then put it on offer.",
+  "offerDiscountMethod": "Discount",
+  "offerModePercent": "Percentage",
+  "offerModePrice": "New price",
+  "offerPercentLabel": "Discount (%)",
+  "offerPercentInvalid": "Enter a percentage from 1 to 99.",
+  "offerComputedPrice": "Offer price: {price} {currency}",
+  "@offerComputedPrice": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "offerDuration": "Duration",
+  "offerDuration3Days": "3 days",
+  "offerDurationWeek": "1 week",
+  "offerDurationMonth": "1 month",
+  "offerDurationNone": "No end",
+  "offerDurationCustom": "Pick a date",
+  "offerEndDatePast": "Choose an end date in the future.",
+  "offerBadgeLabel": "Badge",
+  "offerPreviewEmpty": "Choose a product or service to preview the offer as customers will see it.",
+  "offerSaves": "Saves {amount} {currency}",
+  "@offerSaves": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "offerPublish": "Publish offer",
+  "offerPublished": "Offer published.",
+  "offerEndConfirmTitle": "End this offer?",
+  "offerEndConfirmBody": "“{name}” goes back to its normal price and leaves the offers.",
+  "@offerEndConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "offerPickItemRequired": "Choose a product or service for the offer.",
+  "catalogOffers": "Offers",
+  "offersRunning": "Running ({count})",
+  "@offersRunning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "offersEnded": "Ended ({count})",
+  "@offersEnded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "offersEmpty": "No offers yet. Put any product or service on offer to show it to customers in Featured offers.",
+  "offerEndedOn": "Ended {date}",
+  "@offerEndedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "offerAddCta": "Add offer",
+  "reviewsTitle": "Ratings",
+  "reviewsNew": "New",
+  "reviewsEmpty": "No ratings yet.",
+  "reviewsSeeAll": "See all ratings ({count})",
+  "@reviewsSeeAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewsBasedOn": "{count, plural, =1{1 rating} other{{count} ratings}}",
+  "@reviewsBasedOn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewPromptTitle": "How was your experience?",
+  "reviewPromptBody": "Your rating helps other customers choose, and helps the company improve.",
+  "reviewRateAction": "Rate",
+  "reviewRateOrderTitle": "Rate your order",
+  "reviewRateServiceTitle": "Rate the service",
+  "reviewYours": "Your rating",
+  "reviewEditAction": "Edit rating",
+  "reviewEditUntil": "You can change it until {date}.",
+  "@reviewEditUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewStars1": "Poor",
+  "reviewStars2": "Fair",
+  "reviewStars3": "Good",
+  "reviewStars4": "Very good",
+  "reviewStars5": "Excellent",
+  "reviewTapStars": "Tap the stars to rate",
+  "reviewStarsRequired": "Choose the stars first.",
+  "reviewStarsSemantics": "{count} of 5 stars",
+  "@reviewStarsSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewTagsLabel": "What stood out? (optional)",
+  "reviewTagQuality": "Quality",
+  "reviewTagDelivery": "Fast delivery",
+  "reviewTagPunctual": "On time",
+  "reviewTagService": "Good service",
+  "reviewTagPrice": "Fair price",
+  "reviewCommentLabel": "Comment",
+  "reviewCommentHint": "Tell others about your experience",
+  "reviewSubmit": "Send rating",
+  "reviewSave": "Save changes",
+  "reviewThanks": "Thanks, your rating is saved.",
+  "reviewUpdated": "Your rating was updated.",
+  "reviewVerified": "Verified customer",
+  "reviewAnonymous": "Customer",
+  "reviewCompanyReply": "Company's reply",
+  "reviewReplyAction": "Reply",
+  "reviewEditReplyAction": "Edit reply",
+  "reviewReplyTitle": "Reply to the customer",
+  "reviewReplyHint": "Thank the customer or explain what happened",
+  "reviewReplySend": "Send reply",
+  "reviewReplySaved": "Reply saved.",
+  "reviewReplyRequired": "Write a reply first.",
+  "reviewHiddenByAdmin": "Hidden by the platform admin",
+  "reviewNotRatedYet": "The customer hasn't rated this yet.",
+  "companyReviewsTitle": "Customer ratings",
+  "companyReviewsNeedReply": "{count, plural, =1{1 without a reply} other{{count} without a reply}}",
+  "@companyReviewsNeedReply": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewSaveDenied": "You can't rate this.",
+  "reviewSaveFailed": "Couldn't save the rating. Try again.",
+  "reviewReplyFailed": "Couldn't save the reply. Try again.",
+  "reviewLoadFailed": "Couldn't load the ratings.",
+  "notifNewReviewTitle": "New rating",
+  "notifNewReviewBody": "A customer rated \"{product}\".",
+  "@notifNewReviewBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifReviewReplyTitle": "The company replied",
+  "notifReviewReplyBody": "The company replied to your rating of \"{product}\".",
+  "@notifReviewReplyBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneCountryCodeOf": "Country code: {country} {code}",
+  "@phoneCountryCodeOf": {
+    "placeholders": {
+      "country": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneChooseCountry": "Choose the country code",
+  "phoneCountrySearchHint": "Search by country or code",
+  "phoneCountriesCommon": "Most used",
+  "phoneCountriesAll": "All countries",
+  "phoneCountryNoMatch": "No country matches your search.",
+  "phoneDigitsExact": "Enter {count} digits after {code}.",
+  "@phoneDigitsExact": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "notifNewServiceRequestTitle": "New service request",
+  "notifNewServiceRequestBody": "A customer requested \"{service}\".",
+  "@notifNewServiceRequestBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestAcceptedTitle": "Request accepted",
+  "notifServiceRequestAcceptedBody": "Your request for \"{service}\" was accepted.",
+  "@notifServiceRequestAcceptedBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestRejectedTitle": "Request declined",
+  "notifServiceRequestRejectedBody": "Your request for \"{service}\" was declined.",
+  "@notifServiceRequestRejectedBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestInProgressTitle": "Work has started",
+  "notifServiceRequestInProgressBody": "Work has started on your request for \"{service}\".",
+  "@notifServiceRequestInProgressBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestCompletedTitle": "Request completed",
+  "notifServiceRequestCompletedBody": "Your request for \"{service}\" has been completed.",
+  "@notifServiceRequestCompletedBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "notifServiceRequestCancelledTitle": "Request cancelled",
+  "notifServiceRequestCancelledBody": "A customer cancelled the request for \"{service}\".",
+  "@notifServiceRequestCancelledBody": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "homeShopByCategory": "Shop by category",
+  "homeServicesByCategory": "Services by category",
+  "homeShopNow": "Shop now",
+  "homeTrustDelivery": "Delivery to your location",
+  "homeTrustInstallation": "Installation by a technician",
+  "homeVerifiedCompanies": "Top companies",
+  "homeAllCompanies": "All companies",
+  "homeOffersEndsIn": "Ends in",
+  "homeOffersEndsInDays": "Ends in {days, plural, =1{1 day} other{{days} days}}",
+  "@homeOffersEndsInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "homeRecentlyAdded": "Recently added",
+  "homeNewBadge": "New",
+  "homeAllProducts": "All products",
+  "homeSortNewest": "Newest",
+  "homeSortPriceLow": "Price: low to high",
+  "homeSortPriceHigh": "Price: high to low",
+  "homeSortTopRated": "Highest rated",
+  "homeSortName": "Name",
+  "homeSortMostReviewed": "Most reviewed",
+  "homeFilterOffers": "Offers",
+  "homeFilterDelivery": "Delivery",
+  "homeFilterInstallation": "Installation",
+  "homeFilterTopRated": "Top rated",
+  "homeNoRatingsYet": "No ratings yet",
+  "homeNoMatchingProducts": "No products match these filters",
+  "homeServiceBannerTitle": "Need a technician?",
+  "homeServiceBannerBody": "Describe what you need and get price offers from verified companies.",
+  "homeStepDescribe": "Describe your request",
+  "homeStepCompare": "Compare offers",
+  "homeStepArrives": "Your technician arrives",
+  "homeMostRequested": "Most requested",
+  "homeStartsFrom": "Starts from",
+  "homeCompaniesCount": "{count, plural, =1{1 verified company} other{{count} verified companies}}",
+  "@homeCompaniesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeCompanyVerified": "Top rated",
+  "homeVisitCompany": "Visit company",
+  "maintenanceTitle": "Under maintenance",
+  "maintenanceTryLater": "Please try again in a little while.",
+  "announcementDismiss": "Dismiss",
+  "maintenanceBackAt": "Expected back: {time}",
+  "maintenanceBackIn": "That is in about {duration}.",
+  "noticeDurationDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "noticeDurationHoursMinutes": "{hours} h {minutes} min",
+  "noticeDurationMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "updateRequiredTitle": "Update required",
+  "updateRequiredBody": "A newer version of the app is needed to keep using it.",
+  "updateRequiredButton": "Update",
+  "orderCancelledByAdmin": "Cancelled by the platform.",
+  "adminProductHidden": "Hidden by the platform",
+  "adminProductHiddenReason": "Reason",
+  "adminProductHiddenNoReason": "No reason was given.",
+  "settingsHelp": "Help",
+  "reportFormTitle": "Report a problem",
+  "reportIntro": "Tell us what went wrong. The platform team reads every report and replies under My reports.",
+  "reportReasonLabel": "What is it about?",
+  "reportReasonOrderProblem": "Order problem",
+  "reportReasonPayment": "Payment",
+  "reportReasonCompanyConduct": "A company's conduct",
+  "reportReasonProductIssue": "Product issue",
+  "reportReasonAppProblem": "App problem",
+  "reportReasonOther": "Other",
+  "reportSubjectLabel": "Subject",
+  "reportSubjectHint": "In a few words",
+  "reportSubjectRequired": "Enter a subject.",
+  "reportDetailsLabel": "What happened?",
+  "reportDetailsHint": "Say what happened, when, and with which company or order.",
+  "reportDetailsRequired": "Describe the problem.",
+  "reportOrderLabel": "Order number",
+  "reportSubmit": "Send report",
+  "reportSent": "Your report was sent. We will reply under My reports.",
+  "myReportsTitle": "My reports",
+  "myReportsEmpty": "You have not sent any report.",
+  "reportStatusNew": "Received",
+  "reportStatusInProgress": "Being handled",
+  "reportStatusClosed": "Closed",
+  "reportReplyTitle": "Reply from the platform team",
+  "reportNoReplyYet": "No reply yet.",
+  "notifReportInProgressTitle": "Your report is being handled",
+  "notifReportInProgressBody": "We started working on \"{subject}\".",
+  "@notifReportInProgressBody": {"placeholders": {"subject": {"type": "String"}}},
+  "notifReportClosedTitle": "Your report was closed",
+  "notifReportClosedBody": "Your report \"{subject}\" was closed. Open My reports to read our reply.",
+  "@notifReportClosedBody": {"placeholders": {"subject": {"type": "String"}}},
+  "notifOrderCancelledByAdminTitle": "Your order was cancelled",
+  "notifOrderCancelledByAdminBody": "The platform cancelled your order \"{product}\".",
+  "@notifOrderCancelledByAdminBody": {"placeholders": {"product": {"type": "String"}}},
+  "notifOrderCancelledByAdminCompanyTitle": "An order was cancelled",
+  "notifOrderCancelledByAdminCompanyBody": "The platform cancelled the order for \"{product}\".",
+  "@notifOrderCancelledByAdminCompanyBody": {"placeholders": {"product": {"type": "String"}}},
+  "notifOrderCancelledByCompanyTitle": "Your order was cancelled",
+  "notifOrderCancelledByCompanyBody": "The company cancelled your order \"{product}\". Open it to see why.",
+  "@notifOrderCancelledByCompanyBody": {"placeholders": {"product": {"type": "String"}}},
+  "notifProductHiddenTitle": "A product was hidden",
+  "notifProductHiddenBody": "\"{product}\" was hidden from customers. Open it to see why.",
+  "@notifProductHiddenBody": {"placeholders": {"product": {"type": "String"}}},
+  "notifProductShownTitle": "A product is visible again",
+  "notifProductShownBody": "\"{product}\" is visible to customers again.",
+  "@notifProductShownBody": {"placeholders": {"product": {"type": "String"}}},
+  "notifAccountConvertedTitle": "Your account is now a company account",
+  "notifAccountConvertedBody": "\"{product}\" is ready. Sign in again to manage your company.",
+  "@notifAccountConvertedBody": {"placeholders": {"product": {"type": "String"}}},
+  "settingsPushKindsTitle": "What to be notified about",
+  "settingsPushKindsHint": "Turning one off stops only its phone notifications. You still see everything inside the app.",
+  "pushKindOrders": "Orders",
+  "pushKindOrdersHint": "New orders, payments, delivery and ratings",
+  "pushKindChat": "Messages",
+  "pushKindChatHint": "New chat messages",
+  "pushKindServiceRequests": "Service requests",
+  "pushKindServiceRequestsHint": "New requests and their progress",
+  "pushKindReports": "Reports",
+  "pushKindReportsHint": "Replies to the reports you sent",
+  "pushKindPlatform": "Platform messages",
+  "pushKindPlatformHint": "Products the platform hid or showed again",
+  "pushKindCity": "New companies in my city",
+  "pushKindCityHint": "When a company starts serving your city",
+  "reportLimitReached": "You can send 5 reports in 24 hours. Please try again later.",
+  "cityPickerTitle": "Choose your city",
+  "cityPickerSubtitle": "Companies that serve your city come first, so your orders can be delivered.",
+  "cityChangeTooltip": "Change city",
+  "citySaveFailed": "Could not save your city. Please try again.",
+  "cityServiceAreaTitle": "Cities you serve",
+  "cityServiceAreaHint": "Customers see your company, products and services only in the cities you pick. Leave empty to appear in every city.",
+  "cityServiceAreaAll": "All cities",
+  "cityServiceAreaChoose": "Choose cities",
+  "cityServiceAreaCount": "{count} cities",
+  "@cityServiceAreaCount": {"placeholders": {"count": {"type": "int"}}},
+  "cityNotServed": "This company does not serve your city.",
+  "citySearchHint": "Search cities",
+  "cityDeliveryPickerTitle": "Delivery city",
+  "cityDeliveryPickerHint": "You can choose the cities this company serves. This does not change your own city.",
+  "cityCompanyDoesNotServe": "This company does not serve it",
+  "cityDeliveryLabel": "Delivery city",
+  "cityDeliveryChange": "Change",
+  "cityDeliveryChangeButton": "Change delivery city",
+  "cityDeliveryForOther": "Ordering for someone else? Choose their city. Your own city stays the same.",
+  "cityDeliveryServed": "{company} serves this city",
+  "@cityDeliveryServed": {"placeholders": {"company": {"type": "String"}}},
+  "cityServesCity": "Serves {city}",
+  "@cityServesCity": {"placeholders": {"city": {"type": "String"}}},
+  "cityServesList": "Serves: {cities}",
+  "@cityServesList": {"placeholders": {"cities": {"type": "String"}}},
+  "cityOtherCompaniesTitle": "Other companies",
+  "cityOtherCompaniesHint": "They do not serve {city}, but you can order from them for delivery to another city.",
+  "@cityOtherCompaniesHint": {"placeholders": {"city": {"type": "String"}}},
+  "cityNotServedOnlyTitle": "Serves {cities} only",
+  "@cityNotServedOnlyTitle": {"placeholders": {"cities": {"type": "String"}}},
+  "cityNotServedOnlyBody": "Your delivery city is {city}. To order, change the delivery city to one this company serves.",
+  "@cityNotServedOnlyBody": {"placeholders": {"city": {"type": "String"}}},
+  "cityDeliveringTo": "Delivery to {city}",
+  "@cityDeliveringTo": {"placeholders": {"city": {"type": "String"}}},
+  "cityDeliveryChoose": "Choose a city",
+  "cityDeliveryNeedsCity": "Choose a delivery city this company serves.",
+  "orderDeliveryCity": "Delivery city",
+  "cityCompaniesCount": "{count} companies",
+  "@cityCompaniesCount": {"placeholders": {"count": {"type": "int"}}},
+  "cityNoResults": "No city matches your search.",
+  "cityCompanyNoCitiesTitle": "Choose the cities you serve",
+  "cityCompanyNoCitiesBody": "Your company has no service cities yet, so every customer in every city sees it and can order. Choose the cities you deliver to.",
+  "categoryChipAll": "All ({count})",
+  "@categoryChipAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryItemCount": "{count} items",
+  "@categoryItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryKindAll": "All",
+  "categoryKindProducts": "Products",
+  "categoryKindServices": "Services",
+  "categoryFilterInStock": "In stock",
+  "categoryFilterBrand": "Brand",
+  "categoryFilterPrice": "Price",
+  "categoryFilterCompany": "Company",
+  "categoryFilterAnyBrand": "All brands",
+  "categoryFilterAnyCompany": "All companies",
+  "categoryFilterPriceFrom": "From",
+  "categoryFilterPriceTo": "To",
+  "categoryFilterApply": "Apply",
+  "categoryFilterClear": "Clear",
+  "categorySectionProducts": "Products ({count})",
+  "@categorySectionProducts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categorySectionServices": "Services ({count})",
+  "@categorySectionServices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryScreenEmpty": "Nothing is listed here yet.",
+  "categoryNoMatches": "Nothing matches these filters.",
+  "categoryClearFilters": "Clear filters",
+  "formBrandLabel": "Brand",
+  "formBrandHint": "For example HP, Cisco, Samsung",
+  "formCategoryRequired": "A category is required",
+  "productBrand": "Brand",
+  "tjAvailable": "Available",
+  "tjBusy": "Busy",
+  "tjOpenJobsCount": "You have {count} open jobs",
+  "@tjOpenJobsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjNoOpenJobs": "No open jobs right now",
+  "tjNextJob": "Next job",
+  "tjNavigate": "Directions",
+  "tjCall": "Call",
+  "tjStatOpen": "Open",
+  "tjMonthFees": "Installation fees this month",
+  "tjMonthFeesHint": "From completed jobs",
+  "tjDistanceKm": "{km} km",
+  "@tjDistanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "tjSearchHint": "Search by customer or product",
+  "tjSortNewest": "Newest",
+  "tjSortNearest": "Nearest",
+  "tjFilterAll": "All {count}",
+  "@tjFilterAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjFilterOpen": "Open {count}",
+  "@tjFilterOpen": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjFilterDone": "Done {count}",
+  "@tjFilterDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjFilterCancelled": "Cancelled {count}",
+  "@tjFilterCancelled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tjSectionOpen": "Open",
+  "tjSectionDone": "Completed",
+  "tjSectionCancelled": "Cancelled",
+  "tjNoMatches": "No jobs match your search.",
+  "tjAwaitingPaymentTag": "Waiting for payment confirmation",
+  "tjCancelledTag": "Cancelled by the company",
+  "tjProgressTitle": "Job progress",
+  "tjStepPaid": "Payment confirmed",
+  "tjStepPreparing": "Preparing",
+  "tjStepOnTheWay": "On the way",
+  "tjStepDone": "Done",
+  "tjCopyAddress": "Copy address",
+  "tjAddressCopied": "Address copied",
+  "tjNotesTitle": "My notes",
+  "tjNotesHint": "Write a note about the job",
+  "tjNotesAdd": "Add",
+  "tjNotesEmpty": "No notes yet.",
+  "tjNotesVisibility": "Only your company sees these, not the customer.",
+  "tjNoteDelete": "Delete note",
+  "tjTechnicianNotesTitle": "Technician notes",
+  "tjNoteCompletion": "On completion",
+  "tjChatWithCompany": "Chat with the company",
+  "tjChatWithTechnician": "Chat with the technician",
+  "tjChatEmpty": "No messages yet. Write the first one.",
+  "tjChatHint": "Write a message",
+  "tjChatPrivate": "This conversation is between the technician and the company only.",
+  "tjChatCompany": "Company",
+  "tjChatYou": "You",
+  "tjNoTechnicianAssigned": "No technician is assigned to this order yet.",
+  "tjFinishTitle": "Finish job {id}",
+  "@tjFinishTitle": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "tjCheckInstalled": "I installed the product and checked it works",
+  "tjCheckExplained": "I showed the customer how to use it",
+  "tjCheckHandedOver": "I handed over the invoice or warranty",
+  "tjFinishNoteHint": "Note for the company (optional)",
+  "tjFinishConfirm": "Confirm completion",
+  "tjFinishChecklistRequired": "Tick all three steps before confirming.",
+  "tjNotifToday": "Today",
+  "tjNotifEarlier": "Earlier",
+  "tjMarkAllRead": "Mark all read",
+  "tjCompletedJobs": "Jobs done",
+  "tjAvailabilityTitle": "I am available for jobs",
+  "tjAvailabilityHint": "When off, your company sees you as unavailable when assigning jobs.",
+  "tjAvailabilityFailed": "Could not change your status. Try again.",
+  "tjJobNotificationsTitle": "Job notifications",
+  "tjUnavailable": "Unavailable",
+  "notifJobReadyTitle": "Job ready to start",
+  "notifJobReadyBody": "The payment for \"{product}\" was confirmed. You can start the job.",
+  "@notifJobReadyBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifJobCancelledTitle": "Job cancelled",
+  "notifJobCancelledBody": "The company cancelled the job for \"{product}\".",
+  "@notifJobCancelledBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "notifJobCompletedTitle": "Installation completed",
+  "notifJobCompletedBody": "The technician finished the job for \"{product}\".",
+  "@notifJobCompletedBody": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      }
+    }
+  },
+  "searchDidYouMean": "Did you mean “{term}”?",
+  "@searchDidYouMean": {
+    "placeholders": {
+      "term": {
+        "type": "String"
+      }
+    }
+  },
+  "searchSortRelevance": "Best match",
+  "searchSortPriceLow": "Price: low to high",
+  "searchSortPriceHigh": "Price: high to low",
+  "searchInStockOnly": "In stock only",
+  "searchTypeCategory": "Category",
+  "tjSearchResults": "{count} results",
+  "@tjSearchResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "favoritesTitle": "Favorites",
+  "favoritesEmptyTitle": "No favorites yet",
+  "favoritesEmptyMessage": "Tap the heart on any product or service to save it here.",
+  "favoritesSubtitle": "The products and services you saved",
+  "favoriteAdd": "Add to favorites",
+  "favoriteRemove": "Remove from favorites",
+  "favoriteUnavailable": "Not available right now",
+  "favoriteSaveFailed": "Could not save the change. Please try again.",
+  "favoritesLoadFailed": "Could not load your favorites.",
+  "usdRateTitle": "Dollar rate",
+  "usdRateValue": "$1 = {rate} SDG",
+  "@usdRateValue": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "usdRateNotSetTitle": "Set your dollar rate",
+  "usdRateNotSetBody": "Price your products in dollars. Whenever you change the rate here, all their SDG prices update.",
+  "usdRateSet": "Set the rate",
+  "usdRateSame": "Same rate",
+  "usdRateEdit": "Change",
+  "usdRateUpdatedToday": "Updated today at {time}",
+  "@usdRateUpdatedToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "usdRateUpdatedYesterday": "Last updated yesterday at {time}",
+  "@usdRateUpdatedYesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "usdRateUpdatedDaysAgo": "Last updated {days, plural, =1{1 day} other{{days} days}} ago",
+  "@usdRateUpdatedDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "usdRateDue": "Time to update the dollar rate",
+  "usdRateStale": "The dollar rate is old: your dollar prices may be wrong",
+  "usdRateProducts": "{count, plural, =0{No products in dollars yet} =1{1 product in dollars} other{{count} products in dollars}}",
+  "@usdRateProducts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "usdRateConfirmed": "Dollar rate confirmed.",
+  "usdRateSaved": "Dollar rate saved.",
+  "usdRateSaveFailed": "Could not save the dollar rate. Please try again.",
+  "usdRateFieldLabel": "How many SDG is one dollar?",
+  "usdRateInvalid": "Enter a rate between 1 and 1,000,000.",
+  "usdRatePreview": "{count, plural, =1{1 product price will change.} other{{count} product prices will change.}} For example {name}: {from} → {to}",
+  "@usdRatePreview": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "usdRateNoProducts": "No products in dollars yet: choose “In dollars” on a product.",
+  "usdRateBigChangeTitle": "Is this rate right?",
+  "usdRateBigChangeBody": "The new rate {to} is {percent}% away from {from}.",
+  "@usdRateBigChangeBody": {
+    "placeholders": {
+      "to": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "usdRateBigChangeConfirm": "Yes, save it",
+  "usdRateSave": "Save the rate",
+  "usdRateReminder": "Remind me to update the dollar rate",
+  "usdRateReminderHint": "A phone notification every 24 hours while the rate is not updated",
+  "pushKindUsdRate": "Dollar rate reminder",
+  "pushKindUsdRateHint": "Every 24 hours while your dollar rate is not updated",
+  "formPriceCurrency": "Price in",
+  "formPriceInSdg": "SDG",
+  "formPriceInUsd": "Dollars",
+  "formPriceUsd": "Price ($)",
+  "formPriceUsdRequired": "Enter the price in dollars.",
+  "formInstallationPriceUsd": "Installation price ($)",
+  "formUsdEquals": "= {price} SDG at $1 = {rate}",
+  "@formUsdEquals": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "formUsdNeedsRate": "Set your dollar rate first.",
+  "offerModePriceUsd": "New price ($)",
+  "usdPriceLabel": "{usd} $ at $1 = {rate} SDG",
+  "@usdPriceLabel": {
+    "placeholders": {
+      "usd": {
+        "type": "String"
+      },
+      "rate": {
+        "type": "String"
+      }
+    }
+  }
+}

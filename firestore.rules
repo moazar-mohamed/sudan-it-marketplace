@@ -1,0 +1,4127 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function hasRequiredUserKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'fullName',
+        'email',
+        'role',
+        'isActive',
+        'createdAt',
+        'termsVersion',
+        'termsAcceptedAt'
+      ]);
+    }
+
+    function isValidCustomerCreate() {
+      return hasRequiredUserKeys()
+        && request.resource.data.id == request.auth.uid
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() > 0
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && request.resource.data.role == 'customer'
+        && request.resource.data.isActive == true
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.createdAt == request.time
+        && hasValidTermsFields(request.resource.data)
+        // An account Platform Admin deleted does not make a new profile.
+        && !exists(/databases/$(database)/documents/deleted_accounts/$(request.auth.uid));
+    }
+
+    function isSafeCustomerProfileUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['fullName', 'phone', 'photoUrl', 'updatedAt'])
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() > 0
+        && (!request.resource.data.keys().hasAny(['photoUrl'])
+          || (request.resource.data.photoUrl is string
+            && request.resource.data.photoUrl.size() <= 2048))
+        && (!request.resource.data.keys().hasAny(['phone'])
+          || request.resource.data.phone is string)
+        && (!request.resource.data.keys().hasAny(['updatedAt'])
+          || request.resource.data.updatedAt is timestamp)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.isActive == resource.data.isActive
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function signedInUserExists() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function signedInUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Platform Admin privilege needs BOTH the role and an active account. A
+    // deactivated platform admin (or one whose profile has no isActive flag)
+    // loses every permission that is granted through this function.
+    function isPlatformAdmin() {
+      return signedInUserExists()
+        && signedInUser().get('role', '') == 'platform_admin'
+        && signedInUser().get('isActive', false) == true;
+    }
+
+    // Platform Admin may read customer profiles and change exactly these
+    // fields on one: isActive (deactivate / reactivate, never a delete) and
+    // the ordinary profile fields fullName and phone. id, email, role,
+    // companyId, createdAt and any other key stay untouchable, and the
+    // profile fields must carry a server timestamp in updatedAt.
+    function isPlatformAdminCustomerUpdate() {
+      let data = request.resource.data;
+      let changed = data.diff(resource.data).affectedKeys();
+      return isPlatformAdmin()
+        && resource.data.role == 'customer'
+        && changed.hasOnly(['isActive', 'fullName', 'phone', 'cityId', 'updatedAt'])
+        && (!changed.hasAny(['cityId'])
+          || (data.cityId is string && data.cityId in validCityIds()))
+        && (!changed.hasAny(['isActive']) || data.isActive is bool)
+        && (!changed.hasAny(['fullName'])
+          || (data.fullName is string
+            && data.fullName.size() > 0
+            && data.fullName.size() <= 100))
+        && (!changed.hasAny(['phone'])
+          || (data.phone is string && data.phone.size() <= 30))
+        && (!changed.hasAny(['fullName', 'phone', 'cityId'])
+          || data.updatedAt == request.time)
+        && (!changed.hasAny(['updatedAt']) || data.updatedAt == request.time);
+    }
+
+    // Platform Admin turns a customer account into the admin of a company, in
+    // the same batch that creates that company (and its registration
+    // document). The person keeps the same login and password; only their
+    // role and the link to the new company change. The company must be brand
+    // new in this batch, active, and carry the account's own email, so a
+    // customer can never be attached to an existing company or to a company
+    // that belongs to someone else. Nothing else on the profile may move,
+    // except that the account comes out active.
+    function isPlatformAdminCustomerToCompanyAdmin(uid) {
+      let data = request.resource.data;
+      let changed = data.diff(resource.data).affectedKeys();
+      let email = resource.data.get('email', '');
+      return isPlatformAdmin()
+        && uid != request.auth.uid
+        && resource.data.get('role', '') == 'customer'
+        && email is string
+        && email.size() > 0
+        && changed.hasOnly(['role', 'companyId', 'isActive', 'updatedAt'])
+        && changed.hasAll(['role', 'companyId'])
+        && data.role == 'company_admin'
+        // A deactivated customer can be converted; the account comes out
+        // active, since a company admin that is switched off can write nothing.
+        && data.get('isActive', true) == true
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.companyId.size() <= 128
+        && (!changed.hasAny(['updatedAt']) || data.updatedAt == request.time)
+        && !exists(/databases/$(database)/documents/companies/$(data.companyId))
+        && existsAfter(/databases/$(database)/documents/companies/$(data.companyId))
+        && getAfter(/databases/$(database)/documents/companies/$(data.companyId))
+          .data.get('status', '') == 'active'
+        // The company's email is kept apart from its public document.
+        && getAfter(/databases/$(database)/documents/company_private/$(data.companyId))
+          .data.get('email', '').lower() == email.lower()
+        && existsAfter(/databases/$(database)/documents/company_documents/$(data.companyId));
+    }
+
+    // Platform Admin deletes a customer's profile, in the batch that records
+    // the deletion (deleted_accounts/{uid}, created there and not before).
+    // Never an admin's own, never any other kind of account.
+    function isPlatformAdminCustomerDelete(uid) {
+      return isPlatformAdmin()
+        && uid != request.auth.uid
+        && resource.data.get('role', '') == 'customer'
+        && !exists(/databases/$(database)/documents/deleted_accounts/$(uid))
+        && existsAfter(/databases/$(database)/documents/deleted_accounts/$(uid));
+    }
+
+    // True when the company no longer exists once this write (or batch) has
+    // been applied: it is deleted in the same batch, or was deleted before.
+    // Every Platform Admin delete of company-owned data is tied to this, so a
+    // live company's data can never be removed on its own.
+    function companyIsGoneAfter(companyId) {
+      return companyId is string
+        && companyId.size() > 0
+        && !existsAfter(/databases/$(database)/documents/companies/$(companyId));
+    }
+
+    // A company_admin / technician profile whose company document does not exist.
+    function isOrphanedStaffProfile() {
+      let companyId = resource.data.get('companyId', '');
+      return resource.data.get('role', '') in ['company_admin', 'technician']
+        && companyId is string
+        && companyId.size() > 0
+        && !exists(/databases/$(database)/documents/companies/$(companyId));
+    }
+
+    // Platform Admin may create a company_admin profile ONLY in the same batch
+    // that creates its company. The profile's companyId must be the id of that
+    // brand-new company document, so a hand-typed or differently-cased id can
+    // never be linked, and an existing company can never gain an admin this
+    // way. The account starts with mustChangePassword: true, and its email is
+    // the company's login email. No password is stored anywhere in Firestore:
+    // it lives only in Firebase Authentication.
+    // Platform Admin may add another Platform Admin: a brand-new profile (the
+    // account itself is made in Firebase Authentication) with exactly these
+    // fields, active from the start. Nothing but a platform_admin profile can
+    // be made this way, and no password is stored in Firestore.
+    function isPlatformAdminAdminCreate(uid) {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'fullName', 'email', 'role', 'isActive', 'createdAt'])
+        && data.keys().hasAll(['id', 'fullName', 'email', 'role', 'isActive', 'createdAt'])
+        && data.id == uid
+        && uid != request.auth.uid
+        && data.role == 'platform_admin'
+        && data.isActive == true
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.fullName.size() <= 100
+        && data.email is string
+        && data.email.size() > 2
+        && data.email.size() <= 200
+        && data.email == data.email.lower()
+        && data.createdAt == request.time;
+    }
+
+    // Platform Admin may switch ANOTHER Platform Admin off or on: only isActive
+    // changes (never your own, so you cannot lock yourself out, and never a
+    // delete).
+    function isPlatformAdminAdminUpdate(uid) {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && resource.data.get('role', '') == 'platform_admin'
+        && uid != request.auth.uid
+        && resource.data.get('trashedAt', null) == null
+        && data.diff(resource.data).affectedKeys().hasOnly(['isActive'])
+        && data.isActive is bool;
+    }
+
+    // Platform Admin moves ANOTHER Platform Admin to the trash (switched off,
+    // with the time and whether they were active) and brings one back. Nothing
+    // is deleted by either; only these markers and the access flag change.
+    function isPlatformAdminAdminTrashUpdate(uid) {
+      let before = resource.data;
+      let after = request.resource.data;
+      return isPlatformAdmin()
+        && uid != request.auth.uid
+        && before.get('role', '') == 'platform_admin'
+        && after.diff(before).affectedKeys()
+            .hasOnly(['isActive', 'trashedAt', 'activeBeforeTrash', 'updatedAt'])
+        && after.updatedAt == request.time
+        && ((before.get('trashedAt', null) == null
+            && after.trashedAt == request.time
+            && after.isActive == false
+            && after.activeBeforeTrash == before.get('isActive', false))
+          || (before.get('trashedAt', null) != null
+            && after.get('trashedAt', null) == null
+            && !after.keys().hasAny(['activeBeforeTrash'])
+            && after.isActive == before.get('activeBeforeTrash', false)));
+    }
+
+    // Platform Admin deletes a Platform Admin's profile: their own (the panel
+    // then deletes the login too), or another's that is already in the trash.
+    // Always in the batch that records it in deleted_accounts. The rules cannot
+    // count admins, so the panel keeps the last active admin from deleting
+    // themselves.
+    function isPlatformAdminAdminDelete(uid) {
+      return isPlatformAdmin()
+        && resource.data.get('role', '') == 'platform_admin'
+        && (uid == request.auth.uid || resource.data.get('trashedAt', null) != null)
+        && !exists(/databases/$(database)/documents/deleted_accounts/$(uid))
+        && existsAfter(/databases/$(database)/documents/deleted_accounts/$(uid));
+    }
+
+    // A Platform Admin whose sign-in email was changed (through the confirmation
+    // link) brings the email in their profile in line with it: that field only,
+    // and only to the very address they are signed in with.
+    function isOwnAdminEmailSync() {
+      let data = request.resource.data;
+      return resource.data.get('role', '') == 'platform_admin'
+        && data.diff(resource.data).affectedKeys().hasOnly(['email', 'updatedAt'])
+        && data.email is string
+        && data.email.lower() == request.auth.token.email.lower()
+        && (!data.keys().hasAny(['updatedAt']) || data.updatedAt == request.time);
+    }
+
+    function isPlatformAdminCompanyAdminCreate(uid) {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.keys().hasOnly([
+          'id',
+          'fullName',
+          'email',
+          'role',
+          'companyId',
+          'isActive',
+          'mustChangePassword',
+          'createdAt'
+        ])
+        && data.keys().hasAll([
+          'id',
+          'fullName',
+          'email',
+          'role',
+          'companyId',
+          'isActive',
+          'mustChangePassword',
+          'createdAt'
+        ])
+        && data.id == uid
+        && data.role == 'company_admin'
+        && data.isActive == true
+        && data.mustChangePassword == true
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.fullName.size() <= 120
+        && data.email is string
+        && data.email.size() > 0
+        && data.createdAt == request.time
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && !exists(/databases/$(database)/documents/companies/$(data.companyId))
+        && existsAfter(/databases/$(database)/documents/companies/$(data.companyId))
+        && getAfter(/databases/$(database)/documents/company_private/$(data.companyId))
+          .data.get('email', '').lower() == data.email;
+    }
+
+    // A company admin may create the users/{uid} profile of a technician of
+    // THEIR OWN company, only in the same batch that creates that technician's
+    // technicians/{uid} record. The account starts with mustChangePassword:
+    // true, so the technician must choose their own password at first login
+    // (the password itself lives only in Firebase Authentication).
+    function isCompanyAdminTechnicianCreate(uid) {
+      let data = request.resource.data;
+      let record = /databases/$(database)/documents/technicians/$(uid);
+      return data.keys().hasOnly([
+          'id',
+          'fullName',
+          'email',
+          'role',
+          'companyId',
+          'phone',
+          'isActive',
+          'mustChangePassword',
+          'createdAt'
+        ])
+        && data.keys().hasAll([
+          'id',
+          'fullName',
+          'email',
+          'role',
+          'companyId',
+          'phone',
+          'isActive',
+          'mustChangePassword',
+          'createdAt'
+        ])
+        && data.id == uid
+        && data.role == 'technician'
+        && data.isActive == true
+        && data.mustChangePassword == true
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.fullName.size() <= 120
+        && data.email is string
+        && data.email.size() > 0
+        && data.email == data.email.lower()
+        && data.phone is string
+        && data.createdAt == request.time
+        && isCompanyAdminOf(data.companyId)
+        && !exists(record)
+        && existsAfter(record)
+        && getAfter(record).data.get('uid', '') == uid
+        && getAfter(record).data.companyId == data.companyId
+        && getAfter(record).data.get('email', '') == data.email;
+    }
+
+    // The one edit a company admin or technician may make to the flag:
+    // clearing it after choosing their own password. It can only go from true to false, and
+    // nothing else in the profile may change with it. (Rules cannot see the
+    // password, so this is the app's first-login gate, not a proof.)
+    function isPasswordChangeCompletion() {
+      let data = request.resource.data;
+      return resource.data.role in ['company_admin', 'technician']
+        && resource.data.get('mustChangePassword', false) == true
+        && data.diff(resource.data).affectedKeys()
+          .hasOnly(['mustChangePassword', 'updatedAt'])
+        && data.mustChangePassword == false
+        && data.get('updatedAt', null) == request.time;
+    }
+
+    // The one profile edit open to every signed-in user (customer, company
+    // admin, technician, platform admin): choosing their own app language.
+    // Only `language` may change, and only to a supported value; no other
+    // field can ride along with it.
+    function isOwnLanguageUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['language'])
+        && request.resource.data.language in ['en', 'ar'];
+    }
+
+    // The terms and conditions (platform_settings/terms) Platform Admin
+    // publishes: a version number, the text in Arabic and in English. A person
+    // accepts a version by writing termsVersion (the published number) and
+    // termsAcceptedAt (the server time) on their own profile, when they sign up
+    // or later when a version they have not accepted is published. The two
+    // travel together, and only the version that is published counts. Nothing
+    // here requires acceptance: the sign-up and the sign-in page of the site
+    // ask for it.
+    function termsPath() {
+      return /databases/$(database)/documents/platform_settings/terms;
+    }
+
+    function hasValidTermsFields(data) {
+      return !data.keys().hasAny(['termsVersion', 'termsAcceptedAt'])
+        || (data.keys().hasAll(['termsVersion', 'termsAcceptedAt'])
+          && data.termsVersion is int
+          && data.termsVersion == get(termsPath()).data.version
+          && data.termsAcceptedAt == request.time);
+    }
+
+    function isOwnTermsAcceptance() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['termsVersion', 'termsAcceptedAt'])
+        && hasValidTermsFields(request.resource.data)
+        && request.resource.data.keys().hasAll(['termsVersion', 'termsAcceptedAt']);
+    }
+
+    // The cities customers and companies can choose. Platform Admin keeps the
+    // list in platform_settings/cities (ids of every city ever added, which are
+    // never removed: a city is hidden, not deleted); until it has saved one,
+    // the list the app ships with is the list.
+    function citiesPath() {
+      return /databases/$(database)/documents/platform_settings/cities;
+    }
+
+    function validCityIds() {
+      return exists(citiesPath())
+        ? get(citiesPath()).data.ids
+        : [
+          'khartoum',
+          'omdurman',
+          'bahri',
+          'port_sudan',
+          'wad_madani',
+          'kassala',
+          'gedaref',
+          'atbara',
+          'shendi',
+          'ed_damer',
+          'berber',
+          'dongola',
+          'wadi_halfa',
+          'el_obeid',
+          'kosti',
+          'rabak',
+          'ed_dueim',
+          'sennar',
+          'singa',
+          'ed_damazin',
+          'nyala',
+          'el_fasher',
+          'el_geneina',
+          'zalingei',
+          'ed_daein',
+          'kadugli',
+          'al_fula',
+          'tokar'
+        ];
+    }
+
+    // A customer chooses the city they shop in. Only `cityId` may change, and
+    // only to a city of the list; no other field can ride along with it.
+    function isOwnCityUpdate() {
+      return resource.data.get('role', '') == 'customer'
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['cityId'])
+        && request.resource.data.cityId is string
+        && request.resource.data.cityId in validCityIds();
+    }
+
+    // The cities a company serves: a short list of ids from the city list.
+    // Empty (or absent, for companies that predate the setting) means every
+    // city.
+    function isValidServiceCityIds(ids) {
+      return ids is list
+        && ids.size() <= 40
+        && ids.hasOnly(validCityIds());
+    }
+
+    // A company takes orders and service requests from a customer when it
+    // serves all cities, or the customer's city is one of the cities it
+    // serves. A customer who has chosen no city is served only by a company
+    // that serves all cities.
+    //
+    // The city an order or a service request is for is the one it names
+    // (`deliveryCityId` on an order, `cityId` on a request: a customer can
+    // order for someone in another city), and the customer's own city when it
+    // names none (older app versions). A pickup order is collected by the
+    // customer in person, so it is not tied to a city.
+    function companyServesCity(companyId, cityId) {
+      let cities = get(/databases/$(database)/documents/companies/$(companyId))
+        .data.get('serviceCityIds', []);
+      return cities.size() == 0 || cityId in cities;
+    }
+
+    function companyServesOrder(companyId, data) {
+      let cities = get(/databases/$(database)/documents/companies/$(companyId))
+        .data.get('serviceCityIds', []);
+      return cities.size() == 0
+        || data.get('deliveryMethod', 'delivery') == 'pickup'
+        || ('deliveryCityId' in data
+          ? data.deliveryCityId in cities
+          : signedInUser().get('cityId', '') in cities);
+    }
+
+    // Every signed-in user registers the phones that should receive their
+    // push notifications (FCM device tokens), and nothing else rides along.
+    // The app keeps the newest few; the push relay drops tokens FCM rejects.
+    // Which kinds of phone notification a person wants: one yes/no per kind, in
+    // their own profile, read by the push relay before it sends. Nothing else
+    // can ride along with it.
+    function isOwnPushPrefsUpdate() {
+      let prefs = request.resource.data.get('pushPrefs', {});
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pushPrefs'])
+        && prefs is map
+        && prefs.keys().hasOnly(['orders', 'chat', 'serviceRequests', 'reports', 'platform', 'cityAnnouncements', 'usdRate'])
+        && prefs.get('orders', true) is bool
+        && prefs.get('chat', true) is bool
+        && prefs.get('serviceRequests', true) is bool
+        && prefs.get('reports', true) is bool
+        && prefs.get('platform', true) is bool
+        && prefs.get('cityAnnouncements', true) is bool
+        && prefs.get('usdRate', true) is bool;
+    }
+
+    function isOwnPushTokensUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['fcmTokens'])
+        && request.resource.data.fcmTokens is list
+        && request.resource.data.fcmTokens.size() <= 10;
+    }
+
+    // A deactivated account (isActive == false) can no longer attach receipts,
+    // send messages or create notifications, even from a session that was
+    // already open. A user with no profile document, or no isActive flag, is
+    // not treated as deactivated here. (Placing an order asks for more: see
+    // isActiveCustomer.)
+    function callerIsNotDeactivated() {
+      return !signedInUserExists()
+        || signedInUser().get('isActive', true) != false;
+    }
+
+    function isCompanyAdminOf(companyId) {
+      return signedInUserExists()
+        && signedInUser().role == 'company_admin'
+        && signedInUser().keys().hasAny(['companyId'])
+        && signedInUser().companyId is string
+        && signedInUser().companyId.size() > 0
+        && signedInUser().companyId == companyId;
+    }
+
+    function isTechnician() {
+      return signedInUserExists()
+        && signedInUser().role == 'technician';
+    }
+
+    // A technician reads their own technician record, matched by the
+    // company + email already on their user profile (technician accounts
+    // are provisioned outside the app, same as company_admin accounts).
+    function isSelfTechnicianRecord(companyId, email) {
+      return isTechnician()
+        && signedInUser().keys().hasAny(['companyId'])
+        && signedInUser().companyId == companyId
+        && request.auth.token.email == email;
+    }
+
+    function assignedTechnician(technicianId) {
+      return get(/databases/$(database)/documents/technicians/$(technicianId)).data;
+    }
+
+    // True when the order is assigned to the signed-in technician's own
+    // technician record.
+    function isMyAssignedOrder() {
+      return isTechnician()
+        && resource.data.technicianId is string
+        && resource.data.technicianId.size() > 0
+        && assignedTechnician(resource.data.technicianId).companyId == signedInUser().companyId
+        && assignedTechnician(resource.data.technicianId).email == signedInUser().email
+        && assignedTechnician(resource.data.technicianId).isActive == true;
+    }
+
+    function catalogServiceExists(serviceId) {
+      return exists(/databases/$(database)/documents/services/$(serviceId));
+    }
+
+    function hasRequiredCategoryKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'name',
+        'nameAr',
+        'nameEn',
+        'parentId',
+        'ancestorIds',
+        'deletionPending',
+        'sortOrder',
+        'description',
+        'iconName',
+        'color',
+        'isActive',
+        'trashedAt',
+        'trashRootId',
+        'activeBeforeTrash',
+        'createdAt'
+      ]);
+    }
+
+    // ── Category tree ──────────────────────────────────────────────────────
+    // Categories form ONE tree shared by products and services. A category
+    // names its parent (`parentId`, absent/null for a top-level one) and stores
+    // the ids of every ancestor, root first (`ancestorIds`), so a cycle can be
+    // refused with ONE lookup and any depth works. Categories created before
+    // trees existed have no parent: they are simply top-level ones.
+    function categoryPath(categoryId) {
+      return /databases/$(database)/documents/categories/$(categoryId);
+    }
+
+    // The parent as it will be AFTER this write or batch, so a move can rewrite
+    // a category and its descendants together. It must exist, not be the
+    // category itself or one of its descendants (the category
+    // is not among the parent's ancestors) and not be awaiting deletion; and
+    // the stored chain must be exactly the parent's chain plus the parent.
+    function isValidCategoryParent(categoryId) {
+      let data = request.resource.data;
+      let parentId = data.get('parentId', null);
+      return parentId == null
+        ? data.get('ancestorIds', []) == []
+        : (parentId is string
+          && parentId.size() > 0
+          && parentId != categoryId
+          && getAfter(categoryPath(parentId)).data.get('deletionPending', false) != true
+          && !(categoryId in getAfter(categoryPath(parentId)).data.get('ancestorIds', []))
+          && data.get('ancestorIds', [])
+            == getAfter(categoryPath(parentId)).data.get('ancestorIds', []).concat([parentId]));
+    }
+
+    function isValidCategoryWrite(categoryId) {
+      return hasRequiredCategoryKeys()
+        && request.resource.data.id == categoryId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100
+        // The name in each language shown to customers. Optional so categories
+        // created before names had two languages stay valid.
+        && isOptionalCategoryName('nameAr')
+        && isOptionalCategoryName('nameEn')
+        // Where the category sits in the customer's list; absent means "after
+        // the ones that have a position".
+        && (request.resource.data.get('sortOrder', null) == null
+          || (request.resource.data.sortOrder is int
+            && request.resource.data.sortOrder >= 0
+            && request.resource.data.sortOrder < 100000))
+        && request.resource.data.description is string
+        && request.resource.data.iconName is string
+        // The tile colour Platform Admin picked (a palette name); absent or
+        // empty means the app picks one.
+        && request.resource.data.get('color', '') is string
+        && request.resource.data.get('color', '').size() <= 20
+        && request.resource.data.isActive is bool
+        && request.resource.data.get('deletionPending', false) is bool
+        // The trash: when it went there, which category the whole subtree was
+        // sent with, and whether it was active before.
+        && (request.resource.data.get('trashedAt', null) == null
+          || request.resource.data.trashedAt is timestamp)
+        && request.resource.data.get('trashRootId', '') is string
+        && request.resource.data.get('trashRootId', '').size() <= 128
+        && request.resource.data.get('activeBeforeTrash', false) is bool
+        && (request.resource.data.get('parentId', null) == null
+          || request.resource.data.parentId is string)
+        && request.resource.data.get('ancestorIds', []) is list
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function isOptionalCategoryName(field) {
+      return request.resource.data.get(field, '') is string
+        && request.resource.data.get(field, '').size() <= 100;
+    }
+
+    function isValidCategoryCreate(categoryId) {
+      return isValidCategoryWrite(categoryId)
+        && isValidCategoryParent(categoryId)
+        && request.resource.data.get('deletionPending', false) == false
+        && request.resource.data.get('trashedAt', null) == null
+        && request.resource.data.isActive == true
+        && request.resource.data.createdAt == request.time;
+    }
+
+    function isSafeCategoryUpdate(categoryId) {
+      return isValidCategoryWrite(categoryId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.createdAt == resource.data.createdAt
+        // Where it sits is only checked when it changes (a move, or the rewrite
+        // of a descendant's chain), so renaming or deactivating needs no lookup.
+        && ((request.resource.data.get('parentId', null) == resource.data.get('parentId', null)
+            && request.resource.data.get('ancestorIds', []) == resource.data.get('ancestorIds', []))
+          || isValidCategoryParent(categoryId))
+        // Into the trash (stamped with this request's time), out of it (the
+        // marker removed), or left as it is.
+        && (request.resource.data.get('trashedAt', null) == resource.data.get('trashedAt', null)
+          || request.resource.data.get('trashedAt', null) == null
+          || request.resource.data.trashedAt == request.time)
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly([
+              'name',
+              'nameAr',
+              'nameEn',
+              'parentId',
+              'ancestorIds',
+              'deletionPending',
+              'sortOrder',
+              'description',
+              'iconName',
+              'color',
+              'isActive',
+              'trashedAt',
+              'trashRootId',
+              'activeBeforeTrash'
+            ]);
+    }
+
+    // A category a product or service may be newly attached to: it exists, is
+    // active and is not awaiting deletion. Products and services share the
+    // one tree.
+    function categoryAllowsAssignment(categoryId) {
+      let category = get(categoryPath(categoryId)).data;
+      return category.get('isActive', false) == true
+        && category.get('deletionPending', false) != true;
+    }
+
+    // The category exists (Platform Admin's own writes).
+    function categoryExists(categoryId) {
+      return exists(categoryPath(categoryId));
+    }
+
+    // True once a category has been marked for deletion: what its products,
+    // services and service links may be deleted for. One lookup each (the
+    // rules allow only 20 per request, and a batch of deletes shares them).
+    function categoryIsPending(categoryId) {
+      return get(categoryPath(categoryId)).data.get('deletionPending', false) == true;
+    }
+
+    function serviceIsInPendingCategory(serviceId) {
+      return categoryIsPending(
+        get(/databases/$(database)/documents/services/$(serviceId)).data.categoryId);
+    }
+
+    function hasRequiredServiceKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'categoryId',
+        'name',
+        'description',
+        'isActive',
+        'ownerCompanyId',
+        'createdAt'
+      ]);
+    }
+
+    function isValidServiceWrite(serviceId) {
+      return hasRequiredServiceKeys()
+        && request.resource.data.id == serviceId
+        && request.resource.data.categoryId is string
+        && request.resource.data.categoryId.size() > 0
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.description is string
+        && request.resource.data.isActive is bool
+        // Optional: the company that created this service itself. Absent or
+        // null means a Platform Admin catalogue service.
+        && (request.resource.data.get('ownerCompanyId', null) == null
+          || (request.resource.data.ownerCompanyId is string
+            && request.resource.data.ownerCompanyId.size() > 0))
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    function isValidServiceCreate(serviceId) {
+      return isValidServiceWrite(serviceId)
+        && request.resource.data.isActive == true
+        && request.resource.data.createdAt == request.time;
+    }
+
+    function isSafeServiceUpdate(serviceId) {
+      return isValidServiceWrite(serviceId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['categoryId', 'name', 'description', 'isActive']);
+    }
+
+    // A category a company may assign to its own service: it must exist, be
+    // active and not awaiting deletion (get() fails, denying the write, when it
+    // does not exist).
+    function isActiveCategory(categoryId) {
+      return categoryAllowsAssignment(categoryId);
+    }
+
+    // A company admin creates a service of their own company: it is owned by
+    // that company and starts active in an active category.
+    function isCompanyOwnServiceCreate(serviceId) {
+      let owner = request.resource.data.get('ownerCompanyId', null);
+      return owner is string
+        && isCompanyAdminOf(owner)
+        && isValidServiceCreate(serviceId)
+        && isActiveCategory(request.resource.data.categoryId);
+    }
+
+    // A company admin edits only a service their own company created (never
+    // a Platform Admin catalogue service), and can only move it to an active
+    // category. The owner can never change.
+    function isCompanyOwnServiceUpdate(serviceId) {
+      let owner = resource.data.get('ownerCompanyId', null);
+      return owner is string
+        && isCompanyAdminOf(owner)
+        && isSafeServiceUpdate(serviceId)
+        && request.resource.data.get('ownerCompanyId', null) == owner
+        && (request.resource.data.categoryId == resource.data.categoryId
+          || isActiveCategory(request.resource.data.categoryId));
+    }
+
+    // An optional offer on a priced product or company service: an offer
+    // price above 0 and below the normal price, an optional end time and one
+    // of the known badges. No offer price means no end time and no badge.
+    function isValidOffer(data) {
+      return (data.get('offerPrice', null) == null
+          && data.get('offerEndsAt', null) == null
+          && data.get('offerBadge', null) == null)
+        || (data.get('offerPrice', null) is number
+          && data.offerPrice > 0
+          && data.get('price', null) is number
+          && data.offerPrice < data.price
+          && (data.get('offerEndsAt', null) == null
+            || data.offerEndsAt is timestamp)
+          && (data.get('offerBadge', null) == null
+            || data.offerBadge in ['discount', 'special', 'limited']));
+    }
+
+    function hasRequiredCompanyServiceKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'companyId',
+        'serviceId',
+        'isActive',
+        'price',
+        'note',
+        'offerPrice',
+        'offerEndsAt',
+        'offerBadge',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    // price is optional: absent/null means the company set no price (nothing
+    // is shown). A given price must be a positive number; 0 is never stored
+    // as a stand-in. note is the company's own short text for the service.
+    function isValidCompanyServiceWrite(companyServiceId) {
+      let data = request.resource.data;
+      return hasRequiredCompanyServiceKeys()
+        && data.id == companyServiceId
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.serviceId is string
+        && data.serviceId.size() > 0
+        && data.isActive is bool
+        && (data.get('price', null) == null
+          || (data.price is number && data.price > 0))
+        && (!data.keys().hasAny(['note'])
+          || (data.note is string && data.note.size() <= 500))
+        && isValidOffer(data)
+        && data.createdAt is timestamp;
+    }
+
+    function isValidCompanyServiceCreate(companyServiceId) {
+      return isValidCompanyServiceWrite(companyServiceId)
+        && request.resource.data.isActive == true
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.get('updatedAt', request.time) == request.time
+        && catalogServiceExists(request.resource.data.serviceId);
+    }
+
+    function isSafeCompanyServiceUpdate(companyServiceId) {
+      return isValidCompanyServiceWrite(companyServiceId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.companyId == resource.data.companyId
+        && request.resource.data.serviceId == resource.data.serviceId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['isActive', 'price', 'note', 'offerPrice', 'offerEndsAt',
+              'offerBadge', 'updatedAt']);
+    }
+
+    // Platform Admin's only write on a company's service link: ending its
+    // running offer (price, end time and badge cleared together, the server's
+    // time in updatedAt). The company's price, note and on / off switch stay
+    // the company's.
+    function isPlatformAdminServiceOfferEnd() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return isPlatformAdmin()
+        && isValidCompanyServiceWrite(before.id)
+        && after.updatedAt == request.time
+        && after.diff(before).affectedKeys().hasOnly(['offerPrice', 'offerEndsAt', 'offerBadge', 'updatedAt'])
+        && after.get('offerPrice', null) == null
+        && after.get('offerEndsAt', null) == null
+        && after.get('offerBadge', null) == null;
+    }
+
+    match /users/{uid} {
+      // Owners read their own profile. Platform Admin can additionally read
+      // customer profiles (queries must filter on role == 'customer'), and the
+      // company_admin / technician profiles of a company that NO LONGER EXISTS,
+      // so those left-over profiles can be cleaned up. The profiles of a live
+      // company's people stay unreadable to Platform Admin.
+      allow get: if isOwner(uid)
+        || (isPlatformAdmin()
+          && (resource.data.role in ['customer', 'platform_admin'] || isOrphanedStaffProfile()));
+
+      allow list: if isPlatformAdmin()
+        && (resource.data.role in ['customer', 'platform_admin'] || isOrphanedStaffProfile());
+
+      allow create: if (isOwner(uid)
+          && request.auth.uid == uid
+          && request.resource.data.id == uid
+          && isValidCustomerCreate())
+        || isPlatformAdminCompanyAdminCreate(uid)
+        || isPlatformAdminAdminCreate(uid)
+        || isCompanyAdminTechnicianCreate(uid);
+
+      allow update: if (isOwner(uid)
+          && isSafeCustomerProfileUpdate())
+        || (isOwner(uid) && isPasswordChangeCompletion())
+        || (isOwner(uid) && isOwnLanguageUpdate())
+        || (isOwner(uid) && isOwnTermsAcceptance())
+        || (isOwner(uid) && isOwnCityUpdate())
+        || (isOwner(uid) && isOwnPushTokensUpdate())
+        || (isOwner(uid) && isOwnPushPrefsUpdate())
+        || (isOwner(uid) && isOwnAdminEmailSync())
+        || isPlatformAdminCustomerUpdate()
+        || isPlatformAdminCustomerToCompanyAdmin(uid)
+        || isPlatformAdminAdminUpdate(uid)
+        || isPlatformAdminAdminTrashUpdate(uid);
+
+      // The company_admin / technician profile of a company that is gone, a
+      // customer's profile, or a Platform Admin's own or one in the trash:
+      // the last three only in the batch that records the deletion
+      // (deleted_accounts). Every profile of a live company stays.
+      allow delete: if (isPlatformAdmin()
+          && resource.data.get('role', '') in ['company_admin', 'technician']
+          && companyIsGoneAfter(resource.data.get('companyId', '')))
+        || isPlatformAdminCustomerDelete(uid)
+        || isPlatformAdminAdminDelete(uid);
+    }
+
+    // A customer's saved products and services, private to them. The id is
+    // fixed per item, so one is saved once, and only something that exists can
+    // be saved. An entry is added or removed, never edited.
+    function isValidFavoriteCreate(favoriteId) {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['kind', 'targetId', 'name', 'createdAt'])
+        && data.keys().hasAll(['kind', 'targetId', 'name', 'createdAt'])
+        && data.kind in ['product', 'service']
+        && data.targetId is string
+        && data.targetId.size() > 0
+        && data.targetId.size() <= 200
+        && favoriteId == data.kind + '_' + data.targetId
+        && data.name is string
+        && data.name.size() <= 200
+        && data.createdAt == request.time
+        && exists(/databases/$(database)/documents/$(data.kind == 'product' ? 'products' : 'services')/$(data.targetId));
+    }
+
+    match /users/{uid}/favorites/{favoriteId} {
+      allow get, list: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && isActiveCustomer()
+        && isValidFavoriteCreate(favoriteId);
+      allow update: if false;
+      allow delete: if isOwner(uid);
+    }
+
+    // The record that Platform Admin deleted a customer account. The login
+    // itself cannot be removed from here (no Admin SDK on this plan), so this
+    // is what keeps the person out: they can no longer make a profile, and the
+    // app tells them the account was deleted. Written once, in the same batch
+    // that deletes the profile; it holds no personal data; nobody changes or
+    // removes it. The person reads their own, Platform Admin any.
+    function isValidDeletedAccountCreate(uid) {
+      let data = request.resource.data;
+      let target = /databases/$(database)/documents/users/$(uid);
+      return isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'deletedAt', 'deletedBy'])
+        && data.keys().hasAll(['id', 'deletedAt', 'deletedBy'])
+        && data.id == uid
+        && data.deletedBy == request.auth.uid
+        && data.deletedAt == request.time
+        && exists(target)
+        && !existsAfter(target)
+        // A customer (never the caller's own profile), or a Platform Admin:
+        // the caller's own, or another's that is in the trash.
+        && ((get(target).data.get('role', '') == 'customer'
+            && uid != request.auth.uid)
+          || (get(target).data.get('role', '') == 'platform_admin'
+            && (uid == request.auth.uid
+              || get(target).data.get('trashedAt', null) != null)));
+    }
+
+    match /deleted_accounts/{uid} {
+      allow get: if isOwner(uid) || isPlatformAdmin();
+      allow list: if false;
+      allow create: if isValidDeletedAccountCreate(uid);
+      allow update, delete: if false;
+    }
+
+    match /categories/{categoryId} {
+      // The catalogue is public: visitors browse the customer site signed out.
+      allow get, list: if true;
+
+      allow create: if isPlatformAdmin()
+        && request.resource.data.id == categoryId
+        && isValidCategoryCreate(categoryId);
+
+      allow update: if isPlatformAdmin()
+        && isSafeCategoryUpdate(categoryId);
+
+      // Platform Admin removes a category only after marking it for deletion
+      // (`deletionPending`, which also stops any new product or service being
+      // attached to it). The dashboard marks the whole subtree, deletes the
+      // products, services and service links in it, then the categories.
+      allow delete: if isPlatformAdmin()
+        && resource.data.get('deletionPending', false) == true;
+    }
+
+    match /services/{serviceId} {
+      allow get, list: if true;
+
+      // Only a company creates a service (its own). Platform Admin no longer
+      // adds catalogue services; it can still edit, move or switch off any.
+      allow create: if request.resource.data.id == serviceId
+        && isCompanyOwnServiceCreate(serviceId);
+
+      // Platform Admin may move a service to another existing category.
+      allow update: if (isPlatformAdmin()
+          && isSafeServiceUpdate(serviceId)
+          && (request.resource.data.categoryId == resource.data.categoryId
+            || categoryExists(request.resource.data.categoryId)))
+        || isCompanyOwnServiceUpdate(serviceId);
+
+      // Only while its category is marked for deletion by Platform Admin
+      // (deleting a category deletes the services in its tree). The owning
+      // company, its admins and staff are never touched.
+      allow delete: if isPlatformAdmin()
+        && categoryIsPending(resource.data.categoryId);
+    }
+
+    // Optional GPS point (companies and orders). Both values are absent/null,
+    // or both are numbers inside the valid latitude/longitude range. Strings
+    // and out-of-range values are rejected.
+    function isValidCoordinatePair(lat, lng) {
+      return (lat == null && lng == null)
+        || (lat is number && lng is number
+          && lat >= -90 && lat <= 90
+          && lng >= -180 && lng <= 180);
+    }
+
+    function orderHasDeliveryPoint(data) {
+      return data.get('deliveryLatitude', null) != null
+        && data.get('deliveryLongitude', null) != null;
+    }
+
+    function hasRequiredOrderKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'customerId',
+        'companyId',
+        'companyName',
+        'productId',
+        'productName',
+        'quantity',
+        'unitPrice',
+        'productSubtotal',
+        'installationSelected',
+        'installationFee',
+        'deliveryFee',
+        'totalAmount',
+        'deliveryAddress',
+        'contactPhone',
+        'deliveryMethod',
+        'deliveryCityId',
+        'customerName',
+        'paymentStatus',
+        'orderStatus',
+        'receiptFileName',
+        'deliveryLatitude',
+        'deliveryLongitude',
+        'stockReserved',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    // Every text an order carries has a length limit, so one order stays a
+    // few kilobytes (the company app and the Platform Admin load whole order
+    // lists). The numbers are the ones used elsewhere for the same things:
+    // service requests (address 500, phone 30, customer name 120, company
+    // name 200), products (name 200), receipts (file name 100). The id is
+    // 10 characters from the app (20 for a Firestore auto id); 36 leaves room
+    // for a longer format and is well inside what notifications accept (128).
+    function isValidOrderCreate(orderId) {
+      // One name for the new order: every step of a path counts towards the 1000
+      // expressions a request may evaluate, and this function reads it over fifty
+      // times. Spelled out in full, a delivery order goes over that limit and is
+      // refused however correct it is (order-expression-limit.rules.test.ts).
+      let data = request.resource.data;
+      return hasRequiredOrderKeys()
+        && orderId.size() <= 36
+        && data.id == orderId
+        && data.customerId == request.auth.uid
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.get('companyName', '') is string
+        && data.get('companyName', '').size() <= 200
+        && data.productId is string
+        && data.productId.size() > 0
+        && data.productName is string
+        && data.productName.size() > 0
+        && data.productName.size() <= 200
+        && data.quantity is int
+        && data.quantity > 0
+        && data.unitPrice is number
+        && data.unitPrice >= 0
+        && data.productSubtotal is number
+        && data.productSubtotal >= 0
+        && data.installationSelected is bool
+        && data.installationFee is number
+        && data.installationFee >= 0
+        && data.deliveryFee is number
+        && data.deliveryFee >= 0
+        && data.totalAmount is number
+        && data.totalAmount > 0
+        && data.deliveryAddress is string
+        && data.deliveryAddress.size() <= 500
+        // A typed address, a map point, or both; never neither.
+        && (data.deliveryAddress.size() > 0
+          || orderHasDeliveryPoint(data))
+        && isValidCoordinatePair(
+          data.get('deliveryLatitude', null),
+          data.get('deliveryLongitude', null))
+        && (data.get('deliveryMethod', 'delivery') != 'pickup'
+          || !orderHasDeliveryPoint(data))
+        && data.contactPhone is string
+        && data.contactPhone.size() > 0
+        && data.contactPhone.size() <= 30
+        && (!data.keys().hasAny(['deliveryMethod'])
+          || data.deliveryMethod in ['delivery', 'pickup'])
+        && (data.get('deliveryMethod', 'delivery') != 'pickup'
+          || data.deliveryFee == 0)
+        // The city the order is delivered to: a short text. Whether it is one
+        // the company serves is checked by companyServesOrder (a company that
+        // lists cities only accepts those). It is not checked against the
+        // city list here: that list costs too many of the 1000 expressions an
+        // order's rules may evaluate.
+        && (!('deliveryCityId' in data)
+          || (data.deliveryCityId is string
+            && data.deliveryCityId.size() > 0
+            && data.deliveryCityId.size() <= 40))
+        && (!data.keys().hasAny(['customerName'])
+          || (data.customerName is string
+            && data.customerName.size() <= 120))
+        && data.paymentStatus == 'pending_verification'
+        && data.orderStatus == 'processing'
+        // Every order is placed with its payment receipt, stored in the same
+        // write under this name (orderComesWithItsReceipt). A stored receipt
+        // is only the customer's claim: the payment is confirmed by the
+        // company alone (isCompanyPaymentConfirmation).
+        && data.receiptFileName is string
+        && data.receiptFileName.size() > 0
+        && data.receiptFileName.size() <= 100
+        // A new order takes no stock. stockReserved becomes true only in the
+        // write that confirms its payment and takes its stock
+        // (isCompanyPaymentConfirmation), so a cancellation gives back
+        // exactly what was taken.
+        && data.stockReserved == false
+        // The server's time, never the customer's: the 24-hour payment
+        // verification window is counted from createdAt.
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    // Orders go only to a company that exists and is active (a company with
+    // no stored status counts as active, as everywhere else). A deactivated,
+    // pending, rejected or deleted company, or a made-up id, takes no orders.
+    function companyAcceptsOrders(companyId) {
+      let path = /databases/$(database)/documents/companies/$(companyId);
+      return exists(path)
+        && get(path).data.get('status', 'active') == 'active';
+    }
+
+    // The ordered product must exist and belong to the company the order is
+    // sent to, so an order can never take (or be filed against) another
+    // company's stock.
+    function orderProductBelongsToCompany(order) {
+      let productPath = /databases/$(database)/documents/products/$(order.productId);
+      return exists(productPath)
+        && get(productPath).data.get('companyId', '') == order.companyId;
+    }
+
+    // The two names an order carries are the product's own: its name and the
+    // company name stored on it. The customer chooses neither, so the words
+    // the company later reads in its order list, the order's conversation and
+    // the "new order" notification are never the customer's own text. (The
+    // same product document is already read for the price and the stock, so
+    // this costs no extra read.)
+    function orderNamesMatchProduct(order) {
+      let product = get(/databases/$(database)/documents/products/$(order.productId)).data;
+      return order.productName == product.name
+        && order.get('companyName', '') == product.get('companyName', '');
+    }
+
+    // The receipt document of a new order is written in the same write as the
+    // order, and the name on the order is that receipt's own name
+    // (isValidReceiptCreate checks the receipt itself).
+    function orderComesWithItsReceipt(orderId, order) {
+      let receiptPath = /databases/$(database)/documents/order_receipts/$(orderId);
+      return existsAfter(receiptPath)
+        && getAfter(receiptPath).data.fileName == order.receiptFileName;
+    }
+
+    // The customer records the name of a receipt on their own order. Nothing
+    // else may change, and updatedAt is the server's time (never a value, or
+    // a type, of the customer's choosing).
+    function isCustomerReceiptAttachment(orderId) {
+      return resource.data.customerId == request.auth.uid
+        && callerIsNotDeactivated()
+        && resource.data.orderStatus != 'cancelled'
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.customerId == resource.data.customerId
+        && request.resource.data.companyId == resource.data.companyId
+        && request.resource.data.productId == resource.data.productId
+        && request.resource.data.productName == resource.data.productName
+        && request.resource.data.quantity == resource.data.quantity
+        && request.resource.data.unitPrice == resource.data.unitPrice
+        && request.resource.data.productSubtotal == resource.data.productSubtotal
+        && request.resource.data.installationSelected == resource.data.installationSelected
+        && request.resource.data.installationFee == resource.data.installationFee
+        && request.resource.data.deliveryFee == resource.data.deliveryFee
+        && request.resource.data.totalAmount == resource.data.totalAmount
+        && request.resource.data.deliveryAddress == resource.data.deliveryAddress
+        && request.resource.data.contactPhone == resource.data.contactPhone
+        && request.resource.data.paymentStatus == resource.data.paymentStatus
+        && request.resource.data.orderStatus == resource.data.orderStatus
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['receiptFileName', 'updatedAt'])
+        && request.resource.data.receiptFileName is string
+        && request.resource.data.receiptFileName.size() > 0
+        && request.resource.data.receiptFileName.size() <= 100
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // Cancelled is final: nothing moves a cancelled order again (only
+    // isCompanyOrderCancellation can make an order cancelled).
+    function isAllowedOrderStatusTransition(fromStatus, toStatus) {
+      return fromStatus != 'cancelled'
+        && (fromStatus == toStatus
+          || (fromStatus == 'processing'
+            && toStatus in ['out_for_delivery', 'completed'])
+          || (fromStatus == 'out_for_delivery' && toStatus == 'completed'));
+    }
+
+    function isValidTechnicianAssignment() {
+      return resource.data.installationSelected == true
+        && request.resource.data.technicianId is string
+        && request.resource.data.technicianId.size() > 0
+        // What notifications accept as a recipient id (real ids are 20-28).
+        && request.resource.data.technicianId.size() <= 128
+        && request.resource.data.technicianName is string
+        && request.resource.data.technicianName.size() > 0
+        // The limit on a technician's name when their account is created.
+        && request.resource.data.technicianName.size() <= 120
+        // The assigned technician must belong to the same company as the
+        // order and must currently be active, even if a tampered client
+        // sends a different technicianId.
+        && assignedTechnician(request.resource.data.technicianId).companyId == resource.data.companyId
+        && assignedTechnician(request.resource.data.technicianId).isActive == true;
+    }
+
+    // Company admins may only move an order forward through
+    // Processing -> Out for Delivery -> Completed, once its payment is
+    // confirmed (which is when its stock is taken), and assign a technician
+    // to the order's installation add-on. The payment is confirmed only
+    // through isCompanyPaymentConfirmation. Every write must really change
+    // something: a write that only touches updatedAt is refused, so nothing
+    // can pass for a confirmation it is not.
+    function isCompanyOrderManagementUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['orderStatus', 'technicianId', 'technicianName', 'updatedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['orderStatus', 'technicianId', 'technicianName'])
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.paymentStatus in ['pending_verification', 'confirmed']
+        && (request.resource.data.orderStatus == resource.data.orderStatus
+          || resource.data.paymentStatus == 'confirmed')
+        && isAllowedOrderStatusTransition(
+          resource.data.orderStatus,
+          request.resource.data.orderStatus
+        )
+        && (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['technicianId', 'technicianName'])
+          || isValidTechnicianAssignment());
+    }
+
+    // A technician may only move an assigned order forward through
+    // Processing -> Out for Delivery -> Completed, once its payment is
+    // confirmed; they cannot touch payment status or reassignment.
+    function isTechnicianOrderStatusUpdate() {
+      return isMyAssignedOrder()
+        && resource.data.paymentStatus == 'confirmed'
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['orderStatus', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+        && isAllowedOrderStatusTransition(
+          resource.data.orderStatus,
+          request.resource.data.orderStatus
+        );
+    }
+
+    // How long a company has to verify a new order's payment. After that the
+    // order may be cancelled as expired; with no server, the company's app
+    // does it when its Orders page is opened. Judged by the server's clock
+    // (request.time) against createdAt, which is pinned to the server's time
+    // when the order is placed, so nobody can move the deadline.
+    function paymentVerificationExpired(order) {
+      return order.createdAt is timestamp
+        && request.time >= order.createdAt + duration.value(24, 'h');
+    }
+
+    // True when the order's product can no longer cover it: the product is
+    // gone, now belongs to another company (its id was reused), or has fewer
+    // units left than the order's quantity.
+    function productCannotCover(order) {
+      let productPath = /databases/$(database)/documents/products/$(order.productId);
+      return !exists(productPath)
+        || get(productPath).data.get('companyId', '') != order.companyId
+        || !(get(productPath).data.stockCount is int)
+        || get(productPath).data.stockCount < order.quantity;
+    }
+
+    // Whether the order has already taken its stock from the product. Only an
+    // order placed under these rules has not: it is stored with stockReserved
+    // false (isValidOrderCreate) until its payment confirmation takes the
+    // stock and sets it true. An order placed before stock moved to the
+    // confirmation took its stock when it was placed: it says true, or has no
+    // stockReserved field at all (the rules of that time did not allow the
+    // field). A missing field therefore means "taken", never "not taken".
+    // Nothing but the payment confirmation (false to true) can add, remove or
+    // change the field, and createdAt plays no part, so no client can move an
+    // order from one kind to the other.
+    function orderTookStock(order) {
+      return order.get('stockReserved', true) != false;
+    }
+
+    // Only the order's company cancels it, and only while it is Processing
+    // (never once it is Out for Delivery or Completed), with its payment
+    // either still waiting for verification or already confirmed. The reason
+    // is one of three fixed values:
+    //   'company'      by hand, at any time while cancellable;
+    //   'expired'      the payment was not verified within 24 hours;
+    //   'out_of_stock' the payment is not verified yet and the product can
+    //                  no longer cover the order (productCannotCover), so it
+    //                  can never be confirmed. The company returns the money
+    //                  outside the app.
+    // Nothing else on the order may change.
+    //
+    // Stock goes back only for an order that took it (orderTookStock: its
+    // payment was confirmed, or it was placed before stock moved to the
+    // confirmation) whose product still exists AND still belongs to the
+    // order's company, exactly the order's own quantity, in the same write
+    // (isStockReturn on the product), and stockReleased records it. Any other
+    // order, or one whose product is gone (even if another company has since
+    // created a product under the same id), is cancelled with stockReleased
+    // false and no stock change. Because cancelled is final, stock can never
+    // be given back twice for one order.
+    function isCompanyOrderCancellation(orderId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let productPath = /databases/$(database)/documents/products/$(before.productId);
+      let returnsStock = orderTookStock(before)
+        && exists(productPath)
+        && get(productPath).data.get('companyId', '') == before.companyId;
+      return isCompanyAdminOf(before.companyId)
+        && before.orderStatus == 'processing'
+        && before.paymentStatus in ['pending_verification', 'confirmed']
+        && after.diff(before).affectedKeys()
+          .hasOnly(['orderStatus', 'cancelReason', 'cancelledAt', 'stockReleased', 'updatedAt', 'cancelNote'])
+        && after.orderStatus == 'cancelled'
+        && after.cancelledAt == request.time
+        && after.updatedAt == request.time
+        // The company may say why, in a few words the customer can read.
+        && (!after.keys().hasAny(['cancelNote'])
+          || (after.cancelNote is string && after.cancelNote.size() <= 300))
+        && (after.cancelReason == 'company'
+          || (after.cancelReason == 'expired'
+            && before.paymentStatus == 'pending_verification'
+            && paymentVerificationExpired(before))
+          || (after.cancelReason == 'out_of_stock'
+            && before.paymentStatus == 'pending_verification'
+            && productCannotCover(before)))
+        && after.stockReleased == returnsStock
+        && (!returnsStock
+          || (getAfter(productPath).data.get('lastReleasedOrderId', '') == orderId
+            && getAfter(productPath).data.stockCount
+              == get(productPath).data.stockCount + before.quantity));
+    }
+
+    // After a PAID order was cancelled, the company gives the money back
+    // outside the app. This records, once, that it did (`refundedAt`, the
+    // server's time); nothing else on the order changes, and a refund
+    // already recorded can never be written again.
+    function isCompanyRefundMark() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return isCompanyAdminOf(before.companyId)
+        && before.orderStatus == 'cancelled'
+        && before.paymentStatus == 'confirmed'
+        && !before.keys().hasAny(['refundedAt'])
+        && after.diff(before).affectedKeys().hasOnly(['refundedAt', 'updatedAt'])
+        && after.refundedAt == request.time
+        && after.updatedAt == request.time;
+    }
+
+    // Platform Admin cancels an order that is stuck, with the fixed reason
+    // 'admin'. Everything is as for the company's own cancellation
+    // (isCompanyOrderCancellation): only while Processing, with its payment
+    // waiting or confirmed, nothing else on the order changes, and the stock
+    // goes back, once and exactly the order's quantity, only for an order that
+    // took it. The admin writes the reason into the activity log.
+    function isPlatformAdminOrderCancellation(orderId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let productPath = /databases/$(database)/documents/products/$(before.productId);
+      let returnsStock = orderTookStock(before)
+        && exists(productPath)
+        && get(productPath).data.get('companyId', '') == before.companyId;
+      return isPlatformAdmin()
+        && before.orderStatus == 'processing'
+        && before.paymentStatus in ['pending_verification', 'confirmed']
+        && after.diff(before).affectedKeys()
+          .hasOnly(['orderStatus', 'cancelReason', 'cancelledAt', 'stockReleased', 'updatedAt'])
+        && after.orderStatus == 'cancelled'
+        && after.cancelReason == 'admin'
+        && after.cancelledAt == request.time
+        && after.updatedAt == request.time
+        && after.stockReleased == returnsStock
+        && (!returnsStock
+          || (getAfter(productPath).data.get('lastReleasedOrderId', '') == orderId
+            && getAfter(productPath).data.stockCount
+              == get(productPath).data.stockCount + before.quantity));
+    }
+
+    // The company confirms a payment and takes the order's stock in ONE
+    // write. Only the order's own company, only while the order is Processing
+    // with its payment still waiting, and only once its receipt is stored (a
+    // receipt proves nothing by itself: this confirmation is the company's
+    // decision). On the order, nothing but paymentStatus (to 'confirmed'),
+    // stockReserved (to true) and updatedAt (the server's time) changes, so
+    // the price and every other field stay exactly as they were ordered, even
+    // if the product's price has changed since.
+    //
+    // In the same write the product - which must still exist, still belong to
+    // the order's company and still have at least the order's quantity - is
+    // lowered by exactly that quantity, with the order id in lastOrderId. Two
+    // confirmations racing for the last units are judged against the stock
+    // as stored, so only as many as the stock covers go through. When the
+    // stock does not cover the order, nothing is written: the order stays
+    // waiting, to be restocked and confirmed, or cancelled.
+    //
+    // An order placed before stock moved to the confirmation already took its
+    // stock when it was placed (orderTookStock): it is confirmed without
+    // taking any more, and only paymentStatus and updatedAt change.
+    function isCompanyPaymentConfirmation(orderId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let productPath = /databases/$(database)/documents/products/$(before.productId);
+      let takesStockNow = !orderTookStock(before);
+      return isCompanyAdminOf(before.companyId)
+        && before.orderStatus == 'processing'
+        && before.paymentStatus == 'pending_verification'
+        && after.paymentStatus == 'confirmed'
+        && after.updatedAt == request.time
+        && exists(/databases/$(database)/documents/order_receipts/$(orderId))
+        && (takesStockNow
+          ? (after.diff(before).affectedKeys()
+              .hasOnly(['paymentStatus', 'stockReserved', 'updatedAt'])
+            && after.stockReserved == true
+            && exists(productPath)
+            && get(productPath).data.get('companyId', '') == before.companyId
+            && get(productPath).data.stockCount is int
+            && get(productPath).data.stockCount >= before.quantity
+            && getAfter(productPath).data.stockCount
+              == get(productPath).data.stockCount - before.quantity
+            && getAfter(productPath).data.get('lastOrderId', '') == orderId)
+          : after.diff(before).affectedKeys().hasOnly(['paymentStatus', 'updatedAt']));
+    }
+
+    // A new order is for a real product document that could be bought right
+    // now: marked available, with a price, and with at least the ordered
+    // quantity in stock. Nothing is taken here: the stock is taken when the
+    // company confirms the payment (isCompanyPaymentConfirmation), and the
+    // customer never writes the product. A product id with no document (such
+    // as the built-in demo catalogue) cannot be ordered.
+    function orderedProductIsAvailable(productId, quantity) {
+      let productPath = /databases/$(database)/documents/products/$(productId);
+      return exists(productPath)
+        && get(productPath).data.get('inStock', true) == true
+        // A product Platform Admin hid cannot be ordered.
+        && get(productPath).data.get('hidden', false) != true
+        // Nor one its own company took off sale (a draft or an archived one).
+        && get(productPath).data.get('status', 'published') == 'published'
+        // A product without a price cannot be ordered through checkout.
+        && get(productPath).data.get('price', null) != null
+        && get(productPath).data.stockCount is int
+        && get(productPath).data.stockCount >= quantity;
+    }
+
+    // The flat charge the app adds when the customer chooses Delivery (Pickup
+    // is free). Keep in step with CheckoutScreen._standardDeliveryFee.
+    function standardDeliveryFee() {
+      return 15000;
+    }
+
+    // What a product sells for right now, judged by the server's clock
+    // (request.time), never the customer's: the offer price while its offer
+    // runs, otherwise the normal price. Null for a product without a price
+    // ("price on request"). Mirrors OfferPricing.salePrice in the app.
+    function productSalePrice(product) {
+      let price = product.get('price', null);
+      let offer = product.get('offerPrice', null);
+      let ends = product.get('offerEndsAt', null);
+      return price != null
+          && offer != null
+          && offer < price
+          && (ends == null || ends > request.time)
+        ? offer
+        : price;
+    }
+
+    // Every money field of a new order is recomputed from the product
+    // document and must match exactly, so a tampered client cannot choose its
+    // own price, fees or total:
+    //   unitPrice       = the product's sale price now
+    //   productSubtotal = unitPrice x quantity
+    //   installationFee = the product's installation price when installation
+    //                     is chosen (the product must offer it), otherwise 0
+    //   deliveryFee     = the standard fee for Delivery, 0 for Pickup
+    //   totalAmount     = productSubtotal + installationFee + deliveryFee
+    // A product without a price can never be ordered this way.
+    function isOrderPricedFromProduct(order, product) {
+      let unitPrice = productSalePrice(product);
+      let pickup = order.get('deliveryMethod', 'delivery') == 'pickup';
+      return unitPrice != null
+        && order.unitPrice == unitPrice
+        && order.productSubtotal == unitPrice * order.quantity
+        && (order.installationSelected == true
+          ? (product.get('isInstallationAvailable', false) == true
+            && product.get('installationPrice', null) != null
+            && order.installationFee == product.installationPrice)
+          : order.installationFee == 0)
+        && order.deliveryFee == (pickup ? 0 : standardDeliveryFee())
+        && order.totalAmount
+          == order.productSubtotal + order.installationFee + order.deliveryFee;
+    }
+
+    // The product document always exists here (orderProductBelongsToCompany
+    // and orderedProductIsAvailable require it), so every order is priced
+    // from it.
+    function orderPriceIsTrusted(order) {
+      let productPath = /databases/$(database)/documents/products/$(order.productId);
+      return exists(productPath)
+        && isOrderPricedFromProduct(order, get(productPath).data);
+    }
+
+    // The other half of isCompanyOrderCancellation: the product gets back
+    // exactly the quantity its stock-reserving order took, in the same write
+    // that cancels that order (recording the order id in lastReleasedOrderId).
+    // Nothing else on the product can change. It happens once per order,
+    // because the order must go from Processing to cancelled in this write.
+    function isStockReturn(productId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      return after.diff(before).affectedKeys()
+          .hasOnly(['stockCount', 'lastReleasedOrderId', 'updatedAt'])
+        && after.updatedAt == request.time
+        && after.lastReleasedOrderId is string
+        && after.lastReleasedOrderId.size() > 0
+        && isStockReturnFor(
+          productId,
+          /databases/$(database)/documents/orders/$(after.lastReleasedOrderId),
+          before,
+          after);
+    }
+
+    function isStockReturnFor(productId, orderPath, before, after) {
+      let order = get(orderPath).data;
+      return exists(orderPath)
+        && order.productId == productId
+        // Only the order's own company's product: never one another company
+        // created later under the same id.
+        && before.get('companyId', '') == order.companyId
+        && orderTookStock(order)
+        && order.orderStatus == 'processing'
+        && getAfter(orderPath).data.orderStatus == 'cancelled'
+        && getAfter(orderPath).data.stockReleased == true
+        && (isCompanyAdminOf(order.companyId) || isPlatformAdmin())
+        && before.stockCount is int
+        && after.stockCount == before.stockCount + order.quantity;
+    }
+
+    function hasValidProductKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'companyId',
+        'companyName',
+        'categoryId',
+        'name',
+        'imageUrl',
+        'price',
+        'currency',
+        'stockCount',
+        'inStock',
+        'lastOrderId',
+        'lastReleasedOrderId',
+        'description',
+        'brand',
+        'specifications',
+        'isDeliveryAvailable',
+        'isInstallationAvailable',
+        'installationPrice',
+        'offerPrice',
+        'offerEndsAt',
+        'offerBadge',
+        'hidden',
+        'hiddenReason',
+        'status',
+        'sku',
+        'lowStockThreshold',
+        'imageUrls',
+        'specificationsOrder',
+        'priceUsd',
+        'offerPriceUsd',
+        'installationPriceUsd',
+        'usdRateApplied',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    // A product the company prices in US dollars keeps what it typed in
+    // dollars next to the Sudanese-pound prices worked out from its own dollar
+    // rate (companies/{id}.usdRate), and the rate they were worked out with:
+    //   priceUsd             the price in dollars; price is then set too
+    //   offerPriceUsd        an offer in dollars, below priceUsd
+    //   installationPriceUsd the installation price in dollars
+    //   usdRateApplied       the rate price/offerPrice/installationPrice use
+    // The pounds stay the prices everything else reads (orders included), so
+    // the sum itself is the company's to keep right and is not checked here.
+    // A dollar offer or installation price only counts beside its pounds, and
+    // is not required to go when they do: Platform Admin ending an offer
+    // clears only the pounds, and the product must stay editable after it.
+    function hasValidProductUsdPrices(data) {
+      return (data.get('priceUsd', null) == null
+          || (data.priceUsd is number
+            && data.priceUsd > 0
+            && data.get('price', null) is number))
+        && (data.get('offerPriceUsd', null) == null
+          || (data.offerPriceUsd is number
+            && data.offerPriceUsd > 0
+            && data.get('priceUsd', null) is number
+            && data.offerPriceUsd < data.priceUsd))
+        && (data.get('installationPriceUsd', null) == null
+          || (data.installationPriceUsd is number
+            && data.installationPriceUsd > 0))
+        && (data.get('usdRateApplied', null) == null
+          || (data.usdRateApplied is number && data.usdRateApplied > 0));
+    }
+
+    // Optional fields the company sets on its own product. Older documents
+    // have none of them, so each one is judged with a default:
+    //   status              the company's own visibility; absent = published
+    //   sku                 the company's own product code
+    //   lowStockThreshold   when it wants to be warned about low stock
+    //   imageUrls           up to five pictures; imageUrl stays the first one,
+    //                       so older apps keep showing a picture
+    //   specificationsOrder the order its specifications are shown in
+    // Rules cannot loop over a list, so the entries are the clients' to keep
+    // clean; here only the kind and the size are checked.
+    function hasValidProductExtras(data) {
+      return data.get('status', 'published') in ['published', 'draft', 'archived']
+        && data.get('sku', '') is string
+        && data.get('sku', '').size() <= 60
+        && (data.get('lowStockThreshold', null) == null
+          || (data.lowStockThreshold is int
+            && data.lowStockThreshold >= 0
+            && data.lowStockThreshold <= 100000))
+        && data.get('imageUrls', []) is list
+        && data.get('imageUrls', []).size() <= 5
+        && data.get('specificationsOrder', []) is list
+        && data.get('specificationsOrder', []).size() <= 50;
+    }
+
+    function isValidProductData() {
+      let data = request.resource.data;
+      return hasValidProductKeys()
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.companyName is string
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 200
+        && data.imageUrl is string
+        // Optional reference into the official categories collection, owned
+        // solely by Platform Admin. Absent/null means uncategorized.
+        && (data.get('categoryId', null) == null
+          || (data.categoryId is string && data.categoryId.size() > 0))
+        // Optional: absent/null means "price on request". A given price must
+        // still be a positive number; 0 is never stored as a stand-in.
+        && (data.get('price', null) == null
+          || (data.price is number && data.price > 0))
+        && data.currency == 'SDG'
+        && data.stockCount is int
+        && data.stockCount >= 0
+        && data.inStock is bool
+        && data.description is string
+        // Optional brand name ("HP"); absent or empty means none.
+        && data.get('brand', '') is string
+        && data.get('brand', '').size() <= 60
+        && data.specifications is map
+        && data.isDeliveryAvailable is bool
+        && data.isInstallationAvailable is bool
+        && ((data.isInstallationAvailable == true
+            && data.installationPrice is number
+            && data.installationPrice > 0)
+          || (data.isInstallationAvailable == false
+            && data.installationPrice == null))
+        && isValidOffer(data)
+        // Set only by Platform Admin (isPlatformAdminProductModeration): a
+        // product that is hidden is kept from customers, with the reason.
+        && data.get('hidden', false) is bool
+        && data.get('hiddenReason', '') is string
+        && data.get('hiddenReason', '').size() <= 200
+        && hasValidProductExtras(data)
+        && hasValidProductUsdPrices(data)
+        && data.updatedAt == request.time;
+    }
+
+    // A category assignment must point at a category that exists and is
+    // currently active (get() fails, denying the write, when it does not
+    // exist). Only checked when the category is being newly
+    // assigned or changed, so a product already pointing at a category the
+    // Platform Admin later deactivates keeps its reference and can still be
+    // edited (stock, price, etc.) without being forced off that category.
+    function isValidProductCategoryAssignment(previousCategoryId) {
+      let categoryId = request.resource.data.get('categoryId', null);
+      return categoryId == null
+        || categoryId == previousCategoryId
+        || categoryAllowsAssignment(categoryId);
+    }
+
+    // Platform Admin hides a product from customers (with the reason, which
+    // the company sees) or shows it again, and ends a running offer. Nothing
+    // else on the product changes, so price, stock, name and every other field
+    // stay the company's. Hiding needs a reason; showing clears it; ending an
+    // offer clears the price, the end time and the badge together.
+    function isPlatformAdminProductModeration() {
+      let before = resource.data;
+      let after = request.resource.data;
+      let changed = after.diff(before).affectedKeys();
+      let touchesHidden = changed.hasAny(['hidden', 'hiddenReason']);
+      let touchesOffer = changed.hasAny(['offerPrice', 'offerEndsAt', 'offerBadge']);
+      return isPlatformAdmin()
+        && changed.hasOnly(['hidden', 'hiddenReason', 'offerPrice', 'offerEndsAt', 'offerBadge'])
+        && (touchesHidden || touchesOffer)
+        && (!touchesHidden
+          || (after.get('hidden', false) is bool
+            && after.get('hiddenReason', '') is string
+            && after.get('hiddenReason', '').size() <= 200
+            && (after.get('hidden', false) == true
+              ? after.get('hiddenReason', '').size() > 0
+              : after.get('hiddenReason', '') == '')))
+        && (!touchesOffer
+          || (after.get('offerPrice', null) == null
+            && after.get('offerEndsAt', null) == null
+            && after.get('offerBadge', null) == null));
+    }
+
+    // The company name a product shows is its company's own name: the
+    // customer sees it on the product and it is copied into the order, so a
+    // company must never sell under another company's name. Checked when the
+    // product is made and whenever the name on it changes (an edit that leaves
+    // the name as it was, a stock change at payment for instance, still works
+    // after the company renamed itself).
+    function productCompanyNameIsReal() {
+      return request.resource.data.companyName
+        == get(/databases/$(database)/documents/companies/$(request.resource.data.companyId)).data.name;
+    }
+
+    // A product Platform Admin hid is read only by its own company and by
+    // Platform Admin: the reason it was hidden (fraud, a forbidden item...)
+    // means nobody else should get it, not even by asking for it directly.
+    function readsHiddenProduct() {
+      return isSignedIn()
+        && (isPlatformAdmin() || isCompanyAdminOf(resource.data.companyId));
+    }
+
+    match /products/{productId} {
+      // The catalogue is public (visitors browse signed out), hidden products
+      // left out. A list must ask for them with where hidden == false, so every
+      // product carries `hidden` (false unless Platform Admin hid it).
+      // A product that is gone reads as gone (the order flows ask whether it
+      // still exists).
+      allow get: if resource == null
+        || resource.data.get('hidden', false) == false
+        || readsHiddenProduct();
+      allow list: if resource.data.hidden == false
+        || readsHiddenProduct();
+
+      allow create: if isCompanyAdminOf(request.resource.data.companyId)
+        && request.resource.data.id == productId
+        && request.resource.data.createdAt == request.time
+        && productCompanyNameIsReal()
+        && isValidProductData()
+        && request.resource.data.get('hidden', false) == false
+        && request.resource.data.get('hiddenReason', '') == ''
+        && isValidProductCategoryAssignment(null);
+
+      // Only the owning company edits a product, its stock included (a payment
+      // confirmation lowers the stock through this branch, bound to the order
+      // by isCompanyPaymentConfirmation). A customer never writes a product:
+      // placing an order takes no stock.
+      allow update: if (isCompanyAdminOf(resource.data.companyId)
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.companyId == resource.data.companyId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && (request.resource.data.companyName == resource.data.companyName
+            || productCompanyNameIsReal())
+          && isValidProductData()
+          && request.resource.data.get('hidden', false) == resource.data.get('hidden', false)
+          && request.resource.data.get('hiddenReason', '') == resource.data.get('hiddenReason', '')
+          && isValidProductCategoryAssignment(resource.data.get('categoryId', null)))
+        || isStockReturn(productId)
+        || isPlatformAdminProductModeration();
+
+      // A company admin deletes their own products. Platform Admin can remove
+      // a product only in the same batch that deletes (or after it has
+      // deleted) its company, so deleting a company can clean up its catalogue
+      // but no live company's product can be touched. Orders keep their own
+      // copy of the product/company names, so order history is unaffected.
+      allow delete: if isCompanyAdminOf(resource.data.companyId)
+        || (isPlatformAdmin()
+          && resource.data.companyId is string
+          && resource.data.companyId.size() > 0
+          && !existsAfter(
+            /databases/$(database)/documents/companies/$(resource.data.companyId)))
+        // ... or while its category is marked for deletion by Platform Admin
+        // (deleting a category deletes the products in its tree). The company
+        // that owns the product is never touched.
+        || (isPlatformAdmin()
+          && resource.data.get('categoryId', null) is string
+          && resource.data.categoryId.size() > 0
+          && categoryIsPending(resource.data.categoryId));
+    }
+
+    function hasRequiredTechnicianKeys() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'uid',
+        'companyId',
+        'fullName',
+        'phone',
+        'email',
+        'isActive',
+        'isAvailable',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    function isValidTechnicianData() {
+      let data = request.resource.data;
+      return hasRequiredTechnicianKeys()
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.phone is string
+        && (data.email == null || data.email is string)
+        && (!data.keys().hasAny(['uid']) || data.uid is string)
+        && data.isActive is bool
+        && (!data.keys().hasAny(['isAvailable']) || data.isAvailable is bool)
+        && data.updatedAt == request.time;
+    }
+
+    // The one edit a technician may make to their own record: whether they
+    // are taking new jobs ("available") or not.
+    function isOwnTechnicianAvailabilityUpdate() {
+      return isTechnician()
+        && callerIsNotDeactivated()
+        && resource.data.isActive == true
+        && (resource.data.get('uid', '') == request.auth.uid
+          || isSelfTechnicianRecord(resource.data.companyId, resource.data.email))
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['isAvailable', 'updatedAt'])
+        && request.resource.data.isAvailable is bool
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /technicians/{technicianId} {
+      allow get, list: if isSignedIn()
+        && (isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId)
+          || isSelfTechnicianRecord(resource.data.companyId, resource.data.email)
+          || (isTechnician() && technicianId == request.auth.uid));
+
+      allow create: if (isCompanyAdminOf(request.resource.data.companyId)
+          && request.resource.data.id == technicianId
+          && request.resource.data.createdAt == request.time
+          && isValidTechnicianData());
+
+      allow update: if isCompanyAdminOf(resource.data.companyId)
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.companyId == resource.data.companyId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && isValidTechnicianData();
+
+      allow update: if isOwnTechnicianAvailabilityUpdate();
+
+      // Removed together with a deleted company (never on their own).
+      allow delete: if isPlatformAdmin()
+        && companyIsGoneAfter(resource.data.get('companyId', ''));
+    }
+
+    // Legacy technician invitations from the retired invite/claim flow.
+    // Technician accounts are now created directly by their company admin,
+    // so nothing can create or claim an invitation any more. Any left-over
+    // documents stay readable to Platform Admin and their company, and are
+    // removed together with a deleted company.
+    match /technicianInvites/{inviteId} {
+      allow get, list: if isSignedIn()
+        && (isPlatformAdmin() || isCompanyAdminOf(resource.data.companyId));
+
+      allow create, update: if false;
+
+      allow delete: if isPlatformAdmin()
+        && companyIsGoneAfter(resource.data.get('companyId', ''));
+    }
+
+    function notificationOrder(orderId) {
+      return get(/databases/$(database)/documents/orders/$(orderId)).data;
+    }
+
+    // A notification carries no text of its own. Its `type` says what
+    // happened, and the app and the push relay build the words from the type
+    // and the product name, so nobody can write a message that looks like it
+    // came from the system. Each kind of sender may only send its own types:
+    //   the order's customer      -> its company:    new_order, new_review
+    //   the order's company admin -> its customer:   payment_confirmed,
+    //                                out_for_delivery, order_completed,
+    //                                review_reply
+    //   the assigned technician   -> its customer:   out_for_delivery,
+    //                                order_completed
+    //   the order's company admin -> its technician: technician_assigned,
+    //                                job_ready (payment confirmed),
+    //                                job_cancelled
+    //   the assigned technician   -> its company:    job_completed
+
+    // The company_admin notification may only be created by the customer who
+    // owns that order, targeting the order's own company.
+    function isValidCompanyAdminNotificationCreate() {
+      let order = notificationOrder(request.resource.data.orderId);
+      return order.companyId == request.resource.data.recipientId
+        && ((order.customerId == request.auth.uid
+            && request.resource.data.type in ['new_order', 'new_review'])
+          || (isTechnicianOfOrder(order)
+            && request.resource.data.type == 'job_completed'));
+    }
+
+    // A customer notification may only be created by the company admin of
+    // that order, or by the technician currently assigned to it.
+    function isValidCustomerNotificationCreate() {
+      let order = notificationOrder(request.resource.data.orderId);
+      return order.customerId == request.resource.data.recipientId
+        && ((isCompanyAdminOf(order.companyId)
+            && request.resource.data.type in
+              ['payment_confirmed', 'out_for_delivery', 'order_completed', 'review_reply'])
+          || (isTechnician()
+            && order.technicianId is string
+            && order.technicianId.size() > 0
+            && assignedTechnician(order.technicianId).companyId == signedInUser().companyId
+            && assignedTechnician(order.technicianId).email == signedInUser().email
+            && request.resource.data.type in ['out_for_delivery', 'order_completed']));
+    }
+
+    // A technician notification may only be created by the company admin
+    // who assigned that technician to the order.
+    function isValidTechnicianNotificationCreate() {
+      let order = notificationOrder(request.resource.data.orderId);
+      return order.technicianId == request.resource.data.recipientId
+        && isCompanyAdminOf(order.companyId)
+        && request.resource.data.type in
+          ['technician_assigned', 'job_ready', 'job_cancelled'];
+    }
+
+    // No `title` or `body`: free text is not stored at all. A notification is
+    // about an order (`orderId`) or about a service request
+    // (`serviceRequestId`), never both and never neither.
+    function hasRequiredNotificationKeys() {
+      return request.resource.data.keys().hasOnly([
+          'id',
+          'recipientType',
+          'recipientId',
+          'orderId',
+          'serviceRequestId',
+          'type',
+          'productName',
+          'isRead',
+          'createdAt',
+          'senderId'
+        ])
+        && request.resource.data.keys().hasAll([
+          'id',
+          'recipientType',
+          'recipientId',
+          'type',
+          'productName',
+          'isRead',
+          'createdAt'
+        ]);
+    }
+
+    // One notification per order and type (per technician for an assignment),
+    // and one per service request and type: the id is fixed, so sending the
+    // same thing again is refused as an edit of the one that exists.
+    function notificationIdFor(data) {
+      return data.keys().hasAny(['serviceRequestId'])
+        ? data.serviceRequestId + '_' + data.type
+        : (data.recipientType == 'technician'
+          ? data.orderId + '_' + data.type + '_' + data.recipientId
+          : data.orderId + '_' + data.type);
+    }
+
+    function notificationServiceRequest(requestId) {
+      return get(/databases/$(database)/documents/service_requests/$(requestId)).data;
+    }
+
+    // A notification about a service request goes between its two sides only:
+    // from the customer who sent it to the company it was sent to (a new or a
+    // cancelled request), or from that company's admin to the customer (the
+    // company's answers). Technicians have no service request notifications.
+    function isValidServiceRequestNotificationCreate() {
+      let data = request.resource.data;
+      let serviceRequest = notificationServiceRequest(data.serviceRequestId);
+      return (data.recipientType == 'company_admin'
+          && data.type in ['new_service_request', 'service_request_cancelled']
+          && serviceRequest.customerId == request.auth.uid
+          && serviceRequest.companyId == data.recipientId)
+        || (data.recipientType == 'customer'
+          && data.type in [
+            'service_request_accepted',
+            'service_request_rejected',
+            'service_request_in_progress',
+            'service_request_completed'
+          ]
+          && serviceRequest.customerId == data.recipientId
+          && isCompanyAdminOf(serviceRequest.companyId));
+    }
+
+    // Platform Admin tells a person that their report moved on: "in progress"
+    // or "closed". It is written in the same batch that changes the report, so
+    // the report must really be in that status, and it goes only to the
+    // person who sent it (a customer by their uid, a company admin by their
+    // company id). The one text it holds, the subject, is the report's own.
+    // One per report and type: the id is fixed.
+    function isValidReportNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && data.keys().hasAny(['reportId'])
+        && isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'reportId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'reportId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.id == notificationId
+        && data.senderId == request.auth.uid
+        && data.reportId is string
+        && data.reportId.size() > 0
+        && data.reportId.size() <= 128
+        && data.type in ['report_in_progress', 'report_closed']
+        && notificationId == data.reportId + '_' + data.type
+        && data.isRead == false
+        && data.createdAt == request.time
+        && reportNotificationMatchesReport();
+    }
+
+    // Platform Admin tells people what it did, in the same batch that does it:
+    //   an order it cancelled      -> the customer, and the company's admins;
+    //   a product it hid or showed -> the company that owns it.
+    // The notification holds no text of its own (the apps and the relay word
+    // it from the type and the name), and what it says must be true of the
+    // order or product as the batch leaves it.
+    function isValidAdminOrderNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && data.keys().hasAny(['orderId'])
+        && isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'orderId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'orderId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.id == notificationId
+        && data.senderId == request.auth.uid
+        && data.orderId is string
+        && data.orderId.size() > 0
+        && data.orderId.size() <= 128
+        && data.type in ['order_cancelled_by_admin', 'order_cancelled_by_admin_company']
+        && notificationId == data.orderId + '_' + data.type
+        && data.isRead == false
+        && data.createdAt == request.time
+        && adminOrderNotificationMatchesOrder();
+    }
+
+    // The company tells the customer it cancelled their order, in the same
+    // write that cancels it: the order must really be cancelled by the company
+    // (by hand, as out of stock, or as expired) in that write, the notice goes
+    // to the order's customer, and it carries the order's own product name.
+    // One per order: the id is fixed.
+    function isValidCompanyCancelNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      let order = getAfter(/databases/$(database)/documents/orders/$(data.orderId)).data;
+      return isSignedIn()
+        && data.keys().hasAny(['orderId'])
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'orderId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'orderId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.type == 'order_cancelled_by_company'
+        && data.recipientType == 'customer'
+        && data.orderId is string
+        && data.orderId.size() > 0
+        && data.orderId.size() <= 128
+        && data.id == notificationId
+        && notificationId == data.orderId + '_' + data.type
+        && data.senderId == request.auth.uid
+        && data.isRead == false
+        && data.createdAt == request.time
+        && isCompanyAdminOf(order.companyId)
+        && order.orderStatus == 'cancelled'
+        && order.get('cancelReason', '') in ['company', 'out_of_stock', 'expired']
+        && data.recipientId == order.customerId
+        && data.productName == order.productName;
+    }
+
+    function adminOrderNotificationMatchesOrder() {
+      let data = request.resource.data;
+      let order = getAfter(/databases/$(database)/documents/orders/$(data.orderId)).data;
+      return order.orderStatus == 'cancelled'
+        && order.get('cancelReason', '') == 'admin'
+        && ((data.type == 'order_cancelled_by_admin'
+            && data.recipientType == 'customer'
+            && data.recipientId == order.customerId)
+          || (data.type == 'order_cancelled_by_admin_company'
+            && data.recipientType == 'company_admin'
+            && data.recipientId == order.companyId))
+        && data.productName == order.productName;
+    }
+
+    function isValidAdminProductNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && data.keys().hasAny(['productId'])
+        && isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'productId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'productId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.id == notificationId
+        && notificationId.size() <= 128
+        && data.senderId == request.auth.uid
+        && data.productId is string
+        && data.productId.size() > 0
+        && data.productId.size() <= 128
+        && data.type in ['product_hidden', 'product_shown']
+        && data.recipientType == 'company_admin'
+        && data.isRead == false
+        && data.createdAt == request.time
+        && adminProductNotificationMatchesProduct();
+    }
+
+    function adminProductNotificationMatchesProduct() {
+      let data = request.resource.data;
+      let product = getAfter(/databases/$(database)/documents/products/$(data.productId)).data;
+      return data.recipientId == product.get('companyId', '')
+        && data.productName == product.get('name', '')
+        && product.get('hidden', false) == (data.type == 'product_hidden');
+    }
+
+    // Platform Admin tells a person their account became a company's: written
+    // in the batch that does it, addressed to the new company's admins (they
+    // read it once they sign in again). It names the person and the company,
+    // and the batch must really have turned that customer into that company's
+    // admin. One per company: the id is fixed.
+    function isValidAdminAccountNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && data.keys().hasAny(['userId'])
+        && isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'userId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'userId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.id == notificationId
+        && data.senderId == request.auth.uid
+        && data.type == 'account_converted_to_company'
+        && data.recipientType == 'company_admin'
+        && data.recipientId is string
+        && data.recipientId.size() > 0
+        && data.recipientId.size() <= 128
+        && data.userId is string
+        && data.userId.size() > 0
+        && data.userId.size() <= 128
+        && notificationId == data.recipientId + '_' + data.type
+        && data.isRead == false
+        && data.createdAt == request.time
+        && adminAccountNotificationMatchesConversion();
+    }
+
+    function adminAccountNotificationMatchesConversion() {
+      let data = request.resource.data;
+      let before = /databases/$(database)/documents/users/$(data.userId);
+      let company = /databases/$(database)/documents/companies/$(data.recipientId);
+      return exists(before)
+        && get(before).data.get('role', '') == 'customer'
+        && getAfter(before).data.get('role', '') == 'company_admin'
+        && getAfter(before).data.get('companyId', '') == data.recipientId
+        && existsAfter(company)
+        && data.productName == getAfter(company).data.get('name', '');
+    }
+
+    // A person tells the Platform Admins about something they must look at,
+    // right after writing it:
+    //   new_report  they sent a report (reports/{reportId});
+    //   low_review  a customer rated 1 or 2 stars (reviews/{reviewId}).
+    // It goes to every Platform Admin at once (recipientType 'platform_admin',
+    // recipientId 'platform'). Its only text is the report's subject or the
+    // rated item's name, and the report or review must be the caller's own.
+    // One per report or review: the id is fixed.
+    function isValidPlatformNotificationCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && callerIsNotDeactivated()
+        && data.get('recipientType', '') == 'platform_admin'
+        && data.recipientId == 'platform'
+        && data.id == notificationId
+        && data.senderId == request.auth.uid
+        && data.isRead == false
+        && data.createdAt == request.time
+        && ((data.type == 'new_report' && platformReportNoticeMatches(notificationId))
+          || (data.type == 'low_review' && platformReviewNoticeMatches(notificationId)));
+    }
+
+    function platformReportNoticeMatches(notificationId) {
+      let data = request.resource.data;
+      let path = /databases/$(database)/documents/reports/$(data.reportId);
+      return data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'reportId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'reportId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.reportId is string
+        && data.reportId.size() > 0
+        && data.reportId.size() <= 128
+        && notificationId == data.reportId + '_new_report'
+        && existsAfter(path)
+        && getAfter(path).data.reporterId == request.auth.uid
+        && data.productName == getAfter(path).data.subject;
+    }
+
+    function platformReviewNoticeMatches(notificationId) {
+      let data = request.resource.data;
+      let path = /databases/$(database)/documents/reviews/$(data.reviewId);
+      return data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'reviewId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'reviewId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.reviewId is string
+        && data.reviewId.size() > 0
+        && data.reviewId.size() <= 128
+        && notificationId == data.reviewId + '_low_review'
+        && existsAfter(path)
+        && getAfter(path).data.customerId == request.auth.uid
+        && getAfter(path).data.stars <= 2
+        && data.productName == getAfter(path).data.targetName;
+    }
+
+    // What the notification says must be true of the report as the batch leaves it.
+    function reportNotificationMatchesReport() {
+      let data = request.resource.data;
+      let report = getAfter(/databases/$(database)/documents/reports/$(data.reportId)).data;
+      return report.status == (data.type == 'report_closed' ? 'closed' : 'in_progress')
+        && ((data.recipientType == 'customer'
+            && report.reporterRole == 'customer'
+            && data.recipientId == report.reporterId)
+          || (data.recipientType == 'company_admin'
+            && report.reporterRole == 'company_admin'
+            && data.recipientId == report.get('companyId', '')))
+        && data.productName == report.subject;
+    }
+
+    // The only text a notification holds is the name of what it is about, and
+    // it must be that order's product name or that request's service name.
+    function notificationNameIsTrusted() {
+      let data = request.resource.data;
+      return data.keys().hasAny(['serviceRequestId'])
+        ? data.productName == notificationServiceRequest(data.serviceRequestId).serviceName
+        : data.productName == notificationOrder(data.orderId).productName;
+    }
+
+    // A notification is about an order (`orderId`) or about a service request
+    // (`serviceRequestId`), never both and never neither.
+    function isNotificationAboutOneThing() {
+      let data = request.resource.data;
+      return (data.keys().hasAny(['orderId'])
+          && !data.keys().hasAny(['serviceRequestId'])
+          && data.orderId is string
+          && data.orderId.size() > 0
+          && data.orderId.size() <= 128)
+        || (data.keys().hasAny(['serviceRequestId'])
+          && !data.keys().hasAny(['orderId'])
+          && data.serviceRequestId is string
+          && data.serviceRequestId.size() > 0
+          && data.serviceRequestId.size() <= 128);
+    }
+
+    // `senderId` names who created the notification (the push relay only
+    // sends a notification for its own sender). `productName` is the only
+    // text, and it must be the order's own product name; a product name is
+    // at most 200 characters (isValidProductData). Ids are far shorter than
+    // 128 (Firestore ids are 20 characters, the app's order ids about 11).
+    function isValidNotificationCreate(notificationId) {
+      return hasRequiredNotificationKeys()
+        && request.resource.data.id == notificationId
+        && request.resource.data.get('senderId', request.auth.uid) == request.auth.uid
+        && request.resource.data.recipientType in ['customer', 'company_admin', 'technician']
+        && request.resource.data.recipientId is string
+        && request.resource.data.recipientId.size() > 0
+        && request.resource.data.recipientId.size() <= 128
+        && isNotificationAboutOneThing()
+        && request.resource.data.type is string
+        && notificationId == notificationIdFor(request.resource.data)
+        && request.resource.data.productName is string
+        && request.resource.data.productName.size() <= 200
+        && notificationNameIsTrusted()
+        && request.resource.data.isRead == false
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.createdAt == request.time;
+    }
+
+    // A notification's recipient may read it: the customer themself, any
+    // admin of the target company, the technician it was assigned to, or any
+    // Platform Admin for one addressed to all of them.
+    function isNotificationRecipient() {
+      return (resource.data.recipientType == 'customer'
+          && resource.data.recipientId == request.auth.uid)
+        || (resource.data.recipientType == 'platform_admin'
+          && isPlatformAdmin())
+        || (resource.data.recipientType == 'company_admin'
+          && isCompanyAdminOf(resource.data.recipientId))
+        || (resource.data.recipientType == 'technician'
+          && isTechnician()
+          && assignedTechnician(resource.data.recipientId).companyId == signedInUser().companyId
+          && assignedTechnician(resource.data.recipientId).email == signedInUser().email);
+    }
+
+    // Platform-wide notices, written only by Platform Admin and read by every
+    // app (even before sign-in, so a maintenance message can be shown at the
+    // login screen). One document, `public`, holds three notices:
+    //   maintenance   the apps show it instead of the app while it is on;
+    //   announcement  a banner for everyone, customers or companies, of one
+    //                 kind (info, warning or success);
+    //   update        the lowest app build allowed to be used (0 = none): an
+    //                 older app must update before it can be used.
+    // Maintenance and the announcement each carry an Arabic and an English text
+    // of at most 300 characters (some text while on), an optional schedule
+    // (startsAt / endsAt, the end after the start) that turns them on and off
+    // by itself, and an optional button (an https link with a label of at most
+    // 40 characters) that opens a page. There is nothing private in the document.
+    function isValidNoticeSchedule(notice) {
+      return (notice.startsAt == null || notice.startsAt is timestamp)
+        && (notice.endsAt == null || notice.endsAt is timestamp)
+        && (notice.startsAt == null || notice.endsAt == null || notice.endsAt > notice.startsAt);
+    }
+
+    function isValidNoticeLink(notice) {
+      return notice.linkUrl is string && notice.linkUrl.size() <= 300
+        && notice.linkLabelAr is string && notice.linkLabelAr.size() <= 40
+        && notice.linkLabelEn is string && notice.linkLabelEn.size() <= 40
+        && (notice.linkUrl == ''
+          || (notice.linkUrl.matches('^https://[^ ]+$')
+            && (notice.linkLabelAr.size() > 0 || notice.linkLabelEn.size() > 0)));
+    }
+
+    function isValidNotice(notice, keys) {
+      return notice is map
+        && notice.keys().hasOnly(keys)
+        && notice.keys().hasAll(keys)
+        && notice.enabled is bool
+        && notice.messageAr is string && notice.messageAr.size() <= 300
+        && notice.messageEn is string && notice.messageEn.size() <= 300
+        && (notice.enabled == false
+          || notice.messageAr.size() > 0
+          || notice.messageEn.size() > 0)
+        && isValidNoticeSchedule(notice)
+        && isValidNoticeLink(notice);
+    }
+
+    function isValidRequiredUpdate(update) {
+      return update is map
+        && update.keys().hasOnly(['minBuild', 'url', 'messageAr', 'messageEn'])
+        && update.keys().hasAll(['minBuild', 'url', 'messageAr', 'messageEn'])
+        && update.minBuild is int && update.minBuild >= 0 && update.minBuild <= 1000000
+        && update.url is string && update.url.size() <= 300
+        && (update.url == '' || update.url.matches('^https://[^ ]+$'))
+        && (update.minBuild == 0 || update.url != '')
+        && update.messageAr is string && update.messageAr.size() <= 300
+        && update.messageEn is string && update.messageEn.size() <= 300;
+    }
+
+    function isValidPlatformSettings() {
+      let data = request.resource.data;
+      let noticeKeys = ['enabled', 'messageAr', 'messageEn', 'startsAt', 'endsAt', 'linkUrl', 'linkLabelAr', 'linkLabelEn'];
+      return data.keys().hasOnly(['maintenance', 'announcement', 'update', 'updatedAt', 'updatedBy'])
+        && data.keys().hasAll(['maintenance', 'announcement', 'update', 'updatedAt', 'updatedBy'])
+        && isValidNotice(data.maintenance, noticeKeys)
+        && isValidNotice(data.announcement, noticeKeys.concat(['audience', 'kind']))
+        && data.announcement.audience in ['all', 'customers', 'companies']
+        && data.announcement.kind in ['info', 'warning', 'success']
+        && isValidRequiredUpdate(data.update)
+        && data.updatedAt == request.time
+        && data.updatedBy == request.auth.uid;
+    }
+
+    // The list of cities (platform_settings/cities): `items` carries each
+    // city's names and place, `ids` the same cities' ids so the rules can
+    // check an id with one read. Platform Admin adds cities and hides them;
+    // an id is never taken out, so nothing already saved turns invalid.
+    function isValidCitiesDocument() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['items', 'ids', 'updatedAt'])
+        && data.keys().hasAll(['items', 'ids', 'updatedAt'])
+        && data.ids is list
+        && data.ids.size() > 0
+        && data.ids.size() <= 200
+        && data.items is list
+        && data.items.size() == data.ids.size()
+        && validCityIds().hasOnly(data.ids)
+        && data.updatedAt == request.time;
+    }
+
+    // The terms and conditions: the first publication is version 1; after
+    // that a version either keeps its number (a correction people need not
+    // accept again) or goes up by one (everyone is asked again). Both texts are
+    // limited in size, and at least one has words in it.
+    function isValidTermsDocument() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['version', 'textAr', 'textEn', 'updatedAt', 'updatedBy'])
+        && data.keys().hasAll(['version', 'textAr', 'textEn', 'updatedAt', 'updatedBy'])
+        && data.version is int
+        && (resource == null
+          ? data.version == 1
+          : (data.version == resource.data.version || data.version == resource.data.version + 1))
+        && data.textAr is string
+        && data.textEn is string
+        && data.textAr.size() <= 50000
+        && data.textEn.size() <= 50000
+        && (data.textAr.size() > 0 || data.textEn.size() > 0)
+        && data.updatedAt == request.time
+        && data.updatedBy == request.auth.uid;
+    }
+
+    match /platform_settings/{settingsId} {
+      allow get: if settingsId in ['public', 'cities', 'terms'];
+      allow list: if false;
+      allow create, update: if (settingsId == 'public'
+          && isPlatformAdmin()
+          && isValidPlatformSettings())
+        || (settingsId == 'cities'
+          && isPlatformAdmin()
+          && isValidCitiesDocument())
+        || (settingsId == 'terms'
+          && isPlatformAdmin()
+          && isValidTermsDocument());
+      allow delete: if false;
+    }
+
+    // "A company now serves your city": one per company and city, ever (its id
+    // is the pair, and it can never be changed or removed), written by the
+    // company's own admin or by Platform Admin once the city is among the
+    // company's service cities. Nobody reads them from the apps: the push
+    // relay reads one to tell the customers of that city.
+    function isValidCityAnnouncement(announcementId) {
+      let data = request.resource.data;
+      let companyPath = /databases/$(database)/documents/companies/$(data.companyId);
+      return data.keys().hasOnly(['companyId', 'companyName', 'cityId', 'senderId', 'createdAt'])
+        && data.keys().hasAll(['companyId', 'companyName', 'cityId', 'senderId', 'createdAt'])
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.cityId is string
+        && data.cityId in validCityIds()
+        && announcementId == data.companyId + '_' + data.cityId
+        && data.senderId == request.auth.uid
+        && (isCompanyAdminOf(data.companyId) || isPlatformAdmin())
+        && data.createdAt == request.time
+        && existsAfter(companyPath)
+        && getAfter(companyPath).data.get('status', 'active') == 'active'
+        && data.companyName == getAfter(companyPath).data.name
+        && data.cityId in getAfter(companyPath).data.get('serviceCityIds', []);
+    }
+
+    match /city_announcements/{announcementId} {
+      allow get, list: if false;
+      allow create: if isSignedIn() && isValidCityAnnouncement(announcementId);
+      allow update, delete: if false;
+    }
+
+    // Platform Admin's own activity trail: who changed what, and when. Append
+    // only: an entry is written by the admin it names (actorId is the signed-in
+    // uid, createdAt is the server's time) and can never be edited or deleted,
+    // not even by Platform Admin. Only Platform Admin reads it.
+    function isValidAuditEntry() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['actorId', 'actorName', 'action', 'targetType', 'targetId', 'targetName', 'detail', 'createdAt'])
+        && data.keys().hasAll(['actorId', 'actorName', 'action', 'targetType', 'targetId', 'targetName', 'createdAt'])
+        && data.actorId == request.auth.uid
+        && data.actorName is string && data.actorName.size() <= 200
+        && data.action is string && data.action.size() > 0 && data.action.size() <= 60
+        && data.targetType in ['company', 'customer', 'review', 'category', 'service', 'settings', 'product', 'order', 'admin', 'report']
+        && data.targetId is string && data.targetId.size() > 0 && data.targetId.size() <= 128
+        && data.targetName is string && data.targetName.size() <= 200
+        && (!('detail' in data.keys()) || (data.detail is string && data.detail.size() <= 200))
+        && data.createdAt == request.time;
+    }
+
+    // A report (a problem a customer, a company admin or a technician sends to
+    // the platform team): "I did not get my order", "this company is
+    // misleading". The sender writes it once, in their own name, as new and
+    // with no reply; they read only their own. Platform Admin reads them all and
+    // changes only the status and the written outcome. Nobody deletes one.
+    function isValidReportCreate(reportId) {
+      let data = request.resource.data;
+      let me = signedInUser();
+      return signedInUserExists()
+        && callerIsNotDeactivated()
+        && me.get('role', '') in ['customer', 'company_admin', 'technician']
+        && data.keys().hasOnly([
+          'id', 'reporterId', 'reporterRole', 'reporterName', 'reporterEmail',
+          'companyId', 'reason', 'subject', 'details', 'orderRef',
+          'status', 'resolution', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'id', 'reporterId', 'reporterRole', 'reporterName', 'reporterEmail',
+          'reason', 'subject', 'details', 'status', 'resolution',
+          'createdAt', 'updatedAt'
+        ])
+        && data.id == reportId
+        && data.reporterId == request.auth.uid
+        && data.reporterRole == me.get('role', '')
+        && data.reporterName is string && data.reporterName.size() <= 120
+        && data.reporterEmail is string && data.reporterEmail.size() <= 200
+        && (!('companyId' in data.keys())
+          || (data.companyId is string
+            && data.companyId.size() > 0
+            && data.companyId == me.get('companyId', '')))
+        && data.reason in ['order_problem', 'payment', 'company_conduct', 'product_issue', 'app_problem', 'other']
+        && data.subject is string && data.subject.size() > 0 && data.subject.size() <= 120
+        && data.details is string && data.details.size() > 0 && data.details.size() <= 2000
+        && (!('orderRef' in data.keys())
+          || (data.orderRef is string && data.orderRef.size() <= 40))
+        && data.status == 'new'
+        && data.resolution == ''
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && reportCountsAgainstQuota(reportId);
+    }
+
+    // At most 5 reports per person in ANY 24 hours, against spam, the same way
+    // the order limit works: the person's quota document keeps the times of
+    // their last five reports in five slots, t0..t4, written in turn; `next`
+    // is the slot the next report writes and it always holds the oldest of the
+    // five. A new report is allowed only when that slot is empty or at least 24
+    // hours old, and it must write the server's time there and move `next` on,
+    // in the same batch as the report. Keep the limit in step with
+    // ReportQuota.reportsPerDay in the app.
+    function reportCountsAgainstQuota(reportId) {
+      let quotaPath = /databases/$(database)/documents/report_quota/$(request.auth.uid);
+      let after = getAfter(quotaPath).data;
+      return after.lastReportId == reportId
+        && (exists(quotaPath)
+          ? reportQuotaAdvances(get(quotaPath).data, after)
+          : (after.keys().hasOnly(['t0', 'next', 'lastReportId'])
+            && after.t0 == request.time
+            && after.next == 1));
+    }
+
+    function reportQuotaAdvances(before, after) {
+      let slot = 't' + string(before.next);
+      let oldest = before.get(slot, null);
+      return before.next is int
+        && before.next >= 0
+        && before.next <= 4
+        && (oldest == null || request.time >= oldest + duration.value(24, 'h'))
+        && after[slot] == request.time
+        && after.next == (before.next + 1) % 5
+        && after.diff(before).affectedKeys().hasOnly([slot, 'next', 'lastReportId']);
+    }
+
+    // The quota document is only ever written together with a brand-new report
+    // of its owner (whose own create rule checks the step), never on its own
+    // and never deleted.
+    function isReportQuotaWrite(uid) {
+      let data = request.resource.data;
+      let reportPath = /databases/$(database)/documents/reports/$(data.lastReportId);
+      return data.keys().hasOnly(['t0', 't1', 't2', 't3', 't4', 'next', 'lastReportId'])
+        && data.lastReportId is string
+        && data.lastReportId.size() > 0
+        && data.lastReportId.size() <= 36
+        && !exists(reportPath)
+        && existsAfter(reportPath)
+        && getAfter(reportPath).data.reporterId == uid;
+    }
+
+    match /report_quota/{uid} {
+      allow get: if isOwner(uid) || isPlatformAdmin();
+      allow list: if false;
+      allow create, update: if isOwner(uid) && isReportQuotaWrite(uid);
+      allow delete: if false;
+    }
+
+    function isPlatformAdminReportUpdate() {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.diff(resource.data).affectedKeys().hasOnly(['status', 'resolution', 'updatedAt'])
+        && data.status in ['new', 'in_progress', 'closed']
+        && data.resolution is string && data.resolution.size() <= 500
+        && data.updatedAt == request.time;
+    }
+
+    match /reports/{reportId} {
+      allow get, list: if isPlatformAdmin()
+        || (isSignedIn() && resource.data.reporterId == request.auth.uid);
+      allow create: if isValidReportCreate(reportId);
+      allow update: if isPlatformAdminReportUpdate();
+      allow delete: if false;
+    }
+
+    // Internal notes Platform Admins leave on a company, a customer or an order.
+    // Nobody else reads or writes them. A note is written once, signed with the
+    // writer's own id and the server time, and only its author removes it.
+    function isValidAdminNoteCreate() {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.keys().hasOnly(['targetType', 'targetId', 'text', 'authorId', 'authorName', 'createdAt'])
+        && data.keys().hasAll(['targetType', 'targetId', 'text', 'authorId', 'authorName', 'createdAt'])
+        && data.targetType in ['company', 'customer', 'order']
+        && data.targetId is string
+        && data.targetId.size() > 0
+        && data.targetId.size() <= 128
+        && data.text is string
+        && data.text.size() > 0
+        && data.text.size() <= 1000
+        && data.authorId == request.auth.uid
+        && data.authorName is string
+        && data.authorName.size() <= 120
+        && data.createdAt == request.time;
+    }
+
+    match /admin_notes/{noteId} {
+      allow get, list: if isPlatformAdmin();
+      allow create: if isValidAdminNoteCreate();
+      allow update: if false;
+      allow delete: if isPlatformAdmin() && resource.data.authorId == request.auth.uid;
+    }
+
+    // Usage figures for the Platform Admin, with no personal content: one tiny
+    // document per person per day they opened the app (usage_days, whose id is
+    // the day and their uid, so it can be written once and never changed), and a
+    // running count of how often each product was opened (product_stats). Only
+    // Platform Admin reads either. A person can only add one to a count, in
+    // their own name.
+    function callerRoleIn(roles) {
+      return signedInUserExists()
+        && callerIsNotDeactivated()
+        && signedInUser().get('role', '') in roles;
+    }
+
+    function isValidUsageDayCreate(usageId) {
+      let data = request.resource.data;
+      return callerRoleIn(['customer', 'company_admin', 'technician'])
+        && data.keys().hasOnly(['day', 'userId', 'role', 'createdAt'])
+        && data.keys().hasAll(['day', 'userId', 'role', 'createdAt'])
+        && data.day is string
+        && data.day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.userId == request.auth.uid
+        && data.role == signedInUser().get('role', '')
+        && usageId == data.day + '_' + request.auth.uid
+        && data.createdAt == request.time;
+    }
+
+    match /usage_days/{usageId} {
+      allow get, list: if isPlatformAdmin();
+      allow create: if isValidUsageDayCreate(usageId);
+      allow update, delete: if false;
+    }
+
+    // Only customers' views count, and only of a product that exists.
+    match /product_stats/{productId} {
+      allow get, list: if isPlatformAdmin();
+
+      allow create: if callerRoleIn(['customer'])
+        && request.resource.data.keys().hasOnly(['views', 'updatedAt'])
+        && request.resource.data.views == 1
+        && request.resource.data.updatedAt == request.time
+        && exists(/databases/$(database)/documents/products/$(productId));
+
+      allow update: if callerRoleIn(['customer'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views', 'updatedAt'])
+        && request.resource.data.views == resource.data.views + 1
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if false;
+    }
+
+    match /admin_audit_log/{entryId} {
+      allow get, list: if isPlatformAdmin();
+      allow create: if isPlatformAdmin() && isValidAuditEntry();
+      allow update, delete: if false;
+    }
+
+    // What the push relay has already sent (written only with its service
+    // account, which the rules do not govern). The app never touches it.
+    match /push_log/{entryId} {
+      allow read, write: if false;
+    }
+
+    match /notifications/{notificationId} {
+      allow get, list: if isSignedIn()
+        && (isPlatformAdmin() || isNotificationRecipient());
+
+      // A deactivated account can no longer send notifications.
+      allow create: if isValidReportNotificationCreate(notificationId)
+        || isValidAdminOrderNotificationCreate(notificationId)
+        || isValidCompanyCancelNotificationCreate(notificationId)
+        || isValidAdminProductNotificationCreate(notificationId)
+        || isValidAdminAccountNotificationCreate(notificationId)
+        || isValidPlatformNotificationCreate(notificationId)
+        || isSignedIn()
+        && callerIsNotDeactivated()
+        && isValidNotificationCreate(notificationId)
+        && ((request.resource.data.keys().hasAny(['serviceRequestId'])
+              && isValidServiceRequestNotificationCreate())
+          || (!request.resource.data.keys().hasAny(['serviceRequestId'])
+            && ((request.resource.data.recipientType == 'company_admin'
+                  && isValidCompanyAdminNotificationCreate())
+              || (request.resource.data.recipientType == 'customer'
+                  && isValidCustomerNotificationCreate())
+              || (request.resource.data.recipientType == 'technician'
+                  && isValidTechnicianNotificationCreate()))));
+
+      allow update: if isSignedIn()
+        && (isPlatformAdmin() || isNotificationRecipient())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead'])
+        && request.resource.data.isRead is bool;
+
+      // Whoever it was addressed to may delete it (never its sender, never
+      // anyone else). Platform Admin may delete only what was addressed to a
+      // deleted company's admin, to one of its technicians once that
+      // technician is gone, or to a customer whose account it deleted.
+      allow delete: if isSignedIn()
+        && (isNotificationRecipient()
+          || (isPlatformAdmin()
+            && ((resource.data.recipientType == 'customer'
+                && resource.data.recipientId is string
+                && resource.data.recipientId.size() > 0
+                && existsAfter(
+                  /databases/$(database)/documents/deleted_accounts/$(resource.data.recipientId))
+                && !existsAfter(
+                  /databases/$(database)/documents/users/$(resource.data.recipientId)))
+              || (resource.data.recipientType == 'company_admin'
+                && companyIsGoneAfter(resource.data.recipientId))
+              || (resource.data.recipientType == 'technician'
+                && resource.data.recipientId is string
+                && resource.data.recipientId.size() > 0
+                && !existsAfter(
+                  /databases/$(database)/documents/technicians/$(resource.data.recipientId))))));
+    }
+
+    // The accounts a company receives manual payments on (shown to customers
+    // on the payment screen). Rules cannot loop over a list, so the (few)
+    // allowed entries are checked by position. Keep the limit in step with
+    // PaymentAccount.maxPerCompany in the app.
+    function isValidPaymentAccount(account) {
+      return account is map
+        && account.keys().hasOnly(['bankName', 'accountName', 'accountNumber', 'phoneNumber'])
+        && account.keys().hasAll(['bankName', 'accountName', 'accountNumber'])
+        && account.bankName is string
+        && account.bankName.size() > 0
+        && account.bankName.size() <= 80
+        && account.accountName is string
+        && account.accountName.size() <= 120
+        && account.accountNumber is string
+        && account.accountNumber.size() > 0
+        && account.accountNumber.size() <= 40
+        && account.get('phoneNumber', '') is string
+        && account.get('phoneNumber', '').size() <= 30;
+    }
+
+    function isValidPaymentAccounts(accounts) {
+      return accounts is list
+        && accounts.size() <= 5
+        && (accounts.size() < 1 || isValidPaymentAccount(accounts[0]))
+        && (accounts.size() < 2 || isValidPaymentAccount(accounts[1]))
+        && (accounts.size() < 3 || isValidPaymentAccount(accounts[2]))
+        && (accounts.size() < 4 || isValidPaymentAccount(accounts[3]))
+        && (accounts.size() < 5 || isValidPaymentAccount(accounts[4]));
+    }
+
+    // A place customers can collect orders from. Mirrors PickupPoint in the
+    // app: a name, an optional written address and an optional map point.
+    //
+    // Written to stay cheap: a rule may evaluate at most 1000 expressions, and
+    // five of these sit beside up to five payment accounts in one company
+    // update. A point that is not a map, or has no name, makes keys() / .name
+    // fail, which refuses the write all the same.
+    function isValidPickupPoint(point) {
+      let address = point.get('address', '');
+      return point.keys().hasOnly(['name', 'address', 'latitude', 'longitude'])
+        && point.name is string
+        && point.name.size() > 0
+        && point.name.size() <= 60
+        && address is string
+        && address.size() <= 200
+        && isValidCoordinatePair(
+          point.get('latitude', null),
+          point.get('longitude', null));
+    }
+
+    function isValidPickupPoints(points) {
+      return points is list
+        && points.size() <= 5
+        && (points.size() < 1 || isValidPickupPoint(points[0]))
+        && (points.size() < 2 || isValidPickupPoint(points[1]))
+        && (points.size() < 3 || isValidPickupPoint(points[2]))
+        && (points.size() < 4 || isValidPickupPoint(points[3]))
+        && (points.size() < 5 || isValidPickupPoint(points[4]));
+    }
+
+    function isCompanyProfileUpdate() {
+      let data = request.resource.data;
+      return data.diff(resource.data).affectedKeys().hasOnly([
+          'name',
+          'logoUrl',
+          'description',
+          'city',
+          'address',
+          'latitude',
+          'longitude',
+          'phone',
+          'pickupAddress',
+          'pickupPoints',
+          'serviceCityIds',
+          'updatedAt'
+        ])
+        // The lists are checked only when they are being changed (what is
+        // stored was checked when it was written), which keeps an update that
+        // touches one of them under the 1000-expression limit.
+        && (!data.diff(resource.data).affectedKeys().hasAny(['pickupPoints'])
+          || isValidPickupPoints(data.get('pickupPoints', [])))
+        && isValidServiceCityIds(data.get('serviceCityIds', []))
+        && data.name is string
+        && data.name.size() > 0
+        && data.logoUrl is string
+        && data.description is string
+        && data.city is string
+        && data.address is string
+        && data.phone is string
+        && data.pickupAddress is string
+        && isValidCoordinatePair(
+          data.get('latitude', null),
+          data.get('longitude', null))
+        && data.updatedAt == request.time;
+    }
+
+    // The company's own dollar rate: how many Sudanese pounds one US dollar
+    // costs it, which its dollar-priced products are worked out from, and when
+    // it last set or confirmed it (confirming the same rate changes only the
+    // time). Nothing else rides along, which keeps it apart from the profile
+    // update and well under the expression limit.
+    function isCompanyUsdRateUpdate() {
+      let data = request.resource.data;
+      return data.diff(resource.data).affectedKeys().hasOnly(['usdRate', 'usdRateUpdatedAt'])
+        && data.usdRate is number
+        && data.usdRate >= 1
+        && data.usdRate <= 1000000
+        && data.usdRateUpdatedAt == request.time;
+    }
+
+    // Platform Admin decides a company's status and nothing else:
+    //   pending  -> active | rejected
+    //   active   -> inactive
+    //   inactive | rejected -> active
+    // A company without a stored status counts as active. Profile fields and
+    // ownership stay with the company's own admin.
+    function isPlatformAdminCompanyStatusUpdate() {
+      let current = resource.data.get('status', 'active');
+      let next = request.resource.data.get('status', 'active');
+      return isPlatformAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+        && ((current == 'pending' && next in ['active', 'rejected'])
+          || (current == 'active' && next == 'inactive')
+          || (current in ['inactive', 'rejected'] && next == 'active'));
+    }
+
+    // Platform Admin moves a company to the trash (it becomes inactive, with
+    // the time and what its status was) and brings it back (the status it had).
+    // Nothing is deleted by either; only these markers and the status change.
+    function isPlatformAdminCompanyTrashUpdate() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return isPlatformAdmin()
+        && after.diff(before).affectedKeys()
+            .hasOnly(['status', 'statusBeforeTrash', 'trashedAt', 'updatedAt'])
+        && after.updatedAt == request.time
+        && ((before.get('trashedAt', null) == null
+            && after.trashedAt == request.time
+            && after.status == 'inactive'
+            && after.statusBeforeTrash == before.get('status', 'active')
+            && after.statusBeforeTrash in ['pending', 'active', 'rejected', 'inactive'])
+          || (before.get('trashedAt', null) != null
+            && after.get('trashedAt', null) == null
+            && !after.keys().hasAny(['statusBeforeTrash'])
+            && after.status == before.get('statusBeforeTrash', 'inactive')
+            && after.status in ['pending', 'active', 'rejected', 'inactive']));
+    }
+
+    // Platform Admin may also set the cities a company serves (and nothing
+    // else with it), so a company can be fixed or listed from the admin panel.
+    function isPlatformAdminCompanyCitiesUpdate() {
+      return isPlatformAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['serviceCityIds', 'updatedAt'])
+        && request.resource.data.keys().hasAny(['serviceCityIds'])
+        && isValidServiceCityIds(request.resource.data.get('serviceCityIds', []))
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    function optionalString(data, key) {
+      return !data.keys().hasAny([key]) || data[key] is string;
+    }
+
+    // Platform Admin adds a company as an active, unrated company with only
+    // the ordinary profile fields. Linking a company_admin account to it is
+    // done separately (users/{uid}.companyId).
+    function isValidPlatformAdminCompanyCreate() {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.keys().hasOnly([
+          'name',
+          'logoUrl',
+          'description',
+          'city',
+          'address',
+          'latitude',
+          'longitude',
+          'phone',
+          'pickupAddress',
+          'pickupPoints',
+          'serviceCityIds',
+          'rating',
+          'reviewCount',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasAll(['name', 'status', 'createdAt'])
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 120
+        && optionalString(data, 'logoUrl')
+        && optionalString(data, 'description')
+        && optionalString(data, 'city')
+        && optionalString(data, 'address')
+        && optionalString(data, 'phone')
+        && optionalString(data, 'pickupAddress')
+        && isValidPickupPoints(data.get('pickupPoints', []))
+        && isValidServiceCityIds(data.get('serviceCityIds', []))
+        && isValidCoordinatePair(
+          data.get('latitude', null),
+          data.get('longitude', null))
+        && data.status == 'active'
+        && data.get('rating', 0) == 0
+        && data.get('reviewCount', 0) == 0
+        && data.createdAt == request.time
+        && data.get('updatedAt', request.time) == request.time;
+    }
+
+    // An active company must be deactivated before it can be deleted; a
+    // pending, rejected or inactive one can be removed by Platform Admin.
+    function isPlatformAdminCompanyDelete() {
+      return isPlatformAdmin()
+        && resource.data.get('status', 'active') != 'active';
+    }
+
+    // Who may read a company that is not active (pending, rejected,
+    // deactivated or in the trash): its own admin and technicians, and
+    // Platform Admin. Nobody else sees its phone, e-mail or payment accounts.
+    function readsOwnOrAnyCompany(companyId) {
+      return isSignedIn()
+        && (isPlatformAdmin()
+          || isCompanyAdminOf(companyId)
+          || (isTechnician() && signedInUser().get('companyId', '') == companyId));
+    }
+
+    match /companies/{companyId} {
+      // An active company is public (visitors browse signed out). A list must
+      // ask for active companies (where status == 'active') unless the reader
+      // may see the others.
+      // A company that is gone reads as gone.
+      allow get: if resource == null
+        || resource.data.get('status', 'active') == 'active'
+        || readsOwnOrAnyCompany(companyId);
+      allow list: if resource.data.status == 'active'
+        || readsOwnOrAnyCompany(companyId);
+
+      allow create: if isValidPlatformAdminCompanyCreate();
+
+      allow update: if isPlatformAdminCompanyStatusUpdate()
+        || isPlatformAdminCompanyCitiesUpdate()
+        || isPlatformAdminCompanyTrashUpdate()
+        || (isCompanyAdminOf(companyId) && isCompanyProfileUpdate())
+        || (isCompanyAdminOf(companyId) && isCompanyUsdRateUpdate());
+
+      allow delete: if isPlatformAdminCompanyDelete();
+    }
+
+    // ── A company's private details ────────────────────────────────────────
+    // The public company document is read by everyone, visitors too, so what
+    // only some may see lives apart from it, one document per company.
+
+    // The bank accounts customers transfer to. A signed-in customer reads them
+    // (to pay an order), the company's own admin and Platform Admin too; a
+    // visitor never. Only the company's admin writes them.
+    function isValidCompanyPaymentWrite(companyId) {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['companyId', 'paymentAccounts', 'updatedAt'])
+        && data.companyId == companyId
+        && isValidPaymentAccounts(data.paymentAccounts)
+        && data.updatedAt == request.time;
+    }
+
+    match /company_payment/{companyId} {
+      allow get: if isSignedIn()
+        && (isActiveCustomer() || isCompanyAdminOf(companyId) || isPlatformAdmin());
+      allow list: if isPlatformAdmin();
+      allow create, update: if isCompanyAdminOf(companyId)
+        && isValidCompanyPaymentWrite(companyId);
+      allow delete: if isPlatformAdmin() && companyIsGoneAfter(companyId);
+    }
+
+    // The company's email: its admin's login address. Only the company's own
+    // admin and Platform Admin read it. Platform Admin writes it when the
+    // company is created (the provisioning rules compare it with the new
+    // admin's login); the company's admin may correct it afterwards.
+    function isValidCompanyPrivateWrite(companyId) {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['companyId', 'email', 'updatedAt'])
+        && data.companyId == companyId
+        && data.email is string
+        && data.email.size() <= 200
+        && data.updatedAt == request.time;
+    }
+
+    match /company_private/{companyId} {
+      allow get: if isSignedIn()
+        && (isCompanyAdminOf(companyId) || isPlatformAdmin());
+      allow list: if isPlatformAdmin();
+      allow create: if (isPlatformAdmin() || isCompanyAdminOf(companyId))
+        && isValidCompanyPrivateWrite(companyId);
+      allow update: if (isPlatformAdmin() || isCompanyAdminOf(companyId))
+        && isValidCompanyPrivateWrite(companyId);
+      allow delete: if isPlatformAdmin() && companyIsGoneAfter(companyId);
+    }
+
+    match /company_services/{companyServiceId} {
+      // An active link is public (visitors browse signed out).
+      allow get: if resource.data.isActive == true
+        || (isSignedIn()
+          && (isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId)));
+
+      allow list: if resource.data.isActive == true
+        || (isSignedIn()
+          && (isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId)));
+
+      // Only a company offers its own services.
+      allow create: if isCompanyAdminOf(request.resource.data.companyId)
+        && request.resource.data.id == companyServiceId
+        && isValidCompanyServiceCreate(companyServiceId);
+
+      // The company edits its link (price, note, switch, offer); Platform Admin
+      // may only end a running offer (isPlatformAdminServiceOfferEnd).
+      allow update: if (isCompanyAdminOf(resource.data.companyId)
+          && isSafeCompanyServiceUpdate(companyServiceId))
+        || isPlatformAdminServiceOfferEnd();
+
+      // Platform Admin removes the links of a company that is gone, and the
+      // links to a service that sits in a category being deleted (so deleting a
+      // service category leaves no link to a missing service).
+      allow delete: if isPlatformAdmin()
+        && (companyIsGoneAfter(resource.data.get('companyId', ''))
+          || serviceIsInPendingCategory(resource.data.get('serviceId', '')));
+    }
+
+    // ── Service requests ───────────────────────────────────────────────────
+    // A customer asks one company to perform one catalogue service. Service
+    // requests are a separate lifecycle from product orders and never touch
+    // the orders collection, stock or payment.
+
+    // An active customer account (a deactivated one cannot place orders,
+    // request services or open conversations, even from a session that is
+    // already open). An account with no profile, or no role, is not one.
+    function isActiveCustomer() {
+      return signedInUserExists()
+        && signedInUser().get('role', '') == 'customer'
+        && signedInUser().get('isActive', true) != false;
+    }
+
+    function hasValidServiceRequestKeys() {
+      let keys = request.resource.data.keys();
+      return keys.hasOnly([
+          'id',
+          'customerId',
+          'customerName',
+          'companyId',
+          'companyName',
+          'companyServiceId',
+          'serviceId',
+          'serviceName',
+          'price',
+          'details',
+          'address',
+          'latitude',
+          'longitude',
+          'cityId',
+          'contactPhone',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ])
+        && keys.hasAll([
+          'id',
+          'customerId',
+          'customerName',
+          'companyId',
+          'companyName',
+          'companyServiceId',
+          'serviceId',
+          'serviceName',
+          'details',
+          'address',
+          'contactPhone',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ]);
+    }
+
+    // The request must name an ACTIVE company_services link of an ACTIVE
+    // company for an existing catalogue service, and carry that link's price
+    // as it is right now (null when the company set none). It is created in
+    // the same batch as its conversation (chats/{same id}).
+    function isValidServiceRequestCreate(requestId) {
+      let data = request.resource.data;
+      let linkPath = /databases/$(database)/documents/company_services/$(data.companyServiceId);
+      let companyPath = /databases/$(database)/documents/companies/$(data.companyId);
+      return hasValidServiceRequestKeys()
+        && data.id == requestId
+        && data.customerId == request.auth.uid
+        && data.customerName is string
+        && data.customerName.size() <= 120
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.companyName is string
+        && data.companyName.size() > 0
+        && data.companyName.size() <= 200
+        && data.companyServiceId is string
+        && data.companyServiceId.size() > 0
+        && data.serviceId is string
+        && data.serviceId.size() > 0
+        && data.serviceName is string
+        && data.serviceName.size() > 0
+        && data.serviceName.size() <= 200
+        && (data.get('price', null) == null
+          || (data.price is number && data.price > 0))
+        && data.details is string
+        && data.details.size() > 0
+        && data.details.size() <= 2000
+        && data.address is string
+        && data.address.size() <= 500
+        && isValidCoordinatePair(
+          data.get('latitude', null),
+          data.get('longitude', null))
+        && data.contactPhone is string
+        && data.contactPhone.size() > 0
+        && data.contactPhone.size() <= 30
+        && data.status == 'pending'
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && exists(linkPath)
+        && get(linkPath).data.isActive == true
+        && get(linkPath).data.companyId == data.companyId
+        && get(linkPath).data.serviceId == data.serviceId
+        && (get(linkPath).data.get('price', null) == data.get('price', null)
+          || linkOfferPriceIs(get(linkPath).data, data.get('price', null)))
+        && exists(companyPath)
+        && get(companyPath).data.get('status', 'active') == 'active'
+        // The company is named as it names itself, never as the sender likes.
+        && get(companyPath).data.name == data.companyName
+        // The city the service is wanted in, one of the cities in the list.
+        && (!data.keys().hasAny(['cityId'])
+          || (data.cityId is string && data.cityId in validCityIds()))
+        && companyServesCity(
+          data.companyId,
+          data.get('cityId', signedInUser().get('cityId', '')))
+        && catalogServiceExists(data.serviceId)
+        && existsAfter(/databases/$(database)/documents/chats/$(requestId));
+    }
+
+    // The request carries the link's offer price while that offer runs.
+    function linkOfferPriceIs(link, price) {
+      return price != null
+        && link.get('offerPrice', null) == price
+        && (link.get('offerEndsAt', null) == null
+          || link.offerEndsAt > request.time);
+    }
+
+    function isServiceRequestStatusChangeOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // The customer may withdraw their own request while it is still pending.
+    function isCustomerServiceRequestCancel() {
+      return resource.data.customerId == request.auth.uid
+        && isServiceRequestStatusChangeOnly()
+        && resource.data.status == 'pending'
+        && request.resource.data.status == 'cancelled';
+    }
+
+    // The company moves a request forward:
+    //   pending -> accepted | rejected, accepted -> in_progress,
+    //   in_progress -> completed.
+    function isCompanyServiceRequestTransition() {
+      let from = resource.data.status;
+      let to = request.resource.data.status;
+      return isCompanyAdminOf(resource.data.companyId)
+        && isServiceRequestStatusChangeOnly()
+        && ((from == 'pending' && to in ['accepted', 'rejected'])
+          || (from == 'accepted' && to == 'in_progress')
+          || (from == 'in_progress' && to == 'completed'));
+    }
+
+    match /service_requests/{requestId} {
+      // The customer who sent it, the admins of the company it was sent to,
+      // and Platform Admin (read-only, as for orders). No other company,
+      // customer, technician or role can read it. Platform Admin never gets
+      // the request's conversation: see chats below.
+      allow get, list: if isSignedIn()
+        && (resource.data.customerId == request.auth.uid
+          || isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId));
+
+      // Platform Admin is read-only here: it cannot send (isActiveCustomer
+      // requires the customer role) or change a request.
+      allow create: if isSignedIn()
+        && isActiveCustomer()
+        && isValidServiceRequestCreate(requestId);
+
+      allow update: if isSignedIn()
+        && (isCustomerServiceRequestCancel()
+          || isCompanyServiceRequestTransition());
+
+      // Request history is permanent.
+      allow delete: if false;
+    }
+
+    // ── Conversations ──────────────────────────────────────────────────────
+    // Exactly one conversation per service request or order, with the same
+    // id, and one per customer per product or company service asked about
+    // before ordering (an inquiry). Its participants are the customer and the
+    // admins of the company.
+
+    function chatDoc(chatId) {
+      return get(/databases/$(database)/documents/chats/$(chatId)).data;
+    }
+
+    function isChatCustomer(chat) {
+      return chat.customerId == request.auth.uid;
+    }
+
+    function isChatCompany(chat) {
+      return isCompanyAdminOf(chat.companyId);
+    }
+
+    function isChatParticipant(chat) {
+      return isChatCustomer(chat) || isChatCompany(chat);
+    }
+
+    // A conversation belongs to exactly ONE of a service request, an order, a
+    // product or a company service, told apart by which of
+    // `serviceRequestId`/`orderId`/`productId`/`companyServiceId` is set.
+    function isValidChatCreate(chatId) {
+      let data = request.resource.data;
+      let hasRequestId = data.get('serviceRequestId', null) != null;
+      let hasOrderId = data.get('orderId', null) != null;
+      let hasProductId = data.get('productId', null) != null;
+      let hasLinkId = data.get('companyServiceId', null) != null;
+      let anchors = (hasRequestId ? 1 : 0) + (hasOrderId ? 1 : 0)
+        + (hasProductId ? 1 : 0) + (hasLinkId ? 1 : 0);
+      return data.keys().hasOnly([
+          'id',
+          'serviceRequestId',
+          'orderId',
+          'productId',
+          'companyServiceId',
+          'customerId',
+          'companyId',
+          'customerName',
+          'companyName',
+          'serviceName',
+          'productName',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.id == chatId
+        && data.customerId == request.auth.uid
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.customerName is string
+        && data.companyName is string
+        && data.get('serviceName', '') is string
+        && data.get('productName', '') is string
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && anchors == 1
+        && (hasRequestId
+          ? isValidServiceRequestChatCreate(chatId, data)
+          : hasOrderId
+            ? isValidOrderChatCreate(chatId, data)
+            : hasProductId
+              ? isValidProductInquiryChatCreate(chatId, data)
+              : isValidServiceInquiryChatCreate(chatId, data));
+    }
+
+    // The conversation is created by the customer in the same batch as the
+    // brand-new service request it belongs to, and copies that request's
+    // participants and names.
+    function isValidServiceRequestChatCreate(chatId, data) {
+      let requestPath = /databases/$(database)/documents/service_requests/$(chatId);
+      let serviceRequest = getAfter(requestPath).data;
+      return data.serviceRequestId == chatId
+        && data.customerName.size() <= 120
+        && data.companyName.size() > 0
+        && data.companyName.size() <= 200
+        && !exists(requestPath)
+        && existsAfter(requestPath)
+        && serviceRequest.customerId == request.auth.uid
+        && serviceRequest.companyId == data.companyId
+        && serviceRequest.customerName == data.customerName
+        && serviceRequest.companyName == data.companyName
+        && serviceRequest.serviceName == data.get('serviceName', '');
+    }
+
+    // An order's conversation is created by its own customer, either together
+    // with the brand-new order (one batch, like a service request) or, for an
+    // order placed before conversations existed, on its own any time
+    // afterwards. Either way it must copy that order's own participants and
+    // product name - never someone else's order.
+    function isValidOrderChatCreate(chatId, data) {
+      let orderPath = /databases/$(database)/documents/orders/$(chatId);
+      let order = getAfter(orderPath).data;
+      return data.orderId == chatId
+        && existsAfter(orderPath)
+        && order.customerId == request.auth.uid
+        && order.companyId == data.companyId
+        && order.get('customerName', '') == data.customerName
+        && order.get('companyName', '') == data.companyName
+        && order.productName == data.get('productName', '');
+    }
+
+    // A customer asks a company about something before ordering it. The id is
+    // fixed per customer and item, so asking again reopens the same
+    // conversation, and it can only be opened with an active company, for
+    // something that company really offers.
+    function isValidInquiryChatCreate(data) {
+      let companyPath = /databases/$(database)/documents/companies/$(data.companyId);
+      return data.customerName.size() <= 120
+        && data.companyName.size() <= 200
+        && exists(companyPath)
+        && get(companyPath).data.get('status', 'active') == 'active';
+    }
+
+    function isValidProductInquiryChatCreate(chatId, data) {
+      let productPath = /databases/$(database)/documents/products/$(data.productId);
+      return data.productId is string
+        && data.productId.size() > 0
+        && chatId == request.auth.uid + '_product_' + data.productId
+        && data.get('serviceName', '') == ''
+        && isValidInquiryChatCreate(data)
+        && exists(productPath)
+        && get(productPath).data.companyId == data.companyId
+        && get(productPath).data.name == data.get('productName', '');
+    }
+
+    function isValidServiceInquiryChatCreate(chatId, data) {
+      let linkPath = /databases/$(database)/documents/company_services/$(data.companyServiceId);
+      return data.companyServiceId is string
+        && data.companyServiceId.size() > 0
+        && chatId == request.auth.uid + '_service_' + data.companyServiceId
+        && data.get('productName', '') == ''
+        && data.get('serviceName', '').size() > 0
+        && data.get('serviceName', '').size() <= 200
+        && isValidInquiryChatCreate(data)
+        && exists(linkPath)
+        && get(linkPath).data.isActive == true
+        && get(linkPath).data.companyId == data.companyId;
+    }
+
+    // The role the caller speaks as in this conversation.
+    function chatRoleOf(chat) {
+      return isChatCustomer(chat) ? 'customer' : 'company';
+    }
+
+    function chatReadKeyOf(chat) {
+      return isChatCustomer(chat) ? 'customerLastReadAt' : 'companyLastReadAt';
+    }
+
+    // A participant may (a) record that they have read the conversation
+    // (their own read marker, set to the server time), and/or (b) publish the
+    // message they are creating in the same batch as the conversation's last
+    // message. Nothing else about the conversation can change.
+    function isValidChatUpdate(chatId) {
+      let data = request.resource.data;
+      let changed = data.diff(resource.data).affectedKeys();
+      let readKey = chatReadKeyOf(resource.data);
+      let messageFields = [
+        'lastMessageId',
+        'lastMessageText',
+        'lastMessageAt',
+        'lastMessageSenderRole',
+        'updatedAt'
+      ];
+      return isChatParticipant(resource.data)
+        && changed.hasOnly(messageFields.concat([readKey]))
+        && (!changed.hasAny([readKey]) || data[readKey] == request.time)
+        && (!changed.hasAny(messageFields)
+          || isLastMessagePublish(chatId, data));
+    }
+
+    function isLastMessagePublish(chatId, data) {
+      let messagePath = /databases/$(database)/documents/chats/$(chatId)/messages/$(data.lastMessageId);
+      return data.lastMessageId is string
+        && data.lastMessageId.size() > 0
+        && data.lastMessageAt == request.time
+        && data.updatedAt == request.time
+        && data.lastMessageSenderRole == chatRoleOf(resource.data)
+        && !exists(messagePath)
+        && existsAfter(messagePath)
+        && getAfter(messagePath).data.senderId == request.auth.uid
+        && getAfter(messagePath).data.text == data.lastMessageText;
+    }
+
+    // Conversations are private to their two participants. Platform Admin and
+    // technicians are deliberately NOT granted any access here or to the
+    // messages below.
+    match /chats/{chatId} {
+      allow get, list: if isSignedIn()
+        && (resource.data.customerId == request.auth.uid
+          || isCompanyAdminOf(resource.data.companyId));
+
+      allow create: if isSignedIn()
+        && isActiveCustomer()
+        && isValidChatCreate(chatId);
+
+      allow update: if isSignedIn()
+        && callerIsNotDeactivated()
+        && isValidChatUpdate(chatId);
+
+      allow delete: if false;
+
+      // Text messages. Only the two participants read or write them; a
+      // message is created together with the conversation's last-message
+      // update and can never be edited or deleted.
+      match /messages/{messageId} {
+        allow get, list: if isSignedIn()
+          && isChatParticipant(chatDoc(chatId));
+
+        allow create: if isSignedIn()
+          && callerIsNotDeactivated()
+          && isChatParticipant(chatDoc(chatId))
+          && request.resource.data.keys().hasOnly([
+            'id',
+            'senderId',
+            'senderRole',
+            'senderName',
+            'text',
+            'createdAt'
+          ])
+          && request.resource.data.id == messageId
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.senderRole == chatRoleOf(chatDoc(chatId))
+          && request.resource.data.senderName is string
+          && request.resource.data.senderName.size() <= 200
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.createdAt == request.time
+          && getAfter(/databases/$(database)/documents/chats/$(chatId))
+            .data.get('lastMessageId', '') == messageId;
+
+        allow update, delete: if false;
+      }
+    }
+
+    // True when [order] is assigned to the signed-in technician's own
+    // technician record (the same test as isMyAssignedOrder, for an order
+    // read with get() instead of being the document being written).
+    function isTechnicianOfOrder(order) {
+      return isTechnician()
+        && order.technicianId is string
+        && order.technicianId.size() > 0
+        && assignedTechnician(order.technicianId).companyId == signedInUser().companyId
+        && assignedTechnician(order.technicianId).email == signedInUser().email
+        && assignedTechnician(order.technicianId).isActive == true;
+    }
+
+    function jobOrder(orderId) {
+      return get(/databases/$(database)/documents/orders/$(orderId)).data;
+    }
+
+    // What the technician writes down about a job (a note, or the remark
+    // left when finishing it). Only the order's company, the technician
+    // assigned to it and Platform Admin can read it: the customer cannot,
+    // which is why it is not a field of the order they can read.
+    match /orders/{orderId}/technicianNotes/{noteId} {
+      allow get, list: if isSignedIn()
+        && (isPlatformAdmin()
+          || isCompanyAdminOf(jobOrder(orderId).companyId)
+          || isTechnicianOfOrder(jobOrder(orderId)));
+
+      allow create: if isSignedIn()
+        && callerIsNotDeactivated()
+        && isTechnicianOfOrder(jobOrder(orderId))
+        && request.resource.data.keys().hasOnly([
+          'id',
+          'orderId',
+          'companyId',
+          'technicianId',
+          'authorId',
+          'authorName',
+          'kind',
+          'text',
+          'createdAt'
+        ])
+        && request.resource.data.id == noteId
+        && request.resource.data.orderId == orderId
+        && request.resource.data.companyId == jobOrder(orderId).companyId
+        && request.resource.data.technicianId == jobOrder(orderId).technicianId
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.authorName is string
+        && request.resource.data.authorName.size() <= 120
+        && request.resource.data.kind in ['note', 'completion']
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.createdAt == request.time;
+
+      // A technician may take back their own note.
+      allow delete: if isSignedIn()
+        && resource.data.authorId == request.auth.uid
+        && isTechnicianOfOrder(jobOrder(orderId));
+
+      allow update: if false;
+    }
+
+    // The conversation between a job's technician and its company: one per
+    // order, with the order's id. The customer, other technicians and
+    // Platform Admin have no access to it (the customer's own conversation
+    // with the company is `chats/{orderId}`, a different document).
+    function isJobChatParticipant(orderId) {
+      let order = jobOrder(orderId);
+      return isCompanyAdminOf(order.companyId) || isTechnicianOfOrder(order);
+    }
+
+    function jobChatRoleOf(orderId) {
+      return isCompanyAdminOf(jobOrder(orderId).companyId) ? 'company' : 'technician';
+    }
+
+    function jobChatReadKey(orderId) {
+      return jobChatRoleOf(orderId) == 'company'
+        ? 'companyLastReadAt'
+        : 'technicianLastReadAt';
+    }
+
+    function isJobChatPublish(chatId, data) {
+      let messagePath = /databases/$(database)/documents/jobChats/$(chatId)/messages/$(data.lastMessageId);
+      return data.lastMessageId is string
+        && data.lastMessageId.size() > 0
+        && data.lastMessageAt == request.time
+        && data.updatedAt == request.time
+        && data.lastMessageSenderRole == jobChatRoleOf(chatId)
+        && !exists(messagePath)
+        && existsAfter(messagePath)
+        && getAfter(messagePath).data.senderId == request.auth.uid
+        && getAfter(messagePath).data.text == data.lastMessageText;
+    }
+
+    match /jobChats/{chatId} {
+      allow get: if isSignedIn() && isJobChatParticipant(chatId);
+
+      // Written together with its first message.
+      allow create: if isSignedIn()
+        && callerIsNotDeactivated()
+        && isJobChatParticipant(chatId)
+        && request.resource.data.keys().hasOnly([
+          'id',
+          'orderId',
+          'companyId',
+          'technicianId',
+          'technicianName',
+          'productName',
+          'createdAt',
+          'updatedAt',
+          'lastMessageId',
+          'lastMessageText',
+          'lastMessageAt',
+          'lastMessageSenderRole',
+          'companyLastReadAt',
+          'technicianLastReadAt'
+        ])
+        && request.resource.data.id == chatId
+        && request.resource.data.orderId == chatId
+        && request.resource.data.companyId == jobOrder(chatId).companyId
+        && request.resource.data.technicianId == jobOrder(chatId).technicianId
+        && request.resource.data.technicianName is string
+        && request.resource.data.technicianName.size() <= 120
+        && request.resource.data.productName is string
+        && request.resource.data.productName.size() <= 200
+        && request.resource.data.createdAt == request.time
+        && isJobChatPublish(chatId, request.resource.data)
+        && request.resource.data[jobChatReadKey(chatId)] == request.time;
+
+      allow update: if isSignedIn()
+        && callerIsNotDeactivated()
+        && isJobChatParticipant(chatId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'lastMessageId',
+          'lastMessageText',
+          'lastMessageAt',
+          'lastMessageSenderRole',
+          'updatedAt',
+          'companyLastReadAt',
+          'technicianLastReadAt'
+        ])
+        // Only the signed-in side's own read marker moves, and only to now.
+        && (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['companyLastReadAt', 'technicianLastReadAt'])
+          || (request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny([jobChatReadKey(chatId)])
+            && request.resource.data[jobChatReadKey(chatId)] == request.time))
+        && (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['lastMessageId', 'lastMessageText', 'lastMessageAt',
+                'lastMessageSenderRole', 'updatedAt'])
+          || isJobChatPublish(chatId, request.resource.data));
+
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow get, list: if isSignedIn() && isJobChatParticipant(chatId);
+
+        allow create: if isSignedIn()
+          && callerIsNotDeactivated()
+          && isJobChatParticipant(chatId)
+          && request.resource.data.keys().hasOnly([
+            'id',
+            'senderId',
+            'senderRole',
+            'senderName',
+            'text',
+            'createdAt'
+          ])
+          && request.resource.data.id == messageId
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.senderRole == jobChatRoleOf(chatId)
+          && request.resource.data.senderName is string
+          && request.resource.data.senderName.size() <= 200
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.createdAt == request.time
+          && getAfter(/databases/$(database)/documents/jobChats/$(chatId))
+            .data.get('lastMessageId', '') == messageId;
+
+        allow update, delete: if false;
+      }
+    }
+
+    match /orders/{orderId} {
+      allow get: if isSignedIn()
+        && (resource.data.customerId == request.auth.uid
+          || isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId)
+          || isMyAssignedOrder());
+
+      allow list: if isSignedIn()
+        && (resource.data.customerId == request.auth.uid
+          || isPlatformAdmin()
+          || isCompanyAdminOf(resource.data.companyId)
+          || isMyAssignedOrder());
+
+      // Only an active customer places an order: an account with a profile
+      // whose role is customer and which is not deactivated, signed in with a
+      // verified e-mail address. A company admin, a technician, Platform
+      // Admin (read-only on orders) and a signed-in account with no profile,
+      // or no role, cannot. A new order goes only to an existing, active
+      // company, for a real product of that same company that could be bought
+      // right now, named and priced from the product. It is written together
+      // with its payment receipt and one step of the customer's order quota,
+      // and it takes no stock: the stock is taken when the company confirms
+      // the payment.
+      allow create: if isSignedIn()
+        && isActiveCustomer()
+        && request.auth.token.email_verified == true
+        && request.resource.data.id == orderId
+        && isValidOrderCreate(orderId)
+        && companyAcceptsOrders(request.resource.data.companyId)
+        && companyServesOrder(
+          request.resource.data.companyId, request.resource.data)
+        && orderProductBelongsToCompany(request.resource.data)
+        && orderNamesMatchProduct(request.resource.data)
+        && orderPriceIsTrusted(request.resource.data)
+        && orderedProductIsAvailable(
+          request.resource.data.productId,
+          request.resource.data.quantity)
+        && orderComesWithItsReceipt(orderId, request.resource.data)
+        && orderCountsAgainstQuota(orderId);
+
+      allow update: if isSignedIn()
+        && ((isCompanyAdminOf(resource.data.companyId)
+            && isCompanyOrderManagementUpdate())
+          || isCompanyOrderCancellation(orderId)
+          || isPlatformAdminOrderCancellation(orderId)
+          || isCompanyPaymentConfirmation(orderId)
+          || isCompanyRefundMark()
+          || isCustomerReceiptAttachment(orderId)
+          || isTechnicianOrderStatusUpdate());
+
+      // Order history is permanent: nobody, including Platform Admin and a
+      // company cascade delete, can ever delete an order.
+      allow delete: if false;
+    }
+
+    // At most 10 orders per customer in ANY 24 hours, against spam (it does
+    // not protect stock: an order takes none). The customer's quota document
+    // keeps the times of their last ten orders in ten slots, t0..t9,
+    // written in turn; `next` is the slot the next order writes, and it always
+    // holds the oldest of the ten. A new order is allowed only when that slot
+    // is still empty or at least 24 hours old, and it must write the server's
+    // time there and move `next` on, in the same write as the order. Orders
+    // cancelled later still count. (serverTimestamp cannot be used inside an
+    // array, hence ten fields rather than a list.) Keep the limit in step with
+    // OrderQuota.ordersPerDay in the app.
+    function orderCountsAgainstQuota(orderId) {
+      let quotaPath = /databases/$(database)/documents/order_quota/$(request.auth.uid);
+      let after = getAfter(quotaPath).data;
+      return after.lastOrderId == orderId
+        && (exists(quotaPath)
+          ? quotaAdvances(get(quotaPath).data, after)
+          : (after.keys().hasOnly(['t0', 'next', 'lastOrderId'])
+            && after.t0 == request.time
+            && after.next == 1));
+    }
+
+    function quotaAdvances(before, after) {
+      let slot = 't' + string(before.next);
+      let oldest = before.get(slot, null);
+      return before.next is int
+        && before.next >= 0
+        && before.next <= 9
+        && (oldest == null || request.time >= oldest + duration.value(24, 'h'))
+        && after[slot] == request.time
+        && after.next == (before.next + 1) % 10
+        && after.diff(before).affectedKeys().hasOnly([slot, 'next', 'lastOrderId']);
+    }
+
+    // The quota document is only ever written together with a brand-new order
+    // of its owner, whose own create rule checks the step
+    // (orderCountsAgainstQuota). It can never be deleted, and never be edited
+    // on its own.
+    function isOrderQuotaWrite(uid) {
+      let data = request.resource.data;
+      let orderPath = /databases/$(database)/documents/orders/$(data.lastOrderId);
+      return data.keys().hasOnly(['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9', 'next', 'lastOrderId'])
+        && data.lastOrderId is string
+        && data.lastOrderId.size() > 0
+        && data.lastOrderId.size() <= 36
+        && !exists(orderPath)
+        && existsAfter(orderPath)
+        && getAfter(orderPath).data.customerId == uid;
+    }
+
+    match /order_quota/{uid} {
+      allow get: if isOwner(uid) || isPlatformAdmin();
+      allow list: if false;
+      allow create, update: if isOwner(uid)
+        && isActiveCustomer()
+        && isOrderQuotaWrite(uid);
+      allow delete: if false;
+    }
+
+    // Payment receipts: ONE immutable compressed JPEG per order, stored as a
+    // Firestore `bytes` field (no Firebase Storage). The receipt is kept apart
+    // from the order on purpose: order listings never download the image, and a
+    // technician, who may read an assigned order, can never read its receipt.
+    // Readable ONLY by the order's customer, the owning company's admin and
+    // Platform Admin. There is no listing, no update and no delete for anyone,
+    // so a company cascade delete can never remove a receipt either.
+    function isValidReceiptCreate(orderId) {
+      let data = request.resource.data;
+      let orderPath = /databases/$(database)/documents/orders/$(orderId);
+      return data.keys().hasOnly([
+          'orderId', 'customerId', 'companyId', 'fileName', 'contentType',
+          'image', 'sizeBytes', 'width', 'height', 'createdAt'
+        ])
+        && data.orderId == orderId
+        && data.customerId == request.auth.uid
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.fileName is string
+        && data.fileName.size() > 0
+        && data.fileName.size() <= 100
+        && data.contentType == 'image/jpeg'
+        && data.image is bytes
+        && data.image.size() > 0
+        && data.image.size() <= 700000
+        && data.sizeBytes is int
+        && data.sizeBytes == data.image.size()
+        && data.width is int && data.width > 0 && data.width <= 4096
+        && data.height is int && data.height > 0 && data.height <= 4096
+        && data.createdAt == request.time
+        // The order must exist once this write (or batch/transaction) is
+        // applied, belong to the same customer and company, and still be
+        // waiting for payment verification.
+        && existsAfter(orderPath)
+        && getAfter(orderPath).data.customerId == request.auth.uid
+        && getAfter(orderPath).data.companyId == data.companyId
+        && getAfter(orderPath).data.paymentStatus == 'pending_verification'
+        && getAfter(orderPath).data.orderStatus != 'cancelled';
+    }
+
+    // Who may read the receipt of this order when it does not exist (an order
+    // placed before receipts were stored): only the same three parties, judged
+    // by the ORDER. That way a legitimate reader gets a clean "not found"
+    // instead of a permission error, and nobody else learns anything.
+    function isReceiptOrderParty(orderId) {
+      let orderPath = /databases/$(database)/documents/orders/$(orderId);
+      return exists(orderPath)
+        && (get(orderPath).data.customerId == request.auth.uid
+          || isCompanyAdminOf(get(orderPath).data.companyId)
+          || isPlatformAdmin());
+    }
+
+    match /order_receipts/{orderId} {
+      allow get: if isSignedIn()
+        && (resource == null
+          ? isReceiptOrderParty(orderId)
+          : (resource.data.customerId == request.auth.uid
+            || isCompanyAdminOf(resource.data.companyId)
+            || isPlatformAdmin()));
+      allow list: if false;
+      allow create: if isSignedIn()
+        && !isPlatformAdmin()
+        && callerIsNotDeactivated()
+        && isValidReceiptCreate(orderId);
+      allow update, delete: if false;
+    }
+
+    // A company's registration: its commercial registration / licence number
+    // and a compressed JPEG of the document, as bytes (no Cloud Storage on
+    // this plan). Platform Admin only - never the company, customers or staff.
+    // Written with the company when it is added, or later from its page; the
+    // company must exist once the write is applied. Deleted with the company.
+    function isValidCompanyDocumentWrite(companyId) {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+          'companyId', 'registrationNumber', 'fileName', 'contentType',
+          'image', 'sizeBytes', 'width', 'height', 'updatedAt'
+        ])
+        && data.companyId == companyId
+        && data.registrationNumber is string
+        && data.registrationNumber.trim().size() > 0
+        && data.registrationNumber.size() <= 60
+        && data.fileName is string
+        && data.fileName.size() > 0
+        && data.fileName.size() <= 100
+        && data.contentType in ['image/jpeg', 'application/pdf']
+        && data.image is bytes
+        && data.image.size() > 0
+        && data.image.size() <= 700000
+        && data.sizeBytes is int
+        && data.sizeBytes == data.image.size()
+        // A PDF is stored exactly as picked, so it carries no pixel size.
+        && (data.contentType == 'application/pdf'
+          ? !('width' in data) && !('height' in data)
+          : (data.width is int && data.width > 0 && data.width <= 4096
+            && data.height is int && data.height > 0 && data.height <= 4096))
+        && data.updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/companies/$(companyId));
+    }
+
+    match /company_documents/{companyId} {
+      allow get: if isPlatformAdmin();
+      allow list: if false;
+      allow create, update: if isPlatformAdmin()
+        && isValidCompanyDocumentWrite(companyId);
+      allow delete: if isPlatformAdmin() && companyIsGoneAfter(companyId);
+    }
+
+    // ── Ratings ────────────────────────────────────────────────────────────
+    // A customer rates a completed order (its product) or a completed service
+    // request (the company's service) once: one to five stars, optional quick
+    // tags and a comment. The review has the same id as the order or request,
+    // and the same stars also count for the company.
+    //
+    // Averages live in `ratings/{key}` (key = company_<id>, product_<id> or
+    // service_<companyServiceId>) as a running star sum and count. There is no
+    // server, so the batch that writes a review also moves its two ratings,
+    // and each side checks the other: a review write must carry the ratings
+    // writes, and a ratings write must come with the review write behind it.
+
+    // A review never names its customer: everyone reads it, visitors too. Its
+    // customer is the one who owns the order or request with the review's id.
+    function ownsReviewSource(reviewId, review) {
+      return review.get('sourceType', 'order') == 'service_request'
+        ? get(/databases/$(database)/documents/service_requests/$(reviewId))
+            .data.get('customerId', '') == request.auth.uid
+        : get(/databases/$(database)/documents/orders/$(reviewId))
+            .data.get('customerId', '') == request.auth.uid;
+    }
+
+    // How long after rating a customer may still change it.
+    function reviewEditWindowOpen(review) {
+      return request.time < review.createdAt + duration.value(7, 'd');
+    }
+
+    function reviewContentValid(data) {
+      return data.stars is int
+        && data.stars >= 1
+        && data.stars <= 5
+        && data.tags is list
+        && data.tags.size() <= 5
+        && data.tags.hasOnly(['quality', 'delivery', 'punctual', 'service', 'price'])
+        && data.comment is string
+        && data.comment.size() <= 500;
+    }
+
+    // The caller's own order or request with this id, completed, for the
+    // same company and product / company service.
+    function reviewSourceMatches(reviewId, data) {
+      return data.sourceType == 'order'
+        ? (data.targetType == 'product'
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.customerId == request.auth.uid
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.companyId == data.companyId
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.productId == data.targetId
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.orderStatus == 'completed'
+          // Everyone reads a review: the names it shows are the order's own.
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.get('companyName', '') == data.companyName
+          && get(/databases/$(database)/documents/orders/$(reviewId)).data.get('productName', '') == data.targetName)
+        : (data.sourceType == 'service_request'
+          && data.targetType == 'service'
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.customerId == request.auth.uid
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.companyId == data.companyId
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.companyServiceId == data.targetId
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.status == 'completed'
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.get('companyName', '') == data.companyName
+          && get(/databases/$(database)/documents/service_requests/$(reviewId)).data.get('serviceName', '') == data.targetName);
+    }
+
+    // The ratings doc [key] was written in this same request, naming this
+    // review (its own rule checks the numbers).
+    function ratingsWrittenFor(reviewId, key) {
+      let after = getAfter(/databases/$(database)/documents/ratings/$(key)).data;
+      return after.lastReviewId == reviewId && after.updatedAt == request.time;
+    }
+
+    // Both averages the review counts in move with it.
+    function reviewMovesRatings(reviewId, data) {
+      return ratingsWrittenFor(reviewId, 'company_' + data.companyId)
+        && ratingsWrittenFor(reviewId, data.targetType + '_' + data.targetId);
+    }
+
+    function isValidReviewCreate(reviewId) {
+      let data = request.resource.data;
+      return isActiveCustomer()
+        && data.keys().hasOnly([
+          'id', 'sourceType', 'authorName', 'companyId',
+          'companyName', 'targetType', 'targetId', 'targetName', 'stars',
+          'tags', 'comment', 'hidden', 'createdAt', 'updatedAt'
+        ])
+        && data.id == reviewId
+        && data.authorName is string
+        && data.authorName.size() <= 60
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.companyName is string
+        && data.companyName.size() <= 200
+        && data.targetId is string
+        && data.targetId.size() > 0
+        && data.targetName is string
+        && data.targetName.size() <= 200
+        && data.hidden == false
+        && reviewContentValid(data)
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && reviewSourceMatches(reviewId, data)
+        && reviewMovesRatings(reviewId, data);
+    }
+
+    // Its customer changes the stars, tags or comment for a while after
+    // rating, unless Platform Admin has hidden it.
+    function isCustomerReviewEdit(reviewId) {
+      let data = request.resource.data;
+      return ownsReviewSource(reviewId, resource.data)
+        && resource.data.hidden == false
+        && reviewEditWindowOpen(resource.data)
+        && data.diff(resource.data).affectedKeys()
+          .hasOnly(['stars', 'tags', 'comment', 'updatedAt'])
+        && reviewContentValid(data)
+        && data.updatedAt == request.time
+        && (data.stars == resource.data.stars || reviewMovesRatings(reviewId, data));
+    }
+
+    // The company answers with one reply, which it may reword.
+    function isCompanyReviewReply() {
+      let data = request.resource.data;
+      return isCompanyAdminOf(resource.data.companyId)
+        && data.diff(resource.data).affectedKeys().hasOnly(['reply', 'replyAt'])
+        && data.reply is string
+        && data.reply.size() > 0
+        && data.reply.size() <= 500
+        && data.replyAt == request.time;
+    }
+
+    // Platform Admin hides an abusive review (it leaves the averages) or
+    // shows it again.
+    function isPlatformAdminReviewModeration(reviewId) {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && data.diff(resource.data).affectedKeys().hasOnly(['hidden'])
+        && data.hidden is bool
+        && data.hidden != resource.data.hidden
+        && reviewMovesRatings(reviewId, data);
+    }
+
+    match /reviews/{reviewId} {
+      // Everyone reads the visible ones, signed-out visitors too; a hidden one
+      // only its customer, its company and Platform Admin. A missing one reads
+      // as missing, so a customer can ask whether they rated an order yet.
+      allow get: if (resource != null && resource.data.hidden == false)
+        || (isSignedIn()
+          && (resource == null
+            || isCompanyAdminOf(resource.data.companyId)
+            || isPlatformAdmin()
+            || ownsReviewSource(reviewId, resource.data)));
+
+      allow list: if resource.data.hidden == false
+        || (isSignedIn()
+          && (isCompanyAdminOf(resource.data.companyId)
+            || isPlatformAdmin()));
+
+      allow create: if isSignedIn() && isValidReviewCreate(reviewId);
+
+      allow update: if isSignedIn()
+        && (isCustomerReviewEdit(reviewId)
+          || isCompanyReviewReply()
+          || isPlatformAdminReviewModeration(reviewId));
+
+      allow delete: if isPlatformAdmin()
+        && companyIsGoneAfter(resource.data.get('companyId', ''));
+    }
+
+    // One running average. The review named by lastReviewId was written in
+    // the same request and explains the change exactly: a new review, its
+    // customer changing the stars, or Platform Admin hiding / showing it.
+    function isValidRatingsWrite(key) {
+      let before = resource == null ? {} : resource.data;
+      let data = request.resource.data;
+      let reviewPath = /databases/$(database)/documents/reviews/$(data.lastReviewId);
+      let review = getAfter(reviewPath).data;
+      let sum = before.get('sum', 0);
+      let count = before.get('count', 0);
+      return data.keys().hasOnly(['companyId', 'sum', 'count', 'lastReviewId', 'updatedAt'])
+        && data.lastReviewId is string
+        && data.lastReviewId.size() > 0
+        && data.updatedAt == request.time
+        && data.sum is int
+        && data.count is int
+        && data.sum >= 0
+        && data.count >= 0
+        && (key == 'company_' + review.companyId
+          || key == review.targetType + '_' + review.targetId)
+        && data.companyId == review.companyId
+        && ((!exists(reviewPath)
+            && ownsReviewSource(data.lastReviewId, review)
+            && data.count == count + 1
+            && data.sum == sum + review.stars)
+          || (exists(reviewPath)
+            && ownsReviewSource(data.lastReviewId, review)
+            && review.hidden == false
+            && get(reviewPath).data.hidden == false
+            && review.updatedAt == request.time
+            && data.count == count
+            && data.sum == sum + review.stars - get(reviewPath).data.stars)
+          || (exists(reviewPath)
+            && isPlatformAdmin()
+            && get(reviewPath).data.hidden != review.hidden
+            && data.count == count + (review.hidden ? -1 : 1)
+            && data.sum == sum + (review.hidden ? -review.stars : review.stars)));
+    }
+
+    match /ratings/{key} {
+      allow get, list: if true;
+      allow create, update: if isSignedIn() && isValidRatingsWrite(key);
+      allow delete: if isPlatformAdmin()
+        && companyIsGoneAfter(resource.data.get('companyId', ''));
+    }
+  }
+}

@@ -1,0 +1,882 @@
+// The relay against a fake Google: an in-memory Firestore, a fake sign-in
+// service and a fake FCM. Nothing here talks to the network.
+import assert from 'node:assert/strict';
+import { beforeEach, describe, it } from 'node:test';
+
+import { createRelay, isNightInSudan } from '../src/relay.js';
+import { chatMessageText, orderNotificationText, usdRateReminderText } from '../src/texts.js';
+
+const NOW = Date.parse('2026-09-29T12:00:00Z');
+const PROJECT = 'demo-project';
+
+async function testServiceAccount() {
+  const { privateKey } = await crypto.subtle.generateKey(
+    {
+      name: 'RSASSA-PKCS1-v1_5',
+      modulusLength: 2048,
+      publicExponent: new Uint8Array([1, 0, 1]),
+      hash: 'SHA-256',
+    },
+    true,
+    ['sign', 'verify'],
+  );
+  const der = new Uint8Array(await crypto.subtle.exportKey('pkcs8', privateKey));
+  const pem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(der).toString('base64')}\n-----END PRIVATE KEY-----\n`;
+  return {
+    type: 'service_account',
+    project_id: PROJECT,
+    client_email: 'relay@demo-project.iam.gserviceaccount.com',
+    private_key: pem,
+    token_uri: 'https://oauth2.googleapis.com/token',
+  };
+}
+
+// ── A tiny fake of the Google endpoints the relay uses ─────────────────────
+
+function toValue(v) {
+  if (v === null) return { nullValue: null };
+  if (v instanceof Date) return { timestampValue: v.toISOString() };
+  if (typeof v === 'string') return { stringValue: v };
+  if (typeof v === 'boolean') return { booleanValue: v };
+  if (typeof v === 'number') return { integerValue: String(v) };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(toValue) } };
+  return { mapValue: { fields: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, toValue(x)])) } };
+}
+const fromValue = (v) =>
+  'stringValue' in v ? v.stringValue
+    : 'integerValue' in v ? Number(v.integerValue)
+      : 'booleanValue' in v ? v.booleanValue
+        : 'timestampValue' in v ? new Date(v.timestampValue)
+          : 'arrayValue' in v ? (v.arrayValue.values ?? []).map(fromValue)
+            : 'mapValue' in v ? Object.fromEntries(Object.entries(v.mapValue.fields ?? {}).map(([k, x]) => [k, fromValue(x)]))
+              : null;
+
+function fakeGoogle() {
+  const docs = new Map(); // "collection/id" -> fields (plain values)
+  const idTokens = new Map(); // idToken -> uid
+  const sent = []; // FCM messages
+  const goneTokens = new Set();
+  const json = (status, body) => new Response(JSON.stringify(body), { status });
+  const prefix = `/v1/projects/${PROJECT}/databases/(default)/documents`;
+
+  async function fetch(input, init = {}) {
+    const url = new URL(input);
+    const body = init.body && typeof init.body === 'string' && init.body.startsWith('{')
+      ? JSON.parse(init.body)
+      : null;
+    if (url.host === 'oauth2.googleapis.com') {
+      return json(200, { access_token: 'access-1', expires_in: 3600 });
+    }
+    if (url.host === 'identitytoolkit.googleapis.com') {
+      const uid = idTokens.get(body.idToken);
+      return uid ? json(200, { users: [{ localId: uid }] }) : json(400, { error: { message: 'INVALID_ID_TOKEN' } });
+    }
+    if (url.host === 'fcm.googleapis.com') {
+      const token = body.message.token;
+      if (goneTokens.has(token)) {
+        return json(404, { error: { status: 'NOT_FOUND', details: [{ errorCode: 'UNREGISTERED' }] } });
+      }
+      sent.push(body.message);
+      return json(200, { name: 'm1' });
+    }
+    // Firestore
+    const path = decodeURIComponent(url.pathname);
+    if (path.endsWith(':runQuery')) {
+      const where = body.structuredQuery.where;
+      const filters = where.compositeFilter ? where.compositeFilter.filters : [where];
+      const collection = body.structuredQuery.from[0].collectionId;
+      const passes = (data, f) => {
+        const field = data[f.fieldFilter.field.fieldPath];
+        const value = fromValue(f.fieldFilter.value);
+        if (f.fieldFilter.op === 'LESS_THAN_OR_EQUAL') {
+          return field instanceof Date && value instanceof Date ? field <= value : typeof field === 'number' && field <= value;
+        }
+        return field === value;
+      };
+      const rows = [...docs.entries()]
+        .filter(([key]) => key.split('/').length === 2 && key.startsWith(`${collection}/`))
+        .filter(([, data]) => filters.every((f) => passes(data, f)))
+        .slice(0, body.structuredQuery.limit ?? Infinity)
+        .map(([key, data]) => ({ document: { name: `projects/x${prefix.slice(3)}/${key}`, fields: toValue(data).mapValue.fields } }));
+      return json(200, rows.length ? rows : [{ readTime: 'now' }]);
+    }
+    if (path.endsWith(':commit')) {
+      for (const write of body.writes) {
+        if (write.update) {
+          const key = write.update.name.split('/documents/')[1];
+          if (write.currentDocument?.exists === false && docs.has(key)) {
+            return json(409, { error: { status: 'ALREADY_EXISTS' } });
+          }
+          docs.set(key, Object.fromEntries(Object.entries(write.update.fields).map(([k, v]) => [k, fromValue(v)])));
+        } else if (write.transform) {
+          const key = write.transform.document.split('/documents/')[1];
+          const data = docs.get(key);
+          for (const t of write.transform.fieldTransforms) {
+            const remove = t.removeAllFromArray.values.map(fromValue);
+            data[t.fieldPath] = (data[t.fieldPath] ?? []).filter((x) => !remove.includes(x));
+          }
+        }
+      }
+      return json(200, {});
+    }
+    const key = path.slice(prefix.length + 1);
+    if (init.method === 'PATCH') {
+      const current = docs.get(key) ?? {};
+      for (const [k, v] of Object.entries(body.fields)) current[k] = fromValue(v);
+      docs.set(key, current);
+      return json(200, {});
+    }
+    const data = docs.get(key);
+    return data ? json(200, { fields: toValue(data).mapValue.fields }) : json(404, {});
+  }
+
+  return { fetch, docs, idTokens, sent, goneTokens };
+}
+
+// ── Fixtures ───────────────────────────────────────────────────────────────
+
+let google;
+let relay;
+let serviceAccount;
+const minutesAgo = (n) => new Date(NOW - n * 60 * 1000);
+
+async function call(body, idToken = 'token-cust1') {
+  const response = await relay(new Request('https://relay.test/push', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }));
+  return { status: response.status, body: await response.json() };
+}
+
+beforeEach(async () => {
+  serviceAccount ??= await testServiceAccount();
+  google = fakeGoogle();
+  relay = createRelay(
+    { PROJECT_ID: PROJECT, FIREBASE_API_KEY: 'k', SERVICE_ACCOUNT_JSON: JSON.stringify(serviceAccount) },
+    { fetch: google.fetch, now: () => NOW },
+  );
+  google.idTokens.set('token-cust1', 'cust1');
+  google.idTokens.set('token-cust2', 'cust2');
+  google.idTokens.set('token-ca1', 'ca1');
+  google.idTokens.set('token-tech1', 'tech1u');
+  const put = (key, data) => google.docs.set(key, data);
+  put('users/cust1', { role: 'customer', language: 'ar', fcmTokens: ['phone-cust1'] });
+  put('users/cust2', { role: 'customer', fcmTokens: ['phone-cust2'] });
+  put('users/ca1', { role: 'company_admin', companyId: 'c1', language: 'ar', fcmTokens: ['phone-ca1'] });
+  put('users/ca1b', { role: 'company_admin', companyId: 'c1', fcmTokens: ['phone-ca1b', 'old-phone'] });
+  put('users/ca2', { role: 'company_admin', companyId: 'c2', fcmTokens: ['phone-ca2'] });
+  put('users/tech1u', { role: 'technician', companyId: 'c1', fcmTokens: ['phone-tech1'] });
+  put('technicians/t1', { companyId: 'c1', uid: 'tech1u', email: 'tech@x.test' });
+  put('notifications/n1', {
+    recipientType: 'company_admin', recipientId: 'c1', orderId: 'o1', type: 'new_order',
+    productName: 'Router', senderId: 'cust1', createdAt: minutesAgo(1),
+  });
+  put('chats/chat1', {
+    customerId: 'cust1', companyId: 'c1', customerName: 'Amna', companyName: 'Nile Tech',
+    productId: 'p1', productName: 'Router', serviceName: '',
+  });
+  put('chats/chat1/messages/m1', { senderId: 'cust1', senderRole: 'customer', text: 'Is it available?', createdAt: minutesAgo(0) });
+  put('orders/o1', { companyId: 'c1', customerId: 'cust1', technicianId: 't1' });
+  put('jobChats/o1', { companyId: 'c1', technicianId: 't1', technicianName: 'Ali', productName: 'Router' });
+  put('jobChats/o1/messages/jt1', { senderId: 'tech1u', senderRole: 'technician', senderName: 'Ali', text: 'Customer is not home', createdAt: minutesAgo(0) });
+  put('jobChats/o1/messages/jc1', { senderId: 'ca1', senderRole: 'company', senderName: '', text: 'We will call them', createdAt: minutesAgo(0) });
+  put('chats/chat1/messages/m2', { senderId: 'ca1', senderRole: 'company', text: 'Yes!', createdAt: minutesAgo(0) });
+});
+
+// ── Tests ──────────────────────────────────────────────────────────────────
+
+describe('who may ask for a push', () => {
+  it('needs a signed-in caller', async () => {
+    assert.equal((await call({ notificationId: 'n1' }, '')).status, 401);
+    assert.equal((await call({ notificationId: 'n1' }, 'forged')).status, 401);
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('only the person who wrote the notification or message', async () => {
+    assert.equal((await call({ notificationId: 'n1' }, 'token-cust2')).status, 403);
+    assert.equal((await call({ chatId: 'chat1', messageId: 'm1' }, 'token-ca1')).status, 403);
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('only while it is fresh (10 minutes)', async () => {
+    google.docs.get('notifications/n1').createdAt = minutesAgo(11);
+    assert.equal((await call({ notificationId: 'n1' })).status, 409);
+  });
+
+  it('asks for exactly one thing, with plain ids', async () => {
+    assert.equal((await call({})).status, 400);
+    assert.equal((await call({ notificationId: 'n1', chatId: 'chat1', messageId: 'm1' })).status, 400);
+    assert.equal((await call({ notificationId: '../users/x' })).status, 400);
+    assert.equal((await call({ notificationId: 'missing' })).status, 404);
+  });
+});
+
+describe('order notifications', () => {
+  it('reach every admin of the company, each in their own language, once', async () => {
+    const first = await call({ notificationId: 'n1' });
+    assert.deepEqual(first, { status: 200, body: { sent: 3, failed: 0 } });
+    const byToken = Object.fromEntries(google.sent.map((m) => [m.token, m]));
+    assert.deepEqual(Object.keys(byToken).sort(), ['old-phone', 'phone-ca1', 'phone-ca1b']);
+    assert.equal(byToken['phone-ca1'].notification.title, 'تم استلام طلب جديد');
+    assert.equal(byToken['phone-ca1b'].notification.title, 'New order received');
+    assert.match(byToken['phone-ca1'].notification.body, /Router/);
+    assert.deepEqual(byToken['phone-ca1'].data, {
+      type: 'new_order', notificationId: 'n1', orderId: 'o1', recipientType: 'company_admin',
+    });
+    assert.equal(byToken['phone-ca1'].android.notification.channel_id, 'general');
+
+    const again = await call({ notificationId: 'n1' });
+    assert.deepEqual(again.body, { skipped: 'already_sent' });
+    assert.equal(google.sent.length, 3);
+  });
+
+  it('forgets a phone FCM says is gone', async () => {
+    google.goneTokens.add('old-phone');
+    const result = await call({ notificationId: 'n1' });
+    assert.deepEqual(result.body, { sent: 2, failed: 1 });
+    assert.deepEqual(google.docs.get('users/ca1b').fcmTokens, ['phone-ca1b']);
+  });
+
+  it('reach a customer, and a technician through their account', async () => {
+    google.docs.set('notifications/n2', {
+      recipientType: 'customer', recipientId: 'cust1', orderId: 'o1', type: 'order_completed',
+      productName: 'Router', senderId: 'ca1', createdAt: minutesAgo(0),
+    });
+    google.docs.set('notifications/n3', {
+      recipientType: 'technician', recipientId: 't1', orderId: 'o1', type: 'technician_assigned',
+      productName: 'Router', senderId: 'ca1', createdAt: minutesAgo(0),
+    });
+    assert.equal((await call({ notificationId: 'n2' }, 'token-ca1')).body.sent, 1);
+    assert.equal((await call({ notificationId: 'n3' }, 'token-ca1')).body.sent, 1);
+    assert.deepEqual(google.sent.map((m) => [m.token, m.notification.title]), [
+      ['phone-cust1', 'اكتمل الطلب'],
+      ['phone-tech1', 'New installation job assigned'],
+    ]);
+  });
+});
+
+describe('stored text is never pushed', () => {
+  const stored = (extra) => google.docs.set('notifications/nx', {
+    recipientType: 'company_admin', recipientId: 'c1', orderId: 'o1', senderId: 'cust1',
+    title: 'Written by the sender', body: 'Call this number "now"', createdAt: minutesAgo(0),
+    ...extra,
+  });
+
+  it('an unknown type is refused: nothing is sent and nothing is logged', async () => {
+    stored({ type: 'system_alert', productName: 'Router' });
+    const result = await call({ notificationId: 'nx' });
+    assert.deepEqual(result, { status: 422, body: { error: 'unsupported_notification' } });
+    assert.equal(google.sent.length, 0);
+    assert.equal(google.docs.has('push_log/n_nx'), false);
+  });
+
+  it('a name that only looks like a type (a built-in object key) is refused too', async () => {
+    for (const type of ['constructor', '__proto__', 'toString', '']) {
+      stored({ type, productName: 'Router' });
+      assert.equal((await call({ notificationId: 'nx' })).status, 422, type);
+    }
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('a known type without a product name is refused (the stored body is not read)', async () => {
+    stored({ type: 'new_order' });
+    assert.equal((await call({ notificationId: 'nx' })).status, 422);
+    stored({ type: 'new_order', productName: 42 });
+    assert.equal((await call({ notificationId: 'nx' })).status, 422);
+    assert.equal(google.sent.length, 0);
+  });
+
+  it("a known type is pushed in the relay's own words, whatever text is stored with it", async () => {
+    stored({ type: 'new_order', productName: 'Router' });
+    assert.equal((await call({ notificationId: 'nx' })).body.sent, 3);
+    for (const message of google.sent) {
+      assert.ok(
+        ['تم استلام طلب جديد', 'New order received'].includes(message.notification.title),
+        message.notification.title,
+      );
+      assert.match(message.notification.body, /Router/);
+      const pushed = JSON.stringify(message);
+      assert.ok(!pushed.includes('Written by the sender'));
+      assert.ok(!pushed.includes('Call this number'));
+    }
+  });
+});
+
+describe('service request notifications', () => {
+  beforeEach(() => {
+    google.docs.set('notifications/sr1', {
+      recipientType: 'company_admin', recipientId: 'c1', serviceRequestId: 'sr1', type: 'new_service_request',
+      productName: 'Network setup',
+      senderId: 'cust1', createdAt: minutesAgo(0),
+    });
+    google.docs.set('notifications/sr2', {
+      recipientType: 'customer', recipientId: 'cust1', serviceRequestId: 'sr1', type: 'service_request_accepted',
+      productName: 'Network setup',
+      senderId: 'ca1', createdAt: minutesAgo(0),
+    });
+  });
+
+  it('a new request reaches the company\'s admins and opens the request', async () => {
+    const result = await call({ notificationId: 'sr1' });
+    assert.equal(result.body.sent, 3);
+    const arabic = google.sent.find((m) => m.token === 'phone-ca1');
+    assert.equal(arabic.notification.title, 'طلب خدمة جديد');
+    assert.match(arabic.notification.body, /Network setup/);
+    assert.deepEqual(arabic.data, {
+      type: 'new_service_request', notificationId: 'sr1', serviceRequestId: 'sr1', recipientType: 'company_admin',
+    });
+    assert.ok(!google.sent.some((m) => m.token === 'phone-ca2'));
+  });
+
+  it("the company's answer reaches the customer in their language", async () => {
+    const result = await call({ notificationId: 'sr2' }, 'token-ca1');
+    assert.equal(result.body.sent, 1);
+    assert.equal(google.sent[0].token, 'phone-cust1');
+    assert.equal(google.sent[0].notification.title, 'تم قبول طلبك');
+    assert.equal(google.sent[0].data.serviceRequestId, 'sr1');
+    assert.equal(google.sent[0].data.orderId, undefined);
+  });
+
+  it('only its own sender may ask for it, and only once', async () => {
+    assert.equal((await call({ notificationId: 'sr2' }, 'token-cust2')).status, 403);
+    assert.equal((await call({ notificationId: 'sr1' })).status, 200);
+    assert.deepEqual((await call({ notificationId: 'sr1' })).body, { skipped: 'already_sent' });
+  });
+
+  it('every kind has its words in both languages', () => {
+    for (const type of [
+      'new_service_request',
+      'service_request_accepted',
+      'service_request_rejected',
+      'service_request_in_progress',
+      'service_request_completed',
+      'service_request_cancelled',
+    ]) {
+      for (const language of ['en', 'ar']) {
+        const text = orderNotificationText(
+          { type, productName: 'Network setup', title: 'stored', body: 'stored' },
+          language,
+        );
+        assert.ok(text.title && text.title !== 'stored', `${type}/${language}`);
+        assert.ok(!text.body.includes('stored'), `${type}/${language}`);
+        assert.match(text.body, /Network setup/, `${type}/${language}`);
+      }
+    }
+  });
+});
+
+describe('report notifications', () => {
+  beforeEach(() => {
+    google.idTokens.set('token-admin1', 'admin1');
+    google.docs.set('notifications/rp1', {
+      recipientType: 'customer', recipientId: 'cust1', reportId: 'r1', type: 'report_closed',
+      productName: 'My order never arrived', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+    google.docs.set('notifications/rp2', {
+      recipientType: 'company_admin', recipientId: 'c1', reportId: 'r2', type: 'report_in_progress',
+      productName: 'Unpaid order', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+  });
+
+  it('reaches the customer in their language, and opens the reports', async () => {
+    const result = await call({ notificationId: 'rp1' }, 'token-admin1');
+    assert.equal(result.status, 200);
+    assert.equal(result.body.sent, 1);
+    const [message] = google.sent;
+    assert.equal(message.token, 'phone-cust1');
+    assert.ok(['Your report was closed', 'تم إغلاق بلاغك'].includes(message.notification.title));
+    assert.match(message.notification.body, /My order never arrived/);
+    assert.equal(message.data.reportId, 'r1');
+    assert.equal(message.data.recipientType, 'customer');
+    assert.equal(message.data.orderId, undefined);
+  });
+
+  it('reaches every admin of a company', async () => {
+    const result = await call({ notificationId: 'rp2' }, 'token-admin1');
+    assert.equal(result.body.sent, 3); // both admins, one of them with two phones
+    assert.ok(google.sent.every((m) => m.data.reportId === 'r2' && m.data.recipientType === 'company_admin'));
+  });
+
+  it('is sent once, and only for the person who wrote it', async () => {
+    assert.equal((await call({ notificationId: 'rp1' }, 'token-admin1')).body.sent, 1);
+    assert.deepEqual((await call({ notificationId: 'rp1' }, 'token-admin1')).body, { skipped: 'already_sent' });
+    assert.equal((await call({ notificationId: 'rp2' }, 'token-cust1')).status, 403);
+  });
+
+  it('the text is the relay own: a stored title or body is never pushed', () => {
+    const text = orderNotificationText(
+      { type: 'report_closed', productName: 'Refund', title: 'Pay me', body: 'Call now' },
+      'en',
+    );
+    assert.deepEqual(Object.keys(text).sort(), ['body', 'title']);
+    assert.ok(!JSON.stringify(text).includes('Pay me'));
+    assert.equal(orderNotificationText({ type: 'report_closed' }, 'en'), null);
+  });
+});
+
+describe('what the platform did', () => {
+  beforeEach(() => {
+    google.idTokens.set('token-admin1', 'admin1');
+    google.docs.set('notifications/ac1', {
+      recipientType: 'customer', recipientId: 'cust1', orderId: 'o1', type: 'order_cancelled_by_admin',
+      productName: 'Router', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+    google.docs.set('notifications/ac2', {
+      recipientType: 'company_admin', recipientId: 'c1', orderId: 'o1', type: 'order_cancelled_by_admin_company',
+      productName: 'Router', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+    google.docs.set('notifications/ph1', {
+      recipientType: 'company_admin', recipientId: 'c1', productId: 'p1', type: 'product_hidden',
+      productName: 'Router', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+    google.docs.set('notifications/cv1', {
+      recipientType: 'company_admin', recipientId: 'c1', userId: 'cust1', type: 'account_converted_to_company',
+      productName: 'Nile Systems', senderId: 'admin1', createdAt: minutesAgo(0),
+    });
+  });
+
+  it('tells a customer their account became a company, with no screen to open', async () => {
+    const result = await call({ notificationId: 'cv1' }, 'token-admin1');
+    assert.equal(result.body.sent, 3);
+    const [message] = google.sent;
+    assert.match(message.notification.body, /Nile Systems/);
+    assert.equal(message.data.type, 'account_converted_to_company');
+    // No order, product, report or request: the app opens on its home screen.
+    assert.equal(message.data.orderId, '');
+    assert.equal(message.data.productId, undefined);
+  });
+
+  it('tells the customer their order was cancelled, in their language', async () => {
+    const result = await call({ notificationId: 'ac1' }, 'token-admin1');
+    assert.equal(result.body.sent, 1);
+    const [message] = google.sent;
+    assert.equal(message.notification.title, 'تم إلغاء طلبك');
+    assert.match(message.notification.body, /Router/);
+    assert.equal(message.data.orderId, 'o1');
+    assert.equal(message.data.type, 'order_cancelled_by_admin');
+  });
+
+  it('tells the company, and opens the order', async () => {
+    const result = await call({ notificationId: 'ac2' }, 'token-admin1');
+    assert.equal(result.body.sent, 3);
+    assert.ok(google.sent.every((m) => m.data.orderId === 'o1' && m.data.recipientType === 'company_admin'));
+  });
+
+  it('tells the company a product was hidden, and opens the product', async () => {
+    const result = await call({ notificationId: 'ph1' }, 'token-admin1');
+    assert.equal(result.body.sent, 3);
+    const [message] = google.sent;
+    assert.ok(google.sent.every((m) => m.data.productId === 'p1' && m.data.orderId === undefined));
+    assert.match(message.notification.body, /Router/);
+  });
+
+  it('only for the admin who wrote it, and only once', async () => {
+    assert.equal((await call({ notificationId: 'ph1' }, 'token-ca1')).status, 403);
+    assert.equal((await call({ notificationId: 'ph1' }, 'token-admin1')).body.sent, 3);
+    assert.deepEqual((await call({ notificationId: 'ph1' }, 'token-admin1')).body, { skipped: 'already_sent' });
+  });
+
+  it('every one has words in both languages that name the product', () => {
+    for (const type of ['order_cancelled_by_admin', 'order_cancelled_by_admin_company', 'order_cancelled_by_company', 'product_hidden', 'product_shown', 'account_converted_to_company']) {
+      for (const language of ['en', 'ar']) {
+        const text = orderNotificationText({ type, productName: 'Router', title: 'stored' }, language);
+        assert.ok(text.title && text.title !== 'stored', `${type}/${language}`);
+        assert.match(text.body, /Router/, `${type}/${language}`);
+      }
+    }
+  });
+});
+
+describe('the kinds of phone notification a person switched off', () => {
+  it('leaves out only the people who turned that kind off', async () => {
+    google.docs.get('users/ca1').pushPrefs = { orders: false };
+    const result = await call({ notificationId: 'n1' });
+    // ca1 (one phone) is out; ca1b keeps both of its phones.
+    assert.equal(result.body.sent, 2);
+    assert.ok(!google.sent.some((m) => m.token === 'phone-ca1'));
+  });
+
+  it('another kind switched off does not matter', async () => {
+    google.docs.get('users/ca1').pushPrefs = { chat: false, reports: false };
+    assert.equal((await call({ notificationId: 'n1' })).body.sent, 3);
+  });
+
+  it('chat messages follow the chat switch', async () => {
+    google.docs.get('users/ca1').pushPrefs = { chat: false };
+    google.docs.get('users/ca1b').pushPrefs = { orders: false }; // not about chat
+    const result = await call({ chatId: 'chat1', messageId: 'm1' });
+    assert.equal(result.body.sent, 2);
+    assert.ok(!google.sent.some((m) => m.token === 'phone-ca1'));
+  });
+
+  it('a person with no preferences gets everything', async () => {
+    assert.equal((await call({ notificationId: 'n1' })).body.sent, 3);
+  });
+
+  it('is claimed even when nobody wants it, so it is never sent later', async () => {
+    for (const uid of ['ca1', 'ca1b']) google.docs.get(`users/${uid}`).pushPrefs = { orders: false };
+    const result = await call({ notificationId: 'n1' });
+    assert.deepEqual(result.body, { sent: 0, failed: 0 });
+    assert.ok(google.docs.has('push_log/n_n1'));
+  });
+});
+
+describe('chat messages', () => {
+  it("a customer's message reaches the company's admins, tagged per conversation", async () => {
+    const result = await call({ chatId: 'chat1', messageId: 'm1' });
+    assert.equal(result.body.sent, 3);
+    const arabic = google.sent.find((m) => m.token === 'phone-ca1');
+    assert.equal(arabic.notification.title, 'Amna · استفسار: Router');
+    assert.equal(arabic.notification.body, 'Is it available?');
+    assert.deepEqual(arabic.data, { type: 'chat_message', chatId: 'chat1', role: 'company' });
+    assert.equal(arabic.android.notification.tag, 'chat_chat1');
+    assert.ok(!google.sent.some((m) => m.token === 'phone-ca2'));
+  });
+
+  it("the company's reply reaches the customer", async () => {
+    const result = await call({ chatId: 'chat1', messageId: 'm2' }, 'token-ca1');
+    assert.equal(result.body.sent, 1);
+    assert.equal(google.sent[0].token, 'phone-cust1');
+    assert.equal(google.sent[0].notification.title, 'Nile Tech · استفسار: Router');
+    assert.equal(google.sent[0].data.role, 'customer');
+  });
+});
+
+describe('texts', () => {
+  it('an unknown type, or a type that needs a product name and has none, has no text', () => {
+    assert.equal(orderNotificationText({ type: 'something_new', title: 'T', body: 'B' }, 'ar'), null);
+    assert.equal(orderNotificationText({ type: 'new_order', title: 'T', body: 'x "Router" y' }, 'en'), null);
+    assert.equal(orderNotificationText({ type: 'new_order', productName: '   ' }, 'en'), null);
+    assert.equal(orderNotificationText({}, 'en'), null);
+  });
+
+  it('each known type is worded from its type and product name only', () => {
+    for (const type of [
+      'new_order', 'payment_confirmed', 'out_for_delivery', 'technician_assigned', 'new_review', 'review_reply',
+    ]) {
+      for (const language of ['en', 'ar']) {
+        const text = orderNotificationText({ type, productName: 'Router', title: 'T', body: 'B' }, language);
+        assert.ok(text.title.length > 0 && text.title !== 'T', `${type} ${language}`);
+        assert.match(text.body, /Router/);
+        assert.notEqual(text.body, 'B');
+      }
+    }
+    assert.deepEqual(orderNotificationText({ type: 'order_completed' }, 'en'), {
+      title: 'Order completed', body: 'Your order has been completed.',
+    });
+  });
+
+  it('an over-long product name is cut to 200 characters', () => {
+    const text = orderNotificationText({ type: 'new_order', productName: 'x'.repeat(5000) }, 'en');
+    assert.ok(text.body.length < 300);
+  });
+
+  it('long messages are shortened; an order chat has no "Question:"', () => {
+    const text = chatMessageText(
+      { orderId: 'o1', customerName: '', productName: 'Router' },
+      { senderRole: 'customer', text: 'x'.repeat(500) },
+      'en',
+    );
+    assert.equal(text.title, 'Customer · Router');
+    assert.equal(text.body.length, 180);
+  });
+});
+
+describe('a company now serves a city', () => {
+  beforeEach(() => {
+    const put = (key, data) => google.docs.set(key, data);
+    put('companies/c1', { name: 'Nile Tech', status: 'active', serviceCityIds: ['khartoum', 'atlantis'] });
+    put('city_announcements/c1_khartoum', {
+      companyId: 'c1', companyName: 'Nile Tech', cityId: 'khartoum', senderId: 'ca1', createdAt: minutesAgo(1),
+    });
+    put('city_announcements/c1_atlantis', {
+      companyId: 'c1', companyName: 'Nile Tech', cityId: 'atlantis', senderId: 'ca1', createdAt: minutesAgo(1),
+    });
+  });
+
+  it('is sent once to the customers of that city, in Arabic and in English', async () => {
+    const first = await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-ca1');
+    assert.equal(first.status, 200);
+    assert.deepEqual(first.body, { sent: 2, failed: 0 });
+    assert.deepEqual(google.sent.map((m) => m.topic), ['city_khartoum_ar', 'city_khartoum_en']);
+    const [ar, en] = google.sent;
+    assert.equal(ar.notification.title, 'شركة جديدة في مدينتك');
+    assert.equal(ar.notification.body, 'أصبحت «Nile Tech» تخدم الخرطوم.');
+    assert.equal(en.notification.title, 'A new company in your city');
+    assert.equal(en.notification.body, '"Nile Tech" now serves Khartoum.');
+    assert.equal(en.data.type, 'city_announcement');
+    assert.equal(en.data.companyId, 'c1');
+
+    const again = await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-ca1');
+    assert.deepEqual(again.body, { skipped: 'already_sent' });
+    assert.equal(google.sent.length, 2);
+  });
+
+  it('uses the names Platform Admin saved, for a city of its own', async () => {
+    google.docs.set('platform_settings/cities', {
+      ids: ['atlantis'],
+      items: [{ id: 'atlantis', nameAr: 'أطلنطس', nameEn: 'Atlantis' }],
+    });
+    await call({ cityAnnouncementId: 'c1_atlantis' }, 'token-ca1');
+    assert.equal(google.sent[0].notification.body, 'أصبحت «Nile Tech» تخدم أطلنطس.');
+    assert.equal(google.sent[1].notification.body, '"Nile Tech" now serves Atlantis.');
+  });
+
+  it('only for the person who wrote it, and only while it is fresh', async () => {
+    assert.equal((await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-cust1')).status, 403);
+    google.docs.get('city_announcements/c1_khartoum').createdAt = minutesAgo(30);
+    assert.equal((await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-ca1')).status, 409);
+    assert.equal((await call({ cityAnnouncementId: 'nope' }, 'token-ca1')).status, 404);
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('not when the company is no longer active or no longer serves the city', async () => {
+    google.docs.get('companies/c1').status = 'inactive';
+    assert.equal((await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-ca1')).status, 422);
+    google.docs.get('companies/c1').status = 'active';
+    google.docs.get('companies/c1').serviceCityIds = ['bahri'];
+    assert.equal((await call({ cityAnnouncementId: 'c1_khartoum' }, 'token-ca1')).status, 422);
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('asks for exactly one thing', async () => {
+    const both = await call({ cityAnnouncementId: 'c1_khartoum', notificationId: 'n1' }, 'token-ca1');
+    assert.equal(both.status, 400);
+  });
+});
+
+describe('a job conversation between the technician and the company', () => {
+  it('reaches the company admins when the technician wrote it', async () => {
+    const r = await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-tech1');
+    assert.equal(r.status, 200);
+    const phones = google.sent.map((m) => m.token).sort();
+    assert.deepEqual(phones, ['old-phone', 'phone-ca1', 'phone-ca1b']);
+    const toCa1 = google.sent.find((m) => m.token === 'phone-ca1');
+    assert.equal(toCa1.notification.title, 'Ali · Router');
+    assert.equal(toCa1.notification.body, 'Customer is not home');
+    assert.equal(toCa1.data.type, 'job_chat_message');
+    assert.equal(toCa1.data.orderId, 'o1');
+    assert.equal(toCa1.data.role, 'company');
+  });
+
+  it('reaches the technician when the company wrote it, never the customer', async () => {
+    const r = await call({ jobChatId: 'o1', messageId: 'jc1' }, 'token-ca1');
+    assert.equal(r.status, 200);
+    assert.deepEqual(google.sent.map((m) => m.token), ['phone-tech1']);
+    assert.equal(google.sent[0].notification.title, 'Company · Router');
+    assert.equal(google.sent[0].data.role, 'technician');
+  });
+
+  it('follows a reassignment to the technician the job has now', async () => {
+    google.docs.set('users/tech2u', { role: 'technician', companyId: 'c1', fcmTokens: ['phone-tech2'] });
+    google.docs.set('technicians/t2', { companyId: 'c1', uid: 'tech2u', email: 't2@x.test' });
+    google.docs.get('orders/o1').technicianId = 't2';
+    await call({ jobChatId: 'o1', messageId: 'jc1' }, 'token-ca1');
+    assert.deepEqual(google.sent.map((m) => m.token), ['phone-tech2']);
+  });
+
+  it('is sent once, only for its writer, and only while fresh', async () => {
+    assert.equal((await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-ca1')).status, 403);
+    assert.equal((await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-cust1')).status, 403);
+    google.docs.get('jobChats/o1/messages/jt1').createdAt = minutesAgo(11);
+    assert.equal((await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-tech1')).status, 409);
+    google.docs.get('jobChats/o1/messages/jt1').createdAt = minutesAgo(0);
+    assert.equal((await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-tech1')).status, 200);
+    const again = await call({ jobChatId: 'o1', messageId: 'jt1' }, 'token-tech1');
+    assert.equal(again.body.skipped, 'already_sent');
+  });
+
+  it('respects a switched-off chat kind', async () => {
+    google.docs.get('users/tech1u').pushPrefs = { chat: false };
+    await call({ jobChatId: 'o1', messageId: 'jc1' }, 'token-ca1');
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('asks for one thing only', async () => {
+    assert.equal((await call({ jobChatId: 'o1', messageId: 'jt1', chatId: 'chat1' }, 'token-tech1')).status, 400);
+    assert.equal((await call({ jobChatId: 'o1' }, 'token-tech1')).status, 400);
+  });
+});
+
+describe('the technician job notifications', () => {
+  it('say what happened, from the type and the product only', () => {
+    const ready = orderNotificationText({ type: 'job_ready', productName: 'Router' }, 'en');
+    assert.equal(ready.title, 'Job ready to start');
+    assert.match(ready.body, /Router/);
+    assert.equal(orderNotificationText({ type: 'job_cancelled', productName: 'Router' }, 'ar').title, 'تم إلغاء المهمة');
+    assert.equal(orderNotificationText({ type: 'job_completed', productName: 'Router' }, 'en').title, 'Installation completed');
+    assert.equal(orderNotificationText({ type: 'job_completed' }, 'en'), null);
+  });
+});
+
+describe('the 24-hour dollar rate reminder', () => {
+  const hoursAgo = (n, from = NOW) => new Date(from - n * 3600 * 1000);
+  const relayAt = (ms) =>
+    createRelay(
+      { PROJECT_ID: PROJECT, FIREBASE_API_KEY: 'k', SERVICE_ACCOUNT_JSON: JSON.stringify(serviceAccount) },
+      { fetch: google.fetch, now: () => ms },
+    );
+
+  beforeEach(() => {
+    google.docs.set('companies/c1', { status: 'active', usdRate: 3000, usdRateUpdatedAt: hoursAgo(25) });
+    google.docs.set('products/p1', { companyId: 'c1', price: 750000, priceUsd: 250, usdRateApplied: 3000 });
+  });
+
+  it("reminds every admin of a company whose rate is a day old, in their language, opening Home", async () => {
+    const result = await relay.remindUsdRates();
+    assert.deepEqual(result, { companies: 1, sent: 3, failed: 0 });
+    const toCa1 = google.sent.find((m) => m.token === 'phone-ca1');
+    assert.equal(toCa1.data.type, 'usd_rate_reminder');
+    assert.equal(toCa1.data.companyId, 'c1');
+    assert.equal(toCa1.android.notification.tag, 'usd_rate');
+    assert.match(toCa1.notification.body, /3,000/);
+    assert.equal(toCa1.notification.title, 'سعر الدولار');
+    assert.equal(google.sent.find((m) => m.token === 'phone-ca1b').notification.title, 'Dollar rate');
+    assert.ok(google.docs.get('companies/c1').usdRateRemindedAt instanceof Date);
+  });
+
+  it('comes once every 24 hours, not every hour', async () => {
+    await relay.remindUsdRates();
+    google.sent.length = 0;
+    assert.equal((await relayAt(NOW + 3600 * 1000).remindUsdRates()).sent, 0);
+    assert.equal((await relayAt(NOW + 24 * 3600 * 1000).remindUsdRates()).sent, 3);
+  });
+
+  it('a rate set or confirmed in the last 24 hours is not reminded', async () => {
+    google.docs.get('companies/c1').usdRateUpdatedAt = hoursAgo(23);
+    assert.equal((await relay.remindUsdRates()).companies, 0);
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('confirming the rate after a reminder starts the 24 hours again', async () => {
+    const company = google.docs.get('companies/c1');
+    company.usdRateRemindedAt = hoursAgo(30);
+    company.usdRateUpdatedAt = hoursAgo(26);
+    assert.equal((await relay.remindUsdRates()).sent, 3);
+  });
+
+  it('never at night in Sudan (22:00 to 08:00)', async () => {
+    // 21:00 UTC is 23:00 in Sudan.
+    const night = Date.parse('2026-09-29T21:00:00Z');
+    google.docs.get('companies/c1').usdRateUpdatedAt = hoursAgo(25, night);
+    assert.equal((await relayAt(night).remindUsdRates()).sent, 0);
+    assert.equal(isNightInSudan(Date.parse('2026-09-29T05:59:00Z')), true);
+    assert.equal(isNightInSudan(Date.parse('2026-09-29T06:00:00Z')), false);
+  });
+
+  it('only a company that prices products in dollars', async () => {
+    google.docs.delete('products/p1');
+    assert.equal((await relay.remindUsdRates()).companies, 0);
+  });
+
+  it('only an active company', async () => {
+    google.docs.get('companies/c1').status = 'inactive';
+    assert.equal((await relay.remindUsdRates()).companies, 0);
+  });
+
+  it('leaves out the admins who switched the reminder off', async () => {
+    google.docs.get('users/ca1').pushPrefs = { usdRate: false };
+    const result = await relay.remindUsdRates();
+    assert.equal(result.sent, 2);
+    assert.ok(!google.sent.some((m) => m.token === 'phone-ca1'));
+  });
+
+  it('from two days on it warns that the dollar prices may be wrong', () => {
+    assert.match(usdRateReminderText(3000, 3, 'en').body, /3 days old/);
+    assert.match(usdRateReminderText(3000, 3, 'ar').body, /ممكن تكون غلط/);
+    assert.match(usdRateReminderText(3250.5, 1, 'en').body, /3,250.5 SDG from yesterday/);
+  });
+});
+
+describe('notices to the Platform Admins', () => {
+  beforeEach(() => {
+    const put = (key, data) => google.docs.set(key, data);
+    put('users/admin1', { role: 'platform_admin', isActive: true, language: 'ar', fcmTokens: ['browser-admin1'] });
+    put('users/admin2', { role: 'platform_admin', isActive: true, fcmTokens: ['browser-admin2'] });
+    put('users/adminOff', { role: 'platform_admin', isActive: false, fcmTokens: ['browser-adminOff'] });
+    put('notifications/r1_new_report', {
+      recipientType: 'platform_admin', recipientId: 'platform', reportId: 'r1', type: 'new_report',
+      productName: 'Late delivery', senderId: 'cust1', createdAt: minutesAgo(1),
+    });
+    put('notifications/v1_low_review', {
+      recipientType: 'platform_admin', recipientId: 'platform', reviewId: 'v1', type: 'low_review',
+      productName: 'Printer X', senderId: 'cust1', createdAt: minutesAgo(1),
+    });
+  });
+
+  it('a new report reaches every Platform Admin whose account is on, in their language, and opens the report', async () => {
+    const result = await call({ notificationId: 'r1_new_report' });
+    assert.deepEqual(result.body, { sent: 2, failed: 0 });
+    const byToken = Object.fromEntries(google.sent.map((m) => [m.token, m]));
+    assert.deepEqual(Object.keys(byToken).sort(), ['browser-admin1', 'browser-admin2']);
+    assert.equal(byToken['browser-admin1'].notification.title, 'بلاغ جديد');
+    assert.match(byToken['browser-admin1'].notification.body, /Late delivery/);
+    assert.equal(byToken['browser-admin2'].notification.title, 'New report');
+    assert.deepEqual(byToken['browser-admin2'].data, {
+      type: 'new_report', notificationId: 'r1_new_report', reportId: 'r1', recipientType: 'platform_admin',
+    });
+  });
+
+  it('a low rating names what was rated and opens the review', async () => {
+    const result = await call({ notificationId: 'v1_low_review' });
+    assert.equal(result.body.sent, 2);
+    const message = google.sent.find((m) => m.token === 'browser-admin2');
+    assert.equal(message.notification.title, 'Low rating');
+    assert.match(message.notification.body, /Printer X/);
+    assert.equal(message.data.reviewId, 'v1');
+  });
+
+  it('only for the person who wrote it, and only once', async () => {
+    assert.equal((await call({ notificationId: 'r1_new_report' }, 'token-cust2')).status, 403);
+    await call({ notificationId: 'r1_new_report' });
+    assert.deepEqual((await call({ notificationId: 'r1_new_report' })).body, { skipped: 'already_sent' });
+    assert.equal(google.sent.length, 2);
+  });
+
+  it('goes to nobody when it is not addressed to the whole team', async () => {
+    google.docs.get('notifications/r1_new_report').recipientId = 'admin1';
+    assert.deepEqual((await call({ notificationId: 'r1_new_report' })).body, { sent: 0, failed: 0 });
+  });
+
+  it('follows the reports and platform switches', async () => {
+    google.docs.get('users/admin1').pushPrefs = { reports: false };
+    google.docs.get('users/admin2').pushPrefs = { platform: false };
+    await call({ notificationId: 'r1_new_report' });
+    await call({ notificationId: 'v1_low_review' });
+    assert.deepEqual(google.sent.map((m) => `${m.token}:${m.data.type}`).sort(), [
+      'browser-admin1:low_review',
+      'browser-admin2:new_report',
+    ]);
+  });
+
+  it('both kinds have words in both languages that name the subject', () => {
+    for (const type of ['new_report', 'low_review']) {
+      for (const language of ['ar', 'en']) {
+        const text = orderNotificationText({ type, productName: 'Subject' }, language);
+        assert.ok(text?.title, `${type} ${language}`);
+        assert.match(text.body, /Subject/);
+      }
+    }
+  });
+});
+
+describe('the browser part of every push', () => {
+  it('carries the icon and asks for delivery at once', async () => {
+    await call({ notificationId: 'n1' });
+    for (const message of google.sent) {
+      assert.equal(message.webpush.headers.Urgency, 'high');
+      assert.match(message.webpush.notification.icon, /^https:\/\/.+\.png$/);
+      assert.equal(message.webpush.notification.tag, undefined);
+    }
+  });
+
+  it('keeps one notice per conversation, which a newer message replaces', async () => {
+    await call({ chatId: 'chat1', messageId: 'm1' });
+    assert.ok(google.sent.length > 0);
+    for (const message of google.sent) {
+      assert.equal(message.webpush.notification.tag, 'chat_chat1');
+      assert.equal(message.webpush.notification.renotify, true);
+    }
+  });
+});

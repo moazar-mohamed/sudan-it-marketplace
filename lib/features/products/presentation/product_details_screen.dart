@@ -1,0 +1,462 @@
+import '../../favorites/domain/favorite.dart';
+import '../../favorites/presentation/favorite_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/app_widgets.dart';
+import '../../companies/domain/entities/company.dart';
+import '../../categories/presentation/category_providers.dart';
+import '../../cities/presentation/city_button.dart';
+import '../../cities/presentation/city_providers.dart';
+import '../../cities/presentation/city_tags.dart';
+import '../../chats/presentation/widgets/contact_company_button.dart';
+import '../../companies/presentation/companies_providers.dart';
+import '../../companies/presentation/company_details_screen.dart';
+import '../../orders/presentation/checkout_screen.dart';
+import '../domain/entities/product.dart';
+import 'product_price_strings.dart';
+import 'widgets/product_gallery.dart';
+import '../../offers/presentation/offer_price.dart';
+import 'products_providers.dart';
+import '../../usage/presentation/usage_providers.dart';
+import '../../../core/localization/l10n_extension.dart';
+import '../../reviews/domain/review.dart';
+import '../../reviews/presentation/review_widgets.dart';
+import '../../reviews/presentation/reviews_providers.dart';
+
+class ProductDetailsScreen extends ConsumerStatefulWidget {
+  const ProductDetailsScreen({
+    super.key,
+    required this.product,
+    this.openedFromCompany = false,
+  });
+
+  final Product product;
+  final bool openedFromCompany;
+
+  @override
+  ConsumerState<ProductDetailsScreen> createState() =>
+      _ProductDetailsScreenState();
+}
+
+class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
+  int _quantity = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    // One more view of this product, for the platform's figures (best effort).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(usageTrackerProvider).productViewed(widget.product.id);
+      }
+    });
+  }
+
+  String _formatPrice(double price) {
+    final parts = price.toStringAsFixed(0).split('.');
+    final regExp = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    return parts[0].replaceAllMapped(regExp, (Match m) => '${m[1]},');
+  }
+
+  // Resolves the real Firestore company first (matching the seller shown at
+  // checkout), falling back to the demo catalog only when the product has no
+  // companyId or the id isn't found anywhere.
+  Company? _resolveCompany() {
+    final companyId = widget.product.companyId;
+    if (companyId != null) {
+      final resolved = ref.watch(resolvedCompanyProvider(companyId));
+      if (resolved != null) {
+        return resolved;
+      }
+    }
+    return null;
+  }
+
+  void _onViewCompany(BuildContext context, Company company) {
+    if (widget.openedFromCompany) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => CompanyDetailsScreen(company: company),
+        ),
+      );
+    }
+  }
+
+  void _decrementQuantity() {
+    final current = _effectiveQuantity(_liveProduct);
+    if (current > 1) {
+      setState(() => _quantity = current - 1);
+    }
+  }
+
+  /// The product as the marketplace stands right now. This screen can be
+  /// opened from a stale card or a direct link, so stock is never taken from
+  /// the snapshot it was opened with once the live catalogue is known.
+  Product get _liveProduct => resolveLiveProduct(
+    widget.product,
+    ref.read(firestoreProductsStreamProvider),
+  );
+
+  /// The chosen quantity, kept within what is left (1 when nothing is).
+  int _effectiveQuantity(Product product) {
+    final max = product.maxOrderQuantity;
+    return max < 1 ? 1 : _quantity.clamp(1, max);
+  }
+
+  void _incrementQuantity() {
+    final product = _liveProduct;
+    final current = _effectiveQuantity(product);
+    if (current < product.maxOrderQuantity) {
+      setState(() => _quantity = current + 1);
+    }
+  }
+
+  Future<void> _onBuyNow(BuildContext context) async {
+    final product = _liveProduct;
+    final companyId = product.companyId ?? '';
+    if (!ref.read(companyServesMyCityProvider(companyId))) {
+      // The company does not deliver to the city this order is for: let the
+      // customer choose another one now, and go on if they did.
+      final company = ref.read(resolvedCompanyProvider(companyId));
+      await chooseDeliveryCity(
+        context,
+        ref,
+        servedIds: company?.serviceCityIds ?? const [],
+      );
+      if (!context.mounted ||
+          !ref.read(companyServesMyCityProvider(companyId))) {
+        return;
+      }
+    }
+    if (!product.hasPrice) {
+      return;
+    }
+    if (!product.isAvailable) {
+      showAppSnackBar(
+        context,
+        context.l10n.stockOutOfStock(product.name),
+        tone: AppTone.error,
+      );
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CheckoutScreen(
+          product: product,
+          quantity: _effectiveQuantity(product),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final matchedCompany = _resolveCompany();
+    final stock = resolveLiveProduct(
+      widget.product,
+      ref.watch(firestoreProductsStreamProvider),
+    );
+    final quantity = _effectiveQuantity(stock);
+    // The offer price while an offer runs.
+    final unitPrice = stock.salePrice;
+    final totalPrice = unitPrice == null ? null : unitPrice * quantity;
+    final servesMyCity = ref.watch(
+      companyServesMyCityProvider(widget.product.companyId ?? ''),
+    );
+    // A company that does not deliver to the chosen city can still be bought
+    // from: the button asks for another delivery city first.
+    final canBuy = stock.isAvailable && stock.hasPrice;
+    final contactCompanyId = widget.product.companyId ?? '';
+    final canContact = contactCompanyId.isNotEmpty;
+    final categoryName =
+        ref
+            .watch(categoryPathNamesProvider)[widget.product.categoryId]
+            ?.trim() ??
+        '';
+    final companyName = widget.product.companyName ?? '';
+    final specs = widget.product.specifications.entries.toList();
+    final description = widget.product.description?.trim() ?? '';
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final margin = AppSpacing.screenMargin(screenWidth);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.product.name),
+        actions: [
+          FavoriteButton(
+            kind: FavoriteKind.product,
+            targetId: widget.product.id,
+            name: widget.product.name,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(
+          margin,
+          AppSpacing.s16,
+          margin,
+          AppSpacing.s24,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ProductGallery(
+                  urls: widget.product.imageUrls,
+                  overlay: PositionedDirectional(
+                    top: AppSpacing.s12,
+                    start: AppSpacing.s12,
+                    child: StatusChip(
+                      label: stock.isAvailable
+                          ? context.l10n.productInStockCount(stock.stockCount)
+                          : context.l10n.productOutOfStock,
+                      tone: stock.isAvailable
+                          ? AppTone.success
+                          : AppTone.error,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s16),
+                Text(widget.product.name, style: AppTextStyles.h2),
+                const SizedBox(height: AppSpacing.s4),
+                RatingLine(
+                  ratingsKey: RatingStats.productKey(widget.product.id),
+                ),
+                if (categoryName.isNotEmpty ||
+                    widget.product.brand.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.s8),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Wrap(
+                      spacing: AppSpacing.s8,
+                      runSpacing: AppSpacing.s4,
+                      children: [
+                        if (widget.product.brand.isNotEmpty)
+                          StatusChip(
+                            key: const ValueKey('product-brand'),
+                            label: widget.product.brand,
+                            tone: AppTone.neutral,
+                            showDot: false,
+                          ),
+                        if (categoryName.isNotEmpty)
+                          StatusChip(
+                            label: categoryName,
+                            tone: AppTone.brand,
+                            showDot: false,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.s8),
+                // A product without a price says so; it is never shown as 0.
+                ProductOfferPrice(
+                  product: stock,
+                  style: unitPrice == null
+                      ? AppTextStyles.h2
+                      : AppTextStyles.stat,
+                ),
+                if (stock.hasActiveOffer && stock.offerEndsAt != null) ...[
+                  const SizedBox(height: AppSpacing.s4),
+                  Text(
+                    context.l10n.offerEndsOn(
+                      MaterialLocalizations.of(context)
+                          .formatMediumDate(stock.offerEndsAt!),
+                    ),
+                    style: AppTextStyles.caption.copyWith(
+                      color: context.colors.errorText,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.s16),
+                if (widget.product.companyId != null &&
+                    widget.product.companyId!.isNotEmpty) ...[
+                  DeliveryCityBanner(companyId: widget.product.companyId!),
+                  if (!servesMyCity ||
+                      ref.watch(deliveryCityOverrideProvider) != null)
+                    const SizedBox(height: AppSpacing.s16),
+                ],
+                if (matchedCompany != null || companyName.isNotEmpty) ...[
+                  AppListCard(
+                    onTap: matchedCompany != null
+                        ? () => _onViewCompany(context, matchedCompany)
+                        : null,
+                    showChevron: matchedCompany != null,
+                    leading: AppImageTile(
+                      imageUrl: matchedCompany?.logoUrl,
+                      fallbackText: companyName.isNotEmpty ? companyName : 'C',
+                      size: 48,
+                    ),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          companyName.isNotEmpty
+                              ? companyName
+                              : matchedCompany?.name ??
+                                    context.l10n.productVerifiedSeller,
+                          style: AppTextStyles.bodyStrong,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (matchedCompany != null ||
+                            (widget.product.companyId ?? '').isNotEmpty)
+                          RatingLine(
+                            ratingsKey: RatingStats.companyKey(
+                              matchedCompany?.id ?? widget.product.companyId!,
+                            ),
+                            fallbackAverage: matchedCompany?.rating ?? 0,
+                            fallbackCount: matchedCompany?.reviewCount ?? 0,
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s16),
+                ],
+                if (widget.product.isInstallationAvailable) ...[
+                  AppBanner(
+                    tone: AppTone.info,
+                    icon: Icons.handyman_outlined,
+                    title: context.l10n.productInstallationAvailable,
+                    message: context.l10n.productInstallationNote(
+                      _formatPrice(widget.product.installationPrice ?? 0),
+                      widget.product.currency,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s20),
+                ],
+                if (description.isNotEmpty) ...[
+                  Text(
+                    context.l10n.productDescription,
+                    style: AppTextStyles.h3,
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                  Text(description, style: AppTextStyles.body),
+                  const SizedBox(height: AppSpacing.s20),
+                ],
+                if (specs.isNotEmpty) ...[
+                  Text(
+                    context.l10n.productSpecifications,
+                    style: AppTextStyles.h3,
+                  ),
+                  const SizedBox(height: AppSpacing.s8),
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.s16,
+                      vertical: AppSpacing.s6,
+                    ),
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < specs.length; i++) ...[
+                          KeyValueRow(
+                            label: specs[i].key,
+                            value: specs[i].value,
+                          ),
+                          if (i < specs.length - 1) const Divider(height: 1),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s24),
+                ],
+                // What customers who bought it said (nothing until rated).
+                ReviewsSection(
+                  provider: targetReviewsProvider(widget.product.id),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      // Sticky bar: quantity and total, then "Contact" next to the buy
+      // action (two rows, so both buttons keep a full label on a phone).
+      bottomNavigationBar: AppBottomBar(
+        padding: EdgeInsets.symmetric(
+          horizontal: margin,
+          vertical: AppSpacing.s12,
+        ),
+        child: Center(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    AppQuantityStepper(
+                      value: quantity,
+                      canDecrement: quantity > 1,
+                      canIncrement: quantity < stock.maxOrderQuantity,
+                      onDecrement: _decrementQuantity,
+                      onIncrement: _incrementQuantity,
+                    ),
+                    const SizedBox(width: AppSpacing.s12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (totalPrice != null)
+                            Text(
+                              context.l10n.orderTotal,
+                              style: AppTextStyles.caption.copyWith(
+                                color: context.colors.textSecondary,
+                              ),
+                            ),
+                          Text(
+                            totalPrice == null
+                                ? ProductPriceStrings.priceOnRequest(context)
+                                : '${_formatPrice(totalPrice)} '
+                                      '${widget.product.currency}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.h3,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                Row(
+                  children: [
+                    if (canContact) ...[
+                      Expanded(
+                        child: ContactCompanyButton.product(
+                          companyId: contactCompanyId,
+                          companyName: matchedCompany?.name ?? companyName,
+                          productId: stock.id,
+                          productName: stock.name,
+                          // Without a price (or stock) nothing can be bought
+                          // online, so asking the company is the way on.
+                          primary: !canBuy,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.s12),
+                    ],
+                    Expanded(
+                      child: AppButton.primary(
+                        icon: Icons.shopping_bag_outlined,
+                        onPressed: canBuy ? () => _onBuyNow(context) : null,
+                        label: context.l10n.productBuyNow,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
