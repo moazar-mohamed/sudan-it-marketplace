@@ -683,4 +683,5 @@ export const EN: Record<string, string> = {
   "جارٍ تحميل الإيصال…": "Loading the receipt\u2026",
   "جارٍ فتح المحادثة…": "Opening the chat\u2026",
   "جارٍ تغيير اللغة…": "Changing the language\u2026",
+  "لا توجد خدمات في هذا القسم حالياً، تابعنا قريباً": "There are no services in this category yet. Check back soon.",
 };

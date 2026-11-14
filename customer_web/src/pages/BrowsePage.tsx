@@ -15,7 +15,7 @@ import {
   filtersActive,
   sortProducts,
 } from '../data/browse';
-import type { BrowseFilters, BrowseKind, ProductSort } from '../data/browse';
+import type { BrowseFilters, ProductSort } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
 import { categoryColor, categoryName, productsCount, servicesCount } from '../data/format';
 import { narrowListings, narrowProducts } from '../data/pageSearch';
@@ -51,17 +51,12 @@ const SORTS: { value: ProductSort; label: string }[] = [
   { value: 'topRated', label: t('الأعلى تقييمًا') },
 ];
 
-const KINDS: { value: BrowseKind; label: string }[] = [
-  { value: 'all', label: t('الكل') },
-  { value: 'products', label: t('المنتجات') },
-  { value: 'services', label: t('الخدمات') },
-];
-
 /** The filters live in the address, so a list can be shared and Back restores it. */
 function readFilters(p: URLSearchParams): BrowseFilters {
   const kind = p.get('kind');
   return {
-    kind: kind === 'products' || kind === 'services' ? kind : 'all',
+    // Products and services have a tab each: no kind means products.
+    kind: kind === 'services' ? 'services' : 'products',
     offers: p.get('offers') === '1',
     inStock: p.get('stock') === '1',
     delivery: p.get('delivery') === '1',
@@ -148,8 +143,8 @@ export function BrowsePage() {
     saveProductView(next);
   };
 
-  const hasBoth = products.length > 0 && listings.length > 0;
-  const nothingHere = products.length === 0 && listings.length === 0;
+  // Each tab is empty on its own: products on one, services on the other.
+  const nothingHere = filters.kind === 'services' ? listings.length === 0 : products.length === 0;
   const nothingMatches = shownProducts.length === 0 && shownListings.length === 0;
 
   // Every active category is offered, an empty one too.
@@ -160,6 +155,8 @@ export function BrowsePage() {
   const children = id ? shownChildren(id) : [];
   const chipParent = children.length > 0 ? (id ?? null) : (current?.parentId ?? null);
   const chips = children.length > 0 ? children : current?.parentId ? shownChildren(current.parentId) : [];
+  // Moving between categories stays on the tab the customer is in.
+  const kindQuery = filters.kind === 'services' ? '?kind=services' : '';
   const title = current
     ? categoryName(current)
     : filters.kind === 'services' ? t('الخدمات')
@@ -197,7 +194,7 @@ export function BrowsePage() {
       <h1 className="sr-only">{title}</h1>
 
       <nav className="cat-strip" aria-label={t('الأقسام')}>
-        <Link to="/browse" className={`cat${id ? '' : ' on'}`}>
+        <Link to={`/browse${kindQuery}`} className={`cat${id ? '' : ' on'}`}>
           <Icon d={PATHS.grid} size={24} />
           <span>{t('كل الأقسام')}</span>
         </Link>
@@ -205,7 +202,7 @@ export function BrowsePage() {
           const on = path[0]?.id === c.id;
           const color = categoryColor(c);
           return (
-            <Link key={c.id} to={`/category/${c.id}`} className={`cat${on ? ' on' : ''}`} style={on ? undefined : { background: `${color}1f` }}>
+            <Link key={c.id} to={`/category/${c.id}${kindQuery}`} className={`cat${on ? ' on' : ''}`} style={on ? undefined : { background: `${color}1f` }}>
               <CategoryGlyph category={c} size={26} />
               <span>{categoryName(c)}</span>
             </Link>
@@ -217,11 +214,11 @@ export function BrowsePage() {
 
       {chips.length > 0 && (
         <div className="scroll-row">
-          <Link to={`/category/${chipParent}`} className={`chip-link small${chipParent === id ? ' on' : ''}`}>
+          <Link to={`/category/${chipParent}${kindQuery}`} className={`chip-link small${chipParent === id ? ' on' : ''}`}>
             {t('كل القسم')}{chipParent && counts ? ` (${countTotal(counts.get(chipParent))})` : ''}
           </Link>
           {chips.map((c) => (
-            <Link key={c.id} to={`/category/${c.id}`} className={`chip-link small${c.id === id ? ' on' : ''}`}>
+            <Link key={c.id} to={`/category/${c.id}${kindQuery}`} className={`chip-link small${c.id === id ? ' on' : ''}`}>
               {categoryName(c)}{counts ? ` (${countTotal(counts.get(c.id))})` : ''}
             </Link>
           ))}
@@ -229,7 +226,7 @@ export function BrowsePage() {
       )}
 
       {nothingHere ? (
-        <EmptyState title={id ? t('لا توجد منتجات في هذا القسم حالياً، تابعنا قريباً') : t('لا يوجد شيء هنا بعد.')} />
+        <EmptyState title={id ? (filters.kind === 'services' ? t('لا توجد خدمات في هذا القسم حالياً، تابعنا قريباً') : t('لا توجد منتجات في هذا القسم حالياً، تابعنا قريباً')) : t('لا يوجد شيء هنا بعد.')} />
       ) : (
         <section className="results" aria-label={t('النتائج')}>
           <label className="page-search">
@@ -245,17 +242,6 @@ export function BrowsePage() {
             />
           </label>
           <div className="scroll-row filter-row" role="group" aria-label={t('الفلاتر')}>
-            {hasBoth && KINDS.map((k) => (
-              <button
-                key={k.value}
-                className={`filter-pill${filters.kind === k.value ? ' on' : ''}`}
-                aria-pressed={filters.kind === k.value}
-                onClick={() => setValue('kind', k.value === 'all' ? '' : k.value)}
-              >
-                {k.label}
-              </button>
-            ))}
-            {hasBoth && <span className="filter-gap" />}
             {toggles.filter((t) => t.shown).map((t) => (
               <button key={t.key} className={`filter-pill${t.on ? ' on' : ''}`} aria-pressed={t.on} onClick={() => setValue(t.key, t.on ? '' : '1')}>
                 {t.label}
