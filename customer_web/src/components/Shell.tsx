@@ -25,6 +25,9 @@ export function Shell() {
   const uid = profile?.id ?? null;
   const chats = useConversations(uid ?? '').items?.filter(isUnread).length ?? 0;
   const { pathname, search } = useLocation();
+  // The products and the services tabs share one page: the kind in the address says which.
+  const browsing = pathname.startsWith('/browse') || pathname.startsWith('/category/');
+  const browseKind = new URLSearchParams(search).get('kind') === 'services' ? 'services' : 'products';
   const unread = notifications?.filter((n) => !n.isRead).length ?? 0;
   const close = useCallback(() => setOpen(false), []);
   const navigate = useNavigate();
@@ -68,7 +71,8 @@ export function Shell() {
   const links = (
     <>
       <NavLink to="/" end className={linkClass}>{t('الرئيسية')}</NavLink>
-      <NavLink to="/browse" className={linkClass}>{t('المنتجات والخدمات')}</NavLink>
+      <NavLink to="/browse" className={() => (browsing && browseKind === 'products' ? 'active' : '')}>{t('المنتجات')}</NavLink>
+      <NavLink to="/browse?kind=services" className={() => (browsing && browseKind === 'services' ? 'active' : '')}>{t('الخدمات')}</NavLink>
       <NavLink to="/companies" className={linkClass}>{t('الشركات')}</NavLink>
       {uid && <NavLink to="/orders" className={linkClass}>{t('طلباتي')}</NavLink>}
       {uid && (
