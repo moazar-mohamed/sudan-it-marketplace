@@ -13,6 +13,7 @@ import { featuredServices } from '../data/featuredServices';
 import { categoryName, hasActiveOffer, itemsCount } from '../data/format';
 import { siteStats } from '../data/homeStats';
 import type { StatKey } from '../data/homeStats';
+import { workingQuickWords } from '../data/quickWords';
 import type { Product } from '../data/types';
 import { t } from '../i18n';
 
@@ -23,13 +24,20 @@ const STAT_LABELS: Record<StatKey, () => string> = {
   reviews: () => t('تقييمات العملاء'),
 };
 
-/** What the hero offers to search for in one press. */
-const quickWords = (): string[] => ['Cisco', t('راوتر'), t('كاميرات'), 'UPS', t('سيرفر')];
+/**
+ * Words the hero may offer to search for in one press, best first. Only those that find
+ * something in the live catalog are shown (see workingQuickWords), so a press never lands
+ * on "No results" whatever the companies currently sell.
+ */
+const quickWordCandidates = (): string[] => [
+  t('طابعة'), 'HP', 'Cisco', t('راوتر'), t('كاميرات'), 'UPS', t('سيرفر'), t('لابتوب'),
+  'Dell', 'Lenovo', 'Canon', 'Brother', t('حبر'), t('صيانة'), t('تركيب'),
+];
 
 const searchPath = (q: string): string => (q.trim() === '' ? '/search' : `/search?q=${encodeURIComponent(q.trim())}`);
 
 export function HomePage() {
-  const { tree, products, listings, companies, ratings, counts, servingIds, loading, error } = useCatalog();
+  const { tree, products, services, listings, companies, ratings, counts, servingIds, loading, error } = useCatalog();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   if (error) return <main className="stack"><ErrorState /></main>;
@@ -49,6 +57,7 @@ export function HomePage() {
     .slice(0, 6);
   const stats = loading ? [] : siteStats(companies, products.length + listings.length, ratings);
   const featured = loading ? [] : featuredServices(listings);
+  const quickWords = loading ? [] : workingQuickWords(quickWordCandidates(), { tree, products, services, companies });
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -74,11 +83,13 @@ export function HomePage() {
             />
             <button type="submit" className="hero-search-btn">{t('بحث')}</button>
           </form>
-          <div className="hero-chips">
-            {quickWords().map((w) => (
-              <Link key={w} to={searchPath(w)} className="chip chip-quick">{w}</Link>
-            ))}
-          </div>
+          {quickWords.length > 0 && (
+            <div className="hero-chips">
+              {quickWords.map((w) => (
+                <Link key={w} to={searchPath(w)} className="chip chip-quick">{w}</Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

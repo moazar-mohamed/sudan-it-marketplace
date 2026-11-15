@@ -688,4 +688,11 @@ export const EN: Record<string, string> = {
   "واتساب": "WhatsApp",
   "فيسبوك": "Facebook",
   "مرحباً، أتواصل معكم من موقع sictm.net": "Hello, I'm contacting you from sictm.net",
+  "بوابة الفني": "Technician portal",
+  "طابعة": "Printer",
+  "لابتوب": "Laptop",
+  "حبر": "Toner",
+  "صيانة": "Maintenance",
+  "الصفحة غير موجودة": "Page not found",
+  "ربما تغيّر الرابط أو حُذفت الصفحة. جرّب إحدى هذه:": "The link may have changed or the page was removed. Try one of these:",
 };
