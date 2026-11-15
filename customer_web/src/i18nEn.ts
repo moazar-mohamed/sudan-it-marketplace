@@ -684,4 +684,8 @@ export const EN: Record<string, string> = {
   "جارٍ فتح المحادثة…": "Opening the chat\u2026",
   "جارٍ تغيير اللغة…": "Changing the language\u2026",
   "لا توجد خدمات في هذا القسم حالياً، تابعنا قريباً": "There are no services in this category yet. Check back soon.",
+  "تواصل معنا": "Contact us",
+  "واتساب": "WhatsApp",
+  "فيسبوك": "Facebook",
+  "مرحباً، أتواصل معكم من موقع sictm.net": "Hello, I'm contacting you from sictm.net",
 };

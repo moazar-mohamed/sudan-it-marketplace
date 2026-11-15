@@ -917,4 +917,9 @@ export const EN: Record<string, string> = {
   "حدّد سعر الدولار أولًا (من صفحة أي منتج اختر «بالدولار») قبل استيراد أسعار بالدولار": "Set your dollar rate first (on any product, pick “In dollars”) before importing prices in dollars",
   "حدّد سعر الدولار أولًا.": "Set your dollar rate first.",
   "التسعير بالدولار يحتاج سعر الدولار أولًا. حدّده مرة واحدة وتتحدّث به كل أسعارك بالدولار.": "Dollar pricing needs your dollar rate first. Set it once and all your dollar prices follow it.",
+  "سوق السودان للتقنية": "Sudan ICT Marketplace",
+  "لا تملك حساب شركة؟": "Don't have a company account?",
+  "تواصل معنا عبر واتساب لتسجيل شركتك": "Contact us on WhatsApp to register your company",
+  "العودة إلى sictm.net": "Back to sictm.net",
+  "مرحباً، أريد تسجيل شركتي في سوق السودان للتقنية (sictm.net).": "Hello, I'd like to register my company on Sudan ICT Marketplace (sictm.net).",
 };
