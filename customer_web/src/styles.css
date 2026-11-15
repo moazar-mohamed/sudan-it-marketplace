@@ -549,12 +549,14 @@ a.tile.order-card:hover { box-shadow: var(--shadow); }
 .footer-about p { margin: 14px 0 0; max-width: 320px; color: rgba(234, 240, 250, 0.72); font-size: 14px; line-height: 1.9; }
 .footer-links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 32px; font-size: 14px; font-weight: 600; }
 .brand-ico { width: 20px; height: 20px; flex: none; }
-.footer-links a.footer-wa { display: inline-grid; grid-template-columns: auto auto; justify-content: start; align-items: center; gap: 4px 8px; align-self: flex-start; max-width: 100%; padding: 8px 12px; border-radius: 12px; background: #25d366; color: #fff; font-weight: 700; text-decoration: none; }
-.footer-wa-num { grid-column: 1 / -1; white-space: nowrap; font-size: 13px; font-weight: 600; }
-.footer-links a.footer-wa:hover { filter: brightness(0.95); text-decoration: none; }
-.footer-social { display: flex; gap: 10px; }
-.footer-links .footer-social a { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); color: #fff; }
-.footer-links .footer-social a:hover { background: rgba(255, 255, 255, 0.2); text-decoration: none; }
+.footer-social { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+.footer-links .footer-social a { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; }
+.footer-links .footer-social a:hover { text-decoration: none; }
+.soc-ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); flex: none; transition: background 0.15s, filter 0.15s; }
+.soc-ico.wa { background: #25d366; }
+.footer-social a:hover .soc-ico { background: rgba(255, 255, 255, 0.2); }
+.footer-social a:hover .soc-ico.wa { background: #25d366; filter: brightness(0.92); }
+.soc-num { white-space: nowrap; font-weight: 700; }
 .footer-col { display: flex; flex-direction: column; gap: 12px; }
 .footer-col h3 { margin: 0 0 6px; padding-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.14); font-size: 14px; font-weight: 800; color: #7bd3f2; }
 .footer-links a { color: rgba(234, 240, 250, 0.82); transition: color 0.15s; }
@@ -562,6 +564,8 @@ a.tile.order-card:hover { box-shadow: var(--shadow); }
 .footer-note { margin-top: 40px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.14); color: rgba(234, 240, 250, 0.62); font-size: 13px; }
 /* Four link columns need a wide screen; below that they sit two by two so each has room. */
 @media (max-width: 1180px) { .footer-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* On a phone the contact icons get the full width, so they stay on one line. */
+@media (max-width: 560px) { .footer-contact { grid-column: 1 / -1; } }
 @media (max-width: 860px) { .footer-main { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .footer-inner { padding: 32px 20px 18px; } .footer-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 

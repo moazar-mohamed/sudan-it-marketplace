@@ -202,25 +202,23 @@ function SiteFooter() {
           </div>
           <div className="footer-col footer-contact">
             <h3>{t('تواصل معنا')}</h3>
-            <a className="footer-wa" href={whatsappLink} target="_blank" rel="noopener noreferrer">
-              <BrandIcon d={BRAND_PATHS.whatsapp} />
-              <span>{t('واتساب')}</span>
-              <span className="footer-wa-num" dir="ltr">{CONTACT.whatsappShown}</span>
-            </a>
-            {(CONTACT.facebook || CONTACT.x) && (
-              <div className="footer-social">
-                {CONTACT.facebook && (
-                  <a href={CONTACT.facebook} target="_blank" rel="noopener noreferrer" aria-label={t('فيسبوك')} title={t('فيسبوك')}>
-                    <BrandIcon d={BRAND_PATHS.facebook} />
-                  </a>
-                )}
-                {CONTACT.x && (
-                  <a href={CONTACT.x} target="_blank" rel="noopener noreferrer" aria-label="X" title="X">
-                    <BrandIcon d={BRAND_PATHS.x} />
-                  </a>
-                )}
-              </div>
-            )}
+            {/* All the ways to reach us on one line: WhatsApp (with its number), then Facebook and X. */}
+            <div className="footer-social">
+              <a href={whatsappLink} target="_blank" rel="noopener noreferrer" aria-label={`${t('واتساب')} ${CONTACT.whatsappShown}`} title={t('واتساب')}>
+                <span className="soc-ico wa"><BrandIcon d={BRAND_PATHS.whatsapp} /></span>
+                <span className="soc-num" dir="ltr">{CONTACT.whatsappShown}</span>
+              </a>
+              {CONTACT.facebook && (
+                <a href={CONTACT.facebook} target="_blank" rel="noopener noreferrer" aria-label={t('فيسبوك')} title={t('فيسبوك')}>
+                  <span className="soc-ico"><BrandIcon d={BRAND_PATHS.facebook} /></span>
+                </a>
+              )}
+              {CONTACT.x && (
+                <a href={CONTACT.x} target="_blank" rel="noopener noreferrer" aria-label="X" title="X">
+                  <span className="soc-ico"><BrandIcon d={BRAND_PATHS.x} /></span>
+                </a>
+              )}
+            </div>
           </div>
         </nav>
       </div>
