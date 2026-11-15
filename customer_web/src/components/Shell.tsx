@@ -199,6 +199,7 @@ function SiteFooter() {
             <h3>{t('الدعم والشركات')}</h3>
             <Link to="/terms">{t('الشروط والأحكام')}</Link>
             <a href="https://company.sictm.net" target="_blank" rel="noopener noreferrer">{t('بوابة الشركات')}</a>
+            <a href="https://tech.sictm.net" target="_blank" rel="noopener noreferrer">{t('بوابة الفني')}</a>
           </div>
           <div className="footer-col footer-contact">
             <h3>{t('تواصل معنا')}</h3>
