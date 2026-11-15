@@ -145,7 +145,7 @@ export function Shell() {
 const CONTACT = {
   whatsapp: '249118424422',
   whatsappShown: '+249 118 424 422',
-  facebook: '',
+  facebook: 'https://www.facebook.com/profile.php?id=61568138772820',
   x: '',
 };
 
