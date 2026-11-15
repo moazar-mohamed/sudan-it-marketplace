@@ -549,13 +549,14 @@ a.tile.order-card:hover { box-shadow: var(--shadow); }
 .footer-about p { margin: 14px 0 0; max-width: 320px; color: rgba(234, 240, 250, 0.72); font-size: 14px; line-height: 1.9; }
 .footer-links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 32px; font-size: 14px; font-weight: 600; }
 .brand-ico { width: 20px; height: 20px; flex: none; }
-.footer-social { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+.footer-social { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .footer-links .footer-social a { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; }
 .footer-links .footer-social a:hover { text-decoration: none; }
 .soc-ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); flex: none; transition: background 0.15s, filter 0.15s; }
 .soc-ico.wa { background: #25d366; }
-.footer-social a:hover .soc-ico { background: rgba(255, 255, 255, 0.2); }
-.footer-social a:hover .soc-ico.wa { background: #25d366; filter: brightness(0.92); }
+.soc-ico.fb { background: #1877f2; }
+.soc-ico.xx { background: #0f1419; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25); }
+.footer-social a:hover .soc-ico { filter: brightness(1.12); }
 .soc-num { white-space: nowrap; font-weight: 700; }
 .footer-col { display: flex; flex-direction: column; gap: 12px; }
 .footer-col h3 { margin: 0 0 6px; padding-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.14); font-size: 14px; font-weight: 800; color: #7bd3f2; }

@@ -202,7 +202,7 @@ function SiteFooter() {
           </div>
           <div className="footer-col footer-contact">
             <h3>{t('تواصل معنا')}</h3>
-            {/* All the ways to reach us on one line: WhatsApp (with its number), then Facebook and X. */}
+            {/* The ways to reach us, one under the other: WhatsApp (with its number), then Facebook and X. */}
             <div className="footer-social">
               <a href={whatsappLink} target="_blank" rel="noopener noreferrer" aria-label={`${t('واتساب')} ${CONTACT.whatsappShown}`} title={t('واتساب')}>
                 <span className="soc-ico wa"><BrandIcon d={BRAND_PATHS.whatsapp} /></span>
@@ -210,12 +210,14 @@ function SiteFooter() {
               </a>
               {CONTACT.facebook && (
                 <a href={CONTACT.facebook} target="_blank" rel="noopener noreferrer" aria-label={t('فيسبوك')} title={t('فيسبوك')}>
-                  <span className="soc-ico"><BrandIcon d={BRAND_PATHS.facebook} /></span>
+                  <span className="soc-ico fb"><BrandIcon d={BRAND_PATHS.facebook} /></span>
+                  <span className="soc-num">{t('فيسبوك')}</span>
                 </a>
               )}
               {CONTACT.x && (
                 <a href={CONTACT.x} target="_blank" rel="noopener noreferrer" aria-label="X" title="X">
-                  <span className="soc-ico"><BrandIcon d={BRAND_PATHS.x} /></span>
+                  <span className="soc-ico xx"><BrandIcon d={BRAND_PATHS.x} /></span>
+                  <span className="soc-num">X</span>
                 </a>
               )}
             </div>
