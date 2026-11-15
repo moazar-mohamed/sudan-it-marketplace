@@ -160,9 +160,10 @@ export function ProductPage() {
           <div className="buy-box">
             <div className="buy-row">
               <div className="stepper" role="group" aria-label={t('الكمية')}>
-                <button aria-label={t('زيادة الكمية')} disabled={qty >= max} onClick={() => setQuantity(qty + 1)}>+</button>
-                <output aria-live="polite">{qty}</output>
+                {/* Laid out left to right in both languages (see .stepper): − on the left, + on the right. */}
                 <button aria-label={t('تقليل الكمية')} disabled={qty <= 1} onClick={() => setQuantity(qty - 1)}>−</button>
+                <output aria-live="polite">{qty}</output>
+                <button aria-label={t('زيادة الكمية')} disabled={qty >= max} onClick={() => setQuantity(qty + 1)}>+</button>
               </div>
               <span className="total">
                 {total !== null && <span className="pmeta">{t('الإجمالي')}</span>}

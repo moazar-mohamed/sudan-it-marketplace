@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { useAuth } from './auth';
 import { AccountGate } from './components/AccountGate';
 import { AutoUpdate } from './components/AutoUpdate';
@@ -26,6 +26,7 @@ const OrdersPage = lazy(() => import('./pages/OrdersPage').then((m) => ({ defaul
 const ProductPage = lazy(() => import('./pages/ProductPage').then((m) => ({ default: m.ProductPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then((m) => ({ default: m.RegisterPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 const MyReportsPage = lazy(() => import('./pages/ReportsPages').then((m) => ({ default: m.MyReportsPage })));
 const ReportFormPage = lazy(() => import('./pages/ReportsPages').then((m) => ({ default: m.ReportFormPage })));
 const RequestDetailsPage = lazy(() => import('./pages/RequestDetailsPage').then((m) => ({ default: m.RequestDetailsPage })));
@@ -73,7 +74,7 @@ function SiteRoutes() {
             <Route path="service-request" element={<ServiceRequestPage />} />
             <Route path="requests/:id" element={<RequestDetailsPage />} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </CompareProvider>
