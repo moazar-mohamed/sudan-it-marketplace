@@ -12,6 +12,7 @@ import { mapsPointUrl, mapsSearchUrl } from '../data/maps';
 import { cancelledLines, isAwaitingVerification, loadReceipt, ORDER_STATUS, paymentLabel, shortOrderId } from '../data/orders';
 import { displayPhone } from '../data/phone';
 import { orderReviewSubject } from '../data/reviews';
+import { techChatUnread, useTechChat } from '../data/techChat';
 import type { Order, OrderStatus } from '../data/types';
 import { cityName } from '../data/cities';
 import { t } from '../i18n';
@@ -142,6 +143,27 @@ function OpenChatButton({ order }: { order: Order }) {
   );
 }
 
+/** The technician the company sent, with the way to message them (only once one is assigned). */
+function TechnicianRow({ order }: { order: Order }) {
+  const { chat } = useTechChat(order.id);
+  if (order.technicianId === null) return null;
+  const name = order.technicianName.trim();
+  return (
+    <div className="tech-row">
+      <Icon d={PATHS.wrench} size={18} />
+      <span className="grow">
+        <strong>{name || t('الفني')}</strong>
+        <span className="pmeta" style={{ display: 'block' }}>{t('الفني الذي أرسلته الشركة لطلبك')}</span>
+      </span>
+      {techChatUnread(chat) && <span className="chat-dot" role="img" aria-label={t('رسالة جديدة من الفني')} />}
+      <Link to={`/orders/${order.id}/technician`} className="btn-line">
+        <Icon d={PATHS.chat} size={18} />
+        {t('تواصل مع الفني')}
+      </Link>
+    </div>
+  );
+}
+
 export function OrderDetailsPage() {
   const { id = '' } = useParams();
   const [params] = useSearchParams();
@@ -202,6 +224,7 @@ export function OrderDetailsPage() {
       <section className="tile">
         <h2>{t('التواصل')}</h2>
         <OpenChatButton order={order} />
+        <TechnicianRow order={order} />
       </section>
 
       <section className="tile">
