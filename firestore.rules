@@ -1917,9 +1917,13 @@ service cloud.firestore {
 
       allow update: if isOwnTechnicianAvailabilityUpdate();
 
-      // Removed together with a deleted company (never on their own).
-      allow delete: if isPlatformAdmin()
-        && companyIsGoneAfter(resource.data.get('companyId', ''));
+      // Removed by their own company (the owner's choice, 2026-11-14): with
+      // no record the app and the portal both refuse the technician, while
+      // past orders keep their technicianName. Platform Admin also removes
+      // them together with a deleted company.
+      allow delete: if isCompanyAdminOf(resource.data.companyId)
+        || (isPlatformAdmin()
+          && companyIsGoneAfter(resource.data.get('companyId', '')));
     }
 
     // Legacy technician invitations from the retired invite/claim flow.
@@ -3688,6 +3692,159 @@ service cloud.firestore {
           && request.resource.data.text.size() <= 2000
           && request.resource.data.createdAt == request.time
           && getAfter(/databases/$(database)/documents/jobChats/$(chatId))
+            .data.get('lastMessageId', '') == messageId;
+
+        allow update, delete: if false;
+      }
+    }
+
+    // The conversation between an order's customer and the technician the
+    // company sent for it (2026-11-14): one per order, with the order's id.
+    // The two of them write in it from the assignment until the order is
+    // completed or cancelled; after that it stays readable. Only the order's
+    // technician now takes part: a technician the job was taken from loses
+    // it, and the new one sees what was said. The order's company admins
+    // read it (they answer for the job) but never write in it. Platform Admin
+    // has no access, as with the other conversations. No phone number is in
+    // it: the customer talks to the technician without learning their number.
+    function isCustomerTechChatWriter(orderId) {
+      let order = jobOrder(orderId);
+      return order.technicianId is string
+        && order.technicianId.size() > 0
+        && (order.customerId == request.auth.uid || isTechnicianOfOrder(order));
+    }
+
+    function isCustomerTechChatOpen(orderId) {
+      return !(jobOrder(orderId).orderStatus in ['completed', 'cancelled']);
+    }
+
+    function customerTechChatRoleOf(orderId) {
+      return jobOrder(orderId).customerId == request.auth.uid
+        ? 'customer'
+        : 'technician';
+    }
+
+    function customerTechChatReadKey(orderId) {
+      return customerTechChatRoleOf(orderId) == 'customer'
+        ? 'customerLastReadAt'
+        : 'technicianLastReadAt';
+    }
+
+    function customerTechChatDoc(chatId) {
+      return get(/databases/$(database)/documents/customerTechChats/$(chatId)).data;
+    }
+
+    function isCustomerTechChatReader(chat, orderId) {
+      return chat.customerId == request.auth.uid
+        || isCompanyAdminOf(chat.companyId)
+        || isTechnicianOfOrder(jobOrder(orderId));
+    }
+
+    function isCustomerTechChatPublish(chatId, data) {
+      let messagePath = /databases/$(database)/documents/customerTechChats/$(chatId)/messages/$(data.lastMessageId);
+      return isCustomerTechChatOpen(chatId)
+        && data.lastMessageId is string
+        && data.lastMessageId.size() > 0
+        && data.lastMessageAt == request.time
+        && data.updatedAt == request.time
+        && data.lastMessageSenderRole == customerTechChatRoleOf(chatId)
+        && !exists(messagePath)
+        && existsAfter(messagePath)
+        && getAfter(messagePath).data.senderId == request.auth.uid
+        && getAfter(messagePath).data.text == data.lastMessageText;
+    }
+
+    match /customerTechChats/{chatId} {
+      allow get: if isSignedIn()
+        && isCustomerTechChatReader(resource.data, chatId);
+
+      // The customer's own list, and the company's (no technician list: a
+      // technician opens each job's conversation from the job).
+      allow list: if isSignedIn()
+        && (resource.data.customerId == request.auth.uid
+          || isCompanyAdminOf(resource.data.companyId));
+
+      // Written together with its first message.
+      allow create: if isSignedIn()
+        && callerIsNotDeactivated()
+        && isCustomerTechChatWriter(chatId)
+        && request.resource.data.keys().hasOnly([
+          'id',
+          'orderId',
+          'companyId',
+          'customerId',
+          'productName',
+          'createdAt',
+          'updatedAt',
+          'lastMessageId',
+          'lastMessageText',
+          'lastMessageAt',
+          'lastMessageSenderRole',
+          'customerLastReadAt',
+          'technicianLastReadAt'
+        ])
+        && request.resource.data.id == chatId
+        && request.resource.data.orderId == chatId
+        && request.resource.data.companyId == jobOrder(chatId).companyId
+        && request.resource.data.customerId == jobOrder(chatId).customerId
+        && request.resource.data.productName == jobOrder(chatId).productName
+        && request.resource.data.createdAt == request.time
+        && isCustomerTechChatPublish(chatId, request.resource.data)
+        && request.resource.data[customerTechChatReadKey(chatId)] == request.time;
+
+      // A new last message (while the order is open), or the signed-in
+      // side's own read marker moved to now (also once it is closed).
+      allow update: if isSignedIn()
+        && callerIsNotDeactivated()
+        && isCustomerTechChatWriter(chatId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'lastMessageId',
+          'lastMessageText',
+          'lastMessageAt',
+          'lastMessageSenderRole',
+          'updatedAt',
+          'customerLastReadAt',
+          'technicianLastReadAt'
+        ])
+        && (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['customerLastReadAt', 'technicianLastReadAt'])
+          || (request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['lastMessageId', 'lastMessageText', 'lastMessageAt',
+                  'lastMessageSenderRole', 'updatedAt', customerTechChatReadKey(chatId)])
+            && request.resource.data[customerTechChatReadKey(chatId)] == request.time))
+        && (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['lastMessageId', 'lastMessageText', 'lastMessageAt',
+                'lastMessageSenderRole', 'updatedAt'])
+          || isCustomerTechChatPublish(chatId, request.resource.data));
+
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow get, list: if isSignedIn()
+          && isCustomerTechChatReader(customerTechChatDoc(chatId), chatId);
+
+        allow create: if isSignedIn()
+          && callerIsNotDeactivated()
+          && isCustomerTechChatWriter(chatId)
+          && isCustomerTechChatOpen(chatId)
+          && request.resource.data.keys().hasOnly([
+            'id',
+            'senderId',
+            'senderRole',
+            'senderName',
+            'text',
+            'createdAt'
+          ])
+          && request.resource.data.id == messageId
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.senderRole == customerTechChatRoleOf(chatId)
+          && request.resource.data.senderName is string
+          && request.resource.data.senderName.size() <= 200
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.createdAt == request.time
+          && getAfter(/databases/$(database)/documents/customerTechChats/$(chatId))
             .data.get('lastMessageId', '') == messageId;
 
         allow update, delete: if false;
