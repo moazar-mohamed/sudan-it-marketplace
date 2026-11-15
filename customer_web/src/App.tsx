@@ -33,6 +33,7 @@ const RequestDetailsPage = lazy(() => import('./pages/RequestDetailsPage').then(
 const SearchPage = lazy(() => import('./pages/SearchPage').then((m) => ({ default: m.SearchPage })));
 const ServicePage = lazy(() => import('./pages/ServicePage').then((m) => ({ default: m.ServicePage })));
 const ServiceRequestPage = lazy(() => import('./pages/ServiceRequestPage').then((m) => ({ default: m.ServiceRequestPage })));
+const TechChatPage = lazy(() => import('./pages/TechChatPage').then((m) => ({ default: m.TechChatPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 
@@ -69,6 +70,7 @@ function SiteRoutes() {
             <Route path="checkout/:id" element={<CheckoutPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="orders/:id" element={<OrderDetailsPage />} />
+            <Route path="orders/:id/technician" element={<TechChatPage />} />
             <Route path="chats" element={<ChatsPage />} />
             <Route path="chats/:id" element={<ChatsPage />} />
             <Route path="service-request" element={<ServiceRequestPage />} />

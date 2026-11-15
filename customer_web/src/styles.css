@@ -429,7 +429,13 @@ a.tile.order-card:hover { box-shadow: var(--shadow); }
 .chat-last { font-size: 13px; color: var(--muted); }
 .chat-row.unread .chat-last { color: var(--text); font-weight: 700; }
 .chat-row-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex: none; }
-.chat-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--brand); }
+.chat-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--brand); flex: none; }
+/* The customer's conversation with the order's technician (TechChatPage) and its row on the order page. */
+.tech-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.tech-row .grow { min-width: 0; }
+.tech-chat { height: calc(100dvh - 150px); min-height: 460px; }
+.tech-chat-note { margin: 0 14px 10px; padding: 8px 12px; border-radius: 12px; font-size: 13px; }
+.bubble-name { display: block; margin-bottom: 2px; font-size: 12px; font-weight: 700; color: var(--muted); }
 .chat-panel { display: flex; flex-direction: column; padding: 0; min-height: 0; }
 .chat-idle { align-items: center; justify-content: center; }
 .chat-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px 10px; font-size: 17px; }

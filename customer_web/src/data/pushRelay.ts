@@ -33,3 +33,11 @@ export const pushNotification = (notificationId: string, fetchImpl: typeof fetch
 /** Asks the relay to push a chat message this person just sent. Never throws. */
 export const pushChatMessage = (chatId: string, messageId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> =>
   ask({ chatId, messageId }, fetchImpl);
+
+/**
+ * Asks the relay to push a message the customer sent the order's technician
+ * (`customerTechChats/{orderId}`). Never throws; a relay that does not know
+ * this kind yet simply sends nothing.
+ */
+export const pushTechChatMessage = (techChatId: string, messageId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> =>
+  ask({ techChatId, messageId }, fetchImpl);
