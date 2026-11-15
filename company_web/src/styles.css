@@ -264,6 +264,14 @@ textarea.inp{height:auto;padding:10px 12px;resize:vertical}
 /* الدخول */
 .login{flex:1;display:grid;place-items:center;padding:24px}
 .login-card{width:100%;max-width:420px;padding:28px;display:flex;flex-direction:column;gap:16px}
+.login-logo{width:48px;height:48px;background:#fff;border:1px solid var(--line);padding:3px}
+.login-logo img{object-fit:contain}
+.login-alt{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:4px;padding-top:16px;border-top:1px solid var(--line);text-align:center}
+.login-alt p{margin:0;color:var(--muted);font-size:13px}
+.login-wa{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:12px;background:#25d366;color:#fff;font-weight:700;font-size:13px;text-decoration:none}
+.login-wa:hover{filter:brightness(.95)}
+.login-wa span{font-weight:600;opacity:.9}
+.login-back{color:var(--brand-ink);font-weight:700;font-size:13px}
 
 /* عرض ضيّق */
 @media (max-width:900px){
