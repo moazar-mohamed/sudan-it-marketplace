@@ -138,8 +138,36 @@ export function Shell() {
   );
 }
 
+/**
+ * How visitors reach the platform. Facebook and X show in the footer only once their
+ * page address is filled in here, so the icons never lead to a wrong page.
+ */
+const CONTACT = {
+  whatsapp: '249118424422',
+  whatsappShown: '+249 118 424 422',
+  facebook: '',
+  x: '',
+};
+
+const BRAND_PATHS = {
+  whatsapp:
+    'M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.4-.3z',
+  facebook:
+    'M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z',
+  x: 'M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z',
+};
+
+function BrandIcon({ d }: { d: string }) {
+  return (
+    <svg className="brand-ico" viewBox="0 0 24 24" aria-hidden="true">
+      <path d={d} fill="currentColor" />
+    </svg>
+  );
+}
+
 /** The foot of every page: where the site's main places are, and what it is. */
 function SiteFooter() {
+  const whatsappLink = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(t('مرحباً، أتواصل معكم من موقع sictm.net'))}`;
   return (
     <footer className="footer">
       <div className="footer-inner">
@@ -171,6 +199,28 @@ function SiteFooter() {
             <h3>{t('الدعم والشركات')}</h3>
             <Link to="/terms">{t('الشروط والأحكام')}</Link>
             <a href="https://company.sictm.net" target="_blank" rel="noopener noreferrer">{t('بوابة الشركات')}</a>
+          </div>
+          <div className="footer-col footer-contact">
+            <h3>{t('تواصل معنا')}</h3>
+            <a className="footer-wa" href={whatsappLink} target="_blank" rel="noopener noreferrer">
+              <BrandIcon d={BRAND_PATHS.whatsapp} />
+              <span>{t('واتساب')}</span>
+              <span className="footer-wa-num" dir="ltr">{CONTACT.whatsappShown}</span>
+            </a>
+            {(CONTACT.facebook || CONTACT.x) && (
+              <div className="footer-social">
+                {CONTACT.facebook && (
+                  <a href={CONTACT.facebook} target="_blank" rel="noopener noreferrer" aria-label={t('فيسبوك')} title={t('فيسبوك')}>
+                    <BrandIcon d={BRAND_PATHS.facebook} />
+                  </a>
+                )}
+                {CONTACT.x && (
+                  <a href={CONTACT.x} target="_blank" rel="noopener noreferrer" aria-label="X" title="X">
+                    <BrandIcon d={BRAND_PATHS.x} />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </nav>
       </div>
