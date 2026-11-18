@@ -144,7 +144,6 @@ export function Shell() {
  */
 const CONTACT = {
   whatsapp: '249118424422',
-  whatsappShown: '+249 118 424 422',
   facebook: 'https://www.facebook.com/profile.php?id=61568138772820',
   x: '',
 };
@@ -203,11 +202,16 @@ function SiteFooter() {
           </div>
           <div className="footer-col footer-contact">
             <h3>{t('تواصل معنا')}</h3>
-            {/* The ways to reach us, one under the other: WhatsApp (with its number), then Facebook and X. */}
+            {/* The ways to reach us, one under the other: WhatsApp (its QR code to scan, which is
+                also a link that opens the chat), then Facebook and X. */}
             <div className="footer-social">
-              <a href={whatsappLink} target="_blank" rel="noopener noreferrer" aria-label={`${t('واتساب')} ${CONTACT.whatsappShown}`} title={t('واتساب')}>
-                <span className="soc-ico wa"><BrandIcon d={BRAND_PATHS.whatsapp} /></span>
-                <span className="soc-num" dir="ltr">{CONTACT.whatsappShown}</span>
+              <a className="footer-wa" href={whatsappLink} target="_blank" rel="noopener noreferrer" aria-label={t('واتساب')} title={t('واتساب')}>
+                <span className="footer-wa-head">
+                  <span className="soc-ico wa"><BrandIcon d={BRAND_PATHS.whatsapp} /></span>
+                  <span className="soc-num">{t('واتساب')}</span>
+                </span>
+                <img className="footer-wa-qr" src="/whatsapp-qr.png" width="120" height="120" alt={t('رمز QR للتواصل عبر واتساب')} loading="lazy" />
+                <span className="footer-wa-hint">{t('امسح الرمز لبدء محادثة')}</span>
               </a>
               {CONTACT.facebook && (
                 <a href={CONTACT.facebook} target="_blank" rel="noopener noreferrer" aria-label={t('فيسبوك')} title={t('فيسبوك')}>
