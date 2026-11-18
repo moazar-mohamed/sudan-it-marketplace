@@ -139,7 +139,7 @@ a.tile:hover, .tile.lift:hover { transform: translateY(-4px); box-shadow: var(--
 .browse-head h1, .page-title { margin: 8px 0 0; font-size: 30px; font-weight: 800; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .browse-head .chips { margin-top: 14px; }
-.chip-link { display: inline-flex; align-items: center; height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600; }
+.chip-link { display: inline-flex; align-items: center; height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600; white-space: nowrap; flex: none; }
 .chip-link.small { height: 34px; padding: 0 14px; font-size: 13px; }
 .chip-link:hover { border-color: var(--link); }
 .chip-link.on { background: var(--inverse); color: var(--inverse-ink); border-color: transparent; }
