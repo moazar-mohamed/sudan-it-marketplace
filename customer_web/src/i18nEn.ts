@@ -687,6 +687,8 @@ export const EN: Record<string, string> = {
   "تواصل معنا": "Contact us",
   "واتساب": "WhatsApp",
   "فيسبوك": "Facebook",
+  "رمز QR للتواصل عبر واتساب": "WhatsApp QR code",
+  "امسح الرمز لبدء محادثة": "Scan to start a chat",
   "مرحباً، أتواصل معكم من موقع sictm.net": "Hello, I'm contacting you from sictm.net",
   "بوابة الفني": "Technician portal",
   "طابعة": "Printer",
