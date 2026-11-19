@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useCompanyData } from '../data/CompanyData';
-import { createTechnician, setTechnicianActive, TechnicianError, updateTechnician } from '../data/company';
+import { createTechnician, deleteTechnician, setTechnicianActive, TechnicianError, updateTechnician } from '../data/company';
 import { arCount, displayPhone } from '../data/format';
 import { MIN_PASSWORD_LENGTH } from '../auth/AuthProvider';
 import { useTechnicians } from '../data/technicians';
@@ -32,6 +32,7 @@ export function TeamPage() {
 function TechniciansCard({ technicians }: { technicians: Technician[] | null }) {
   const toast = useToast();
   const [editing, setEditing] = useState<Technician | null>(null);
+  const [removing, setRemoving] = useState<Technician | null>(null);
   const toggle = async (tech: Technician, on: boolean) => {
     try { await setTechnicianActive(tech, on); toast(on ? t('فُعّل الفني') : t('عُطّل الفني ولن يستطيع الدخول'), 'ok'); } catch { toast(t('تعذّر التحديث.'), 'err'); }
   };
@@ -50,7 +51,12 @@ function TechniciansCard({ technicians }: { technicians: Technician[] | null }) 
                   <td><div className="row"><span className="av">{tech.fullName.slice(0, 1)}</span><div><div className="b">{tech.fullName}</div><div className="sub num">{displayPhone(tech.phone)}</div><div className="sub num">{tech.email}</div></div></div></td>
                   <td>{!tech.isActive ? <Chip tone="n">{t('معطّل')}</Chip> : tech.isAvailable ? <Chip tone="ok">{t('متاح')}</Chip> : <Chip tone="n">{t('غير متاح')}</Chip>}</td>
                   <td><Switch on={tech.isActive} onChange={(v) => void toggle(tech, v)} label={t('تفعيل {0}', tech.fullName)} /></td>
-                  <td><button type="button" className="btn sm" onClick={() => setEditing(tech)}>{t('تعديل')}</button></td>
+                  <td>
+                    <div className="row" style={{ gap: 6 }}>
+                      <button type="button" className="btn sm" onClick={() => setEditing(tech)}>{t('تعديل')}</button>
+                      <button type="button" className="btn sm" style={{ color: 'var(--bad)' }} onClick={() => setRemoving(tech)}>{t('حذف')}</button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -58,7 +64,35 @@ function TechniciansCard({ technicians }: { technicians: Technician[] | null }) 
         </div>
       )}
       {editing && <EditTechnician technician={editing} onClose={() => setEditing(null)} />}
+      {removing && <RemoveTechnician technician={removing} onClose={() => setRemoving(null)} />}
     </section>
+  );
+}
+
+function RemoveTechnician({ technician, onClose }: { technician: Technician; onClose: () => void }) {
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const remove = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      await deleteTechnician(technician);
+      toast(t('حُذف الفني'), 'ok');
+      onClose();
+    } catch (e) {
+      const p = e instanceof TechnicianError ? e.problem : 'failed';
+      setError(p === 'has-open-jobs' ? t('لدى هذا الفني طلبات لم تكتمل بعد. أسندها لفني آخر أولًا، ثم احذفه.') : t('تعذّر حذف الفني، حاول مرة أخرى.'));
+      setBusy(false);
+    }
+  };
+  return (
+    <Modal title={t('حذف {0}؟', technician.fullName)} onClose={onClose} busy={busy}
+      footer={<><button type="button" className="btn p" style={{ background: 'var(--bad-solid)', borderColor: 'transparent' }} disabled={busy} onClick={() => void remove()}>{busy && <Spinner />}{t('حذف الفني')}</button><button type="button" className="btn" disabled={busy} onClick={onClose}>{t('إلغاء')}</button></>}>
+      {error && <Banner tone="bad" icon="alert" tight>{error}</Banner>}
+      <p style={{ margin: 0, lineHeight: 1.7 }}>{t('سيختفي الفني من فريقك، ولن يستطيع الدخول إلى التطبيق ولا إلى بوابة الفني. طلباته السابقة تبقى باسمه.')}</p>
+      <p className="hint">{t('لا يمكن التراجع. وبريده الإلكتروني يبقى محجوزًا، فلا يمكن استخدامه لفني جديد. إن كنت تريد إيقافه مؤقتًا فاستخدم مفتاح «نشط» بدل الحذف.')}</p>
+    </Modal>
   );
 }
 

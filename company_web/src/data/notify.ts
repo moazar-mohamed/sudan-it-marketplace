@@ -9,6 +9,7 @@ export type NotificationType =
   | 'review_reply'
   | 'order_cancelled_by_company'
   | 'technician_assigned'
+  | 'order_technician_assigned'
   | 'job_ready'
   | 'job_cancelled'
   | 'service_request_accepted'

@@ -27,6 +27,22 @@ export async function pushChatMessage(chatId: string, messageId: string, fetchIm
   }
 }
 
+/** Asks the relay to push a message the company just wrote to the job's technician. Never throws. */
+export async function pushJobChatMessage(orderId: string, messageId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> {
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) return false;
+    const response = await fetchImpl(`${PUSH_RELAY_URL}/push`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobChatId: orderId, messageId }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Asks the relay to push [notificationId] to the recipient's phones and browsers. Never throws. */
 export async function pushToPhone(notificationId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> {
   try {

@@ -297,6 +297,15 @@ export async function assignTechnician(order: Order, technicianId: string, techn
     orderId: order.id,
     productName: order.productName,
   });
+  // The customer learns a technician was sent (once per order: a later
+  // reassignment is refused as a repeat, and that is fine).
+  await sendNotice({
+    type: 'order_technician_assigned',
+    recipientType: 'customer',
+    recipientId: order.customerId,
+    orderId: order.id,
+    productName: order.productName,
+  });
 }
 
 /**
