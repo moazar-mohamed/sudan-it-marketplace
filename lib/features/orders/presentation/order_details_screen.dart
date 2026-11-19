@@ -13,12 +13,17 @@ import '../../cities/domain/sudan_city.dart';
 import '../../location/presentation/location_strings.dart';
 import '../../reviews/presentation/review_widgets.dart';
 import '../../reviews/presentation/reviews_providers.dart';
+import '../../tech_chat/domain/tech_chat.dart';
+import '../../tech_chat/presentation/tech_chat_screen.dart';
 import '../domain/entities/order_entity.dart';
 import 'order_chat_actions.dart';
+import 'orders_providers.dart';
 import 'widgets/order_cancelled_note.dart';
 import 'widgets/order_location_widgets.dart';
-import 'widgets/price_summary_row.dart';
 import 'order_labels.dart';
+import '../../customer_dashboard/presentation/site/site_detail_parts.dart';
+import '../../customer_dashboard/presentation/site/site_look.dart';
+import '../../customer_dashboard/presentation/site/site_orders.dart';
 import '../../../core/localization/l10n_extension.dart';
 import 'widgets/receipt_viewer.dart';
 
@@ -29,12 +34,6 @@ class OrderDetailsScreen extends ConsumerWidget {
   });
 
   final OrderEntity order;
-
-  String _formatPrice(double price) {
-    final parts = price.toStringAsFixed(0).split('.');
-    final regExp = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    return parts[0].replaceAllMapped(regExp, (Match m) => '${m[1]},');
-  }
 
   String _resolveCompanyName() {
     if (order.companyName.isNotEmpty) {
@@ -60,11 +59,7 @@ class OrderDetailsScreen extends ConsumerWidget {
     const gap = SizedBox(height: AppSpacing.s16);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          l10n.orderTitleNumber(order.shortId),
-        ),
-      ),
+      appBar: AppBar(),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
         child: Center(
@@ -73,6 +68,8 @@ class OrderDetailsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                SitePageTitle(l10n.orderTitleNumber(order.shortId)),
+                gap,
                 // Processing -> Out for delivery -> Completed.
                 _buildStatusFlowCard(context),
                 gap,
@@ -86,77 +83,49 @@ class OrderDetailsScreen extends ConsumerWidget {
                   gap,
                 ],
 
-                SectionCard(
+                SiteSection(
                   title: l10n.adminContact,
-                  children: [_OrderChatButton(order: order)],
+                  children: [
+                    _OrderChatButton(order: order),
+                    _TechnicianContact(order: order),
+                  ],
                 ),
                 gap,
 
-                SectionCard(
+                SiteSection(
                   title: l10n.orderItemOrdered,
+                  gap: AppSpacing.s12,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const AppImageTile(),
-                        const SizedBox(width: AppSpacing.s12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                order.productName,
-                                style: AppTextStyles.bodyStrong,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.business_outlined,
-                                    size: AppSize.iconSm,
-                                    color: context.colors.iconDefault,
-                                  ),
-                                  const SizedBox(width: AppSpacing.s4),
-                                  Expanded(
-                                    child: Text(
-                                      companyName,
-                                      style: AppTextStyles.caption.copyWith(
-                                        color: context.colors.textSecondary,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: AppSpacing.s6),
-                              PriceSummaryRow(
-                                label: l10n.orderUnitLine(
-                                  _formatPrice(order.unitPrice),
-                                ),
-                                value: l10n.orderQtyLine(order.quantity),
-                                labelStyle: AppTextStyles.caption
-                                    .copyWith(color: context.colors.textSecondary),
-                                valueStyle: AppTextStyles.captionStrong,
-                              ),
-                              Text(
-                                l10n.orderSubtotalLine(
-                                  _formatPrice(order.productSubtotal),
-                                ),
-                                style: AppTextStyles.bodyStrong
-                                    .copyWith(color: context.colors.textBrand),
-                              ),
-                            ],
-                          ),
+                    // The product's name, its company, then the unit price
+                    // and quantity (as the site lists them).
+                    Text(
+                      order.productName,
+                      style: AppTextStyles.bodyStrong.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      companyName,
+                      style: AppTextStyles.caption.copyWith(
+                        fontSize: 13,
+                        color: context.colors.textSecondary,
+                      ),
+                    ),
+                    SiteSpecs(
+                      entries: [
+                        MapEntry(
+                          l10n.adminUnitPrice,
+                          sitePrice(context, order.unitPrice),
                         ),
+                        MapEntry(l10n.adminQuantity, '${order.quantity}'),
                       ],
                     ),
                   ],
                 ),
                 gap,
 
-                SectionCard(
+                SiteSection(
                   title: order.deliveryMethod == DeliveryMethod.pickup
                       ? l10n.orderPickupDetails
                       : l10n.orderDeliveryDetails,
@@ -188,14 +157,14 @@ class OrderDetailsScreen extends ConsumerWidget {
                       KeyValueRow(
                         label: l10n.orderType,
                         value: l10n.orderTypeInstallation(
-                          _formatPrice(order.installationFee),
+                          sitePrice(context, order.installationFee),
                         ),
                         valueColor: context.colors.textBrand,
                       ),
                     if (order.deliveryMethod == DeliveryMethod.delivery)
                       KeyValueRow(
                         label: l10n.orderDeliveryFee,
-                        value: '${_formatPrice(order.deliveryFee)} SDG',
+                        value: sitePrice(context, order.deliveryFee),
                       ),
                     KeyValueRow(
                       label: l10n.orderOrderedAt,
@@ -206,7 +175,7 @@ class OrderDetailsScreen extends ConsumerWidget {
                 ),
                 gap,
 
-                SectionCard(
+                SiteSection(
                   title: l10n.orderPaymentStatus,
                   gap: AppSpacing.s8,
                   children: [
@@ -251,37 +220,25 @@ class OrderDetailsScreen extends ConsumerWidget {
                 ),
                 gap,
 
-                AppCard(
-                  padding: const EdgeInsets.all(AppSpacing.s16),
-                  child: Column(
-                    children: [
-                      PriceSummaryRow(
-                        label: l10n.orderProductSubtotal,
-                        value: '${_formatPrice(order.productSubtotal)} SDG',
+                SiteTile(
+                  child: SiteSummary(
+                    rows: [
+                      (
+                        l10n.orderProductSubtotal,
+                        sitePrice(context, order.productSubtotal),
                       ),
-                      if (order.installationSelected) ...[
-                        const SizedBox(height: AppSpacing.s8),
-                        PriceSummaryRow(
-                          label: l10n.orderInstallationFee,
-                          value: '+${_formatPrice(order.installationFee)} SDG',
+                      if (order.installationSelected)
+                        (
+                          l10n.orderInstallationFee,
+                          '+${sitePrice(context, order.installationFee)}',
                         ),
-                      ],
-                      if (order.deliveryMethod == DeliveryMethod.delivery) ...[
-                        const SizedBox(height: AppSpacing.s8),
-                        PriceSummaryRow(
-                          label: l10n.orderDeliveryFee,
-                          value: '${_formatPrice(order.deliveryFee)} SDG',
+                      if (order.deliveryMethod == DeliveryMethod.delivery)
+                        (
+                          l10n.orderDeliveryFee,
+                          sitePrice(context, order.deliveryFee),
                         ),
-                      ],
-                      const SizedBox(height: AppSpacing.s12),
-                      const Divider(height: 1),
-                      const SizedBox(height: AppSpacing.s12),
-                      PriceSummaryRow(
-                        label: l10n.orderTotal,
-                        value: '${_formatPrice(order.totalAmount)} SDG',
-                        total: true,
-                      ),
                     ],
+                    total: (l10n.orderTotal, sitePrice(context, order.totalAmount)),
                   ),
                 ),
               ],
@@ -301,11 +258,11 @@ class OrderDetailsScreen extends ConsumerWidget {
     ];
     final currentIndex = steps.indexOf(order.orderStatus);
 
-    return SectionCard(
+    return SiteSection(
       title: l10n.orderOrderStatus,
-      trailing: StatusChip(
+      trailing: SiteTonePill(
         label: order.orderStatus.label(l10n),
-        tone: order.orderStatus.tone,
+        tone: siteOrderTone(order.orderStatus),
       ),
       gap: AppSpacing.s16,
       children: [
@@ -319,6 +276,57 @@ class OrderDetailsScreen extends ConsumerWidget {
             allDone: order.orderStatus == OrderStatus.completed,
           ),
       ],
+    );
+  }
+}
+
+/// Once the company sends a technician: their name and a conversation with
+/// them (their phone number is not shown). Follows the order live, so it
+/// appears as soon as the technician is assigned.
+class _TechnicianContact extends ConsumerWidget {
+  const _TechnicianContact({required this.order});
+
+  final OrderEntity order;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final live = ref.watch(orderStreamProvider(order.id)).asData?.value ?? order;
+    if ((live.technicianId ?? '').isEmpty) return const SizedBox.shrink();
+    final name = (live.technicianName ?? '').trim();
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.s12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (name.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.s8),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.engineering_outlined,
+                    size: AppSize.iconSm,
+                    color: context.colors.iconDefault,
+                  ),
+                  const SizedBox(width: AppSpacing.s6),
+                  Expanded(
+                    child: Text(
+                      context.l10n.tcTechnicianName(name),
+                      style: AppTextStyles.bodyStrong,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          TechChatButton(
+            orderId: live.id,
+            viewer: TechChatViewer.customer,
+            label: context.l10n.tcChatWithTechnician,
+          ),
+        ],
+      ),
     );
   }
 }

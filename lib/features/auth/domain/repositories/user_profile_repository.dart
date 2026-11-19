@@ -5,6 +5,7 @@ abstract class UserProfileRepository {
     required String id,
     required String fullName,
     required String email,
+    int? termsVersion,
   });
 
   Future<UserProfile?> fetchProfile(String userId);

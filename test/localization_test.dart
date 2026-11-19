@@ -148,6 +148,32 @@ void _tall(WidgetTester tester) {
 ProviderContainer _container(WidgetTester tester) =>
     ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
 
+/// Signed out the app opens on the shop, as sictm.net: its sign-in button
+/// (the person icon of the top bar) opens the login screen.
+Future<void> _openLogin(WidgetTester tester) async {
+  await tester.tap(find.byWidgetPredicate(
+    (w) => w is Tooltip && (w.message == 'Login' || w.message == 'تسجيل الدخول'),
+  ));
+  await tester.pumpAndSettle();
+}
+
+/// Settings is a row of «حسابي» (the account button of the top bar).
+Future<void> _openSettings(WidgetTester tester) async {
+  await tester.tap(find.byWidgetPredicate(
+    (w) => w is Tooltip && (w.message == 'My account' || w.message == 'حسابي'),
+  ));
+  await tester.pumpAndSettle();
+  final row = find.text('Settings').hitTestable();
+  await tester.scrollUntilVisible(
+    find.text('Settings'),
+    200,
+    scrollable: find.byType(Scrollable).last,
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(row.evaluate().isEmpty ? find.text('Settings').last : row.first);
+  await tester.pumpAndSettle();
+}
+
 /// Opens the Language row of Settings and picks [label] in its sheet.
 Future<void> _chooseLanguage(WidgetTester tester, String label) async {
   await tester.tap(find.byKey(const ValueKey('settings-language')));
@@ -195,7 +221,13 @@ void main() {
 
     test('Arabic strings are really translated', () {
       // Proper names and symbols that are written the same in both languages.
-      const sameOnPurpose = {'languageEnglish', 'languageArabic', 'adminFilterStatus'};
+      const sameOnPurpose = {
+        'languageEnglish',
+        'languageArabic',
+        'adminFilterStatus',
+        // "{name} ({count})": only the category's own name and a number.
+        'siteCategoryWithCount',
+      };
       final arabicLetters = RegExp(r'[؀-ۿ]');
       for (final key in messages(en)) {
         final english = en[key] as String;
@@ -324,9 +356,11 @@ void main() {
         profiles: _FakeProfiles(null),
       ));
       await tester.pumpAndSettle();
+      await _openLogin(tester);
 
       expect(find.text('Welcome back. Sign in to continue.'), findsOneWidget);
-      expect(_direction(tester, find.text('Login')), TextDirection.ltr);
+      // «Login» is the card's title and the button, as on the site.
+      expect(_direction(tester, find.text('Login').first), TextDirection.ltr);
       expect(find.text('English'), findsOneWidget);
       expect(find.text('العربية'), findsOneWidget);
     });
@@ -340,6 +374,7 @@ void main() {
         profiles: _FakeProfiles(null),
       ));
       await tester.pumpAndSettle();
+      await _openLogin(tester);
 
       expect(find.text('مرحبًا بعودتك. سجّل الدخول للمتابعة.'), findsOneWidget);
       expect(find.text('البريد الإلكتروني'), findsWidgets);
@@ -357,18 +392,21 @@ void main() {
         profiles: _FakeProfiles(null),
       ));
       await tester.pumpAndSettle();
+      await _openLogin(tester);
 
       await tester.tap(find.text('العربية'));
       await tester.pumpAndSettle();
-      expect(find.text('تسجيل الدخول'), findsOneWidget);
+      // The card's title and the button, as on the site.
+      expect(find.text('تسجيل الدخول'), findsNWidgets(2));
       expect(find.text('Login'), findsNothing);
-      expect(_direction(tester, find.text('تسجيل الدخول')), TextDirection.rtl);
+      expect(_direction(tester, find.text('تسجيل الدخول').first), TextDirection.rtl);
       expect(prefs.getString('language'), 'ar');
 
       await tester.tap(find.text('English'));
       await tester.pumpAndSettle();
-      expect(find.text('Login'), findsOneWidget);
-      expect(_direction(tester, find.text('Login')), TextDirection.ltr);
+      expect(find.text('Login'), findsNWidgets(2));
+      // «Login» is the card's title and the button, as on the site.
+      expect(_direction(tester, find.text('Login').first), TextDirection.ltr);
       expect(prefs.getString('language'), 'en');
     });
 
@@ -380,6 +418,7 @@ void main() {
         profiles: _FakeProfiles(null),
       ));
       await tester.pumpAndSettle();
+      await _openLogin(tester);
 
       await tester.tap(find.widgetWithText(FilledButton, 'تسجيل الدخول'));
       await tester.pumpAndSettle();
@@ -406,6 +445,7 @@ void main() {
         profiles: _FakeProfiles(null),
       ));
       await tester.pumpAndSettle();
+      await _openLogin(tester);
 
       await tester.enterText(find.byType(TextFormField).at(0), 'a@b.co');
       await tester.enterText(find.byType(TextFormField).at(1), 'secret1');
@@ -429,6 +469,7 @@ void main() {
         profiles: _FakeProfiles(null),
       ));
       await tester.pumpAndSettle();
+      await _openLogin(tester);
 
       await tester.tap(find.widgetWithText(TextButton, 'إنشاء حساب'));
       await tester.pumpAndSettle();
@@ -504,8 +545,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Settings'));
-      await tester.pumpAndSettle();
+      await _openSettings(tester);
       expect(find.byType(SettingsScreen), findsOneWidget);
       expect(_direction(tester, find.text('Language')), TextDirection.ltr);
 
@@ -533,10 +573,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(_direction(tester, find.text('Home').first), TextDirection.ltr);
 
-      await tester.tap(find.byTooltip('Settings'));
-      await tester.pumpAndSettle();
+      await _openSettings(tester);
       await _chooseLanguage(tester, 'العربية');
-      Navigator.of(tester.element(find.byType(SettingsScreen))).pop();
+      Navigator.of(tester.element(find.byType(SettingsScreen)))
+          .popUntil((route) => route.isFirst);
       await tester.pumpAndSettle();
 
       expect(find.text('الرئيسية'), findsWidgets);
@@ -559,8 +599,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Settings'));
-      await tester.pumpAndSettle();
+      await _openSettings(tester);
       await tester.tap(find.byKey(const ValueKey('settings-language')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('settings-option-ar')));
@@ -601,6 +640,7 @@ void main() {
 
       await _container(tester).read(authControllerProvider.notifier).signOut();
       await tester.pumpAndSettle();
+      await _openLogin(tester);
 
       expect(find.text('مرحبًا بعودتك. سجّل الدخول للمتابعة.'), findsOneWidget);
       expect(prefs.getString('language'), 'ar');

@@ -9,6 +9,7 @@ import '../../../core/localization/l10n_extension.dart';
 import '../../company_admin/presentation/company_admin_shell.dart';
 import '../../customer_dashboard/presentation/customer_dashboard_screen.dart';
 import '../../customer_dashboard/presentation/profile_controller.dart';
+import '../../customer_dashboard/presentation/site/site_terms.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../technician/presentation/technician_shell.dart';
 import '../../technicians/domain/entities/technician.dart';
@@ -18,15 +19,19 @@ import 'auth_controller.dart';
 import 'auth_state.dart';
 import 'deleted_account.dart';
 import 'force_password_change_screen.dart';
-import 'login_screen.dart';
 
 class AuthGate extends ConsumerWidget {
-  /// [customerInitialTab] is the dashboard tab a signed-in customer starts on
-  /// (0 Home, 1 Orders, 2 Profile). Screens that return the customer to the app
-  /// go through the gate, so a later sign-out always lands on the login screen.
-  const AuthGate({super.key, this.customerInitialTab = 0});
+  /// [customerInitialTab] is the page of the top bar a customer starts on.
+  /// Screens that return the customer to the app go through the gate.
+  ///
+  /// As on sictm.net, nobody has to sign in to look around: signed out, the
+  /// gate opens the customer pages, whose account actions open sign-in.
+  const AuthGate({
+    super.key,
+    this.customerInitialTab = CustomerSection.home,
+  });
 
-  final int customerInitialTab;
+  final CustomerSection customerInitialTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,16 +40,17 @@ class AuthGate extends ConsumerWidget {
     return switch (authState) {
       AuthLoading() => const _SessionLoadingScreen(),
       AuthAuthenticated() => _RoleRouter(customerInitialTab: customerInitialTab),
-      AuthUnauthenticated() || AuthError() => const LoginScreen(),
+      AuthUnauthenticated() || AuthError() =>
+        CustomerDashboardScreen(initialSection: customerInitialTab),
     };
   }
 }
 
 /// Sends a signed-in user to the experience that matches their stored role.
 class _RoleRouter extends ConsumerWidget {
-  const _RoleRouter({this.customerInitialTab = 0});
+  const _RoleRouter({this.customerInitialTab = CustomerSection.home});
 
-  final int customerInitialTab;
+  final CustomerSection customerInitialTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -65,7 +71,7 @@ class _RoleRouter extends ConsumerWidget {
       if (authUser != null && !authUser.emailVerified) {
         return _EmailVerificationRequiredScreen(email: authUser.email ?? '');
       }
-      return CustomerDashboardScreen(initialTabIndex: customerInitialTab);
+      return CustomerDashboardScreen(initialSection: customerInitialTab);
     }
 
     final profileAsync = ref.watch(profileControllerProvider);
@@ -90,8 +96,17 @@ class _RoleRouter extends ConsumerWidget {
         return switch (profile.role) {
           // A customer deactivated by the platform admin keeps their account
           // and history but cannot use the app until reactivated.
+          // Published terms not yet accepted are asked for first (as on
+          // sictm.net): an older account, a Google sign-up, a new version.
           UserRole.customer => profile.isActive
-              ? customerEntry()
+              ? SiteTermsGate(
+                  uid: profile.id,
+                  acceptedVersion: profile.termsVersion,
+                  onAccepted: () => ref.invalidate(profileControllerProvider),
+                  onSignOut: () =>
+                      ref.read(authControllerProvider.notifier).signOut(),
+                  child: customerEntry(),
+                )
               : _AccessMessageScreen(
                   title: l10n.authAccountDeactivatedTitle,
                   message: l10n.authAccountDeactivatedMessage,

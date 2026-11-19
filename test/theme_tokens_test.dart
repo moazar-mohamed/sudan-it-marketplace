@@ -16,18 +16,27 @@ double contrast(Color a, Color b) {
 
 void main() {
   group('brand identity', () {
-    test('primary and secondary colours never change', () {
-      expect(AppColors.primary, const Color(0xFF1565C0));
-      expect(AppColors.secondary, const Color(0xFF00A8E8));
-      expect(AppColors.background, const Color(0xFFF7F9FC));
-      expect(AppColors.text, const Color(0xFF172033));
+    test('the colours are the customer site (sictm.net)', () {
+      expect(AppColors.primary, const Color(0xFF063B73));
+      expect(AppColors.action, const Color(0xFF1FA35C));
+      expect(AppColors.price, const Color(0xFF1FA35C));
+      expect(AppColors.background, const Color(0xFFF4F7FB));
+      expect(AppColors.text, const Color(0xFF12263F));
+      expect(AppColors.textSecondary, const Color(0xFF5D6F86));
+      expect(AppColors.borderDefault, const Color(0xFFDDE5EF));
     });
 
-    test('the theme is built on them', () {
+    test('the theme is built on them: navy bar, green main buttons', () {
       final scheme = AppTheme.light.colorScheme;
       expect(scheme.primary, AppColors.primary);
       expect(scheme.secondary, AppColors.secondary);
-      expect(AppTheme.light.appBarTheme.backgroundColor, AppColors.primary);
+      for (final theme in [AppTheme.light, AppTheme.dark]) {
+        expect(theme.appBarTheme.backgroundColor, AppColors.navBar);
+        expect(
+          theme.filledButtonTheme.style!.backgroundColor!.resolve({}),
+          AppColors.action,
+        );
+      }
     });
   });
 
@@ -87,9 +96,11 @@ void main() {
   group('dark palette (WCAG AA)', () {
     final dark = AppColorTokens.dark;
 
-    test('brand marks keep their true colour even in dark mode', () {
-      expect(dark.primary, const Color(0xFF1565C0));
-      expect(dark.secondary, const Color(0xFF00A8E8));
+    test('the dark tokens of the site, with the navy bar kept', () {
+      expect(dark.primary, const Color(0xFF063B73));
+      expect(dark.bgApp, const Color(0xFF0B1523));
+      expect(dark.surface, const Color(0xFF13233A));
+      expect(dark.navBar, const Color(0xFF063B73));
     });
 
     test('text tokens reach 4.5:1 on the surfaces they are used on', () {
@@ -173,14 +184,15 @@ void main() {
   group('component defaults', () {
     final theme = AppTheme.light;
 
-    test('buttons and inputs are 48 high with an 8 px radius', () {
+    test('the site shapes: 50-high buttons with 14 px corners, fields 12 px', () {
       final style = theme.filledButtonTheme.style!;
-      expect(style.minimumSize!.resolve({}), const Size(64, 48));
+      expect(style.minimumSize!.resolve({}), const Size(64, 50));
       final shape = style.shape!.resolve({}) as RoundedRectangleBorder;
-      expect(shape.borderRadius, BorderRadius.circular(AppRadius.sm));
+      expect(shape.borderRadius, BorderRadius.circular(AppRadius.button));
       final border = theme.inputDecorationTheme.enabledBorder as OutlineInputBorder;
-      expect(border.borderRadius, BorderRadius.circular(AppRadius.sm));
-      expect(border.borderSide.color, AppColors.borderInput);
+      expect(border.borderRadius, BorderRadius.circular(AppRadius.field));
+      expect(border.borderSide.color, AppColors.borderDefault);
+      expect(theme.inputDecorationTheme.fillColor, AppColors.bgSubtle);
     });
 
     test('a disabled button is flat gray, never a faded brand colour', () {
@@ -195,9 +207,9 @@ void main() {
       );
     });
 
-    test('cards are bordered 12 px, dialogs 16 px, bottom bar 72 high', () {
+    test('cards are bordered 16 px, dialogs 16 px, bottom bar 72 high', () {
       final card = theme.cardTheme.shape! as RoundedRectangleBorder;
-      expect(card.borderRadius, BorderRadius.circular(AppRadius.md));
+      expect(card.borderRadius, BorderRadius.circular(AppRadius.card));
       expect(card.side.color, AppColors.borderDefault);
       final dialog = theme.dialogTheme.shape! as RoundedRectangleBorder;
       expect(dialog.borderRadius, BorderRadius.circular(AppRadius.lg));

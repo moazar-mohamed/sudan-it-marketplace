@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
+import '../../customer_dashboard/presentation/site/site_auth.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
-import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../domain/exceptions/auth_exception.dart';
 import 'auth_error_messages.dart';
@@ -44,7 +44,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
   final _formKey = GlobalKey<FormState>();
-  late final _emailController = TextEditingController(text: widget.initialEmail);
+  late final _emailController = TextEditingController(
+    text: widget.initialEmail,
+  );
 
   bool _sending = false;
   String? _sentTo;
@@ -74,10 +76,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     });
     String? failure;
     try {
-      await ref.read(authRepositoryProvider).sendPasswordResetEmail(
-            email: email,
-            languageCode: languageCode,
-          );
+      await ref
+          .read(authRepositoryProvider)
+          .sendPasswordResetEmail(email: email, languageCode: languageCode);
     } on AuthException catch (error) {
       // No account for this address is reported like a success (see above).
       if (error.code != 'user-not-found') failure = error.code ?? 'unknown';
@@ -131,31 +132,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final l10n = context.l10n;
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      // As sictm.net's «نسيت كلمة المرور»: one card.
+      child: SiteAuthCard(
+        title: l10n.authForgotPasswordTitle,
+        subtitle: l10n.authForgotPasswordBody,
         children: [
-          const Center(
-            child: AppIconTile(
-              icon: Icons.lock_reset_rounded,
-              tone: AppTone.brand,
-              size: 72,
-              radius: AppRadius.full,
-              iconSize: AppSize.iconXl,
-            ),
-          ),
           const SizedBox(height: AppSpacing.s16),
-          Text(
-            l10n.authForgotPasswordTitle,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.h2,
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          Text(
-            l10n.authForgotPasswordBody,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.body.copyWith(color: context.colors.textSecondary),
-          ),
-          const SizedBox(height: AppSpacing.s24),
           AppTextField(
             label: l10n.authEmail,
             controller: _emailController,
@@ -196,30 +178,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   Widget _buildSent(BuildContext context) {
     final l10n = context.l10n;
     final waiting = _secondsLeft > 0;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return SiteAuthCard(
+      title: l10n.authForgotPasswordSentTitle,
+      subtitle: l10n.authForgotPasswordSentBody(_sentTo!),
       children: [
-        const Center(
-          child: AppIconTile(
-            icon: Icons.mark_email_read_outlined,
-            tone: AppTone.success,
-            size: 72,
-            radius: AppRadius.full,
-            iconSize: AppSize.iconXl,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.s16),
-        Text(
-          l10n.authForgotPasswordSentTitle,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.h2,
-        ),
-        const SizedBox(height: AppSpacing.s8),
-        Text(
-          l10n.authForgotPasswordSentBody(_sentTo!),
-          textAlign: TextAlign.center,
-          style: AppTextStyles.body.copyWith(color: context.colors.textSecondary),
-        ),
         if (_errorCode != null) ...[
           const SizedBox(height: AppSpacing.s16),
           AppBanner(

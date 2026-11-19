@@ -1,3 +1,4 @@
+import 'package:sudan_it_marketplace/features/auth/presentation/require_account.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -55,8 +56,8 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton> {
 
   @override
   Widget build(BuildContext context) {
+    // A visitor sees the heart too; pressing it opens sign-in (as the site).
     final uid = ref.watch(favoritesOwnerProvider);
-    if (uid == null) return const SizedBox.shrink();
     final saved = ref
         .watch(favoriteKeysProvider)
         .contains(Favorite.keyFor(widget.kind, widget.targetId));
@@ -69,7 +70,13 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton> {
         saved ? Icons.favorite : Icons.favorite_border,
         color: saved ? colors.error : colors.textSecondary,
       ),
-      onPressed: () => _toggle(uid, saved),
+      onPressed: () {
+        if (uid == null) {
+          openSignIn(context);
+        } else {
+          _toggle(uid, saved);
+        }
+      },
     );
     if (!widget.onImage) return button;
     return DecoratedBox(

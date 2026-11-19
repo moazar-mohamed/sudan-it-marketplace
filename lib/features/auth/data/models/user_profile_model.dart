@@ -16,6 +16,7 @@ class UserProfileModel extends UserProfile {
     super.createdByCompany,
     super.language,
     super.cityId,
+    super.termsVersion,
   });
 
   factory UserProfileModel.customer({
@@ -94,6 +95,8 @@ class UserProfileModel extends UserProfile {
       // Any saved city id counts: the list of cities can grow, and the
       // security rules decide which ids may be written.
       cityId: text('cityId'),
+      // A whole number only; anything else reads as never accepted.
+      termsVersion: map['termsVersion'] is int ? map['termsVersion'] as int : null,
     );
   }
 

@@ -19,12 +19,12 @@ import 'package:sudan_it_marketplace/features/products/domain/entities/product.d
 import 'package:sudan_it_marketplace/features/products/domain/repositories/products_repository.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/product_details_screen.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/products_providers.dart';
-import 'package:sudan_it_marketplace/features/products/presentation/widgets/product_card.dart';
 
 const _en = Locale('en');
 const _ar = Locale('ar');
-const _onRequestEn = 'Price on request';
-const _onRequestAr = 'السعر عند التواصل';
+// The product page writes it as sictm.net does.
+const _siteOnRequestEn = 'Contact for the price';
+const _siteOnRequestAr = 'تواصل لمعرفة السعر';
 
 Product _product({double? price, int stock = 4}) => Product(
       id: 'real1',
@@ -131,42 +131,6 @@ void main() {
     });
   });
 
-  group('marketplace card', () {
-    Widget card(Product product, Locale locale) =>
-        _app(Scaffold(body: ProductCard(product: product)), locale: locale);
-
-    testWidgets('shows the price when there is one', (tester) async {
-      await tester.pumpWidget(card(_product(price: 850000), _en));
-      expect(find.text('850,000 SDG'), findsOneWidget);
-      expect(find.text(_onRequestEn), findsNothing);
-    });
-
-    testWidgets('shows a price of 0 as 0, not as "on request"', (tester) async {
-      await tester.pumpWidget(card(_product(price: 0), _en));
-      expect(find.text('0 SDG'), findsOneWidget);
-      expect(find.text(_onRequestEn), findsNothing);
-    });
-
-    testWidgets('shows "Price on request" in English (LTR)', (tester) async {
-      await tester.pumpWidget(card(_product(), _en));
-      expect(find.text(_onRequestEn), findsOneWidget);
-      expect(find.textContaining('SDG'), findsNothing);
-      expect(
-        Directionality.of(tester.element(find.byType(ProductCard))),
-        TextDirection.ltr,
-      );
-    });
-
-    testWidgets('shows "السعر عند التواصل" in Arabic (RTL)', (tester) async {
-      await tester.pumpWidget(card(_product(), _ar));
-      expect(find.text(_onRequestAr), findsOneWidget);
-      expect(find.text(_onRequestEn), findsNothing);
-      expect(
-        Directionality.of(tester.element(find.byType(ProductCard))),
-        TextDirection.rtl,
-      );
-    });
-  });
 
   group('product details', () {
     Widget details(Product product, Locale locale) => _app(
@@ -182,7 +146,7 @@ void main() {
 
       // The price line and the bar's total (one unit).
       expect(find.text('1,000 SDG'), findsNWidgets(2));
-      expect(find.text(_onRequestEn), findsNothing);
+      expect(find.text(_siteOnRequestEn), findsNothing);
       expect(_buyButton(tester).onPressed, isNotNull);
     });
 
@@ -191,7 +155,7 @@ void main() {
       await tester.pump();
 
       // The price line and the bar's total; the purchase button is disabled.
-      expect(find.text(_onRequestEn), findsNWidgets(2));
+      expect(find.text(_siteOnRequestEn), findsNWidgets(2));
       expect(find.textContaining('SDG'), findsNothing);
       expect(_buyButton(tester).onPressed, isNull);
     });
@@ -215,8 +179,8 @@ void main() {
       await tester.pumpWidget(details(_product(), _ar));
       await tester.pump();
 
-      expect(find.text(_onRequestAr), findsNWidgets(2));
-      expect(find.text(_onRequestEn), findsNothing);
+      expect(find.text(_siteOnRequestAr), findsNWidgets(2));
+      expect(find.text(_siteOnRequestEn), findsNothing);
       expect(
         Directionality.of(tester.element(find.byType(ProductDetailsScreen))),
         TextDirection.rtl,

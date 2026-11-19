@@ -313,7 +313,7 @@ void main() {
         find.byType(ListView).first,
         const Offset(0, -100),
       );
-      expect(find.text('HELP'), findsOneWidget);
+      expect(find.text('Help'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('settings-report')));
       await tester.pumpAndSettle();
       expect(find.byType(ReportFormScreen), findsOneWidget);

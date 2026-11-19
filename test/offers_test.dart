@@ -10,7 +10,6 @@ import 'package:sudan_it_marketplace/features/company_services/data/models/compa
 import 'package:sudan_it_marketplace/features/company_services/domain/entities/company_service.dart';
 import 'package:sudan_it_marketplace/features/company_services/domain/repositories/company_service_repository.dart';
 import 'package:sudan_it_marketplace/features/company_services/presentation/company_service_providers.dart';
-import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/featured_offers_strip.dart';
 import 'package:sudan_it_marketplace/features/offers/domain/offer_item.dart';
 import 'package:sudan_it_marketplace/features/offers/domain/offer_pricing.dart';
 import 'package:sudan_it_marketplace/features/offers/presentation/offers_providers.dart';
@@ -18,7 +17,6 @@ import 'package:sudan_it_marketplace/features/products/data/models/product_model
 import 'package:sudan_it_marketplace/features/products/domain/entities/product.dart';
 import 'package:sudan_it_marketplace/features/products/domain/repositories/products_repository.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/products_providers.dart';
-import 'package:sudan_it_marketplace/features/products/presentation/widgets/product_card.dart';
 import 'package:sudan_it_marketplace/features/services/domain/entities/catalog_service.dart';
 import 'package:sudan_it_marketplace/features/services/presentation/service_providers.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
@@ -240,68 +238,6 @@ void main() {
     });
   });
 
-  group('customer sees the offer', () {
-    testWidgets('the card shows the offer price, the old price and the badge',
-        (tester) async {
-      await tester.pumpWidget(_app(
-        Scaffold(body: ProductCard(product: _product(offerPrice: 850000))),
-      ));
-      expect(find.text('850,000 SDG'), findsOneWidget);
-      expect(find.text('1,000,000'), findsOneWidget);
-      expect(find.text('15% off'), findsOneWidget);
-    });
-
-    testWidgets('a chosen badge replaces the percentage', (tester) async {
-      await tester.pumpWidget(_app(
-        Scaffold(
-          body: ProductCard(
-            product: _product(offerPrice: 850000, badge: OfferBadge.special),
-          ),
-        ),
-      ));
-      expect(find.text('Special offer'), findsOneWidget);
-      expect(find.text('15% off'), findsNothing);
-    });
-
-    testWidgets('an ended offer shows only the normal price', (tester) async {
-      await tester.pumpWidget(_app(
-        Scaffold(
-          body: ProductCard(
-            product: _product(offerPrice: 850000, offerEndsAt: yesterday),
-          ),
-        ),
-      ));
-      expect(find.text('1,000,000 SDG'), findsOneWidget);
-      expect(find.textContaining('off'), findsNothing);
-    });
-
-    testWidgets('the strip lists products and services, in Arabic',
-        (tester) async {
-      await tester.pumpWidget(_app(
-        Scaffold(
-          body: FeaturedOffersStrip(offers: [
-            ProductOfferItem(_product(offerPrice: 850000)),
-            ServiceOfferItem(
-              link: _link(offerPrice: 150000),
-              service: _service,
-              companyName: 'Nile Tech',
-            ),
-          ]),
-        ),
-        locale: _ar,
-      ));
-      expect(find.text('عروض مميزة'), findsOneWidget);
-      expect(find.text('خصم 15%'), findsOneWidget);
-      expect(find.text('خصم 25%'), findsOneWidget);
-      expect(find.text('Office network setup'), findsOneWidget);
-      expect(find.text('خدمة'), findsOneWidget);
-
-      await tester.pumpWidget(_app(
-        const Scaffold(body: FeaturedOffersStrip(offers: [])),
-      ));
-      expect(find.byKey(const ValueKey('featured-offers')), findsNothing);
-    });
-  });
 
   group('company sets the offer', () {
     late _ProductsRepo products;

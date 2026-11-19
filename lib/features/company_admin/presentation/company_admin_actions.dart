@@ -267,6 +267,17 @@ class CompanyAdminActions {
           productName: order.productName,
         ),
       );
+      // The customer learns a technician was sent: once per order, so a
+      // reassignment's repeat is refused, and that changes nothing here.
+      try {
+        await notifications.createNotification(
+          NotificationEvents.orderTechAssigned(
+            orderId: order.id,
+            customerId: order.customerId,
+            productName: order.productName,
+          ),
+        );
+      } catch (_) {}
     });
   }
 

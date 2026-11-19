@@ -11,7 +11,9 @@ import 'order_details_screen.dart';
 import 'widgets/order_location_widgets.dart';
 import 'widgets/price_summary_row.dart';
 import 'order_labels.dart';
+import '../../customer_dashboard/presentation/site/site_look.dart';
 import '../../../core/localization/l10n_extension.dart';
+import '../../customer_dashboard/presentation/customer_dashboard_screen.dart';
 
 class OrderPendingVerificationScreen extends StatelessWidget {
   const OrderPendingVerificationScreen({super.key, required this.order});
@@ -26,7 +28,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
   /// details lands on the orders list.
   void _leaveCheckout(
     BuildContext context, {
-    int tab = 0,
+    CustomerSection tab = CustomerSection.home,
     OrderEntity? openOrder,
   }) {
     final navigator = Navigator.of(context);
@@ -45,12 +47,6 @@ class OrderPendingVerificationScreen extends StatelessWidget {
     }
   }
 
-  String _formatPrice(double price) {
-    final parts = price.toStringAsFixed(0).split('.');
-    final regExp = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    return parts[0].replaceAllMapped(regExp, (Match m) => '${m[1]},');
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -61,7 +57,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _leaveCheckout(context, tab: 1);
+        if (!didPop) _leaveCheckout(context, tab: CustomerSection.orders);
       },
       child: Scaffold(
         appBar: AppBar(
@@ -190,14 +186,14 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                           KeyValueRow(
                             label: l10n.pendingInstallation,
                             value: l10n.pendingInstallationIncluded(
-                              _formatPrice(order.installationFee),
+                              sitePrice(context, order.installationFee),
                             ),
                             valueColor: context.colors.textBrand,
                           ),
                         if (order.deliveryMethod == DeliveryMethod.delivery)
                           KeyValueRow(
                             label: l10n.orderDeliveryFee,
-                            value: '${_formatPrice(order.deliveryFee)} SDG',
+                            value: sitePrice(context, order.deliveryFee),
                           ),
                         KeyValueRow(
                           label: l10n.orderReceiptAttached,
@@ -219,7 +215,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                         const SizedBox(height: AppSpacing.s8),
                         PriceSummaryRow(
                           label: l10n.pendingTotalAmount,
-                          value: '${_formatPrice(order.totalAmount)} SDG',
+                          value: sitePrice(context, order.totalAmount),
                           total: true,
                         ),
                       ],
@@ -232,7 +228,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                     icon: Icons.receipt_long_outlined,
                     expand: true,
                     onPressed: () =>
-                        _leaveCheckout(context, tab: 1, openOrder: order),
+                        _leaveCheckout(context, tab: CustomerSection.orders, openOrder: order),
                   ),
                   const SizedBox(height: AppSpacing.s12),
 
@@ -245,7 +241,7 @@ class OrderPendingVerificationScreen extends StatelessWidget {
                   AppButton.outlined(
                     label: l10n.pendingViewInMyOrders,
                     expand: true,
-                    onPressed: () => _leaveCheckout(context, tab: 1),
+                    onPressed: () => _leaveCheckout(context, tab: CustomerSection.orders),
                   ),
                 ],
               ),

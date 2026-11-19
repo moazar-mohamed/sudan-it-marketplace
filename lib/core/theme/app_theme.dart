@@ -49,35 +49,34 @@ class AppTheme {
 
     final textTheme = AppTextStyles.textTheme;
 
-    // A full brand-blue bar glares on a dark screen, so dark mode uses the
-    // raised surface for the bar; the brand blue stays on buttons and accents.
-    final isDark = brightness == Brightness.dark;
-    final appBarBackground = isDark ? tokens.bgSurface : tokens.primary;
-    final appBarForeground = isDark ? tokens.textPrimary : tokens.onPrimary;
+    // The bar is navy with white ink in light and dark, as on sictm.net.
+    final appBarBackground = tokens.navBar;
+    const appBarForeground = Colors.white;
+
+    // The site's shapes: 50-high buttons with 14 px corners, 48-high fields
+    // with 12 px corners, cards with 16 px corners.
+    const buttonShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(AppRadius.button)),
+    );
 
     // Disabled controls use flat gray fill with gray text instead of a faded
     // brand colour, so a disabled button never looks half-active.
     Color? disabledOr(Set<WidgetState> states, Color enabled, Color disabled) =>
         states.contains(WidgetState.disabled) ? disabled : enabled;
 
+    // Main buttons are the site's green (`--action`).
     final filledStyle = ButtonStyle(
-      minimumSize: const WidgetStatePropertyAll(Size(64, AppSize.controlLg)),
+      minimumSize: const WidgetStatePropertyAll(Size(64, AppSize.button)),
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: AppSpacing.s20),
       ),
-      shape: WidgetStatePropertyAll(
-        RoundedRectangleBorder(borderRadius: AppRadius.smAll),
-      ),
+      shape: const WidgetStatePropertyAll(buttonShape),
       elevation: const WidgetStatePropertyAll(0),
       textStyle: WidgetStatePropertyAll(AppTextStyles.buttonLarge),
       backgroundColor: WidgetStateProperty.resolveWith(
         (s) => disabledOr(
           s,
-          s.contains(WidgetState.pressed)
-              ? tokens.brandPrimaryPressed
-              : s.contains(WidgetState.hovered)
-                  ? tokens.brandPrimaryHover
-                  : tokens.primary,
+          s.contains(WidgetState.pressed) ? tokens.actionPressed : tokens.action,
           tokens.disabledBg,
         ),
       ),
@@ -92,33 +91,30 @@ class AppTheme {
       ),
     );
 
+    // Second buttons are the site's `.btn-line`: the soft blue fill, navy ink.
     final outlinedStyle = ButtonStyle(
-      minimumSize: const WidgetStatePropertyAll(Size(64, AppSize.controlLg)),
+      minimumSize: const WidgetStatePropertyAll(Size(64, AppSize.button)),
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(horizontal: AppSpacing.s20),
       ),
-      shape: WidgetStatePropertyAll(
-        RoundedRectangleBorder(borderRadius: AppRadius.smAll),
-      ),
+      shape: const WidgetStatePropertyAll(buttonShape),
       textStyle: WidgetStatePropertyAll(AppTextStyles.buttonLarge),
       foregroundColor: WidgetStateProperty.resolveWith(
         (s) => disabledOr(s, tokens.textBrand, tokens.disabledFg),
       ),
       backgroundColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.pressed)
-            ? tokens.brandPrimarySubtleStrong
-            : s.contains(WidgetState.hovered)
-                ? tokens.brandPrimarySubtle
-                : tokens.surface,
+        (s) => s.contains(WidgetState.disabled)
+            ? tokens.disabledBg
+            : s.contains(WidgetState.pressed)
+                ? tokens.brandPrimarySubtleStrong
+                : tokens.brandPrimarySubtle,
       ),
       overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-      side: WidgetStateProperty.resolveWith((s) {
-        if (s.contains(WidgetState.disabled)) return AppBorder.card(tokens);
-        if (s.contains(WidgetState.focused)) {
-          return BorderSide(color: tokens.borderFocus, width: 2);
-        }
-        return AppBorder.input(tokens);
-      }),
+      side: WidgetStateProperty.resolveWith(
+        (s) => s.contains(WidgetState.focused)
+            ? BorderSide(color: tokens.borderFocus, width: 2)
+            : BorderSide.none,
+      ),
     );
 
     final textButtonStyle = ButtonStyle(
@@ -150,7 +146,7 @@ class AppTheme {
 
     OutlineInputBorder inputBorder(Color color, [double width = 1]) =>
         OutlineInputBorder(
-          borderRadius: AppRadius.smAll,
+          borderRadius: const BorderRadius.all(Radius.circular(AppRadius.field)),
           borderSide: BorderSide(color: color, width: width),
         );
 
@@ -180,9 +176,6 @@ class AppTheme {
         titleTextStyle: AppTextStyles.h2.copyWith(color: appBarForeground),
         // White status-bar icons on both: the blue bar and the dark surface.
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        shape: isDark
-            ? Border(bottom: BorderSide(color: tokens.borderDefault))
-            : null,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(style: filledStyle),
       filledButtonTheme: FilledButtonThemeData(style: filledStyle),
@@ -199,11 +192,12 @@ class AppTheme {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        // The site's fields: the light fill (`--surface-2`) and a thin line.
         filled: true,
-        fillColor: tokens.surface,
+        fillColor: tokens.bgSubtle,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.s12,
-          vertical: AppSpacing.s12,
+          horizontal: 14,
+          vertical: 13,
         ),
         hintStyle: AppTextStyles.body.copyWith(color: tokens.textTertiary),
         labelStyle: AppTextStyles.body.copyWith(color: tokens.textSecondary),
@@ -214,8 +208,8 @@ class AppTheme {
         errorStyle: AppTextStyles.caption.copyWith(color: tokens.errorText),
         prefixIconColor: tokens.iconMuted,
         suffixIconColor: tokens.iconMuted,
-        border: inputBorder(tokens.borderInput),
-        enabledBorder: inputBorder(tokens.borderInput),
+        border: inputBorder(tokens.borderDefault),
+        enabledBorder: inputBorder(tokens.borderDefault),
         focusedBorder: inputBorder(tokens.borderFocus, 2),
         errorBorder: inputBorder(tokens.borderError, 2),
         focusedErrorBorder: inputBorder(tokens.borderError, 2),
@@ -227,7 +221,7 @@ class AppTheme {
         margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: AppRadius.mdAll,
+          borderRadius: const BorderRadius.all(Radius.circular(AppRadius.card)),
           side: AppBorder.card(tokens),
         ),
       ),

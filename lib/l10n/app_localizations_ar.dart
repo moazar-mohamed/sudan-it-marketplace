@@ -1221,7 +1221,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String orderTypeInstallation(String fee) {
-    return 'منتج + تركيب (+$fee SDG)';
+    return 'منتج + تركيب (+$fee)';
   }
 
   @override
@@ -1297,7 +1297,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String pendingInstallationIncluded(String fee) {
-    return 'مشمول ($fee SDG)';
+    return 'مشمول ($fee)';
   }
 
   @override
@@ -3515,6 +3515,86 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get notifOrderTechAssignedTitle => 'أرسلت الشركة فنيًا لطلبك';
+
+  @override
+  String notifOrderTechAssignedBody(String product) {
+    return 'أُسند فني لطلبك «$product». يمكنك مراسلته من صفحة الطلب.';
+  }
+
+  @override
+  String get notifCompanyActivatedTitle => 'شركتك مفعّلة';
+
+  @override
+  String notifCompanyActivatedBody(String product) {
+    return 'فعّلت المنصة شركة «$product»، وصارت منتجاتها ظاهرة للعملاء.';
+  }
+
+  @override
+  String get notifCompanyDeactivatedTitle => 'أُوقفت شركتك';
+
+  @override
+  String notifCompanyDeactivatedBody(String product) {
+    return 'أوقفت المنصة شركة «$product»، فلا تظهر منتجاتها للعملاء الآن. تواصل مع المنصة لمعرفة السبب.';
+  }
+
+  @override
+  String get notifCompanyRejectedTitle => 'لم تُقبل شركتك';
+
+  @override
+  String notifCompanyRejectedBody(String product) {
+    return 'لم تقبل المنصة تسجيل شركة «$product». تواصل مع المنصة لمعرفة السبب.';
+  }
+
+  @override
+  String get notifReviewHiddenTitle => 'أُخفي تقييم';
+
+  @override
+  String notifReviewHiddenBody(String product) {
+    return 'أخفت المنصة تقييمًا على «$product» لمخالفته الشروط.';
+  }
+
+  @override
+  String get notifReviewShownTitle => 'عاد تقييم ظاهرًا';
+
+  @override
+  String notifReviewShownBody(String product) {
+    return 'أعادت المنصة إظهار تقييم على «$product».';
+  }
+
+  @override
+  String get notifServiceHiddenTitle => 'أُوقفت خدمة';
+
+  @override
+  String notifServiceHiddenBody(String product) {
+    return 'أوقفت المنصة الخدمة «$product»، فلا تظهر للعملاء الآن.';
+  }
+
+  @override
+  String get notifServiceShownTitle => 'عادت خدمة';
+
+  @override
+  String notifServiceShownBody(String product) {
+    return 'الخدمة «$product» متاحة للعملاء من جديد.';
+  }
+
+  @override
+  String get notifProductOfferEndedTitle => 'أُنهي عرض';
+
+  @override
+  String notifProductOfferEndedBody(String product) {
+    return 'أنهت المنصة العرض على «$product»، ورجع إلى سعره العادي.';
+  }
+
+  @override
+  String get notifServiceOfferEndedTitle => 'أُنهي عرض خدمة';
+
+  @override
+  String notifServiceOfferEndedBody(String product) {
+    return 'أنهت المنصة العرض على الخدمة «$product»، ورجعت إلى سعرها العادي.';
+  }
+
+  @override
   String get notifAccountConvertedTitle => 'أصبح حسابك حساب شركة';
 
   @override
@@ -3923,6 +4003,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tjChatYou => 'أنت';
 
   @override
+  String get tcTechnician => 'الفني';
+
+  @override
+  String tcTechnicianName(String name) {
+    return 'الفني: $name';
+  }
+
+  @override
+  String get tcChatWithTechnician => 'تواصل مع الفني';
+
+  @override
+  String get tcChatWithCustomer => 'محادثة العميل';
+
+  @override
+  String get tcChatCustomerTechnician => 'محادثة العميل والفني';
+
+  @override
+  String get tcChatNotice =>
+      'الشركة تطّلع على هذه المحادثة، ولا تظهر فيها أرقام الهواتف.';
+
+  @override
+  String get tcChatReadOnly => 'بين العميل وفنيّك. للاطلاع فقط.';
+
+  @override
+  String get tcChatClosed => 'انتهت هذه المحادثة باكتمال الطلب أو إلغائه.';
+
+  @override
+  String get tcChatEmptyCompany => 'لم يكتب العميل والفني بعد.';
+
+  @override
   String get tjNoTechnicianAssigned => 'لم يُسند فني لهذا الطلب بعد.';
 
   @override
@@ -4216,4 +4326,555 @@ class AppLocalizationsAr extends AppLocalizations {
   String usdPriceLabel(String usd, String rate) {
     return '$usd \$ بسعر 1\$ = $rate SDG';
   }
+
+  @override
+  String get navMyAccount => 'حسابي';
+
+  @override
+  String get profileMyCity => 'مدينتي';
+
+  @override
+  String get profileCityNotSet => 'لم تختر مدينة بعد';
+
+  @override
+  String get siteHeroTitleLine1 => 'كل التقنية';
+
+  @override
+  String get siteHeroTitleLine2 => 'في مكان واحد';
+
+  @override
+  String get siteHeroBody =>
+      'منتجات وشركات وخدمات في مدينتك. اطلب مباشرة وتواصل مع الشركة.';
+
+  @override
+  String get siteQuickRouter => 'راوتر';
+
+  @override
+  String get siteQuickCameras => 'كاميرات';
+
+  @override
+  String get siteQuickServer => 'سيرفر';
+
+  @override
+  String get siteStatCompanies => 'شركات';
+
+  @override
+  String get siteStatItems => 'منتجات وخدمات';
+
+  @override
+  String get siteStatCities => 'مدن';
+
+  @override
+  String get siteStatReviews => 'تقييمات العملاء';
+
+  @override
+  String get siteMainCategories => 'الأقسام الرئيسية';
+
+  @override
+  String get siteViewAll => 'عرض الكل ←';
+
+  @override
+  String get sitePromoKicker => 'خدمات';
+
+  @override
+  String get sitePromoTitle => 'اطلب فنيًا لخدمتك';
+
+  @override
+  String get siteFeaturedOffers => 'عروض مميزة';
+
+  @override
+  String get siteNewestProducts => 'أحدث المنتجات';
+
+  @override
+  String get siteNoProducts => 'لا منتجات بعد';
+
+  @override
+  String get siteFeaturedServices => 'خدمات مميزة';
+
+  @override
+  String get siteTopCompanies => 'أفضل الشركات';
+
+  @override
+  String get siteNoCompanies => 'لا شركات بعد';
+
+  @override
+  String get siteNew => 'جديد';
+
+  @override
+  String get siteDelivery => 'توصيل';
+
+  @override
+  String get siteInstallation => 'تركيب';
+
+  @override
+  String get siteCurrencySdg => 'ج.س';
+
+  @override
+  String siteItemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      few: '$count عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteReviewsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تقييم',
+      few: '$count تقييمات',
+      two: 'تقييمان',
+      one: 'تقييم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteAndOtherCompanies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: ' و$count شركة أخرى',
+      few: ' و$count شركات أخرى',
+      two: ' وشركتان أخريان',
+      one: ' وشركة أخرى',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteStartsFrom => 'يبدأ من';
+
+  @override
+  String siteDiscount(int percent) {
+    return 'خصم $percent%';
+  }
+
+  @override
+  String get sitePriceOnRequest => 'تواصل لمعرفة السعر';
+
+  @override
+  String get siteShopNow => 'تسوق الآن';
+
+  @override
+  String get siteRequestService => 'اطلب الخدمة';
+
+  @override
+  String get siteEndsIn => 'ينتهي خلال';
+
+  @override
+  String siteDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوماً',
+      few: '$count أيام',
+      two: 'يومين',
+      one: 'يوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteFooterName => 'سوق السودان للتقنية';
+
+  @override
+  String get siteFooterAbout => 'شريكك الموثوق في عالم التقنية والاتصالات';
+
+  @override
+  String get siteFooterStore => 'المتجر';
+
+  @override
+  String get siteFooterSupport => 'الدعم والشركات';
+
+  @override
+  String get siteFooterTerms => 'الشروط والأحكام';
+
+  @override
+  String get siteFooterCompanyPortal => 'بوابة الشركات';
+
+  @override
+  String get siteRequestTechnician => 'اطلب فنيًا';
+
+  @override
+  String get siteSortNewest => 'الأحدث';
+
+  @override
+  String get siteSortPriceLow => 'السعر: من الأقل';
+
+  @override
+  String get siteSortPriceHigh => 'السعر: من الأعلى';
+
+  @override
+  String get siteSortTopRated => 'الأعلى تقييمًا';
+
+  @override
+  String get siteSortMostReviewed => 'الأكثر تقييمًا';
+
+  @override
+  String get siteSortName => 'الاسم';
+
+  @override
+  String get siteAllCategories => 'كل الأقسام';
+
+  @override
+  String get siteWholeCategory => 'كل القسم';
+
+  @override
+  String siteWholeCategoryCount(int count) {
+    return 'كل القسم ($count)';
+  }
+
+  @override
+  String siteCategoryWithCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get siteFilterOffers => 'عروض';
+
+  @override
+  String get siteFilterInStock => 'متوفر';
+
+  @override
+  String get siteFilterBrand => 'الماركة';
+
+  @override
+  String get siteFilterCompany => 'الشركة';
+
+  @override
+  String get siteSort => 'ترتيب';
+
+  @override
+  String get siteSortColon => 'ترتيب:';
+
+  @override
+  String get siteClearAll => 'مسح الكل';
+
+  @override
+  String get siteClearFilters => 'مسح الفلاتر';
+
+  @override
+  String get siteShowMore => 'عرض المزيد';
+
+  @override
+  String siteServicesHeading(int count) {
+    return 'الخدمات ($count)';
+  }
+
+  @override
+  String get siteNothingMatches => 'لا شيء يطابق هذه الفلاتر.';
+
+  @override
+  String siteNoResultsHere(String query) {
+    return 'لا نتائج لـ«$query» هنا.';
+  }
+
+  @override
+  String siteSearchInCategory(String name) {
+    return 'ابحث في قسم $name';
+  }
+
+  @override
+  String get siteSearchProductsServices => 'ابحث في المنتجات والخدمات';
+
+  @override
+  String get siteNoProductsInCategory =>
+      'لا توجد منتجات في هذا القسم حالياً، تابعنا قريباً';
+
+  @override
+  String get siteNoServicesInCategory =>
+      'لا توجد خدمات في هذا القسم حالياً، تابعنا قريباً';
+
+  @override
+  String get siteNothingYet => 'لا يوجد شيء هنا بعد.';
+
+  @override
+  String get siteCategoryUnavailable => 'القسم غير متاح';
+
+  @override
+  String get siteCategoryUnavailableBody =>
+      'هذا القسم لم يعد متاحاً. اختر قسماً آخر.';
+
+  @override
+  String siteProductsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منتج',
+      few: '$count منتجات',
+      two: 'منتجان',
+      one: 'منتج واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteServicesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count خدمة',
+      few: '$count خدمات',
+      two: 'خدمتان',
+      one: 'خدمة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteCompaniesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شركة',
+      few: '$count شركات',
+      two: 'شركتان',
+      one: 'شركة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteGridView => 'عرض شبكة';
+
+  @override
+  String get siteListView => 'عرض قائمة';
+
+  @override
+  String siteRemoveTag(String label) {
+    return 'إزالة $label';
+  }
+
+  @override
+  String get siteAll => 'الكل';
+
+  @override
+  String get siteSearchCompany => 'ابحث عن شركة';
+
+  @override
+  String get siteNoCompaniesHere => 'لا شركات هنا بعد.';
+
+  @override
+  String get siteBrowseAll => 'تصفّح المنتجات والخدمات';
+
+  @override
+  String get siteFooterTechPortal => 'بوابة الفني';
+
+  @override
+  String get siteCompareAdd => 'أضف للمقارنة';
+
+  @override
+  String get siteCompareRemove => 'إزالة من المقارنة';
+
+  @override
+  String siteCompareFull(int count) {
+    return 'تقارن حتى $count منتجات في المرة. أزل منتجًا أولًا.';
+  }
+
+  @override
+  String get siteCompareTitle => 'مقارنة المنتجات';
+
+  @override
+  String get siteComparePickAnother => 'اختر منتجًا آخر';
+
+  @override
+  String get siteCompareNow => 'قارن الآن';
+
+  @override
+  String get siteCompareClear => 'مسح المقارنة';
+
+  @override
+  String get siteCompareEmptyTitle => 'المقارنة';
+
+  @override
+  String get siteCompareEmptyMessage =>
+      'اختر منتجين على الأقل من القائمة بزر المقارنة ثم عد إلى هنا.';
+
+  @override
+  String get siteCompareNote =>
+      'الأخضر هو الأقل سعرًا. الأسعار والمخزون كما هي الآن في المتجر.';
+
+  @override
+  String get siteComparePrice => 'السعر';
+
+  @override
+  String get siteCompareCompany => 'الشركة';
+
+  @override
+  String get siteCompareBrand => 'الماركة';
+
+  @override
+  String get siteCompareCategory => 'القسم';
+
+  @override
+  String get siteCompareRating => 'التقييم';
+
+  @override
+  String get siteCompareStock => 'التوفر';
+
+  @override
+  String get siteCompareDelivery => 'التوصيل';
+
+  @override
+  String get siteCompareInstall => 'التركيب';
+
+  @override
+  String get siteYes => 'نعم';
+
+  @override
+  String get siteNo => 'لا';
+
+  @override
+  String get siteOutOfStockShort => 'غير متوفر';
+
+  @override
+  String get siteRemove => 'إزالة';
+
+  @override
+  String get siteShare => 'مشاركة';
+
+  @override
+  String get siteLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String siteInstallNote(String price) {
+    return 'سعر التركيب: $price. يتم اختيار خيار التركيب أثناء إتمام الطلب.';
+  }
+
+  @override
+  String siteCompanyReplyFrom(String name) {
+    return 'رد الشركة · $name';
+  }
+
+  @override
+  String get siteViewOnMap => 'عرض على الخريطة';
+
+  @override
+  String siteReviewsAll(int count) {
+    return 'عرض كل التقييمات ($count)';
+  }
+
+  @override
+  String siteProductPicture(int number) {
+    return 'الصورة $number';
+  }
+
+  @override
+  String get siteProductGone => 'هذا المنتج لم يعد متاحًا';
+
+  @override
+  String get siteCustomer => 'عميل';
+
+  @override
+  String siteOrdersProducts(int count) {
+    return 'المنتجات ($count)';
+  }
+
+  @override
+  String siteOrdersServices(int count) {
+    return 'الخدمات ($count)';
+  }
+
+  @override
+  String get siteOrdersSearch => 'ابحث في طلباتك';
+
+  @override
+  String get siteOrdersActive => 'جارية';
+
+  @override
+  String get siteOrdersDone => 'منتهية';
+
+  @override
+  String get siteOrdersNone => 'لا طلبات هنا.';
+
+  @override
+  String siteRequestTitleNumber(String id) {
+    return 'طلب خدمة ‎#$id';
+  }
+
+  @override
+  String siteCheckoutUnitLine(String price, int quantity) {
+    return 'سعر الوحدة: $price · الكمية: $quantity';
+  }
+
+  @override
+  String siteCheckoutSubtotal(String price) {
+    return 'المجموع الفرعي: $price';
+  }
+
+  @override
+  String siteCheckoutInstallNote(String price) {
+    return 'تركيب بواسطة فني معتمد متاح مقابل $price.';
+  }
+
+  @override
+  String siteCheckoutConfirm(String price) {
+    return 'تأكيد الطلب • $price';
+  }
+
+  @override
+  String siteCheckoutFrom(String name) {
+    return 'الطلب من $name';
+  }
+
+  @override
+  String get siteEditOrder => 'تعديل بيانات الطلب';
+
+  @override
+  String get siteRequestCityPlace => 'المدينة والموقع';
+
+  @override
+  String get siteChatsSearch => 'ابحث في المحادثات';
+
+  @override
+  String get siteChatsUnread => 'غير المقروءة';
+
+  @override
+  String get siteChatsNoneHere => 'لا توجد محادثات هنا.';
+
+  @override
+  String get siteChatReadByCompany => 'قرأتها الشركة';
+
+  @override
+  String get siteChatSent => 'تم الإرسال';
+
+  @override
+  String get siteTermsNone => 'لم تُنشر الشروط والأحكام بعد.';
+
+  @override
+  String siteTermsVersion(int version) {
+    return 'الإصدار $version';
+  }
+
+  @override
+  String siteTermsUpdated(String date) {
+    return 'آخر تحديث: $date';
+  }
+
+  @override
+  String get siteTermsAgree => 'أوافق على';
+
+  @override
+  String get siteTermsRequired =>
+      'يجب الموافقة على الشروط والأحكام لإنشاء الحساب.';
+
+  @override
+  String get siteTermsGateSub => 'للمتابعة، اقرأ الشروط والأحكام ووافق عليها.';
+
+  @override
+  String get siteTermsGateCheck => 'قرأت الشروط والأحكام وأوافق عليها';
+
+  @override
+  String get siteTermsGateAccept => 'أوافق وأتابع';
+
+  @override
+  String get siteTermsGateFailed =>
+      'تعذر حفظ موافقتك. تحقق من اتصالك وحاول مرة أخرى.';
 }

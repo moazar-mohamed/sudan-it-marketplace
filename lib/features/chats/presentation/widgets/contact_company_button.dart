@@ -1,3 +1,4 @@
+import 'package:sudan_it_marketplace/features/auth/presentation/require_account.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -54,6 +55,7 @@ class _ContactCompanyButtonState extends ConsumerState<ContactCompanyButton> {
   bool _opening = false;
 
   Future<void> _contact() async {
+    if (!requireAccount(context, ref)) return;
     setState(() => _opening = true);
     final result = await widget._open(ref.read(chatActionsProvider));
     if (!mounted) return;

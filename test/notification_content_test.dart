@@ -44,6 +44,8 @@ List<AppNotification> _everyEvent() => [
           orderId: 'o1', customerId: 'cust1', productName: 'Router'),
       NotificationEvents.technicianAssigned(
           orderId: 'o1', technicianId: 't1', productName: 'Router'),
+      NotificationEvents.orderTechAssigned(
+          orderId: 'o1', customerId: 'cust1', productName: 'Router'),
       NotificationEvents.jobReady(
           orderId: 'o1', technicianId: 't1', productName: 'Router'),
       NotificationEvents.jobCancelled(
@@ -74,10 +76,10 @@ void main() {
 
   group('what a notification stores', () {
     test('the app sends exactly the known types, one event each', () {
-      // Ten about orders (built here) and six about service requests (see
+      // Eleven about orders (built here) and six about service requests (see
       // service_request_notifications_test.dart).
       final orderTypes = _everyEvent().map((n) => n.type).toSet();
-      expect(orderTypes, hasLength(10));
+      expect(orderTypes, hasLength(11));
       const serviceRequestTypes = {
         NotificationTypes.newServiceRequest,
         NotificationTypes.serviceRequestAccepted,
@@ -87,7 +89,7 @@ void main() {
         NotificationTypes.serviceRequestCancelled,
       };
       expect(NotificationTypes.all, {...orderTypes, ...serviceRequestTypes});
-      expect(NotificationTypes.all, hasLength(16));
+      expect(NotificationTypes.all, hasLength(17));
     });
 
     test('no title or body: only the listed fields, whatever the event', () {
@@ -170,7 +172,7 @@ void main() {
 
     test('every id is unique across the types of one order', () {
       final ids = _everyEvent().map((n) => n.id).toSet();
-      expect(ids, hasLength(10));
+      expect(ids, hasLength(11));
     });
   });
 

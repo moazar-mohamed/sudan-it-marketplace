@@ -139,8 +139,9 @@ class _Harness {
 ProviderContainer _container(WidgetTester tester) =>
     ProviderScope.containerOf(tester.element(find.byType(AuthGate)));
 
+/// The account button of the top bar opens «حسابي» (the profile page).
 Future<void> _openProfileTab(WidgetTester tester) async {
-  await tester.tap(find.widgetWithText(NavigationDestination, 'Profile'));
+  await tester.tap(find.byTooltip('My account'));
   await tester.pumpAndSettle();
 }
 
@@ -176,7 +177,9 @@ Future<_Harness> _signedInOnProfile(
   );
   await tester.pumpWidget(harness.build());
   await tester.pumpAndSettle();
-  expect(find.byType(LoginScreen), findsOneWidget);
+  // Signed out, the shop opens as for a visitor, with the sign-in button.
+  expect(find.byType(CustomerDashboardScreen), findsOneWidget);
+  expect(find.byTooltip('Login'), findsOneWidget);
 
   await _container(tester)
       .read(authControllerProvider.notifier)
@@ -187,7 +190,8 @@ Future<_Harness> _signedInOnProfile(
   return harness;
 }
 
-/// Taps Sign out and checks EVERY frame until the app settles.
+/// Taps Sign out and checks EVERY frame until the app settles: the customer
+/// is back on the shop as a visitor, as on sictm.net.
 Future<void> _signOutAndExpectLogin(WidgetTester tester, _Harness harness) async {
   await _tapSignOutOnProfile(tester);
   for (var i = 0; i < 12; i++) {
@@ -198,8 +202,10 @@ Future<void> _signOutAndExpectLogin(WidgetTester tester, _Harness harness) async
 
   expect(harness.auth.signOuts, 1);
   expect(_container(tester).read(authControllerProvider), isA<AuthUnauthenticated>());
-  expect(find.byType(LoginScreen), findsOneWidget);
-  expect(find.byType(CustomerDashboardScreen), findsNothing);
+  expect(find.byType(LoginScreen), findsNothing);
+  expect(find.byType(CustomerDashboardScreen), findsOneWidget);
+  expect(find.byType(CustomerProfileScreen), findsNothing);
+  expect(find.byTooltip('Login'), findsOneWidget);
   expect(find.text(_notFound), findsNothing);
   expect(find.text('Try again'), findsNothing);
 }
@@ -230,10 +236,9 @@ Future<void> _afterOrderTap(WidgetTester tester, String button) async {
 }
 
 void main() {
-  testWidgets('signing out from the customer profile reaches the login screen',
+  testWidgets('signing out from the customer profile returns to the shop as a visitor',
       (tester) async {
     final harness = await _signedInOnProfile(tester);
-    expect(find.text('My profile'), findsOneWidget);
     expect(find.text('Moazer Mohamed'), findsWidgets);
     expect(harness.profiles.requestedFor, isNotEmpty);
 
@@ -242,7 +247,7 @@ void main() {
 
   testWidgets(
       'after placing an order and going "Back to Marketplace", signing out '
-      'still reaches the login screen', (tester) async {
+      'still returns to the shop as a visitor', (tester) async {
     final harness = await _signedInOnProfile(tester);
     await _afterOrderTap(tester, 'Back to Marketplace');
     expect(find.byType(CustomerDashboardScreen), findsOneWidget);
@@ -253,7 +258,7 @@ void main() {
 
   testWidgets(
       'after placing an order and going to "View in My Orders", signing out '
-      'still reaches the login screen', (tester) async {
+      'still returns to the shop as a visitor', (tester) async {
     final harness = await _signedInOnProfile(tester);
     await _afterOrderTap(tester, 'View in My Orders');
     expect(find.text('My Orders'), findsWidgets); // landed on the orders tab
@@ -272,7 +277,7 @@ void main() {
     expect(find.byType(LoginScreen), findsNothing);
   });
 
-  testWidgets('a customer with a missing profile can still sign out to the login screen',
+  testWidgets('a customer with a missing profile can still sign out',
       (tester) async {
     final harness = await _signedInOnProfile(tester, profileMissing: true);
     expect(find.text(_notFound), findsOneWidget);
@@ -284,7 +289,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(harness.auth.signOuts, 1);
-    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byTooltip('Login'), findsOneWidget);
     expect(find.text(_notFound), findsNothing);
   });
 

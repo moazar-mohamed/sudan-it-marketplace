@@ -43,6 +43,11 @@ class AppRadius {
   static const double xl = 24;
   static const double full = 999;
 
+  /// The customer site's shapes (sictm.net): buttons, fields, cards.
+  static const double button = 14;
+  static const double field = 12;
+  static const double card = 16;
+
   static BorderRadius get xsAll => BorderRadius.circular(xs);
   static BorderRadius get smAll => BorderRadius.circular(sm);
   static BorderRadius get mdAll => BorderRadius.circular(md);
@@ -59,6 +64,9 @@ class AppSize {
   static const double controlSm = 32;
   static const double controlMd = 40;
   static const double controlLg = 48;
+
+  /// A main button on the customer site (`.btn`, `.btn-solid`).
+  static const double button = 50;
   static const double iconSm = 16;
   static const double iconMd = 20;
   static const double iconLg = 24;

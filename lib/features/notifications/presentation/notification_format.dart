@@ -48,6 +48,16 @@ class NotificationFormat {
       NotificationTypes.productShown => l10n.notifProductShownTitle,
       NotificationTypes.accountConvertedToCompany =>
         l10n.notifAccountConvertedTitle,
+      NotificationTypes.orderTechAssigned => l10n.notifOrderTechAssignedTitle,
+      NotificationTypes.companyActivated => l10n.notifCompanyActivatedTitle,
+      NotificationTypes.companyDeactivated => l10n.notifCompanyDeactivatedTitle,
+      NotificationTypes.companyRejected => l10n.notifCompanyRejectedTitle,
+      NotificationTypes.reviewHidden => l10n.notifReviewHiddenTitle,
+      NotificationTypes.reviewShown => l10n.notifReviewShownTitle,
+      NotificationTypes.serviceHidden => l10n.notifServiceHiddenTitle,
+      NotificationTypes.serviceShown => l10n.notifServiceShownTitle,
+      NotificationTypes.productOfferEnded => l10n.notifProductOfferEndedTitle,
+      NotificationTypes.serviceOfferEnded => l10n.notifServiceOfferEndedTitle,
       _ => l10n.notifGenericTitle,
     };
   }
@@ -103,6 +113,16 @@ class NotificationFormat {
         l10n.notifProductShownBody(product),
       NotificationTypes.accountConvertedToCompany when named =>
         l10n.notifAccountConvertedBody(product),
+      NotificationTypes.orderTechAssigned when named => l10n.notifOrderTechAssignedBody(product),
+      NotificationTypes.companyActivated when named => l10n.notifCompanyActivatedBody(product),
+      NotificationTypes.companyDeactivated when named => l10n.notifCompanyDeactivatedBody(product),
+      NotificationTypes.companyRejected when named => l10n.notifCompanyRejectedBody(product),
+      NotificationTypes.reviewHidden when named => l10n.notifReviewHiddenBody(product),
+      NotificationTypes.reviewShown when named => l10n.notifReviewShownBody(product),
+      NotificationTypes.serviceHidden when named => l10n.notifServiceHiddenBody(product),
+      NotificationTypes.serviceShown when named => l10n.notifServiceShownBody(product),
+      NotificationTypes.productOfferEnded when named => l10n.notifProductOfferEndedBody(product),
+      NotificationTypes.serviceOfferEnded when named => l10n.notifServiceOfferEndedBody(product),
       _ => l10n.notifGenericBody,
     };
   }
@@ -205,6 +225,46 @@ class NotificationFormat {
       NotificationTypes.accountConvertedToCompany => (
           icon: Icons.storefront_outlined,
           tone: AppTone.success,
+        ),
+      NotificationTypes.orderTechAssigned => (
+          icon: Icons.engineering_outlined,
+          tone: AppTone.info,
+        ),
+      NotificationTypes.companyActivated => (
+          icon: Icons.verified_outlined,
+          tone: AppTone.success,
+        ),
+      NotificationTypes.companyDeactivated => (
+          icon: Icons.block_outlined,
+          tone: AppTone.error,
+        ),
+      NotificationTypes.companyRejected => (
+          icon: Icons.block_outlined,
+          tone: AppTone.error,
+        ),
+      NotificationTypes.reviewHidden => (
+          icon: Icons.star_outline,
+          tone: AppTone.warning,
+        ),
+      NotificationTypes.reviewShown => (
+          icon: Icons.star_outline,
+          tone: AppTone.success,
+        ),
+      NotificationTypes.serviceHidden => (
+          icon: Icons.visibility_off_outlined,
+          tone: AppTone.warning,
+        ),
+      NotificationTypes.serviceShown => (
+          icon: Icons.visibility_outlined,
+          tone: AppTone.success,
+        ),
+      NotificationTypes.productOfferEnded => (
+          icon: Icons.local_offer_outlined,
+          tone: AppTone.warning,
+        ),
+      NotificationTypes.serviceOfferEnded => (
+          icon: Icons.local_offer_outlined,
+          tone: AppTone.warning,
         ),
       _ => (icon: Icons.notifications_outlined, tone: AppTone.brand),
     };

@@ -24,6 +24,7 @@ class _RecordingProfiles implements UserProfileRepository {
     required String id,
     required String fullName,
     required String email,
+    int? termsVersion,
   }) async {
     customers.add('$id|$fullName|$email');
   }

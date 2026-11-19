@@ -46,6 +46,12 @@ class _RecordingRelay implements PushRelay {
     required String messageId,
   }) async =>
       jobMessages.add((orderId, messageId));
+
+  @override
+  Future<void> techChatMessage({
+    required String orderId,
+    required String messageId,
+  }) async {}
 }
 
 class _FakeNotificationsRemote extends Fake
@@ -322,6 +328,28 @@ void main() {
         pushDestination(
           {'type': 'job_chat_message', 'orderId': 'o1', 'role': 'company'},
           _profile(UserRole.customer),
+        ),
+        isNull,
+      );
+      // A message between the customer and the technician: the customer
+      // opens the order, the technician the job, the company nothing.
+      final toCustomer = pushDestination(
+        {'type': 'customer_tech_chat_message', 'orderId': 'o1', 'role': 'customer'},
+        _profile(UserRole.customer),
+      );
+      expect(toCustomer, isA<CustomerOrderDestination>());
+      expect((toCustomer as CustomerOrderDestination).orderId, 'o1');
+      expect(
+        pushDestination(
+          {'type': 'customer_tech_chat_message', 'orderId': 'o1', 'role': 'technician'},
+          _profile(UserRole.technician, companyId: 'c1'),
+        ),
+        isA<TechnicianJobDestination>(),
+      );
+      expect(
+        pushDestination(
+          {'type': 'customer_tech_chat_message', 'orderId': 'o1', 'role': 'customer'},
+          _profile(UserRole.companyAdmin, companyId: 'c1'),
         ),
         isNull,
       );

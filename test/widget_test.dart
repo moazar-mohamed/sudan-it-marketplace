@@ -35,6 +35,7 @@ class _FakeAuthRepository implements AuthRepository {
     required String fullName,
     required String email,
     required String password,
+    int? termsVersion,
   }) =>
       throw UnimplementedError();
 

@@ -1,10 +1,13 @@
 import '../../domain/entities/user_profile.dart';
 
 abstract class UserProfileRemoteDataSource {
+  /// [termsVersion], when set, is stored with the acceptance time
+  /// (termsVersion + termsAcceptedAt, as the rules require them together).
   Future<void> createCustomerProfile({
     required String id,
     required String fullName,
     required String email,
+    int? termsVersion,
   });
 
   Future<UserProfile?> fetchProfile(String userId);

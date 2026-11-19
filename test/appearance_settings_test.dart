@@ -166,7 +166,7 @@ void main() {
       expect(_screenColors(tester), AppColorTokens.light);
     });
 
-    testWidgets('the dark app bar is a raised surface, not the brand blue',
+    testWidgets('the dark app bar stays navy, as on sictm.net',
         (tester) async {
       await tester.pumpWidget(_app(await _prefs({'theme_mode': 'dark'})));
       await tester.pumpAndSettle();
@@ -174,7 +174,7 @@ void main() {
       final material = tester.widget<Material>(
         find.descendant(of: find.byType(AppBar), matching: find.byType(Material)).first,
       );
-      expect(material.color, AppColorTokens.dark.bgSurface);
+      expect(material.color, AppColorTokens.dark.navBar);
     });
   });
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
+import '../../customer_dashboard/presentation/site/site_auth.dart';
+import '../../customer_dashboard/presentation/site/site_terms.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -29,6 +31,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _isSubmitting = false;
   bool _didSubmit = false;
 
+  /// The terms box is ticked; [_termsMissing] once sign-up was tried without.
+  bool _agreed = false;
+  bool _termsMissing = false;
+
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -43,7 +49,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
     FocusScope.of(context).unfocus();
-    if (!(_formKey.currentState?.validate() ?? false)) {
+    final formValid = _formKey.currentState?.validate() ?? false;
+    // Published terms must be accepted before the account is made.
+    final terms = ref.read(siteTermsProvider).asData?.value;
+    if (terms != null && !_agreed) {
+      setState(() => _termsMissing = true);
+      return;
+    }
+    if (!formValid) {
       return;
     }
 
@@ -52,11 +65,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       _didSubmit = true;
     });
     try {
-      await ref.read(authControllerProvider.notifier).signUpWithEmail(
-        fullName: _fullNameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+      await ref
+          .read(authControllerProvider.notifier)
+          .signUpWithEmail(
+            fullName: _fullNameController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            termsVersion: terms?.version,
+          );
       if (!mounted) {
         return;
       }
@@ -82,14 +98,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final authState = ref.watch(authControllerProvider);
+    final terms = ref.watch(siteTermsProvider).asData?.value;
     final errorMessage = _didSubmit && authState is AuthError
         ? authErrorMessage(l10n, authState.code)
         : null;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.authCreateAccount),
-      ),
+      appBar: AppBar(title: Text(l10n.authCreateAccount)),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -104,27 +119,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     constraints: const BoxConstraints(maxWidth: 420),
                     child: Form(
                       key: _formKey,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                      // As sictm.net's «إنشاء حساب»: one card.
+                      child: SiteAuthCard(
+                        title: l10n.authJoinTitle,
+                        subtitle: l10n.authCreateAccountSubtitle,
+                        footer: const Center(child: LanguageSelector()),
                         children: [
-                          const Center(child: LanguageSelector()),
-                          const SizedBox(height: 24),
-                          const Center(child: AppLogo()),
-                          const SizedBox(height: 16),
-                          Text(
-                            l10n.authJoinTitle,
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.h1,
-                          ),
-                          const SizedBox(height: AppSpacing.s8),
-                          Text(
-                            l10n.authCreateAccountSubtitle,
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.bodyLarge
-                                .copyWith(color: context.colors.textSecondary),
-                          ),
-                          const SizedBox(height: AppSpacing.s32),
+                          const SizedBox(height: AppSpacing.s16),
                           AppTextField(
                             label: l10n.authFullName,
                             controller: _fullNameController,
@@ -207,6 +208,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               return null;
                             },
                           ),
+                          // «أوافق على الشروط والأحكام», only while terms
+                          // are published (as on sictm.net's sign-up).
+                          if (terms != null) ...[
+                            const SizedBox(height: AppSpacing.s16),
+                            _TermsCheck(
+                              agreed: _agreed,
+                              enabled: !_isSubmitting,
+                              onChanged: (value) => setState(() {
+                                _agreed = value;
+                                if (value) _termsMissing = false;
+                              }),
+                            ),
+                            if (_termsMissing)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  l10n.siteTermsRequired,
+                                  key: const ValueKey('register-terms-error'),
+                                  style: AppTextStyles.caption.copyWith(
+                                    fontSize: 14,
+                                    color: context.colors.errorText,
+                                  ),
+                                ),
+                              ),
+                          ],
                           if (errorMessage != null) ...[
                             const SizedBox(height: AppSpacing.s16),
                             AppBanner(
@@ -246,6 +272,61 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           },
         ),
       ),
+    );
+  }
+}
+
+/// «أوافق على الشروط والأحكام» with the terms one tap away.
+class _TermsCheck extends StatelessWidget {
+  const _TermsCheck({
+    required this.agreed,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final bool agreed;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final colors = context.colors;
+    return Row(
+      children: [
+        Checkbox(
+          key: const ValueKey('register-terms'),
+          value: agreed,
+          onChanged: enabled ? (v) => onChanged(v ?? false) : null,
+        ),
+        Expanded(
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                '${l10n.siteTermsAgree} ',
+                style: AppTextStyles.body.copyWith(fontSize: 14),
+              ),
+              InkWell(
+                key: const ValueKey('register-terms-open'),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SiteTermsPage(),
+                  ),
+                ),
+                child: Text(
+                  l10n.siteFooterTerms,
+                  style: AppTextStyles.bodyStrong.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: colors.textBrand,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

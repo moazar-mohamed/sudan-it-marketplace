@@ -1,3 +1,11 @@
+import '../../settings/presentation/settings_screen.dart';
+import '../../../core/utils/phone_number.dart';
+import 'customer_notifications_screen.dart';
+import 'site/site_detail_parts.dart';
+import '../../cities/presentation/city_providers.dart';
+import '../../cities/presentation/city_button.dart';
+import '../../cities/domain/sudan_city.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -86,7 +94,9 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       return;
     }
 
-    final error = await ref.read(profileControllerProvider.notifier).updateProfile(
+    final error = await ref
+        .read(profileControllerProvider.notifier)
+        .updateProfile(
           fullName: _nameController.text,
           phone: _phoneController.value,
           // Only written when the picture actually changed ('' removes it).
@@ -100,10 +110,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
       _isSaving = false;
       _isEditing = error != null;
     });
-    _showMessage(
-      error ?? context.l10n.profileUpdated,
-      isError: error != null,
-    );
+    _showMessage(error ?? context.l10n.profileUpdated, isError: error != null);
   }
 
   Future<void> _showChangePasswordSheet() async {
@@ -188,7 +195,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen> {
   }
 }
 
-
 /// The change-password form. It owns its text fields' controllers, so they
 /// are disposed only once the sheet has finished sliding shut. (Disposing them
 /// as soon as the sheet's future completed, at the start of that animation,
@@ -228,11 +234,12 @@ class _ChangePasswordSheetState extends ConsumerState<_ChangePasswordSheet> {
       _isSubmitting = true;
       _error = null;
     });
-    final error =
-        await ref.read(profileControllerProvider.notifier).changePassword(
-              currentPassword: _currentPassword.text,
-              newPassword: _newPassword.text,
-            );
+    final error = await ref
+        .read(profileControllerProvider.notifier)
+        .changePassword(
+          currentPassword: _currentPassword.text,
+          newPassword: _newPassword.text,
+        );
     if (!mounted) {
       return;
     }
@@ -264,10 +271,7 @@ class _ChangePasswordSheetState extends ConsumerState<_ChangePasswordSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  l10n.profileChangePassword,
-                  style: AppTextStyles.h2,
-                ),
+                Text(l10n.profileChangePassword, style: AppTextStyles.h2),
                 const SizedBox(height: AppSpacing.s20),
                 AppTextField(
                   label: l10n.profileCurrentPassword,
@@ -311,8 +315,9 @@ class _ChangePasswordSheetState extends ConsumerState<_ChangePasswordSheet> {
                   const SizedBox(height: AppSpacing.s12),
                   Text(
                     _error!,
-                    style: AppTextStyles.body
-                        .copyWith(color: context.colors.errorText),
+                    style: AppTextStyles.body.copyWith(
+                      color: context.colors.errorText,
+                    ),
                   ),
                 ],
                 const SizedBox(height: AppSpacing.s24),
@@ -363,150 +368,163 @@ class _ProfileContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
+    final colors = context.colors;
+    void push(Widget screen) =>
+        Navigator.of(context)
+            .push(MaterialPageRoute<void>(builder: (_) => screen));
+
+    // As on sictm.net's «حسابي»: the photo, the name and the email in a
+    // tile; then one block of rows; then «تسجيل الخروج».
+    final head = SiteTile(
+      child: Column(
+        children: [
+          if (isEditing)
+            ImagePickerField(
+              controller: photoController,
+              enabled: !isSaving,
+              shape: ImagePickerShape.circle,
+              fallbackIcon: Icons.person_outline,
+            )
+          else
+            AppAvatar(
+              name: profile.fullName,
+              imageUrl: profile.photoUrl?.trim(),
+              size: 84,
+            ),
+          const SizedBox(height: 12),
+          Text(
+            profile.fullName,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.h1.copyWith(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          Text(
+            profile.email,
+            textDirection: TextDirection.ltr,
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 13,
+              color: colors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final Widget body;
+    if (isEditing) {
+      body = SiteTile(
+        child: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SiteTileTitle(l10n.profileEdit),
+              const SizedBox(height: 16),
+              AppTextField(
+                label: l10n.profileFullName,
+                controller: nameController,
+                enabled: !isSaving,
+                textCapitalization: TextCapitalization.words,
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? l10n.profileFullNameRequired
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              AppTextField(
+                label: l10n.authEmail,
+                initialValue: profile.email,
+                enabled: false,
+              ),
+              const SizedBox(height: 16),
+              PhoneField(
+                label: l10n.profilePhoneNumber,
+                optional: true,
+                controller: phoneController,
+                enabled: !isSaving,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton.secondary(
+                      label: l10n.commonCancel,
+                      onPressed: isSaving ? null : onCancel,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AppButton.primary(
+                      label: l10n.commonSaveChanges,
+                      loading: isSaving,
+                      onPressed: onSave,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      final phone = displayPhone(profile.phone);
+      body = SiteRows(
+        children: [
+          SiteRow(
+            label: l10n.profilePhoneNumber,
+            muted: true,
+            trailing: Text(
+              phone.isEmpty ? '—' : phone,
+              textDirection: TextDirection.ltr,
+              style: AppTextStyles.body.copyWith(fontSize: 15),
+            ),
+          ),
+          const _MyCityRow(),
+          SiteRow(
+            icon: Icons.person_outline,
+            label: l10n.profileEdit,
+            onTap: onEdit,
+          ),
+          SiteRow(
+            icon: Icons.lock_outline,
+            label: l10n.profileChangePassword,
+            onTap: onChangePassword,
+          ),
+          SiteRow(
+            icon: Icons.favorite_border,
+            label: l10n.favoritesTitle,
+            onTap: () => push(const FavoritesScreen()),
+          ),
+          SiteRow(
+            icon: Icons.settings_outlined,
+            label: l10n.settingsTitle,
+            onTap: () => push(const SettingsScreen()),
+          ),
+          SiteRow(
+            icon: Icons.notifications_none_outlined,
+            label: l10n.commonNotifications,
+            onTap: () => push(const CustomerNotificationsScreen()),
+          ),
+        ],
+      );
+    }
 
     return ListView(
-      padding: EdgeInsets.all(margin),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 48),
       children: [
         Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+            constraints: const BoxConstraints(maxWidth: 680),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (isEditing)
-                  ImagePickerField(
-                    controller: photoController,
-                    enabled: !isSaving,
-                    shape: ImagePickerShape.circle,
-                    fallbackIcon: Icons.person_outline,
-                  )
-                else
-                  Center(
-                    child: AppAvatar(
-                      name: profile.fullName,
-                      imageUrl: profile.photoUrl?.trim(),
-                      size: 72,
-                    ),
-                  ),
-                const SizedBox(height: AppSpacing.s12),
-                Text(
-                  l10n.profileMyProfile,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.h1,
-                ),
-                const SizedBox(height: AppSpacing.s24),
-                Form(
-                  key: formKey,
-                  child: Column(
-                    children: [
-                      AppTextField(
-                        label: l10n.profileFullName,
-                        controller: nameController,
-                        enabled: isEditing && !isSaving,
-                        textCapitalization: TextCapitalization.words,
-                        prefixIcon: Icons.person_outline,
-                        validator: (value) =>
-                            value == null || value.trim().isEmpty
-                                ? l10n.profileFullNameRequired
-                                : null,
-                      ),
-                      const SizedBox(height: AppSpacing.s16),
-                      AppTextField(
-                        label: l10n.authEmail,
-                        initialValue: profile.email,
-                        enabled: false,
-                        prefixIcon: Icons.email_outlined,
-                      ),
-                      const SizedBox(height: AppSpacing.s16),
-                      PhoneField(
-                        label: l10n.profilePhoneNumber,
-                        optional: true,
-                        controller: phoneController,
-                        enabled: isEditing && !isSaving,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s20),
-                if (isEditing)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppButton.outlined(
-                          label: l10n.commonCancel,
-                          onPressed: isSaving ? null : onCancel,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.s12),
-                      Expanded(
-                        child: AppButton.primary(
-                          label: l10n.commonSaveChanges,
-                          loading: isSaving,
-                          onPressed: onSave,
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  AppButton.outlined(
-                    label: l10n.profileEdit,
-                    icon: Icons.edit_outlined,
-                    expand: true,
-                    onPressed: onEdit,
-                  ),
-                const SizedBox(height: AppSpacing.s16),
-                AppListCard(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const FavoritesScreen(),
-                    ),
-                  ),
-                  leading: const AppIconTile(
-                    icon: Icons.favorite_border,
-                    size: 40,
-                  ),
-                  content: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.favoritesTitle,
-                        style: AppTextStyles.bodyStrong,
-                      ),
-                      Text(
-                        l10n.favoritesSubtitle,
-                        style: AppTextStyles.caption
-                            .copyWith(color: context.colors.textSecondary),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s12),
-                AppListCard(
-                  onTap: onChangePassword,
-                  leading: const AppIconTile(
-                    icon: Icons.lock_outline,
-                    size: 40,
-                  ),
-                  content: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.profileChangePassword,
-                        style: AppTextStyles.bodyStrong,
-                      ),
-                      Text(
-                        l10n.profileChangePasswordSubtitle,
-                        style: AppTextStyles.caption
-                            .copyWith(color: context.colors.textSecondary),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s16),
-                AppButton.destructiveOutlined(
+                head,
+                const SizedBox(height: 16),
+                body,
+                const SizedBox(height: 16),
+                AppButton.outlined(
                   label: l10n.commonSignOut,
-                  icon: Icons.logout,
                   expand: true,
                   onPressed: onSignOut,
                 ),
@@ -520,11 +538,7 @@ class _ProfileContent extends StatelessWidget {
 }
 
 class _ProfileFailure extends StatelessWidget {
-  const _ProfileFailure({
-    this.message,
-    required this.onRetry,
-    this.onSignOut,
-  });
+  const _ProfileFailure({this.message, required this.onRetry, this.onSignOut});
 
   final String? message;
   final VoidCallback onRetry;
@@ -547,6 +561,30 @@ class _ProfileFailure extends StatelessWidget {
               onPressed: onSignOut,
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// «مدينتي»: the customer's city, changed from the list of cities.
+class _MyCityRow extends ConsumerWidget {
+  const _MyCityRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(citiesProvider);
+    final city = cityById(ref.watch(customerCityIdProvider));
+    final language = Localizations.localeOf(context).languageCode;
+    return SiteRow(
+      icon: Icons.location_on_outlined,
+      label: context.l10n.profileMyCity,
+      onTap: () => chooseCustomerCity(context, ref),
+      trailing: Text(
+        city?.name(language) ?? context.l10n.profileCityNotSet,
+        style: AppTextStyles.caption.copyWith(
+          fontSize: 13,
+          color: context.colors.textSecondary,
+        ),
       ),
     );
   }

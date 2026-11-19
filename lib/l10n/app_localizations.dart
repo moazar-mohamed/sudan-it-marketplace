@@ -2145,7 +2145,7 @@ abstract class AppLocalizations {
   /// No description provided for @orderTypeInstallation.
   ///
   /// In en, this message translates to:
-  /// **'Product + Installation (+{fee} SDG)'**
+  /// **'Product + Installation (+{fee})'**
   String orderTypeInstallation(String fee);
 
   /// No description provided for @orderDeliveryFee.
@@ -2277,7 +2277,7 @@ abstract class AppLocalizations {
   /// No description provided for @pendingInstallationIncluded.
   ///
   /// In en, this message translates to:
-  /// **'Included ({fee} SDG)'**
+  /// **'Included ({fee})'**
   String pendingInstallationIncluded(String fee);
 
   /// No description provided for @pendingUploaded.
@@ -6126,6 +6126,126 @@ abstract class AppLocalizations {
   /// **'\"{product}\" is visible to customers again.'**
   String notifProductShownBody(String product);
 
+  /// No description provided for @notifOrderTechAssignedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A technician is on your order'**
+  String get notifOrderTechAssignedTitle;
+
+  /// No description provided for @notifOrderTechAssignedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A technician was assigned to your order \"{product}\". You can message them from the order.'**
+  String notifOrderTechAssignedBody(String product);
+
+  /// No description provided for @notifCompanyActivatedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your company is active'**
+  String get notifCompanyActivatedTitle;
+
+  /// No description provided for @notifCompanyActivatedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform activated \"{product}\". Its products are now shown to customers.'**
+  String notifCompanyActivatedBody(String product);
+
+  /// No description provided for @notifCompanyDeactivatedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your company was suspended'**
+  String get notifCompanyDeactivatedTitle;
+
+  /// No description provided for @notifCompanyDeactivatedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform suspended \"{product}\", so its products are not shown now. Contact the platform to learn why.'**
+  String notifCompanyDeactivatedBody(String product);
+
+  /// No description provided for @notifCompanyRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your company was not accepted'**
+  String get notifCompanyRejectedTitle;
+
+  /// No description provided for @notifCompanyRejectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform did not accept the registration of \"{product}\". Contact the platform to learn why.'**
+  String notifCompanyRejectedBody(String product);
+
+  /// No description provided for @notifReviewHiddenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A review was hidden'**
+  String get notifReviewHiddenTitle;
+
+  /// No description provided for @notifReviewHiddenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform hid a review on \"{product}\" for breaking the terms.'**
+  String notifReviewHiddenBody(String product);
+
+  /// No description provided for @notifReviewShownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A review is shown again'**
+  String get notifReviewShownTitle;
+
+  /// No description provided for @notifReviewShownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform shows a review on \"{product}\" again.'**
+  String notifReviewShownBody(String product);
+
+  /// No description provided for @notifServiceHiddenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A service was stopped'**
+  String get notifServiceHiddenTitle;
+
+  /// No description provided for @notifServiceHiddenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform stopped the service \"{product}\"; customers do not see it now.'**
+  String notifServiceHiddenBody(String product);
+
+  /// No description provided for @notifServiceShownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A service is back'**
+  String get notifServiceShownTitle;
+
+  /// No description provided for @notifServiceShownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The service \"{product}\" is available to customers again.'**
+  String notifServiceShownBody(String product);
+
+  /// No description provided for @notifProductOfferEndedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'An offer was ended'**
+  String get notifProductOfferEndedTitle;
+
+  /// No description provided for @notifProductOfferEndedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform ended the offer on \"{product}\"; it is back to its normal price.'**
+  String notifProductOfferEndedBody(String product);
+
+  /// No description provided for @notifServiceOfferEndedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A service offer was ended'**
+  String get notifServiceOfferEndedTitle;
+
+  /// No description provided for @notifServiceOfferEndedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform ended the offer on the service \"{product}\"; it is back to its normal price.'**
+  String notifServiceOfferEndedBody(String product);
+
   /// No description provided for @notifAccountConvertedTitle.
   ///
   /// In en, this message translates to:
@@ -6846,6 +6966,60 @@ abstract class AppLocalizations {
   /// **'You'**
   String get tjChatYou;
 
+  /// No description provided for @tcTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get tcTechnician;
+
+  /// No description provided for @tcTechnicianName.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician: {name}'**
+  String tcTechnicianName(String name);
+
+  /// No description provided for @tcChatWithTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Message the technician'**
+  String get tcChatWithTechnician;
+
+  /// No description provided for @tcChatWithCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with the customer'**
+  String get tcChatWithCustomer;
+
+  /// No description provided for @tcChatCustomerTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer and technician chat'**
+  String get tcChatCustomerTechnician;
+
+  /// No description provided for @tcChatNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The company can read this conversation. Phone numbers are not shown here.'**
+  String get tcChatNotice;
+
+  /// No description provided for @tcChatReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Between the customer and your technician. You can read it only.'**
+  String get tcChatReadOnly;
+
+  /// No description provided for @tcChatClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'This conversation closed when the order was completed or cancelled.'**
+  String get tcChatClosed;
+
+  /// No description provided for @tcChatEmptyCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'The customer and the technician have not written yet.'**
+  String get tcChatEmptyCompany;
+
   /// No description provided for @tjNoTechnicianAssigned.
   ///
   /// In en, this message translates to:
@@ -7307,6 +7481,864 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{usd} \$ at \$1 = {rate} SDG'**
   String usdPriceLabel(String usd, String rate);
+
+  /// No description provided for @navMyAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'My account'**
+  String get navMyAccount;
+
+  /// No description provided for @profileMyCity.
+  ///
+  /// In en, this message translates to:
+  /// **'My city'**
+  String get profileMyCity;
+
+  /// No description provided for @profileCityNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No city chosen yet'**
+  String get profileCityNotSet;
+
+  /// No description provided for @siteHeroTitleLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'All your tech'**
+  String get siteHeroTitleLine1;
+
+  /// No description provided for @siteHeroTitleLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'in one place'**
+  String get siteHeroTitleLine2;
+
+  /// No description provided for @siteHeroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Products, companies and services in your city. Order directly and talk to the company.'**
+  String get siteHeroBody;
+
+  /// No description provided for @siteQuickRouter.
+  ///
+  /// In en, this message translates to:
+  /// **'Router'**
+  String get siteQuickRouter;
+
+  /// No description provided for @siteQuickCameras.
+  ///
+  /// In en, this message translates to:
+  /// **'Cameras'**
+  String get siteQuickCameras;
+
+  /// No description provided for @siteQuickServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server'**
+  String get siteQuickServer;
+
+  /// No description provided for @siteStatCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'Companies'**
+  String get siteStatCompanies;
+
+  /// No description provided for @siteStatItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Products & services'**
+  String get siteStatItems;
+
+  /// No description provided for @siteStatCities.
+  ///
+  /// In en, this message translates to:
+  /// **'Cities'**
+  String get siteStatCities;
+
+  /// No description provided for @siteStatReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer reviews'**
+  String get siteStatReviews;
+
+  /// No description provided for @siteMainCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Main categories'**
+  String get siteMainCategories;
+
+  /// No description provided for @siteViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all →'**
+  String get siteViewAll;
+
+  /// No description provided for @sitePromoKicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get sitePromoKicker;
+
+  /// No description provided for @sitePromoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a technician for your needs'**
+  String get sitePromoTitle;
+
+  /// No description provided for @siteFeaturedOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured offers'**
+  String get siteFeaturedOffers;
+
+  /// No description provided for @siteNewestProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest products'**
+  String get siteNewestProducts;
+
+  /// No description provided for @siteNoProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No products yet'**
+  String get siteNoProducts;
+
+  /// No description provided for @siteFeaturedServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured services'**
+  String get siteFeaturedServices;
+
+  /// No description provided for @siteTopCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'Top companies'**
+  String get siteTopCompanies;
+
+  /// No description provided for @siteNoCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'No companies yet'**
+  String get siteNoCompanies;
+
+  /// No description provided for @siteNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get siteNew;
+
+  /// No description provided for @siteDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get siteDelivery;
+
+  /// No description provided for @siteInstallation.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation'**
+  String get siteInstallation;
+
+  /// No description provided for @siteCurrencySdg.
+  ///
+  /// In en, this message translates to:
+  /// **'SDG'**
+  String get siteCurrencySdg;
+
+  /// No description provided for @siteItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}'**
+  String siteItemsCount(int count);
+
+  /// No description provided for @siteReviewsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 review} other{{count} reviews}}'**
+  String siteReviewsCount(int count);
+
+  /// No description provided for @siteAndOtherCompanies.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{ and 1 other company} other{ and {count} other companies}}'**
+  String siteAndOtherCompanies(int count);
+
+  /// No description provided for @siteStartsFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts from'**
+  String get siteStartsFrom;
+
+  /// No description provided for @siteDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount {percent}%'**
+  String siteDiscount(int percent);
+
+  /// No description provided for @sitePriceOnRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact for the price'**
+  String get sitePriceOnRequest;
+
+  /// No description provided for @siteShopNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop now'**
+  String get siteShopNow;
+
+  /// No description provided for @siteRequestService.
+  ///
+  /// In en, this message translates to:
+  /// **'Request service'**
+  String get siteRequestService;
+
+  /// No description provided for @siteEndsIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends in'**
+  String get siteEndsIn;
+
+  /// No description provided for @siteDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String siteDaysLeft(int count);
+
+  /// No description provided for @siteFooterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Sudan ICT Marketplace'**
+  String get siteFooterName;
+
+  /// No description provided for @siteFooterAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'Your trusted partner in the world of technology and telecoms'**
+  String get siteFooterAbout;
+
+  /// No description provided for @siteFooterStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Store'**
+  String get siteFooterStore;
+
+  /// No description provided for @siteFooterSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support and companies'**
+  String get siteFooterSupport;
+
+  /// No description provided for @siteFooterTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms and conditions'**
+  String get siteFooterTerms;
+
+  /// No description provided for @siteFooterCompanyPortal.
+  ///
+  /// In en, this message translates to:
+  /// **'Company portal'**
+  String get siteFooterCompanyPortal;
+
+  /// No description provided for @siteRequestTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a technician'**
+  String get siteRequestTechnician;
+
+  /// No description provided for @siteSortNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get siteSortNewest;
+
+  /// No description provided for @siteSortPriceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Price: low to high'**
+  String get siteSortPriceLow;
+
+  /// No description provided for @siteSortPriceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Price: high to low'**
+  String get siteSortPriceHigh;
+
+  /// No description provided for @siteSortTopRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest rated'**
+  String get siteSortTopRated;
+
+  /// No description provided for @siteSortMostReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Most reviewed'**
+  String get siteSortMostReviewed;
+
+  /// No description provided for @siteSortName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get siteSortName;
+
+  /// No description provided for @siteAllCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get siteAllCategories;
+
+  /// No description provided for @siteWholeCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole category'**
+  String get siteWholeCategory;
+
+  /// No description provided for @siteWholeCategoryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole category ({count})'**
+  String siteWholeCategoryCount(int count);
+
+  /// No description provided for @siteCategoryWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({count})'**
+  String siteCategoryWithCount(String name, int count);
+
+  /// No description provided for @siteFilterOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Offers'**
+  String get siteFilterOffers;
+
+  /// No description provided for @siteFilterInStock.
+  ///
+  /// In en, this message translates to:
+  /// **'In stock'**
+  String get siteFilterInStock;
+
+  /// No description provided for @siteFilterBrand.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get siteFilterBrand;
+
+  /// No description provided for @siteFilterCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get siteFilterCompany;
+
+  /// No description provided for @siteSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get siteSort;
+
+  /// No description provided for @siteSortColon.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort:'**
+  String get siteSortColon;
+
+  /// No description provided for @siteClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get siteClearAll;
+
+  /// No description provided for @siteClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get siteClearFilters;
+
+  /// No description provided for @siteShowMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get siteShowMore;
+
+  /// No description provided for @siteServicesHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Services ({count})'**
+  String siteServicesHeading(int count);
+
+  /// No description provided for @siteNothingMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches these filters.'**
+  String get siteNothingMatches;
+
+  /// No description provided for @siteNoResultsHere.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for “{query}” here.'**
+  String siteNoResultsHere(String query);
+
+  /// No description provided for @siteSearchInCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Search in {name}'**
+  String siteSearchInCategory(String name);
+
+  /// No description provided for @siteSearchProductsServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Search products and services'**
+  String get siteSearchProductsServices;
+
+  /// No description provided for @siteNoProductsInCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no products in this category yet. Check back soon.'**
+  String get siteNoProductsInCategory;
+
+  /// No description provided for @siteNoServicesInCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no services in this category yet. Check back soon.'**
+  String get siteNoServicesInCategory;
+
+  /// No description provided for @siteNothingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is listed here yet.'**
+  String get siteNothingYet;
+
+  /// No description provided for @siteCategoryUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Category unavailable'**
+  String get siteCategoryUnavailable;
+
+  /// No description provided for @siteCategoryUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This category is no longer available. Choose another one.'**
+  String get siteCategoryUnavailableBody;
+
+  /// No description provided for @siteProductsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 product} other{{count} products}}'**
+  String siteProductsCount(int count);
+
+  /// No description provided for @siteServicesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 service} other{{count} services}}'**
+  String siteServicesCount(int count);
+
+  /// No description provided for @siteCompaniesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 company} other{{count} companies}}'**
+  String siteCompaniesCount(int count);
+
+  /// No description provided for @siteGridView.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid view'**
+  String get siteGridView;
+
+  /// No description provided for @siteListView.
+  ///
+  /// In en, this message translates to:
+  /// **'List view'**
+  String get siteListView;
+
+  /// No description provided for @siteRemoveTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {label}'**
+  String siteRemoveTag(String label);
+
+  /// No description provided for @siteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get siteAll;
+
+  /// No description provided for @siteSearchCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a company'**
+  String get siteSearchCompany;
+
+  /// No description provided for @siteNoCompaniesHere.
+  ///
+  /// In en, this message translates to:
+  /// **'No companies here yet.'**
+  String get siteNoCompaniesHere;
+
+  /// No description provided for @siteBrowseAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse products & services'**
+  String get siteBrowseAll;
+
+  /// No description provided for @siteFooterTechPortal.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician portal'**
+  String get siteFooterTechPortal;
+
+  /// No description provided for @siteCompareAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to comparison'**
+  String get siteCompareAdd;
+
+  /// No description provided for @siteCompareRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from comparison'**
+  String get siteCompareRemove;
+
+  /// No description provided for @siteCompareFull.
+  ///
+  /// In en, this message translates to:
+  /// **'You can compare up to {count} products at a time. Remove one first.'**
+  String siteCompareFull(int count);
+
+  /// No description provided for @siteCompareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare products'**
+  String get siteCompareTitle;
+
+  /// No description provided for @siteComparePickAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick another product'**
+  String get siteComparePickAnother;
+
+  /// No description provided for @siteCompareNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare now'**
+  String get siteCompareNow;
+
+  /// No description provided for @siteCompareClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear comparison'**
+  String get siteCompareClear;
+
+  /// No description provided for @siteCompareEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparison'**
+  String get siteCompareEmptyTitle;
+
+  /// No description provided for @siteCompareEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least two products with the compare button, then come back here.'**
+  String get siteCompareEmptyMessage;
+
+  /// No description provided for @siteCompareNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Green is the lowest price. Prices and stock are as they are in the shop now.'**
+  String get siteCompareNote;
+
+  /// No description provided for @siteComparePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get siteComparePrice;
+
+  /// No description provided for @siteCompareCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get siteCompareCompany;
+
+  /// No description provided for @siteCompareBrand.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get siteCompareBrand;
+
+  /// No description provided for @siteCompareCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get siteCompareCategory;
+
+  /// No description provided for @siteCompareRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get siteCompareRating;
+
+  /// No description provided for @siteCompareStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability'**
+  String get siteCompareStock;
+
+  /// No description provided for @siteCompareDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get siteCompareDelivery;
+
+  /// No description provided for @siteCompareInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation'**
+  String get siteCompareInstall;
+
+  /// No description provided for @siteYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get siteYes;
+
+  /// No description provided for @siteNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get siteNo;
+
+  /// No description provided for @siteOutOfStockShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get siteOutOfStockShort;
+
+  /// No description provided for @siteRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get siteRemove;
+
+  /// No description provided for @siteShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get siteShare;
+
+  /// No description provided for @siteLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get siteLinkCopied;
+
+  /// No description provided for @siteInstallNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation price: {price}. Installation is chosen during checkout.'**
+  String siteInstallNote(String price);
+
+  /// No description provided for @siteCompanyReplyFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Company reply · {name}'**
+  String siteCompanyReplyFrom(String name);
+
+  /// No description provided for @siteViewOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'View on Map'**
+  String get siteViewOnMap;
+
+  /// No description provided for @siteReviewsAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all reviews ({count})'**
+  String siteReviewsAll(int count);
+
+  /// No description provided for @siteProductPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture {number}'**
+  String siteProductPicture(int number);
+
+  /// No description provided for @siteProductGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This product is no longer available'**
+  String get siteProductGone;
+
+  /// No description provided for @siteCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get siteCustomer;
+
+  /// No description provided for @siteOrdersProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Products ({count})'**
+  String siteOrdersProducts(int count);
+
+  /// No description provided for @siteOrdersServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services ({count})'**
+  String siteOrdersServices(int count);
+
+  /// No description provided for @siteOrdersSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search your orders'**
+  String get siteOrdersSearch;
+
+  /// No description provided for @siteOrdersActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get siteOrdersActive;
+
+  /// No description provided for @siteOrdersDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get siteOrdersDone;
+
+  /// No description provided for @siteOrdersNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders here.'**
+  String get siteOrdersNone;
+
+  /// No description provided for @siteRequestTitleNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Service request #{id}'**
+  String siteRequestTitleNumber(String id);
+
+  /// No description provided for @siteCheckoutUnitLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit price: {price} · Quantity: {quantity}'**
+  String siteCheckoutUnitLine(String price, int quantity);
+
+  /// No description provided for @siteCheckoutSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal: {price}'**
+  String siteCheckoutSubtotal(String price);
+
+  /// No description provided for @siteCheckoutInstallNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation by a certified technician is available for {price}.'**
+  String siteCheckoutInstallNote(String price);
+
+  /// No description provided for @siteCheckoutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm order • {price}'**
+  String siteCheckoutConfirm(String price);
+
+  /// No description provided for @siteCheckoutFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Order from {name}'**
+  String siteCheckoutFrom(String name);
+
+  /// No description provided for @siteEditOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit order details'**
+  String get siteEditOrder;
+
+  /// No description provided for @siteRequestCityPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'City and location'**
+  String get siteRequestCityPlace;
+
+  /// No description provided for @siteChatsSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search chats'**
+  String get siteChatsSearch;
+
+  /// No description provided for @siteChatsUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get siteChatsUnread;
+
+  /// No description provided for @siteChatsNoneHere.
+  ///
+  /// In en, this message translates to:
+  /// **'No chats here.'**
+  String get siteChatsNoneHere;
+
+  /// No description provided for @siteChatReadByCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Read by the company'**
+  String get siteChatReadByCompany;
+
+  /// No description provided for @siteChatSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get siteChatSent;
+
+  /// No description provided for @siteTermsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'The terms and conditions have not been published yet.'**
+  String get siteTermsNone;
+
+  /// No description provided for @siteTermsVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String siteTermsVersion(int version);
+
+  /// No description provided for @siteTermsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated: {date}'**
+  String siteTermsUpdated(String date);
+
+  /// No description provided for @siteTermsAgree.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the'**
+  String get siteTermsAgree;
+
+  /// No description provided for @siteTermsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You must accept the terms and conditions to create an account.'**
+  String get siteTermsRequired;
+
+  /// No description provided for @siteTermsGateSub.
+  ///
+  /// In en, this message translates to:
+  /// **'To continue, read the terms and conditions and accept them.'**
+  String get siteTermsGateSub;
+
+  /// No description provided for @siteTermsGateCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read the terms and conditions and I accept them'**
+  String get siteTermsGateCheck;
+
+  /// No description provided for @siteTermsGateAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'I accept and continue'**
+  String get siteTermsGateAccept;
+
+  /// No description provided for @siteTermsGateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save your acceptance. Check your connection and try again.'**
+  String get siteTermsGateFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
+import '../../customer_dashboard/presentation/site/site_detail_parts.dart';
+import '../../customer_dashboard/presentation/site/site_look.dart';
+import '../../customer_dashboard/presentation/site/site_orders.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../../chats/domain/entities/chat_conversation.dart';
@@ -15,7 +17,6 @@ import '../../customer_dashboard/presentation/profile_controller.dart';
 import '../../location/domain/geo_location.dart';
 import '../../location/presentation/widgets/location_field.dart';
 import '../../services/domain/entities/catalog_service.dart';
-import '../../offers/presentation/offer_price.dart';
 import 'service_request_actions.dart';
 
 /// The customer describes what they need and sends the request to one
@@ -75,7 +76,9 @@ class _ServiceRequestFormScreenState
   Future<void> _submit() async {
     if (_submitting || !(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _submitting = true);
-    final result = await ref.read(serviceRequestActionsProvider).submit(
+    final result = await ref
+        .read(serviceRequestActionsProvider)
+        .submit(
           service: widget.service,
           offer: widget.offer,
           company: widget.company,
@@ -103,10 +106,8 @@ class _ServiceRequestFormScreenState
     // The conversation shares the request's id.
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
-        builder: (_) => ChatScreen(
-          chatId: requestId,
-          role: ChatParticipantRole.customer,
-        ),
+        builder: (_) =>
+            ChatScreen(chatId: requestId, role: ChatParticipantRole.customer),
       ),
     );
   }
@@ -114,82 +115,105 @@ class _ServiceRequestFormScreenState
   @override
   Widget build(BuildContext context) {
     ref.listen(profileControllerProvider, (_, _) => _prefillPhone());
+    final l10n = context.l10n;
+    final colors = context.colors;
     final price = widget.offer.price;
-    final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
+
+    // Laid out as sictm.net's «طلب خدمة» (`pages/ServiceRequestPage.tsx`).
+    final blocks = <Widget>[
+      SitePageTitle(l10n.serviceRequestFormTitle),
+      SiteTile(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SiteTileTitle(widget.service.name),
+            Text(
+              widget.company.name,
+              style: AppTextStyles.caption.copyWith(
+                fontSize: 13,
+                color: colors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Only a price the company actually set is shown.
+            if (price != null)
+              SitePriceText(pricing: widget.offer)
+            else
+              Text(
+                l10n.sitePriceOnRequest,
+                style: AppTextStyles.bodyStrong.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textBrand,
+                ),
+              ),
+          ],
+        ),
+      ),
+      SiteTile(
+        child: AppTextField(
+          label: l10n.serviceRequestDetailsLabel,
+          controller: _detailsController,
+          minLines: 4,
+          maxLines: 8,
+          maxLength: 2000,
+          textInputAction: TextInputAction.newline,
+          hint: l10n.serviceRequestDetailsHint,
+          validator: (value) => (value?.trim().isEmpty ?? true)
+              ? l10n.serviceRequestDetailsRequired
+              : null,
+        ),
+      ),
+      SiteTile(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SiteTileTitle(l10n.siteRequestCityPlace),
+            const SizedBox(height: 16),
+            // The city the service is wanted in, own city by default.
+            DeliveryCityRow(companyId: widget.company.id),
+            const SizedBox(height: 16),
+            LocationField(
+              textController: _addressController,
+              location: _location,
+              textLabel: l10n.serviceRequestLocationOptional,
+              textHint: l10n.serviceRequestAddressHint,
+              onLocationChanged: (value) => setState(() => _location = value),
+            ),
+            const SizedBox(height: 16),
+            PhoneField(
+              label: l10n.checkoutContactPhone,
+              controller: _phoneController,
+              requiredMessage: l10n.checkoutPhoneRequired,
+            ),
+          ],
+        ),
+      ),
+      AppButton.primary(
+        label: l10n.serviceRequestSubmit,
+        loading: _submitting,
+        expand: true,
+        onPressed: _submit,
+      ),
+    ];
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.serviceRequestFormTitle)),
+      appBar: AppBar(),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 48),
           children: [
             Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+                constraints: const BoxConstraints(maxWidth: 680),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    AppCard(
-                      padding: const EdgeInsets.all(AppSpacing.s16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(widget.service.name, style: AppTextStyles.h3),
-                          Text(
-                            widget.company.name,
-                            style: AppTextStyles.body
-                                .copyWith(color: context.colors.textSecondary),
-                          ),
-                          // Only a price the company actually set is shown.
-                          if (price != null) ...[
-                            const SizedBox(height: AppSpacing.s6),
-                            OfferPriceText(
-                              pricing: widget.offer,
-                              style: AppTextStyles.bodyStrong,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
-                    // The city the service is wanted in, own city by default.
-                    DeliveryCityRow(companyId: widget.company.id),
-                    const SizedBox(height: AppSpacing.s20),
-                    AppTextField(
-                      label: context.l10n.serviceRequestDetailsLabel,
-                      controller: _detailsController,
-                      minLines: 4,
-                      maxLines: 8,
-                      maxLength: 2000,
-                      textInputAction: TextInputAction.newline,
-                      hint: context.l10n.serviceRequestDetailsHint,
-                      validator: (value) => (value?.trim().isEmpty ?? true)
-                          ? context.l10n.serviceRequestDetailsRequired
-                          : null,
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
-                    LocationField(
-                      textController: _addressController,
-                      location: _location,
-                      textLabel: context.l10n.serviceRequestLocationOptional,
-                      textHint: context.l10n.serviceRequestAddressHint,
-                      onLocationChanged: (value) =>
-                          setState(() => _location = value),
-                    ),
-                    const SizedBox(height: AppSpacing.s16),
-                    PhoneField(
-                      label: context.l10n.checkoutContactPhone,
-                      controller: _phoneController,
-                      requiredMessage: context.l10n.checkoutPhoneRequired,
-                    ),
-                    const SizedBox(height: AppSpacing.s24),
-                    AppButton.primary(
-                      label: context.l10n.serviceRequestSubmit,
-                      loading: _submitting,
-                      expand: true,
-                      onPressed: _submit,
-                    ),
+                    for (var i = 0; i < blocks.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 16),
+                      blocks[i],
+                    ],
                   ],
                 ),
               ),

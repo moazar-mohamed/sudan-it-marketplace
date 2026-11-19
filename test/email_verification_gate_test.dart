@@ -11,7 +11,6 @@ import 'package:sudan_it_marketplace/features/auth/domain/repositories/user_prof
 import 'package:sudan_it_marketplace/features/auth/presentation/auth_controller.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/auth_gate.dart';
 import 'package:sudan_it_marketplace/features/auth/presentation/auth_providers.dart';
-import 'package:sudan_it_marketplace/features/auth/presentation/login_screen.dart';
 import 'package:sudan_it_marketplace/features/chats/presentation/chat_providers.dart';
 import 'package:sudan_it_marketplace/features/companies/presentation/companies_providers.dart';
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/customer_dashboard_screen.dart';
@@ -51,6 +50,7 @@ class _FakeAuthRepository extends Fake implements AuthRepository {
     required String fullName,
     required String email,
     required String password,
+    int? termsVersion,
   }) async {
     _user = _unverified;
     _changes.add(_user);
@@ -92,7 +92,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(LoginScreen), findsOneWidget);
+    // Signed out, the shop opens for a visitor (as sictm.net).
+    expect(find.byType(CustomerDashboardScreen), findsOneWidget);
 
     await ProviderScope.containerOf(tester.element(find.byType(AuthGate)))
         .read(authControllerProvider.notifier)

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
+import '../../customer_dashboard/presentation/site/site_detail_parts.dart';
+import '../../customer_dashboard/presentation/site/site_look.dart';
+import '../../customer_dashboard/presentation/site/site_orders.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -43,7 +46,8 @@ class ServiceRequestDetailsScreen extends ConsumerWidget {
         loading: () => const AppLoadingState(),
         error: (_, _) => AppErrorState(
           message: context.l10n.serviceRequestsLoadFailed,
-          onRetry: () => ref.invalidate(serviceRequestStreamProvider(requestId)),
+          onRetry: () =>
+              ref.invalidate(serviceRequestStreamProvider(requestId)),
         ),
         data: (request) => request == null
             ? AppErrorState(message: context.l10n.serviceRequestNotFound)
@@ -84,9 +88,22 @@ class _Details extends StatelessWidget {
     final locationLabel = LocationStrings.of(context).viewOnMap;
     final step = _happyPath.indexOf(request.status);
     final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
+    // The customer sees sictm.net's tiles; the company keeps its own cards.
+    Widget section({
+      required String title,
+      Widget? trailing,
+      required List<Widget> children,
+    }) => asCompany
+        ? SectionCard(title: title, trailing: trailing, children: children)
+        : SiteSection(title: title, trailing: trailing, children: children);
 
     return ListView(
-      padding: EdgeInsets.fromLTRB(margin, AppSpacing.s16, margin, AppSpacing.s24),
+      padding: EdgeInsets.fromLTRB(
+        margin,
+        AppSpacing.s16,
+        margin,
+        AppSpacing.s24,
+      ),
       children: [
         Center(
           child: ConstrainedBox(
@@ -94,12 +111,21 @@ class _Details extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SectionCard(
+                if (!asCompany) ...[
+                  SitePageTitle(l10n.siteRequestTitleNumber(request.shortId)),
+                  const SizedBox(height: AppSpacing.s16),
+                ],
+                section(
                   title: request.serviceName,
-                  trailing: StatusChip(
-                    label: request.status.label(l10n),
-                    tone: request.status.tone,
-                  ),
+                  trailing: asCompany
+                      ? StatusChip(
+                          label: request.status.label(l10n),
+                          tone: request.status.tone,
+                        )
+                      : SiteTonePill(
+                          label: request.status.label(l10n),
+                          tone: siteRequestTone(request.status),
+                        ),
                   children: [
                     // Progress is shown for the normal path only.
                     if (step >= 0) ...[
@@ -108,7 +134,8 @@ class _Details extends StatelessWidget {
                           for (final status in _happyPath) status.label(l10n),
                         ],
                         currentIndex: step,
-                        allDone: request.status == ServiceRequestStatus.completed,
+                        allDone:
+                            request.status == ServiceRequestStatus.completed,
                       ),
                       const SizedBox(height: AppSpacing.s12),
                       const Divider(height: 1),
@@ -120,15 +147,17 @@ class _Details extends StatelessWidget {
                           : l10n.serviceRequestCompany,
                       value: asCompany
                           ? (request.customerName.trim().isEmpty
-                              ? l10n.chatCustomerFallback
-                              : request.customerName)
+                                ? l10n.chatCustomerFallback
+                                : request.customerName)
                           : request.companyName,
                     ),
                     // Only a price the company actually set is shown.
                     if (price != null)
                       KeyValueRow(
                         label: l10n.serviceRequestPrice,
-                        value: formatServicePrice(price),
+                        value: asCompany
+                            ? formatServicePrice(price)
+                            : sitePrice(context, price),
                         emphasize: true,
                       ),
                     KeyValueRow(
@@ -150,14 +179,14 @@ class _Details extends StatelessWidget {
                     padding: const EdgeInsets.only(top: AppSpacing.s12),
                   ),
                 const SizedBox(height: AppSpacing.s12),
-                SectionCard(
+                section(
                   title: l10n.serviceRequestViewDetails,
                   children: [
                     SelectableText(request.details, style: AppTextStyles.body),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.s12),
-                SectionCard(
+                section(
                   title: l10n.serviceRequestContact,
                   children: [
                     KeyValueRow(
@@ -273,7 +302,8 @@ class _CompanyActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    Widget primary(String label, ServiceRequestStatus next) => AppButton.primary(
+    Widget primary(String label, ServiceRequestStatus next) =>
+        AppButton.primary(
           label: label,
           expand: true,
           onPressed: () => _changeStatus(context, ref, request, next),
@@ -281,42 +311,46 @@ class _CompanyActions extends ConsumerWidget {
 
     return switch (request.status) {
       ServiceRequestStatus.pending => Row(
-          children: [
-            Expanded(
-              child: AppButton.destructiveOutlined(
-                label: l10n.serviceRequestReject,
-                onPressed: () async {
-                  final ok = await showConfirmationDialog(
+        children: [
+          Expanded(
+            child: AppButton.destructiveOutlined(
+              label: l10n.serviceRequestReject,
+              onPressed: () async {
+                final ok = await showConfirmationDialog(
+                  context,
+                  title: l10n.serviceRequestRejectTitle,
+                  body: l10n.serviceRequestRejectBody,
+                  confirmLabel: l10n.serviceRequestReject,
+                  destructive: true,
+                );
+                if (ok && context.mounted) {
+                  await _changeStatus(
                     context,
-                    title: l10n.serviceRequestRejectTitle,
-                    body: l10n.serviceRequestRejectBody,
-                    confirmLabel: l10n.serviceRequestReject,
-                    destructive: true,
+                    ref,
+                    request,
+                    ServiceRequestStatus.rejected,
                   );
-                  if (ok && context.mounted) {
-                    await _changeStatus(
-                      context,
-                      ref,
-                      request,
-                      ServiceRequestStatus.rejected,
-                    );
-                  }
-                },
-              ),
+                }
+              },
             ),
-            const SizedBox(width: AppSpacing.s12),
-            Expanded(
-              child: primary(
-                l10n.serviceRequestAccept,
-                ServiceRequestStatus.accepted,
-              ),
+          ),
+          const SizedBox(width: AppSpacing.s12),
+          Expanded(
+            child: primary(
+              l10n.serviceRequestAccept,
+              ServiceRequestStatus.accepted,
             ),
-          ],
-        ),
-      ServiceRequestStatus.accepted =>
-        primary(l10n.serviceRequestStart, ServiceRequestStatus.inProgress),
-      ServiceRequestStatus.inProgress =>
-        primary(l10n.serviceRequestComplete, ServiceRequestStatus.completed),
+          ),
+        ],
+      ),
+      ServiceRequestStatus.accepted => primary(
+        l10n.serviceRequestStart,
+        ServiceRequestStatus.inProgress,
+      ),
+      ServiceRequestStatus.inProgress => primary(
+        l10n.serviceRequestComplete,
+        ServiceRequestStatus.completed,
+      ),
       _ => const SizedBox.shrink(),
     };
   }

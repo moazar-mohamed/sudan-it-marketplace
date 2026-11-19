@@ -49,6 +49,22 @@ abstract final class NotificationTypes {
   /// opens no screen.
   static const accountConvertedToCompany = 'account_converted_to_company';
 
+  /// To the customer, from the order's company: a technician was sent
+  /// (2026-11-18). Sent with the technician's own notice.
+  static const orderTechAssigned = 'order_technician_assigned';
+
+  /// Written by Platform Admin about a decision on a company (never by the
+  /// app itself): its status, a review on it, a service it offers, an offer.
+  static const companyActivated = 'company_activated';
+  static const companyDeactivated = 'company_deactivated';
+  static const companyRejected = 'company_rejected';
+  static const reviewHidden = 'review_hidden';
+  static const reviewShown = 'review_shown';
+  static const serviceHidden = 'service_hidden';
+  static const serviceShown = 'service_shown';
+  static const productOfferEnded = 'product_offer_ended';
+  static const serviceOfferEnded = 'service_offer_ended';
+
   static const all = {
     newOrder,
     paymentConfirmed,
@@ -66,6 +82,7 @@ abstract final class NotificationTypes {
     serviceRequestInProgress,
     serviceRequestCompleted,
     serviceRequestCancelled,
+    orderTechAssigned,
   };
 }
 
@@ -208,6 +225,20 @@ class NotificationEvents {
         recipientId: technicianId,
         orderId: orderId,
         type: NotificationTypes.technicianAssigned,
+        productName: productName,
+      );
+
+  /// To the order's customer: the company sent a technician.
+  static AppNotification orderTechAssigned({
+    required String orderId,
+    required String customerId,
+    required String productName,
+  }) =>
+      _build(
+        recipientType: NotificationRecipientType.customer,
+        recipientId: customerId,
+        orderId: orderId,
+        type: NotificationTypes.orderTechAssigned,
         productName: productName,
       );
 

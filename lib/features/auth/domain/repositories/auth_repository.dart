@@ -10,10 +10,13 @@ abstract class AuthRepository {
     required String password,
   });
 
+  /// [termsVersion]: the published terms the person accepted on the form,
+  /// recorded with the new profile (none when no terms are published).
   Future<AuthUser> signUpWithEmail({
     required String fullName,
     required String email,
     required String password,
+    int? termsVersion,
   });
 
   Future<AuthUser> signInWithGoogle();

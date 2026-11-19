@@ -236,7 +236,7 @@ IconData _themeIcon(ThemeMode mode) => switch (mode) {
       ThemeMode.dark => Icons.dark_mode_outlined,
     };
 
-/// Small uppercase heading above a group of rows.
+/// The heading above a group of rows, as sictm.net writes it (`.group-title`).
 class _GroupLabel extends StatelessWidget {
   const _GroupLabel(this.text);
 
@@ -250,10 +250,11 @@ class _GroupLabel extends StatelessWidget {
         bottom: AppSpacing.s8,
       ),
       child: Text(
-        text.toUpperCase(),
+        text,
         style: AppTextStyles.captionStrong.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
           color: context.colors.textSecondary,
-          letterSpacing: 0.6,
         ),
       ),
     );
@@ -272,7 +273,8 @@ class _SettingsGroup extends StatelessWidget {
     return Material(
       color: colors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: AppRadius.mdAll,
+        // The site's `.rows`: 16 px corners.
+        borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: colors.borderDefault),
       ),
       clipBehavior: Clip.antiAlias,
