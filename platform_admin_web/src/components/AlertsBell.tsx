@@ -121,6 +121,9 @@ export function AlertsBell() {
                 <button type="button" className="link-btn" onClick={() => void markPlatformNoticesRead(notices.map((n) => n.id)).catch(() => undefined)}>
                   {t('alerts.markAllRead')}
                 </button>
+                <Link to="/notifications" className="link-btn" onClick={() => setOpen(false)}>
+                  {t('alerts.seeAll')}
+                </Link>
               </div>
               <ul className="bell__list">
                 {notices.slice(0, 5).map((n) => (
@@ -188,6 +191,11 @@ export function AlertsBell() {
           )}
           <div className="bell__foot">
             <span className="muted">{snapshot ? t('alerts.updated', { time: dateTime(new Date(snapshot.at)) }) : t('common.loading')}</span>
+            {notices.length === 0 && (
+              <Link to="/notifications" className="link-btn" onClick={() => setOpen(false)}>
+                {t('alerts.seeAll')}
+              </Link>
+            )}
           </div>
         </div>
       )}

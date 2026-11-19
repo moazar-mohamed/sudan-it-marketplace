@@ -95,6 +95,8 @@ describe('the alerts bell', () => {
       '/reviews?attention=low',
       // The same unverified payment is also one that is waiting to be confirmed.
       '/orders?status=processing',
+      // The page with every alert.
+      '/notifications',
     ]);
     fireEvent.click(rows[0]);
     expect(screen.getByTestId('where').textContent).toBe('/orders?attention=unverified');

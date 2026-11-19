@@ -33,6 +33,7 @@ const ProfilePage = page(() => import('./pages/ProfilePage'), 'ProfilePage');
 const ReportsPage = page(() => import('./pages/ReportsPage'), 'ReportsPage');
 const ReviewsPage = page(() => import('./pages/ReviewsPage'), 'ReviewsPage');
 const TrashPage = page(() => import('./pages/TrashPage'), 'TrashPage');
+const NotificationsPage = page(() => import('./pages/NotificationsPage'), 'NotificationsPage');
 const SettingsPage = page(() => import('./pages/SettingsPage'), 'SettingsPage');
 
 export function App() {
@@ -79,6 +80,7 @@ export function App() {
         <Route path="admins" element={<AdminsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="trash" element={<TrashPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="design-system" element={<DesignSystemPage />} />
         <Route path="*" element={<EmptyState message={t('common.notFound')} />} />

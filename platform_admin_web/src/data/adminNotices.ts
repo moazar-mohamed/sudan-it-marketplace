@@ -103,3 +103,46 @@ export function productHiddenNotice(
     productName: product.name,
   };
 }
+
+/** Platform Admin's decisions a company is told of (firestore.rules: isValidAdminCompanyNoticeCreate). */
+export type AdminCompanyNoticeType =
+  | 'company_activated'
+  | 'company_deactivated'
+  | 'company_rejected'
+  | 'review_hidden'
+  | 'review_shown'
+  | 'service_hidden'
+  | 'service_shown'
+  | 'product_offer_ended'
+  | 'service_offer_ended';
+
+export interface AdminCompanyNotice {
+  recipientType: 'company_admin';
+  recipientId: string;
+  type: AdminCompanyNoticeType;
+  /** The company, reviewed item, service or product name: the only text. */
+  productName: string;
+  reviewId?: string;
+  productId?: string;
+  serviceId?: string;
+  companyServiceId?: string;
+}
+
+/** The notice for a company whose status the admin changed; null for a status nobody is told of (pending). */
+export function companyStatusNotice(companyId: string, status: string, name: string): AdminCompanyNotice | null {
+  const type: AdminCompanyNoticeType | null =
+    status === 'active' ? 'company_activated' : status === 'inactive' ? 'company_deactivated' : status === 'rejected' ? 'company_rejected' : null;
+  if (!type || !companyId) return null;
+  return { recipientType: 'company_admin', recipientId: companyId, type, productName: name.slice(0, 200) };
+}
+
+/** A notice to [companyId] of [type] about [name], naming what it is about. */
+export function companyNotice(
+  companyId: string,
+  type: AdminCompanyNoticeType,
+  name: string,
+  about: Pick<AdminCompanyNotice, 'reviewId' | 'productId' | 'serviceId' | 'companyServiceId'> = {},
+): AdminCompanyNotice | null {
+  if (!companyId) return null;
+  return { recipientType: 'company_admin', recipientId: companyId, type, productName: name.slice(0, 200), ...about };
+}
