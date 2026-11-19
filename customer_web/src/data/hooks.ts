@@ -181,7 +181,7 @@ const newestFirst = (list: AppNotification[]) => [...list].sort((a, b) => b.crea
  * that index is not ready on the server it reads them all, as before, and
  * keeps the newest. Null until the first answer; empty for a visitor (no [uid]).
  */
-export function useNotifications(uid: string): AppNotification[] | null {
+export function useNotifications(uid: string, max: number = NOTIFICATIONS_SHOWN): AppNotification[] | null {
   const [items, setItems] = useState<AppNotification[] | null>(null);
   useEffect(() => {
     if (uid === '') {
@@ -191,18 +191,18 @@ export function useNotifications(uid: string): AppNotification[] | null {
     const base = [where('recipientType', '==', 'customer'), where('recipientId', '==', uid)] as const;
     const map = (docs: { id: string; data: () => DocumentData }[]) => docs.map((d) => mapNotification(d.id, d.data()));
     let stop = onSnapshot(
-      query(collection(db, 'notifications'), ...base, orderBy('createdAt', 'desc'), limit(NOTIFICATIONS_SHOWN)),
+      query(collection(db, 'notifications'), ...base, orderBy('createdAt', 'desc'), limit(max)),
       (snap) => setItems(newestFirst(map(snap.docs))),
       () => {
         stop = onSnapshot(
           query(collection(db, 'notifications'), ...base),
-          (snap) => setItems(newestFirst(map(snap.docs)).slice(0, NOTIFICATIONS_SHOWN)),
+          (snap) => setItems(newestFirst(map(snap.docs)).slice(0, max)),
           () => setItems([]),
         );
       },
     );
     return () => stop();
-  }, [uid]);
+  }, [uid, max]);
   return items;
 }
 

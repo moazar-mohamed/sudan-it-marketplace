@@ -8,6 +8,9 @@
 // Where a pressed push leads, from what the relay put in its data.
 function targetOf(data) {
   if (data.type === 'chat_message' && data.chatId) return `/chats/${data.chatId}`;
+  if (data.type === 'customer_tech_chat_message' && data.orderId) return `/orders/${encodeURIComponent(data.orderId)}/technician`;
+  // "A company now serves your city": that company's page.
+  if (data.type === 'city_announcement' && data.companyId) return `/company/${encodeURIComponent(data.companyId)}`;
   if (data.reportId) return '/reports';
   if (data.serviceRequestId) return `/requests/${data.serviceRequestId}`;
   if (data.orderId) return `/orders/${data.orderId}`;

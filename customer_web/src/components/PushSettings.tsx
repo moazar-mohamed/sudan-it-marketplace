@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { turnPushOff, turnPushOn, usePushState } from '../data/webPush';
+import { syncCityTopic, turnPushOff, turnPushOn, usePushState } from '../data/webPush';
 import type { PushState } from '../data/webPush';
 import type { UserProfile } from '../data/types';
 import { t } from '../i18n';
@@ -13,6 +13,7 @@ const KINDS = [
   { key: 'chat', label: t('رسائل المحادثات') },
   { key: 'serviceRequests', label: t('طلبات الخدمات') },
   { key: 'reports', label: t('ردود البلاغات') },
+  { key: 'cityAnnouncements', label: t('شركات جديدة في مدينتك') },
 ] as const;
 
 function stateText(state: PushState): string {
@@ -41,8 +42,11 @@ export function PushSwitch({ profile, compact = false }: { profile: UserProfile;
     setBusy(true);
     setFailed(false);
     try {
-      if (on) setState(await turnPushOn(profile.id));
-      else {
+      if (on) {
+        const next = await turnPushOn(profile.id);
+        setState(next);
+        if (next === 'on') void syncCityTopic();
+      } else {
         await turnPushOff(profile.id);
         setState('off');
       }

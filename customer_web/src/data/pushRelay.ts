@@ -41,3 +41,11 @@ export const pushChatMessage = (chatId: string, messageId: string, fetchImpl: ty
  */
 export const pushTechChatMessage = (techChatId: string, messageId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> =>
   ask({ techChatId, messageId }, fetchImpl);
+
+/**
+ * Asks the relay to put this browser's push address in the topic of the
+ * person's city announcements (or take it out): phones do it themselves, a
+ * browser cannot. Never throws.
+ */
+export const followCityTopic = (webToken: string, fetchImpl: typeof fetch = fetch): Promise<boolean> =>
+  ask({ webToken }, fetchImpl);

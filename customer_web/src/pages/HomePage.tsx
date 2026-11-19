@@ -10,6 +10,8 @@ import { ServiceCard } from '../components/ServiceCard';
 import { companyRating, countTotal, sortProducts } from '../data/browse';
 import { useCatalog } from '../data/DataProvider';
 import { featuredServices } from '../data/featuredServices';
+import { heroOffers } from '../data/heroOffers';
+import { HeroOffers } from '../components/HeroOffers';
 import { categoryName, hasActiveOffer, itemsCount } from '../data/format';
 import { siteStats } from '../data/homeStats';
 import type { StatKey } from '../data/homeStats';
@@ -57,6 +59,7 @@ export function HomePage() {
     .slice(0, 6);
   const stats = loading ? [] : siteStats(companies, products.length + listings.length, ratings);
   const featured = loading ? [] : featuredServices(listings);
+  const hero = loading ? [] : heroOffers(products, listings);
   const quickWords = loading ? [] : workingQuickWords(quickWordCandidates(), { tree, products, services, companies });
 
   function submit(e: FormEvent) {
@@ -92,6 +95,8 @@ export function HomePage() {
           )}
         </div>
       </section>
+
+      {hero.length > 0 && <HeroOffers offers={hero} />}
 
       {stats.length > 0 && (
         <section className="stat-band" aria-label={t('أرقام السوق')}>

@@ -1,4 +1,4 @@
-import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { AppNotification } from './types';
 import { t } from '../i18n';
@@ -21,7 +21,32 @@ const TEXTS: Record<string, Text> = {
   report_closed: { title: t('تم إغلاق بلاغك'), body: (n) => t('تم إغلاق بلاغك «{0}». افتح «بلاغاتي» لقراءة ردّنا.', n) },
   order_cancelled_by_admin: { title: t('تم إلغاء طلبك'), body: (n) => t('ألغت المنصة طلبك «{0}».', n) },
   order_cancelled_by_company: { title: t('تم إلغاء طلبك'), body: (n) => t('ألغت الشركة طلبك «{0}». افتحه لمعرفة السبب.', n) },
+  order_technician_assigned: {
+    title: t('أرسلت الشركة فنيًا لطلبك'),
+    body: (n) => t('أُسند فني لطلبك «{0}». يمكنك مراسلته من صفحة الطلب.', n),
+  },
 };
+
+/** The picture and colour a notification's row shows: what kind of news it is. */
+export type NotificationKind = { icon: 'box' | 'wrench' | 'flag' | 'chat' | 'user' | 'bell'; tone: 'ok' | 'bad' | 'info' };
+
+export function notificationKind(n: AppNotification): NotificationKind {
+  if (n.type.includes('cancelled') || n.type.endsWith('_rejected')) return { icon: n.serviceRequestId ? 'wrench' : 'box', tone: 'bad' };
+  if (n.type.startsWith('report_')) return { icon: 'flag', tone: 'info' };
+  if (n.type === 'review_reply') return { icon: 'chat', tone: 'info' };
+  if (n.type === 'order_technician_assigned') return { icon: 'user', tone: 'info' };
+  const done = n.type.endsWith('_completed') || n.type === 'payment_confirmed' || n.type.endsWith('_accepted');
+  if (n.serviceRequestId) return { icon: 'wrench', tone: done ? 'ok' : 'info' };
+  if (n.orderId) return { icon: 'box', tone: done ? 'ok' : 'info' };
+  return { icon: 'bell', tone: 'info' };
+}
+
+/** Splits newest-first notifications into today's and the earlier ones. */
+export function splitByDay<T extends { createdAt: Date }>(items: readonly T[], now: Date = new Date()): { today: T[]; earlier: T[] } {
+  const sameDay = (d: Date) =>
+    d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  return { today: items.filter((i) => sameDay(i.createdAt)), earlier: items.filter((i) => !sameDay(i.createdAt)) };
+}
 
 const GENERIC_TITLE = t('إشعار');
 const GENERIC_BODY = t('يوجد تحديث على أحد طلباتك.');
@@ -46,4 +71,13 @@ export function notificationTarget(n: AppNotification): string | null {
 export const markNotificationRead = (id: string): Promise<void> =>
   updateDoc(doc(db, 'notifications', id), { isRead: true });
 
-export const deleteNotification = (id: string): Promise<void> => deleteDoc(doc(db, 'notifications', id));
+/** Marks every given notification read in one write (at most 500 at a time). */
+export async function markAllNotificationsRead(ids: readonly string[]): Promise<void> {
+  for (let i = 0; i < ids.length; i += 500) {
+    const batch = writeBatch(db);
+    for (const id of ids.slice(i, i + 500)) batch.update(doc(db, 'notifications', id), { isRead: true });
+    await batch.commit();
+  }
+}
+
+export const deleteNotification =(id: string): Promise<void> => deleteDoc(doc(db, 'notifications', id));
