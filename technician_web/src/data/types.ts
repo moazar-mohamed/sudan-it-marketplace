@@ -61,7 +61,9 @@ export interface Notice {
   createdAt: Date;
 }
 
-export type ChatRole = 'technician' | 'company';
+export type ChatRole = 'technician' | 'company' | 'customer';
+/** Which conversation of a job: with the company (jobChats) or with the customer (customerTechChats). */
+export type ChatKind = 'company' | 'customer';
 
 export interface JobChat {
   id: string;

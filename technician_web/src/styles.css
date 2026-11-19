@@ -95,6 +95,84 @@ h1, h2, h3, p { margin: 0; }
   body { background: var(--surface-2); }
   .app { box-shadow: 0 0 0 1px var(--line), 0 20px 60px -30px rgba(11, 29, 58, 0.35); }
 }
+.app-main { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+
+/* ── A laptop or desktop: the tabs become a side menu, the page uses the width ── */
+@media (min-width: 1024px) {
+  .app { max-width: 880px; }
+  /* A page without the side menu is a card floating on the page, rounded on every edge. */
+  #root { display: flow-root; } /* keeps the card's margin inside the screen (no page scroll) */
+  .app:not(.tabbed) {
+    height: calc(100% - 48px); margin: 24px auto; border-radius: 24px; overflow: hidden;
+    box-shadow: 0 0 0 1px var(--line), 0 30px 80px -40px rgba(11, 29, 58, 0.5);
+  }
+  /* A short screen scrolls inside the card with a slim bar, not a grey strip along its edge. */
+  .app:not(.tabbed) .scroll { scrollbar-width: thin; scrollbar-color: var(--ring) transparent; }
+  .app.tabbed { max-width: none; margin: 0; flex-direction: row; box-shadow: none; }
+  .app.tabbed .tabs {
+    order: -1; width: 232px; height: auto; flex: none; box-sizing: border-box;
+    display: flex; flex-direction: column; gap: 4px; padding: 16px 12px;
+    border-top: 0; border-inline-end: 1px solid var(--line);
+  }
+  .app.tabbed .tab { flex-direction: row; justify-content: flex-start; gap: 10px; height: 48px; padding: 0 10px; border-radius: 12px; font-size: 15px; }
+  .app.tabbed .tab .pill { width: 36px; height: 36px; border-radius: 10px; }
+  .app.tabbed .tab:hover { background: var(--surface-2); }
+  .app.tabbed .tab.on { background: var(--soft); color: var(--soft-ink); }
+  .app.tabbed .tab.on .pill { background: transparent; }
+  /* Content in a readable column in the middle; the navy-to-teal band still runs edge to edge. */
+  .app.tabbed .bar, .app.tabbed .scroll > .hero { padding-inline: max(16px, calc((100% - 960px) / 2)) !important; }
+  .app.tabbed .scroll { padding-inline: max(16px, calc((100% - 960px) / 2)) !important; }
+  .app.tabbed .scroll:has(> .hero) { padding-inline: 0 !important; }
+  .app.tabbed .scroll > .lift, .app.tabbed .scroll > div:not(.hero), .app.tabbed .scroll > section:not(.hero) { width: 100%; max-width: 960px; margin-inline: auto; box-sizing: border-box; }
+}
+
+/* ── Laptop sign-in: the brand band fills the screen, one white card in the middle ── */
+@media (min-width: 1024px) {
+  .app.login {
+    max-width: none; height: 100%; margin: 0; border-radius: 0; box-shadow: none;
+    background:
+      radial-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px) 0 0 / 22px 22px,
+      radial-gradient(900px 420px at 85% -10%, rgba(52, 211, 192, 0.4), transparent),
+      linear-gradient(135deg, #052b57, #0a5f86 62%, #0f8f7d);
+  }
+  .app.login .scroll { align-items: center; justify-content: safe center; gap: 18px; padding: 24px 24px 56px; box-sizing: border-box; }
+  .app.login .scroll > .hero { min-height: 0 !important; padding: 0 !important; gap: 4px !important; background: none; }
+  .app.login .scroll > .hero::after { content: none; }
+  .app.login .hero img { width: 72px !important; height: 72px !important; border-radius: 18px !important; }
+  .app.login .hero h1 { font-size: 28px !important; }
+  .app.login .scroll > main {
+    position: static; flex: none !important; width: 420px; margin: 0 !important; padding: 24px !important; box-sizing: border-box;
+    background: var(--surface); border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(11, 29, 58, 0.08), 0 24px 48px -16px rgba(0, 0, 0, 0.45);
+  }
+  .app.login .scroll > main > form { padding: 0 !important; border: 0; border-radius: 0 !important; box-shadow: none; background: none; }
+  .app.login .scroll > main > p:last-child {
+    position: absolute; bottom: 20px; inset-inline: 0; margin: 0 !important; padding: 0 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+  .app.login .scroll > main > p:last-child a { color: #fff; }
+}
+/* A common laptop (1366x768, about 650px left under the browser bars): a tighter
+   version of the same page so it still fits without scrolling. */
+@media (min-width: 1024px) and (max-height: 760px) {
+  .app.login .scroll { gap: 14px; padding: 16px 24px 48px; }
+  .app.login .hero img { width: 56px !important; height: 56px !important; border-radius: 14px !important; }
+  .app.login .hero span { margin-top: 4px !important; font-size: 13px !important; }
+  .app.login .hero h1 { font-size: 24px !important; }
+  .app.login .scroll > main { padding: 20px !important; gap: 12px !important; }
+  .app.login .scroll > main > form { gap: 10px !important; }
+  .app.login .scroll > main > form .box { min-height: 46px; }
+  .app.login .scroll > main > form > button[type='button'] { min-height: 36px !important; padding-block: 2px !important; }
+  .app.login .scroll > main > .strip { padding: 8px 12px; font-size: 12.5px; }
+  .app.login .scroll > main > p:last-child { bottom: 14px; }
+}
+/* A very short laptop screen: the link goes back under the card instead of over it. */
+@media (min-width: 1024px) and (max-height: 640px) {
+  .app.login .scroll { padding-bottom: 24px; }
+  .app.login .scroll > main > p:last-child { position: static; padding-top: 8px !important; color: var(--muted) !important; }
+  .app.login .scroll > main > p:last-child a { color: var(--brand); }
+}
+
 .scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
 /* Cards in a scrolling column keep their height (one with overflow: hidden would otherwise shrink to nothing). */
 .scroll > * { flex-shrink: 0; }

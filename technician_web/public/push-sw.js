@@ -8,6 +8,7 @@
 // Where a pressed push leads in the technician portal, from what the relay put in its data.
 function targetOf(data) {
   if (data.type === 'job_chat_message' && data.orderId) return `/chats/${encodeURIComponent(data.orderId)}`;
+  if (data.type === 'customer_tech_chat_message' && data.orderId) return `/jobs/${encodeURIComponent(data.orderId)}/customer`;
   if (data.orderId) return `/jobs/${encodeURIComponent(data.orderId)}`;
   return '/notifications';
 }

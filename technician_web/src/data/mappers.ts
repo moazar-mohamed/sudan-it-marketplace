@@ -14,7 +14,7 @@ const numOrNull = (v: unknown): number | null => (typeof v === 'number' && Numbe
 const status = (v: unknown): OrderStatus =>
   v === 'out_for_delivery' || v === 'completed' || v === 'cancelled' ? v : 'processing';
 
-const role = (v: unknown): ChatRole | null => (v === 'technician' || v === 'company' ? v : null);
+const role = (v: unknown): ChatRole | null => (v === 'technician' || v === 'company' || v === 'customer' ? v : null);
 
 export function mapJob(id: string, d: DocumentData, pendingSync = false): Job {
   return {

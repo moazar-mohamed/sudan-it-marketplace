@@ -31,3 +31,7 @@ export const pushToPhone = (notificationId: string, fetchImpl: typeof fetch = fe
 /** Asks the relay to push a job chat message the technician just sent to the company's admins. Never throws. */
 export const pushJobChatMessage = (orderId: string, messageId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> =>
   post({ jobChatId: orderId, messageId }, fetchImpl);
+
+/** Asks the relay to push a message this technician just sent to the job's customer. Never throws. */
+export const pushTechChatMessage = (orderId: string, messageId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> =>
+  post({ techChatId: orderId, messageId }, fetchImpl);

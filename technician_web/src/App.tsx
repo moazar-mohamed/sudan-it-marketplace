@@ -17,6 +17,7 @@ import ChatsPage from './pages/ChatsPage';
 import ChatPage from './pages/ChatPage';
 import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
+import { showCountInTitle } from './data/titleCount';
 
 export default function App() {
   const { state } = useAuth();
@@ -39,15 +40,15 @@ export default function App() {
 /** A page with the four tabs under it. */
 function WithTabs({ children }: { children: ReactNode }) {
   return (
-    <div className="app">
-      {children}
+    <div className="app tabbed">
+      <div className="app-main">{children}</div>
       <Tabs />
     </div>
   );
 }
 
 function Portal() {
-  const { technician, technicianReady } = useTechData();
+  const { technician, technicianReady, unreadNotices, unreadChats } = useTechData();
   const { state, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,6 +60,8 @@ function Portal() {
   useEffect(() => {
     if (uid) void refreshPush(uid);
   }, [uid]);
+  // The tab's title counts what is waiting: unread notifications and conversations.
+  useEffect(() => showCountInTitle(unreadNotices + unreadChats), [unreadNotices, unreadChats]);
 
   if (!technicianReady) {
     return (
@@ -88,6 +91,7 @@ function Portal() {
           <Route path="/jobs" element={<WithTabs><JobsPage /></WithTabs>} />
           <Route path="/jobs/:id" element={<JobPage />} />
           <Route path="/jobs/:id/done" element={<DonePage />} />
+          <Route path="/jobs/:id/customer" element={<ChatPage kind="customer" />} />
           <Route path="/chats" element={<WithTabs><ChatsPage /></WithTabs>} />
           <Route path="/chats/:id" element={<ChatPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
