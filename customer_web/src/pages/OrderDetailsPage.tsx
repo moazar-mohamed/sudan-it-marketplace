@@ -5,6 +5,7 @@ import { Icon, PATHS } from '../components/Icon';
 import { ReviewCard } from '../components/ReviewCard';
 import { PageTitle } from '../components/PageTitle';
 import { openOrderChat } from '../data/chats';
+import { techChatUnread, useTechChat } from '../data/techChat';
 import { useAccount, useCatalog } from '../data/DataProvider';
 import { formatDateTime, formatPrice } from '../data/format';
 import { useOrder } from '../data/hooks';
@@ -110,6 +111,31 @@ function DeliveryCard({ order }: { order: Order }) {
   );
 }
 
+/**
+ * Once the company sends a technician: their name and a conversation with them
+ * (their phone number is not shown; the company reads the conversation).
+ */
+function TechnicianContact({ order }: { order: Order }) {
+  const { chat } = useTechChat(order.id);
+  if (order.technicianId === null) return null;
+  const unread = techChatUnread(chat);
+  const name = order.technicianName.trim();
+  return (
+    <div className="tech-row">
+      <Icon d={PATHS.wrench} size={18} />
+      <span className="grow">
+        <strong>{name || t('الفني')}</strong>
+        <span className="pmeta" style={{ display: 'block' }}>{t('الفني الذي أرسلته الشركة لطلبك')}</span>
+      </span>
+      {unread && <span className="chat-dot" role="img" aria-label={t('رسالة جديدة من الفني')} />}
+      <Link to={`/orders/${order.id}/technician`} className="btn-line">
+        <Icon d={PATHS.chat} size={18} />
+        {t('تواصل مع الفني')}
+      </Link>
+    </div>
+  );
+}
+
 /** An order older than conversations gets its conversation here, on first use. */
 function OpenChatButton({ order }: { order: Order }) {
   const navigate = useNavigate();
@@ -202,6 +228,7 @@ export function OrderDetailsPage() {
       <section className="tile">
         <h2>{t('التواصل')}</h2>
         <OpenChatButton order={order} />
+        <TechnicianContact order={order} />
       </section>
 
       <section className="tile">

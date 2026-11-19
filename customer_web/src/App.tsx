@@ -21,6 +21,7 @@ const CompanyPage = lazy(() => import('./pages/CompanyPage').then((m) => ({ defa
 const FavoritesPage = lazy(() => import('./pages/FavoritesPage').then((m) => ({ default: m.FavoritesPage })));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
+const TechChatPage = lazy(() => import('./pages/TechChatPage').then((m) => ({ default: m.TechChatPage })));
 const OrderDetailsPage = lazy(() => import('./pages/OrderDetailsPage').then((m) => ({ default: m.OrderDetailsPage })));
 const OrdersPage = lazy(() => import('./pages/OrdersPage').then((m) => ({ default: m.OrdersPage })));
 const ProductPage = lazy(() => import('./pages/ProductPage').then((m) => ({ default: m.ProductPage })));
@@ -68,6 +69,7 @@ function SiteRoutes() {
             <Route path="checkout/:id" element={<CheckoutPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="orders/:id" element={<OrderDetailsPage />} />
+            <Route path="orders/:id/technician" element={<TechChatPage />} />
             <Route path="chats" element={<ChatsPage />} />
             <Route path="chats/:id" element={<ChatsPage />} />
             <Route path="service-request" element={<ServiceRequestPage />} />

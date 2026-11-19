@@ -4,12 +4,14 @@ import { isUnread, useConversations } from '../data/chats';
 import { useCatalog } from '../data/DataProvider';
 import { loginPath } from '../data/nextPath';
 import { showCountInTitle } from '../data/titleCount';
-import { listenForPushOpens, refreshPush } from '../data/webPush';
+import { listenForPushOpens, refreshPush, syncCityTopic } from '../data/webPush';
 import { CompareBar } from './Compare';
 import { Icon, PATHS } from './Icon';
 import { LanguageButton } from './LanguageSwitch';
+import { NoticeToast } from './NoticeToast';
 import { PageBoundary } from './PageBoundary';
 import { t } from '../i18n';
+import { APP_DOWNLOAD_URL } from '../data/appDownload';
 
 // The search loads the first time it is opened.
 const CommandPalette = lazy(() => import('./CommandPalette').then((m) => ({ default: m.CommandPalette })));
@@ -37,8 +39,15 @@ export function Shell() {
   // A pressed push opens its page in this tab; this browser's push address is kept fresh.
   useEffect(() => listenForPushOpens((path) => navigate(path)), [navigate]);
   useEffect(() => {
-    if (uid) void refreshPush(uid);
+    if (uid) void refreshPush(uid).then(syncCityTopic);
   }, [uid]);
+  // This browser follows the announcements of the person's city, like the phones (the relay keeps it in step).
+  const cityId = profile?.cityId ?? null;
+  const cityNews = profile?.pushPrefs?.cityAnnouncements !== false;
+  const profileLanguage = profile?.language ?? null;
+  useEffect(() => {
+    if (uid) void syncCityTopic();
+  }, [uid, cityId, cityNews, profileLanguage]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -113,6 +122,11 @@ export function Shell() {
             {unread > 0 && <span className="dot">{unread > 9 ? '9+' : unread}</span>}
           </NavLink>
         )}
+        {/* The Android app, as the old site offered it in its bar. */}
+        <a href={APP_DOWNLOAD_URL} className="icon-btn nav-app" aria-label={t('حمّل التطبيق')} title={t('تطبيق أندرويد')}>
+          <Icon d={PATHS.download} />
+          <span>{t('حمّل التطبيق')}</span>
+        </a>
         <LanguageButton uid={uid} />
         {uid ? (
           <NavLink to="/profile" className="icon-btn solid" aria-label={t('حسابي')} title={t('حسابي')}>
@@ -131,6 +145,7 @@ export function Shell() {
     <div className="page">
       <PageBoundary key={pathname}><Outlet /></PageBoundary>
       <CompareBar />
+      {uid && <NoticeToast />}
       {open && <Suspense fallback={null}><CommandPalette onClose={close} /></Suspense>}
     </div>
     {!pathname.startsWith('/chats') && <SiteFooter />}
@@ -171,6 +186,7 @@ function SiteFooter() {
             <h3>{t('الدعم والشركات')}</h3>
             <Link to="/terms">{t('الشروط والأحكام')}</Link>
             <a href="https://company.sictm.net" target="_blank" rel="noopener noreferrer">{t('بوابة الشركات')}</a>
+            <a href="https://tech.sictm.net" target="_blank" rel="noopener noreferrer">{t('بوابة الفني')}</a>
           </div>
         </nav>
       </div>

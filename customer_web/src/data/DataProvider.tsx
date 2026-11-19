@@ -1,10 +1,10 @@
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { buildServiceListings, countByCategory, servesCity } from './browse';
 import type { CategoryCount, Ratings } from './browse';
 import { CategoryTree } from './categoryTree';
 import { useFavorites } from './favorites';
-import { useCategories, useCities, useCompanies, useCompanyServices, useNotifications, useProducts, useRatings, useServices } from './hooks';
+import { useCategories, useCities, useCompanies, useCompanyServices, NOTIFICATIONS_SHOWN, useNotifications, useProducts, useRatings, useServices } from './hooks';
 import { isOnSale } from './mappers';
 import type { AppNotification, CatalogService, City, Company, CompanyService, Favorite, Product, ServiceListing, UserProfile } from './types';
 
@@ -32,6 +32,10 @@ interface CatalogValue {
   profile: UserProfile | null;
   /** Null until they have loaded. */
   notifications: AppNotification[] | null;
+  /** True when more (older) notifications may exist than the ones read. */
+  moreNotifications: boolean;
+  /** Reads [NOTIFICATIONS_SHOWN] more of the older notifications. */
+  showMoreNotifications: () => void;
   /** Null until they have loaded. */
   favorites: Favorite[] | null;
   /** Null when the customer has no city: nothing is then ranked or labelled. */
@@ -55,7 +59,9 @@ export function CatalogProvider({ profile, children }: { profile: UserProfile | 
   const rawLinks = useCompanyServices();
   const rawRatings = useRatings();
   const cities = useCities();
-  const notifications = useNotifications(profile?.id ?? '');
+  const [notificationsMax, setNotificationsMax] = useState(NOTIFICATIONS_SHOWN);
+  const notifications = useNotifications(profile?.id ?? '', notificationsMax);
+  const showMoreNotifications = useCallback(() => setNotificationsMax((n) => n + NOTIFICATIONS_SHOWN), []);
   const favorites = useFavorites(profile?.id ?? '');
   const cityId = profile?.cityId ?? null;
 
@@ -118,12 +124,14 @@ export function CatalogProvider({ profile, children }: { profile: UserProfile | 
       cityId,
       profile,
       notifications,
+      moreNotifications: (notifications?.length ?? 0) >= notificationsMax,
+      showMoreNotifications,
       favorites,
       servingIds,
       loading: !loaded && !(categories.error || rawProducts.error || rawCompanies.error),
       error: categories.error || rawProducts.error || rawCompanies.error,
     };
-  }, [categories, rawProducts, rawCompanies, rawServices, rawLinks, rawRatings, cities, cityId, profile, notifications, favorites]);
+  }, [categories, rawProducts, rawCompanies, rawServices, rawLinks, rawRatings, cities, cityId, profile, notifications, notificationsMax, showMoreNotifications, favorites]);
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>;
 }

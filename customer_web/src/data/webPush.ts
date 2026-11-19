@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { deleteToken, getMessaging, getToken, isSupported } from 'firebase/messaging';
 import { arrayRemove, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { app, db } from '../firebase';
+import { followCityTopic } from './pushRelay';
 
 /*
  * Pushes to this browser, when no page of the site is open. The browser's own
@@ -144,4 +145,15 @@ export function listenForPushOpens(go: (path: string) => void): () => void {
     if (typeof path === 'string' && path.startsWith('/')) go(path);
   };
   return () => channel.close();
+}
+
+/**
+ * Keeps this browser in the topic of [uid]'s city announcements when pushes
+ * are on here (the relay reads the city, the language and the switch from the
+ * profile). Best effort; tried again on the next change or visit.
+ */
+export async function syncCityTopic(): Promise<void> {
+  if ((await pushState().catch(() => 'off' as PushState)) !== 'on') return;
+  const token = storedToken();
+  if (token) await followCityTopic(token);
 }

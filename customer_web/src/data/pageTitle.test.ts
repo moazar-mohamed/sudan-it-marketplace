@@ -7,10 +7,10 @@ describe('pageTitle', () => {
     expect(pageTitle('المنتجات والخدمات')).toBe('المنتجات والخدمات | سوق السودان للتقنية');
   });
 
-  it('is the site name alone without a page', () => {
-    expect(pageTitle(null)).toBe('سوق السودان للتقنية');
-    expect(pageTitle(undefined)).toBe('سوق السودان للتقنية');
-    expect(pageTitle('  ')).toBe('سوق السودان للتقنية');
+  it('is the site name with the SICTM brand without a page', () => {
+    expect(pageTitle(null)).toBe('سوق السودان للتقنية | SICTM');
+    expect(pageTitle(undefined)).toBe('سوق السودان للتقنية | SICTM');
+    expect(pageTitle('  ')).toBe('سوق السودان للتقنية | SICTM');
   });
 });
 

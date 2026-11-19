@@ -31,6 +31,15 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
+
+// Firebase Performance Monitoring: page load, paint and request timings of real
+// visitors go to the project's Firebase console. Loaded after the page so it never
+// slows the first view; only in the deployed build, never against the emulators.
+if (import.meta.env.PROD && !import.meta.env.VITE_EMULATOR && typeof window !== 'undefined') {
+  void import('firebase/performance')
+    .then(({ getPerformance }) => getPerformance(app))
+    .catch(() => undefined);
+}
 export const auth = getAuth(app);
 
 // What was read stays in this browser, so a return visit shows at once and then

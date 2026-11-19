@@ -33,3 +33,15 @@ export const pushNotification = (notificationId: string, fetchImpl: typeof fetch
 /** Asks the relay to push a chat message this person just sent. Never throws. */
 export const pushChatMessage = (chatId: string, messageId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> =>
   ask({ chatId, messageId }, fetchImpl);
+
+/** Asks the relay to push a message this person just sent to their order's technician. Never throws. */
+export const pushTechChatMessage = (orderId: string, messageId: string, fetchImpl: typeof fetch = fetch): Promise<boolean> =>
+  ask({ techChatId: orderId, messageId }, fetchImpl);
+
+/**
+ * Asks the relay to put this browser's push address in the topic of the
+ * person's city announcements (or take it out): phones do it themselves, a
+ * browser cannot. Never throws.
+ */
+export const followCityTopic = (webToken: string, fetchImpl: typeof fetch = fetch): Promise<boolean> =>
+  ask({ webToken }, fetchImpl);

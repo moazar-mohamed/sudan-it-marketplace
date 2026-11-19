@@ -91,6 +91,9 @@ export interface Order {
   cancelledAt: Date | null;
   /** When the company recorded giving the money back (a paid order it cancelled). */
   refundedAt: Date | null;
+  /** The technician the company sent (null until one is assigned); their phone is never on the order. */
+  technicianId: string | null;
+  technicianName: string;
   createdAt: Date;
 }
 
