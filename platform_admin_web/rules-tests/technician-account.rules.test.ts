@@ -11,7 +11,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 let env: RulesTestEnvironment;
@@ -258,6 +258,24 @@ describe('the retired invite/claim flow is closed', () => {
         createdAt: serverTimestamp(),
       }),
     );
+  });
+});
+
+describe('a company removes its own technician', () => {
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'technicians', 'techUid'), { ...techRecord(), createdAt: now, updatedAt: now });
+    });
+  });
+
+  it('its own company admin can delete the record', async () => {
+    await assertSucceeds(deleteDoc(doc(as('adminC1'), 'technicians', 'techUid')));
+  });
+
+  it('another company, a customer and the technician cannot', async () => {
+    await assertFails(deleteDoc(doc(as('adminC2'), 'technicians', 'techUid')));
+    await assertFails(deleteDoc(doc(as('cust1'), 'technicians', 'techUid')));
+    await assertFails(deleteDoc(doc(as('techUid'), 'technicians', 'techUid')));
   });
 });
 

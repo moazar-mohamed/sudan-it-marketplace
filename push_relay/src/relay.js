@@ -10,6 +10,7 @@
 import { createFirestore, createTokenSource } from './google.js';
 import {
   chatMessageText,
+  customerTechChatMessageText,
   cityAnnouncementText,
   jobChatMessageText,
   cityName,
@@ -230,6 +231,53 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
     return response.ok;
   }
 
+  /** Adds [token] to, or takes it off, a topic with the Instance ID API (as the Admin SDK does). */
+  async function topicMembership(action, topic, token) {
+    const response = await fetch(`https://iid.googleapis.com/iid/v1:${action}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${await accessToken()}`,
+        access_token_auth: 'true',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ to: `/topics/${topic}`, registration_tokens: [token] }),
+    });
+    // A refused address comes back as 200 with an error for that address.
+    const error = response.ok ? (await response.json().catch(() => ({})))?.results?.[0]?.error : null;
+    if (!response.ok || error) log(`iid ${action} ${response.status} ${error ?? ''} for ${topic}`);
+    return response.ok && !error;
+  }
+
+  async function tokenKey(token) {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
+    return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /**
+   * A browser asks to follow its person's city announcements (2026-11-18):
+   * the phones subscribe themselves to `city_{id}_{lang}`, a browser cannot,
+   * so the relay does it for the browser's push address. The address must be
+   * one of the caller's own (users/{uid}.fcmTokens). It follows the person's
+   * city, language and "city announcements" switch; the topic it was put in
+   * last is kept in push_topics/{hash}, so a change of city moves it.
+   */
+  async function syncWebTopic(uid, webToken) {
+    const user = await db.get(`users/${uid}`);
+    if (!user) return reply(404, { error: 'not_found' });
+    const tokens = Array.isArray(user.fcmTokens) ? user.fcmTokens : [];
+    if (!tokens.includes(webToken)) return reply(403, { error: 'not_your_token' });
+    const cityId = typeof user.cityId === 'string' && /^[a-z0-9_]{1,60}$/.test(user.cityId) ? user.cityId : '';
+    const wanted =
+      user.role === 'customer' && cityId && wantsPush(user, 'cityAnnouncements') ? cityTopic(cityId, languageOf(user)) : null;
+    const path = `push_topics/${await tokenKey(webToken)}`;
+    const before = (await db.get(path))?.topic ?? null;
+    if (before === wanted) return reply(200, { topic: wanted, changed: false });
+    if (before) await topicMembership('batchRemove', before, webToken);
+    if (wanted && !(await topicMembership('batchAdd', wanted, webToken))) return reply(502, { error: 'upstream' });
+    await db.merge(path, { topic: wanted ?? '', uid, at: new Date(now()) });
+    return reply(200, { topic: wanted, changed: true });
+  }
+
   function isFresh(createdAt) {
     return createdAt instanceof Date && now() - createdAt.getTime() <= MAX_AGE_MS;
   }
@@ -389,6 +437,48 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
   }
 
   /**
+   * A message in an order's customer-technician conversation
+   * (`customerTechChats/{orderId}`): to the order's customer when the
+   * technician wrote it, to the technician the order has now when the customer
+   * did. The company reads that conversation in its panel but gets no push.
+   */
+  async function pushCustomerTechChatMessage(uid, orderId, messageId) {
+    const [chat, message] = await Promise.all([
+      db.get(`customerTechChats/${orderId}`),
+      db.get(`customerTechChats/${orderId}/messages/${messageId}`),
+    ]);
+    if (!chat || !message) return reply(404, { error: 'not_found' });
+    if (message.senderId !== uid) return reply(403, { error: 'not_sender' });
+    if (!isFresh(message.createdAt)) return reply(409, { error: 'too_old' });
+    const logPath = `push_log/t_${orderId}_${messageId}`;
+    if (!(await db.createOnce(logPath, { kind: 'customer_tech_chat', by: uid, at: new Date(now()) }))) {
+      return reply(200, { skipped: 'already_sent' });
+    }
+    const toCustomer = message.senderRole === 'technician';
+    let recipients;
+    if (toCustomer) {
+      recipients = chat.customerId ? await usersByIds([chat.customerId]) : [];
+    } else {
+      const order = await db.get(`orders/${orderId}`);
+      recipients = order?.technicianId
+        ? await recipientsOf({ recipientType: 'technician', recipientId: order.technicianId })
+        : [];
+    }
+    recipients = recipients.filter((r) => wantsPush(r, 'chat'));
+    const result = await sendTo(recipients, (recipient) => ({
+      ...customerTechChatMessageText(chat, message, languageOf(recipient)),
+      data: {
+        type: 'customer_tech_chat_message',
+        orderId,
+        role: toCustomer ? 'customer' : 'technician',
+      },
+      tag: `tech_chat_${orderId}`,
+    }));
+    await db.merge(logPath, result);
+    return reply(200, result);
+  }
+
+  /**
    * Runs every hour (a Cron Trigger): a company whose dollar rate has gone 24
    * hours without being set or confirmed has its admins reminded on their
    * phones, then again every 24 hours until it is. Never at night in Sudan,
@@ -455,15 +545,20 @@ export function createRelay(env, { fetch = globalThis.fetch, now = Date.now, log
     const wantsChat = isId(body?.chatId) && isId(body?.messageId);
     const wantsCity = isId(body?.cityAnnouncementId);
     const wantsJobChat = isId(body?.jobChatId) && isId(body?.messageId);
-    if ([wantsNotification, wantsChat, wantsCity, wantsJobChat].filter(Boolean).length !== 1) {
+    const wantsTechChat = isId(body?.techChatId) && isId(body?.messageId);
+    // A browser's FCM token: letters, digits, ':', '-' and '_' (about 160 long).
+    const wantsTopics = typeof body?.webToken === 'string' && /^[A-Za-z0-9:_-]{20,400}$/.test(body.webToken);
+    if ([wantsNotification, wantsChat, wantsCity, wantsJobChat, wantsTechChat, wantsTopics].filter(Boolean).length !== 1) {
       return reply(400, { error: 'bad_request' });
     }
 
     try {
       const uid = await verifiedUid(idToken);
       if (!uid) return reply(401, { error: 'unauthenticated' });
+      if (wantsTopics) return await syncWebTopic(uid, body.webToken);
       if (wantsCity) return await pushCityAnnouncement(uid, body.cityAnnouncementId);
       if (wantsJobChat) return await pushJobChatMessage(uid, body.jobChatId, body.messageId);
+      if (wantsTechChat) return await pushCustomerTechChatMessage(uid, body.techChatId, body.messageId);
       return wantsNotification
         ? await pushNotification(uid, body.notificationId)
         : await pushChatMessage(uid, body.chatId, body.messageId);
