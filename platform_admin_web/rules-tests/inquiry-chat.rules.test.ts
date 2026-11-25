@@ -309,3 +309,36 @@ describe('talking in a question conversation', () => {
     expect(company.docs.map((d) => d.id).sort()).toEqual(['cust1_product_p1', 'cust1_service_c1_svc1']);
   });
 });
+
+describe('an inquiry carries real names only', () => {
+  it('the customer name is the account name, or empty', async () => {
+    await assertSucceeds(open(as('cust1'), productChat('cust1', 'p1', { customerName: 'cust1' })));
+    await assertSucceeds(open(as('cust1'), serviceChat('cust1', 'c1_svc1', { customerName: '' })));
+  });
+
+  it.each(['Platform Admin', 'cust2', 'Sudan ICT Support'])('refuses the customer name "%s"', async (customerName) => {
+    await assertFails(open(as('cust1'), productChat('cust1', 'p1', { customerName })));
+    await assertFails(open(as('cust1'), serviceChat('cust1', 'c1_svc1', { customerName })));
+  });
+
+  it("a product inquiry names the company as it is now, or as the product stores it", async () => {
+    await assertSucceeds(open(as('cust1'), productChat('cust1', 'p1', { companyName: 'Company c1' })));
+    await assertSucceeds(open(as('cust2'), productChat('cust2', 'p1', { companyName: 'c1' })));
+  });
+
+  it('refuses a product inquiry under a made-up company name', async () => {
+    await assertFails(open(as('cust1'), productChat('cust1', 'p1', { companyName: 'Platform Admin' })));
+  });
+
+  it("a service inquiry names the company and the catalogue's service exactly", async () => {
+    await assertSucceeds(open(as('cust1'), serviceChat('cust1', 'c1_svc1')));
+  });
+
+  it.each([
+    ['a made-up service name', { serviceName: 'Free laptops' }],
+    ['a made-up company name', { companyName: 'Platform Admin' }],
+    ["the product's copy of the company name", { companyName: 'c1' }],
+  ])('refuses a service inquiry with %s', async (_, extra) => {
+    await assertFails(open(as('cust1'), serviceChat('cust1', 'c1_svc1', extra)));
+  });
+});

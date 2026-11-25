@@ -67,6 +67,20 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
+    // The customer's own name as their account holds it, or no name at all
+    // (the app sends an empty one when it could not load the profile). Never a
+    // name of the sender's choosing, such as someone else's or the platform's:
+    // the company reads it in its lists and conversations.
+    function isOwnCustomerName(name) {
+      let fullName = signedInUser().get('fullName', '');
+      return name == '' || name == fullName || name == fullName.trim();
+    }
+
+    // A catalogue service's name, as Platform Admin wrote it.
+    function catalogServiceName(serviceId) {
+      return get(/databases/$(database)/documents/services/$(serviceId)).data.get('name', '');
+    }
+
     // Platform Admin privilege needs BOTH the role and an active account. A
     // deactivated platform admin (or one whose profile has no isActive flag)
     // loses every permission that is granted through this function.
@@ -3267,6 +3281,11 @@ service cloud.firestore {
           data.companyId,
           data.get('cityId', signedInUser().get('cityId', '')))
         && catalogServiceExists(data.serviceId)
+        // The service is named as the catalogue names it, and the customer as
+        // their account does (or not at all): the request's conversation
+        // copies both, so the company never reads a name the sender made up.
+        && data.serviceName == catalogServiceName(data.serviceId)
+        && isOwnCustomerName(data.customerName)
         && existsAfter(/databases/$(database)/documents/chats/$(requestId));
     }
 
@@ -3440,11 +3459,19 @@ service cloud.firestore {
     function isValidInquiryChatCreate(data) {
       let companyPath = /databases/$(database)/documents/companies/$(data.companyId);
       return data.customerName.size() <= 120
+        && isOwnCustomerName(data.customerName)
         && data.companyName.size() <= 200
         && exists(companyPath)
         && get(companyPath).data.get('status', 'active') == 'active';
     }
 
+    function companyNameOf(companyId) {
+      return get(/databases/$(database)/documents/companies/$(companyId)).data.get('name', '');
+    }
+
+    // Every name an inquiry carries comes from where the company would look
+    // it up itself: the product's own name, and the company's name as it is
+    // now or as the product stores it (the site shows the product's copy).
     function isValidProductInquiryChatCreate(chatId, data) {
       let productPath = /databases/$(database)/documents/products/$(data.productId);
       return data.productId is string
@@ -3454,9 +3481,13 @@ service cloud.firestore {
         && isValidInquiryChatCreate(data)
         && exists(productPath)
         && get(productPath).data.companyId == data.companyId
-        && get(productPath).data.name == data.get('productName', '');
+        && get(productPath).data.name == data.get('productName', '')
+        && (data.companyName == companyNameOf(data.companyId)
+          || data.companyName == get(productPath).data.get('companyName', ''));
     }
 
+    // A service inquiry names the company as it names itself and the service
+    // as the catalogue names it.
     function isValidServiceInquiryChatCreate(chatId, data) {
       let linkPath = /databases/$(database)/documents/company_services/$(data.companyServiceId);
       return data.companyServiceId is string
@@ -3468,7 +3499,9 @@ service cloud.firestore {
         && isValidInquiryChatCreate(data)
         && exists(linkPath)
         && get(linkPath).data.isActive == true
-        && get(linkPath).data.companyId == data.companyId;
+        && get(linkPath).data.companyId == data.companyId
+        && data.companyName == companyNameOf(data.companyId)
+        && data.get('serviceName', '') == catalogServiceName(get(linkPath).data.serviceId);
     }
 
     // The role the caller speaks as in this conversation.
