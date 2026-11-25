@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import {
   connectFirestoreEmulator,
@@ -21,6 +22,19 @@ export const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
+
+// Firebase App Check: tells Firebase that a request really comes from one of our
+// sites, not from a script that copied the public identifiers above. The same
+// reCAPTCHA Enterprise key serves all four sites (one Firebase web app). An empty
+// key keeps it off. Firebase only refuses requests without a valid token once
+// enforcement is switched on in the console; until then it only counts them.
+export const APP_CHECK_SITE_KEY = '6LcLHzIuAAAAAJGYMd2ijEwwff5CTba6XjrlQHaP';
+if (APP_CHECK_SITE_KEY && import.meta.env.PROD && !import.meta.env.VITE_EMULATOR && typeof window !== 'undefined') {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+    isTokenAutoRefreshEnabled: true,
+  });
+}
 
 // Firebase Performance Monitoring: page load, paint and request timings of real
 // visitors go to the project's Firebase console. Loaded after the page so it never
