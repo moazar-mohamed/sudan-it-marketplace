@@ -1,3 +1,4 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
@@ -25,6 +26,21 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Firebase App Check: Google Play Integrity vouches that a request comes from
+  // this app on a genuine phone, not from a script that copied the project's
+  // public identifiers. Release Android builds only, so debug runs against the
+  // emulators are not affected. Firebase only refuses requests without a valid
+  // token once enforcement is switched on in the console; until then it counts them.
+  if (kReleaseMode && !kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    try {
+      await FirebaseAppCheck.instance.activate(
+        providerAndroid: const AndroidPlayIntegrityProvider(),
+      );
+    } catch (_) {
+      // Without a token the app still works while enforcement is off.
+    }
+  }
 
   // Firebase Performance Monitoring: app start time and screen rendering
   // (slow/frozen frames) go to the project's Firebase console. Only release builds
