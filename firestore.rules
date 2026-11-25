@@ -1229,10 +1229,16 @@ service cloud.firestore {
     // The customer records the name of a receipt on their own order. Nothing
     // else may change, and updatedAt is the server's time (never a value, or
     // a type, of the customer's choosing).
+    // Every order is now placed with its receipt, so this is only for an older
+    // order that has none yet, and only while its payment waits: a receipt
+    // name, once there, and any order whose payment the company confirmed,
+    // keep the receipt the company actually checked (F2).
     function isCustomerReceiptAttachment(orderId) {
       return resource.data.customerId == request.auth.uid
         && callerIsNotDeactivated()
         && resource.data.orderStatus != 'cancelled'
+        && resource.data.get('receiptFileName', null) in [null, '']
+        && resource.data.paymentStatus == 'pending_verification'
         && request.resource.data.id == resource.data.id
         && request.resource.data.customerId == resource.data.customerId
         && request.resource.data.companyId == resource.data.companyId
