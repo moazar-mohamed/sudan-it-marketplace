@@ -181,6 +181,13 @@ async function stored(path: string): Promise<Data | undefined> {
   return data;
 }
 
+/** o1 as an older order, placed before every order came with its receipt. */
+async function withoutReceipt(path = 'orders/o1', extra: Data = {}): Promise<void> {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await updateDoc(doc(ctx.firestore(), path), { receiptFileName: null, ...extra });
+  });
+}
+
 const stockOf = async (productId: string) => (await stored(`products/${productId}`))?.stockCount;
 
 /**
@@ -430,6 +437,7 @@ describe('the texts written later have limits too', () => {
     updateDoc(doc(as('ca1'), 'orders', 'oInstall'), { updatedAt: serverTimestamp(), ...fields });
 
   it('a receipt name of 100 characters is accepted, 101 refused', async () => {
+    await withoutReceipt();
     await assertFails(attach({ receiptFileName: text(101), updatedAt: serverTimestamp() }));
     await assertSucceeds(attach({ receiptFileName: text(100), updatedAt: serverTimestamp() }));
   });
@@ -474,14 +482,47 @@ describe("a receipt attachment is stamped with the server's time", () => {
     ['null', null],
     ['nothing (the field removed)', deleteField()],
   ])('%s is refused', async (_label, updatedAt) => {
+    await withoutReceipt();
     await assertFails(attach(updatedAt));
-    expect(await stored('orders/o1')).toMatchObject({ receiptFileName: 'receipt.jpg' });
+    expect(await stored('orders/o1')).toMatchObject({ receiptFileName: null });
     // The app's own call (server time) is accepted on the very same order.
     await assertSucceeds(attach(serverTimestamp()));
   });
 
   it('the update cannot be sent without updatedAt at all', async () => {
+    await withoutReceipt();
     await assertFails(updateDoc(doc(as('cust1'), 'orders', 'o1'), { receiptFileName: 'new.jpg' }));
+  });
+});
+
+describe('a receipt name stays the one the company checked (F2)', () => {
+  const attach = (name = 'new.jpg') =>
+    updateDoc(doc(as('cust1'), 'orders', 'o1'), { receiptFileName: name, updatedAt: serverTimestamp() });
+
+  it('an order placed with its receipt never gets another name', async () => {
+    await assertFails(attach());
+    expect(await stored('orders/o1')).toMatchObject({ receiptFileName: 'receipt.jpg' });
+  });
+
+  it('an older order without a receipt gets one while its payment waits', async () => {
+    await withoutReceipt();
+    await assertSucceeds(attach());
+  });
+
+  it('an empty receipt name counts as none', async () => {
+    await withoutReceipt('orders/o1', { receiptFileName: '' });
+    await assertSucceeds(attach());
+  });
+
+  it('once attached, that name cannot be changed again', async () => {
+    await withoutReceipt();
+    await assertSucceeds(attach());
+    await assertFails(attach('other.jpg'));
+  });
+
+  it('nothing is attached once the company confirmed the payment', async () => {
+    await withoutReceipt('orders/o1', { paymentStatus: 'confirmed' });
+    await assertFails(attach());
   });
 });
 
