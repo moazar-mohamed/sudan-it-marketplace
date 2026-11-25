@@ -133,7 +133,7 @@ const orderData = (id: string, customerId: string, extra: Record<string, unknown
   deliveryFee: 15000,
   totalAmount: 100 + 15000,
   deliveryAddress: 'Street',
-  contactPhone: '0911111111',
+  contactPhone: '+249911111111',
   deliveryMethod: 'delivery',
   customerName: 'Amna',
   paymentStatus: 'pending_verification',

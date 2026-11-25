@@ -264,7 +264,7 @@ describe('a dollar product is ordered in pounds', () => {
     deliveryFee: 15000,
     totalAmount: 765000,
     deliveryAddress: 'Street',
-    contactPhone: '1',
+    contactPhone: '+249911111111',
     deliveryMethod: 'delivery',
     customerName: 'C',
     paymentStatus: 'pending_verification',

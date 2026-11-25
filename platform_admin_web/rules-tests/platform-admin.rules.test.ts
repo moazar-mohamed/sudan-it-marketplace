@@ -120,7 +120,7 @@ async function seed() {
       deliveryFee: 0,
       totalAmount: 50,
       deliveryAddress: 'x',
-      contactPhone: '1',
+      contactPhone: '+249911111111',
       paymentStatus: 'confirmed',
       orderStatus: 'completed',
       createdAt: now,
@@ -140,7 +140,7 @@ async function seed() {
       deliveryFee: 0,
       totalAmount: 100,
       deliveryAddress: 'x',
-      contactPhone: '1',
+      contactPhone: '+249911111111',
       paymentStatus: 'pending_verification',
       orderStatus: 'processing',
       stockReserved: true,
@@ -208,7 +208,7 @@ async function placeRealOrder(uid: string, orderId: string) {
   return placeOrder(as(uid), uid, {
     id: orderId, customerId: uid, companyId: 'c_active', companyName: 'C', productId: 'p_real',
     productName: 'Router', quantity: 1, unitPrice: 10, productSubtotal: 10, installationSelected: false,
-    installationFee: 0, deliveryFee: 15000, totalAmount: 15010, deliveryAddress: 'x', contactPhone: '1',
+    installationFee: 0, deliveryFee: 15000, totalAmount: 15010, deliveryAddress: 'x', contactPhone: '+249911111111',
     deliveryMethod: 'delivery', customerName: 'N', paymentStatus: 'pending_verification',
     orderStatus: 'processing', stockReserved: false, receiptFileName: 'receipt.jpg', createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
   });
@@ -427,7 +427,7 @@ describe('Orders with a deactivated company', () => {
   const order = (companyId: string) => ({
     id: 'o_new', customerId: 'cust1', companyId, companyName: 'C', productId: productOf(companyId),
     productName: 'Thing', quantity: 1, unitPrice: 10, productSubtotal: 10, installationSelected: false,
-    installationFee: 0, deliveryFee: 15000, totalAmount: 15010, deliveryAddress: 'x', contactPhone: '1',
+    installationFee: 0, deliveryFee: 15000, totalAmount: 15010, deliveryAddress: 'x', contactPhone: '+249911111111',
     deliveryMethod: 'delivery', customerName: 'N', paymentStatus: 'pending_verification',
     orderStatus: 'processing', stockReserved: false, receiptFileName: 'receipt.jpg', createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
   });
@@ -706,7 +706,7 @@ describe('Orders (read-only)', () => {
   const newOrder = (customerId: string) => ({
     id: 'o2', customerId, companyId: 'c_active', companyName: 'C', productId: 'p_demo', productName: 'Router',
     quantity: 1, unitPrice: 100, productSubtotal: 100, installationSelected: false, installationFee: 0,
-    deliveryFee: 0, totalAmount: 100, deliveryAddress: 'x', contactPhone: '1', deliveryMethod: 'delivery',
+    deliveryFee: 0, totalAmount: 100, deliveryAddress: 'x', contactPhone: '+249911111111', deliveryMethod: 'delivery',
     customerName: 'N', paymentStatus: 'pending_verification', orderStatus: 'processing',
     receiptFileName: null, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
   });

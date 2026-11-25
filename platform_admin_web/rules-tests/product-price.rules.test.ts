@@ -166,7 +166,7 @@ describe('optional product price', () => {
     deliveryFee: 15000,
     totalAmount: 100 * quantity + 15000,
     deliveryAddress: 'Street',
-    contactPhone: '1',
+    contactPhone: '+249911111111',
     deliveryMethod: 'delivery',
     customerName: 'C',
     paymentStatus: 'pending_verification',

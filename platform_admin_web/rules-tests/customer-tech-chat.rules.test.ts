@@ -118,7 +118,7 @@ beforeEach(async () => {
       deliveryFee: 15000,
       totalAmount: 15150,
       deliveryAddress: 'Street',
-      contactPhone: '0911111111',
+      contactPhone: '+249911111111',
       deliveryMethod: 'delivery',
       customerName: 'Amna',
       paymentStatus: 'confirmed',

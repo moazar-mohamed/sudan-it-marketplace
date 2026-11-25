@@ -215,7 +215,7 @@ async function seedUsage(companyId: string, tag: string) {
       deliveryFee: 5,
       totalAmount: 115,
       deliveryAddress: 'Somewhere',
-      contactPhone: '1',
+      contactPhone: '+249911111111',
       deliveryMethod: 'delivery',
       paymentStatus: 'confirmed',
       orderStatus: 'completed',

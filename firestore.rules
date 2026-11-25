@@ -1124,17 +1124,19 @@ service cloud.firestore {
         && data.totalAmount > 0
         && data.deliveryAddress is string
         && data.deliveryAddress.size() <= 500
-        // A typed address, a map point, or both; never neither.
-        && (data.deliveryAddress.size() > 0
+        // A typed address, a map point, or both; never neither. Spaces alone
+        // are no address.
+        && (data.deliveryAddress.trim().size() > 0
           || orderHasDeliveryPoint(data))
         && isValidCoordinatePair(
           data.get('deliveryLatitude', null),
           data.get('deliveryLongitude', null))
         && (data.get('deliveryMethod', 'delivery') != 'pickup'
           || !orderHasDeliveryPoint(data))
+        // The phone in the international form the app and the site save
+        // (`+249912345678`): a plus and 7 to 15 digits, as E.164 allows.
         && data.contactPhone is string
-        && data.contactPhone.size() > 0
-        && data.contactPhone.size() <= 30
+        && data.contactPhone.matches('[+][0-9]{7,15}')
         && (!data.keys().hasAny(['deliveryMethod'])
           || data.deliveryMethod in ['delivery', 'pickup'])
         && (data.get('deliveryMethod', 'delivery') != 'pickup'
@@ -1534,18 +1536,24 @@ service cloud.firestore {
     //   unitPrice       = the product's sale price now
     //   productSubtotal = unitPrice x quantity
     //   installationFee = the product's installation price when installation
-    //                     is chosen (the product must offer it), otherwise 0
+    //                     is chosen (the product must offer it, and the order
+    //                     must be delivered: the app offers installation only
+    //                     with Delivery), otherwise 0
     //   deliveryFee     = the standard fee for Delivery, 0 for Pickup
     //   totalAmount     = productSubtotal + installationFee + deliveryFee
+    // Delivery itself is allowed only for a product its company delivers (a
+    // product with no stored flag counts as delivered, as in the app).
     // A product without a price can never be ordered this way.
     function isOrderPricedFromProduct(order, product) {
       let unitPrice = productSalePrice(product);
       let pickup = order.get('deliveryMethod', 'delivery') == 'pickup';
       return unitPrice != null
+        && (pickup || product.get('isDeliveryAvailable', true) != false)
         && order.unitPrice == unitPrice
         && order.productSubtotal == unitPrice * order.quantity
         && (order.installationSelected == true
-          ? (product.get('isInstallationAvailable', false) == true
+          ? (!pickup
+            && product.get('isInstallationAvailable', false) == true
             && product.get('installationPrice', null) != null
             && order.installationFee == product.installationPrice)
           : order.installationFee == 0)
