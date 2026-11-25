@@ -599,3 +599,29 @@ describe('service offers', () => {
     await assertSucceeds(setOffer('ca1', 'c1_svc1', { offerPrice: null, offerEndsAt: null, offerBadge: null }));
   });
 });
+
+describe('a service request carries real names only', () => {
+  it('names the customer by the account name', async () => {
+    await assertSucceeds(sendRequest(as('cust1'), 'nm1', 'cust1', 'c1_svc1', { request: { price: 15000 } }));
+  });
+
+  it('or leaves the name empty', async () => {
+    await assertSucceeds(sendRequest(as('cust1'), 'nm2', 'cust1', 'c1_svc1', { request: { price: 15000, customerName: '' } }));
+  });
+
+  it.each(['Platform Admin', 'cust2'])('refuses the customer name "%s"', async (customerName) => {
+    await assertFails(sendRequest(as('cust1'), 'nm3', 'cust1', 'c1_svc1', { request: { price: 15000, customerName } }));
+  });
+
+  it("refuses a service name that is not the catalogue's", async () => {
+    await assertFails(
+      sendRequest(as('cust1'), 'nm4', 'cust1', 'c1_svc1', { request: { price: 15000, serviceName: 'Free laptops' } }),
+    );
+  });
+
+  it('refuses a conversation whose names differ from its request', async () => {
+    await assertFails(
+      sendRequest(as('cust1'), 'nm5', 'cust1', 'c1_svc1', { request: { price: 15000 }, chat: { customerName: 'Platform Admin' } }),
+    );
+  });
+});
