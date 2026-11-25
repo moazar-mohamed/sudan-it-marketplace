@@ -10,7 +10,12 @@ function targetOf(data) {
   if (data.type === 'chat_message' && data.chatId) return `/chats?c=${encodeURIComponent(data.chatId)}`;
   // The dollar rate reminder: the rate is set on the Today page.
   if (data.type === 'usd_rate_reminder') return '/';
-  if (data.type === 'new_review') return '/reviews';
+  // A message from the job's technician: the order page, its technician conversation open.
+  if (data.type === 'job_chat_message' && data.orderId) return `/orders/${encodeURIComponent(data.orderId)}#technician-chat`;
+  if (data.type === 'new_review' || data.type === 'review_hidden') return '/reviews';
+  if (data.type === 'service_hidden' || data.type === 'service_shown' || data.type === 'service_offer_ended') return '/services';
+  if (data.type === 'product_offer_ended') return '/offers';
+  if (data.type === 'company_suspended' || data.type === 'company_activated') return '/';
   if (data.serviceRequestId) return '/services';
   if (data.productId) return `/products/${data.productId}`;
   if (data.orderId) return `/orders/${data.orderId}`;

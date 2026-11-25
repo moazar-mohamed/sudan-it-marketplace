@@ -106,6 +106,49 @@ const ORDER_TEXTS = {
     en: ['A product is visible again', (p) => `"${p}" is visible to customers again.`],
     ar: ['المنتج ظاهر من جديد', (p) => `أصبح «${p}» ظاهراً للعملاء من جديد.`],
   },
+  // To the customer: the company sent a technician for the order (2026-11-18).
+  order_technician_assigned: {
+    en: ['A technician is on your order', (p) => `A technician was assigned to your order "${p}". You can message them from the order.`],
+    ar: ['أرسلت الشركة فنيًا لطلبك', (p) => `أُسند فني لطلبك «${p}». يمكنك مراسلته من صفحة الطلب.`],
+  },
+  // To a company: Platform Admin's decisions on it (2026-11-18). The quoted
+  // name is the company, the reviewed item, the service or the product.
+  company_activated: {
+    en: ['Your company is active', (p) => `The platform activated "${p}". Its products are now shown to customers.`],
+    ar: ['شركتك مفعّلة', (p) => `فعّلت المنصة شركة «${p}»، وصارت منتجاتها ظاهرة للعملاء.`],
+  },
+  company_deactivated: {
+    en: ['Your company was suspended', (p) => `The platform suspended "${p}", so its products are not shown now. Contact the platform to learn why.`],
+    ar: ['أُوقفت شركتك', (p) => `أوقفت المنصة شركة «${p}»، فلا تظهر منتجاتها للعملاء الآن. تواصل مع المنصة لمعرفة السبب.`],
+  },
+  company_rejected: {
+    en: ['Your company was not accepted', (p) => `The platform did not accept the registration of "${p}". Contact the platform to learn why.`],
+    ar: ['لم تُقبل شركتك', (p) => `لم تقبل المنصة تسجيل شركة «${p}». تواصل مع المنصة لمعرفة السبب.`],
+  },
+  review_hidden: {
+    en: ['A review was hidden', (p) => `The platform hid a review on "${p}" for breaking the terms.`],
+    ar: ['أُخفي تقييم', (p) => `أخفت المنصة تقييمًا على «${p}» لمخالفته الشروط.`],
+  },
+  review_shown: {
+    en: ['A review is shown again', (p) => `The platform shows a review on "${p}" again.`],
+    ar: ['عاد تقييم ظاهرًا', (p) => `أعادت المنصة إظهار تقييم على «${p}».`],
+  },
+  service_hidden: {
+    en: ['A service was stopped', (p) => `The platform stopped the service "${p}"; customers do not see it now.`],
+    ar: ['أُوقفت خدمة', (p) => `أوقفت المنصة الخدمة «${p}»، فلا تظهر للعملاء الآن.`],
+  },
+  service_shown: {
+    en: ['A service is back', (p) => `The service "${p}" is available to customers again.`],
+    ar: ['عادت خدمة', (p) => `الخدمة «${p}» متاحة للعملاء من جديد.`],
+  },
+  product_offer_ended: {
+    en: ['An offer was ended', (p) => `The platform ended the offer on "${p}"; it is back to its normal price.`],
+    ar: ['أُنهي عرض', (p) => `أنهت المنصة العرض على «${p}»، ورجع إلى سعره العادي.`],
+  },
+  service_offer_ended: {
+    en: ['A service offer was ended', (p) => `The platform ended the offer on the service "${p}"; it is back to its normal price.`],
+    ar: ['أُنهي عرض خدمة', (p) => `أنهت المنصة العرض على الخدمة «${p}»، ورجعت إلى سعرها العادي.`],
+  },
   // A customer's account turned into a company's: the quoted name is the company.
   account_converted_to_company: {
     en: ['Your account is now a company account', (p) => `"${p}" is ready. Sign in again to manage your company.`],
@@ -150,6 +193,16 @@ const CATEGORY_OF_TYPE = {
   product_hidden: 'platform',
   product_shown: 'platform',
   account_converted_to_company: 'platform',
+  order_technician_assigned: 'orders',
+  company_activated: 'platform',
+  company_deactivated: 'platform',
+  company_rejected: 'platform',
+  review_hidden: 'platform',
+  review_shown: 'platform',
+  service_hidden: 'platform',
+  service_shown: 'platform',
+  product_offer_ended: 'platform',
+  service_offer_ended: 'platform',
   usd_rate_reminder: 'usdRate',
   // A Platform Admin switches these off as "reports" and "platform".
   new_report: 'reports',
@@ -302,6 +355,24 @@ export function jobChatMessageText(chat, message, language) {
   const sender = fromTechnician
     ? (message.senderName || chat.technicianName || '').trim() || words.technician
     : words.company;
+  const about = (chat.productName || '').trim();
+  const text = (message.text ?? '').trim();
+  return {
+    title: about ? `${sender} · ${about}` : sender,
+    body: text.length > MAX_BODY ? `${text.slice(0, MAX_BODY - 1)}…` : text,
+  };
+}
+
+/**
+ * A message in an order's customer-technician conversation as seen by the
+ * other side: "<who> · <product>" and the message itself (shortened). The
+ * technician is named by the name on their message; the customer by theirs.
+ */
+export function customerTechChatMessageText(chat, message, language) {
+  const words = CHAT_TEXTS[language];
+  const fromTechnician = message.senderRole === 'technician';
+  const sender =
+    (message.senderName || '').trim().slice(0, 120) || (fromTechnician ? words.technician : words.customer);
   const about = (chat.productName || '').trim();
   const text = (message.text ?? '').trim();
   return {

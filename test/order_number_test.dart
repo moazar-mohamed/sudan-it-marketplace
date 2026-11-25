@@ -7,7 +7,7 @@ import 'package:sudan_it_marketplace/core/utils/short_id.dart';
 import 'package:sudan_it_marketplace/features/orders/domain/entities/order_entity.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/order_details_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/order_pending_verification_screen.dart';
-import 'package:sudan_it_marketplace/features/orders/presentation/widgets/order_card.dart';
+import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/site/site_orders.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 
 // A real-looking id: base-36 microseconds, 10 characters.
@@ -66,7 +66,7 @@ void main() {
       addTearDown(tester.view.reset);
       final order = _order(_fullId);
 
-      await tester.pumpWidget(_app(Scaffold(body: OrderCard(order: order))));
+      await tester.pumpWidget(_app(Scaffold(body: SiteOrderCard(order: order))));
       expect(find.text('Order $_number'), findsOneWidget);
 
       await tester.pumpWidget(_app(OrderDetailsScreen(order: order)));

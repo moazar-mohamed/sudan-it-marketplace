@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/site/site_cards.dart';
 import 'package:sudan_it_marketplace/core/localization/locale_controller.dart';
 import 'package:sudan_it_marketplace/core/utils/search_ranking.dart';
-import 'package:sudan_it_marketplace/features/products/presentation/widgets/product_card.dart';
 import 'package:sudan_it_marketplace/features/categories/domain/entities/category.dart';
 import 'package:sudan_it_marketplace/features/categories/presentation/category_providers.dart';
 import 'package:sudan_it_marketplace/features/companies/domain/entities/company.dart';
 import 'package:sudan_it_marketplace/features/companies/presentation/companies_providers.dart';
-import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/dashboard_home_tab.dart';
 import 'package:sudan_it_marketplace/features/products/domain/entities/product.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/product_details_screen.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/products_providers.dart';
@@ -130,17 +129,6 @@ void main() {
     });
   });
 
-  testWidgets('the home search bar opens the search screen', (tester) async {
-    await tester.pumpWidget(
-      _app(await _prefs(), home: const Scaffold(body: DashboardHomeTab())),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Search products, services and companies'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('home-search-launcher')));
-    await tester.pumpAndSettle();
-    expect(find.byType(CustomerSearchScreen), findsOneWidget);
-  });
 
   testWidgets('before typing: recent searches and categories', (tester) async {
     final prefs = await _prefs({
@@ -197,7 +185,8 @@ void main() {
 
   testWidgets('results: products, services and companies together, grouped',
       (tester) async {
-    tester.view.physicalSize = const Size(400, 1400);
+    // The site's product cards are tall: a long window keeps every group built.
+    tester.view.physicalSize = const Size(400, 4000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(_app(await _prefs()));
@@ -286,8 +275,8 @@ void main() {
     ];
 
     List<String> shownProducts(WidgetTester tester) => [
-          for (final e in find.byType(ProductCard).evaluate())
-            (e.widget as ProductCard).product.id,
+          for (final e in find.byType(SiteProductCard).evaluate())
+            (e.widget as SiteProductCard).product.id,
         ];
 
     testWidgets('price order and in stock only', (tester) async {

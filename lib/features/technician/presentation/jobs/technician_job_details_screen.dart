@@ -20,6 +20,8 @@ import '../widgets/technician_notes_section.dart';
 import '../widgets/technician_widgets.dart';
 import 'technician_job_status_actions.dart';
 import '../../../../core/localization/l10n_extension.dart';
+import '../../../tech_chat/domain/tech_chat.dart';
+import '../../../tech_chat/presentation/tech_chat_screen.dart';
 
 OrderEntity? _findJob(List<OrderEntity>? jobs, String orderId) {
   if (jobs == null) {
@@ -162,6 +164,14 @@ class _JobBody extends ConsumerWidget {
             OrderLocationButton(
               order: job,
               label: LocationStrings.of(context).openOrderLocation,
+            ),
+            // Messages with the customer (they never see the technician's
+            // number); read only once the job is completed or cancelled.
+            const SizedBox(height: AppSpacing.s8),
+            TechChatButton(
+              orderId: job.id,
+              viewer: TechChatViewer.technician,
+              label: l10n.tcChatWithCustomer,
             ),
           ],
         ),

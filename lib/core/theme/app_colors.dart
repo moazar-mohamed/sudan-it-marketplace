@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
-/// Colour tokens of the Sudan ICT Marketplace design system (Figma:
-/// "03 — Colors", collection Color / Light).
+/// Colour tokens of the Sudan ICT Marketplace design system.
 ///
-/// The brand colours are the product's visual identity and never change:
-/// primary `#1565C0` and secondary `#00A8E8`. The original eight constants
-/// keep their names so existing screens keep compiling; new code should use
-/// the semantic tokens below.
+/// Since 2026-11-14 the identity is the customer site's (sictm.net,
+/// `customer_web/src/styles.css`): navy `#063B73` as the main colour, green
+/// `#1FA35C` on action buttons and prices ([action], [price]), and the
+/// navy-to-teal hero. The original eight constants keep their names so
+/// existing screens keep compiling; new code should use the semantic tokens.
 class AppColors {
   AppColors._();
 
   // ---- Original constants (kept) ----
-  static const Color primary = Color(0xFF1565C0);
-  static const Color secondary = Color(0xFF00A8E8);
-  static const Color background = Color(0xFFF7F9FC);
-  static const Color text = Color(0xFF172033);
+  static const Color primary = Color(0xFF063B73);
+  static const Color secondary = Color(0xFF1FA35C);
+  static const Color background = Color(0xFFF4F7FB);
+  static const Color text = Color(0xFF12263F);
   static const Color success = Color(0xFF2E7D32);
   static const Color error = Color(0xFFD32F2F);
   static const Color onPrimary = Color(0xFFFFFFFF);
@@ -22,37 +22,37 @@ class AppColors {
 
   // ---- Brand ----
   static const Color brandPrimary = primary;
-  static const Color brandPrimaryHover = Color(0xFF12579F);
-  static const Color brandPrimaryPressed = Color(0xFF0E4680);
-  static const Color brandPrimarySubtle = Color(0xFFE8F1FB);
-  static const Color brandPrimarySubtleStrong = Color(0xFFD0E3F7);
+  static const Color brandPrimaryHover = Color(0xFF0A4A8C);
+  static const Color brandPrimaryPressed = Color(0xFF052B57);
+  static const Color brandPrimarySubtle = Color(0xFFE8F0FA);
+  static const Color brandPrimarySubtleStrong = Color(0xFFDDE5EF);
   static const Color brandSecondary = secondary;
   static const Color brandSecondarySubtle = Color(0xFFE5F7FD);
 
   // ---- Backgrounds ----
   static const Color bgApp = background;
   static const Color bgSurface = surface;
-  static const Color bgSubtle = Color(0xFFEEF2F7);
-  static const Color bgMuted = Color(0xFFE3E8EF);
-  static const Color bgInverse = Color(0xFF172033);
-  static const Color bgScrim = Color(0x80172033);
+  static const Color bgSubtle = Color(0xFFEEF3F9);
+  static const Color bgMuted = Color(0xFFEEF3F9);
+  static const Color bgInverse = Color(0xFF063B73);
+  static const Color bgScrim = Color(0x8012263F);
 
   // ---- Text (all pass WCAG AA 4.5:1 on white, see test/theme_tokens_test) ----
   static const Color textPrimary = text;
-  static const Color textSecondary = Color(0xFF5A667B);
-  static const Color textTertiary = Color(0xFF66738A);
+  static const Color textSecondary = Color(0xFF5D6F86);
+  static const Color textTertiary = Color(0xFF5D6F86);
   static const Color textDisabled = Color(0xFFA9B4C4);
   static const Color textOnPrimary = onPrimary;
   static const Color textBrand = primary;
   static const Color textInverse = Color(0xFFFFFFFF);
 
   // ---- Borders (input/strong meet the 3:1 non-text contrast) ----
-  static const Color borderDefault = Color(0xFFE3E8EF);
+  static const Color borderDefault = Color(0xFFDDE5EF);
   static const Color borderInput = Color(0xFF7F8CA0);
   static const Color borderStrong = Color(0xFF7F8CA0);
   static const Color borderFocus = primary;
   static const Color borderError = error;
-  static const Color borderFocusRing = Color(0xFF0080B3);
+  static const Color borderFocusRing = Color(0xFF1FA35C);
 
   // ---- Icons ----
   static const Color iconDefault = Color(0xFF45516A);
@@ -68,15 +68,28 @@ class AppColors {
   static const Color errorSubtle = Color(0xFFFDECEA);
   static const Color errorText = Color(0xFFA62222);
   static const Color info = primary;
-  static const Color infoSubtle = Color(0xFFE8F1FB);
-  static const Color infoText = Color(0xFF0E4680);
+  static const Color infoSubtle = Color(0xFFE8F0FA);
+  static const Color infoText = Color(0xFF063B73);
   static const Color progress = Color(0xFFE64A19);
   static const Color progressSubtle = Color(0xFFFBE9E7);
   static const Color progressText = Color(0xFFBF360C);
 
   // ---- Disabled ----
-  static const Color disabledBg = Color(0xFFE3E8EF);
+  static const Color disabledBg = Color(0xFFDDE5EF);
   static const Color disabledFg = Color(0xFF7F8CA0);
+
+  // ---- The customer site's look (sictm.net) ----
+  /// Main action buttons (Buy now, Search, Save...): `--action`.
+  static const Color action = Color(0xFF1FA35C);
+  static const Color actionPressed = Color(0xFF188A4D);
+  /// Prices: `--price`.
+  static const Color price = Color(0xFF1FA35C);
+  /// The top bar: `--nav-bg`, navy in light and dark.
+  static const Color navBar = Color(0xFF063B73);
+  /// The home hero: navy to teal (`.home-hero`).
+  static const Color heroStart = Color(0xFF052B57);
+  static const Color heroMid = Color(0xFF0A5F86);
+  static const Color heroEnd = Color(0xFF0F8F7D);
 }
 
 /// The meaning of a coloured chip, banner or icon tile. One colour always
@@ -184,6 +197,13 @@ class AppColorTokens extends ThemeExtension<AppColorTokens> {
     required this.progressText,
     required this.disabledBg,
     required this.disabledFg,
+    this.action = AppColors.action,
+    this.actionPressed = AppColors.actionPressed,
+    this.price = AppColors.price,
+    this.navBar = AppColors.navBar,
+    this.heroStart = AppColors.heroStart,
+    this.heroMid = AppColors.heroMid,
+    this.heroEnd = AppColors.heroEnd,
   });
 
   final Color primary;
@@ -238,8 +258,15 @@ class AppColorTokens extends ThemeExtension<AppColorTokens> {
   final Color progressText;
   final Color disabledBg;
   final Color disabledFg;
+  final Color action;
+  final Color actionPressed;
+  final Color price;
+  final Color navBar;
+  final Color heroStart;
+  final Color heroMid;
+  final Color heroEnd;
 
-  /// The original, always-light palette (Figma "Color / Light"), unchanged.
+  /// The light palette: the customer site's `:root` tokens.
   static const AppColorTokens light = AppColorTokens(
     primary: AppColors.primary,
     secondary: AppColors.secondary,
@@ -295,63 +322,63 @@ class AppColorTokens extends ThemeExtension<AppColorTokens> {
     disabledFg: AppColors.disabledFg,
   );
 
-  /// The dark palette. The brand marks ([primary]/[secondary]) keep their
-  /// true hue (a logo never changes colour); everywhere blue is used as
-  /// *text or an icon on a dark surface* it is lightened instead, so it
-  /// still clears 4.5:1 (see `test/theme_tokens_test.dart`).
+  /// The dark palette: the customer site's `:root[data-theme='dark']`
+  /// tokens. The bar stays navy as on the site; the brand blue used as text
+  /// or an icon is `#5B9BE8`, a touch lighter than the site's `#4A90E2`, so
+  /// it still clears 4.5:1 on the soft fill (see `test/theme_tokens_test.dart`).
   static const AppColorTokens dark = AppColorTokens(
-    primary: Color(0xFF1565C0),
-    secondary: Color(0xFF00A8E8),
-    background: Color(0xFF0F1621),
-    text: Color(0xFFEDF1F7),
+    primary: Color(0xFF063B73),
+    secondary: Color(0xFF1FA35C),
+    background: Color(0xFF0B1523),
+    text: Color(0xFFE6EEF9),
     success: Color(0xFF4CAF50),
     error: Color(0xFFD32F2F),
     onPrimary: Color(0xFFFFFFFF),
-    surface: Color(0xFF17202E),
-    brandPrimary: Color(0xFF1565C0),
-    brandPrimaryHover: Color(0xFF2E7AD1),
-    brandPrimaryPressed: Color(0xFF0E4680),
-    brandPrimarySubtle: Color(0xFF17273D),
-    brandPrimarySubtleStrong: Color(0xFF1F3A57),
-    brandSecondary: Color(0xFF00A8E8),
+    surface: Color(0xFF13233A),
+    brandPrimary: Color(0xFF063B73),
+    brandPrimaryHover: Color(0xFF0A4A8C),
+    brandPrimaryPressed: Color(0xFF052B57),
+    brandPrimarySubtle: Color(0xFF182C48),
+    brandPrimarySubtleStrong: Color(0xFF1E3352),
+    brandSecondary: Color(0xFF1FA35C),
     brandSecondarySubtle: Color(0xFF14313D),
-    bgApp: Color(0xFF0F1621),
-    bgSurface: Color(0xFF17202E),
-    bgSubtle: Color(0xFF1E2836),
-    bgMuted: Color(0xFF29323F),
-    bgInverse: Color(0xFFEDF1F7),
+    bgApp: Color(0xFF0B1523),
+    bgSurface: Color(0xFF13233A),
+    bgSubtle: Color(0xFF182C48),
+    bgMuted: Color(0xFF1E3352),
+    bgInverse: Color(0xFFE6EEF9),
     bgScrim: Color(0xB3000000),
-    textPrimary: Color(0xFFEDF1F7),
-    textSecondary: Color(0xFFA7B2C4),
-    textTertiary: Color(0xFF98A3B6),
-    textDisabled: Color(0xFF5A6577),
+    textPrimary: Color(0xFFE6EEF9),
+    textSecondary: Color(0xFF93A7C2),
+    textTertiary: Color(0xFF93A7C2),
+    textDisabled: Color(0xFF5A6A80),
     textOnPrimary: Color(0xFFFFFFFF),
-    textBrand: Color(0xFF6FA8F5),
-    textInverse: Color(0xFF172033),
-    borderDefault: Color(0xFF2B3542),
-    borderInput: Color(0xFF64758C),
-    borderStrong: Color(0xFF697A91),
-    borderFocus: Color(0xFF6FA8F5),
+    textBrand: Color(0xFF5B9BE8),
+    textInverse: Color(0xFF12263F),
+    borderDefault: Color(0xFF25395A),
+    borderInput: Color(0xFF7F8CA0),
+    borderStrong: Color(0xFF7F8CA0),
+    borderFocus: Color(0xFF5B9BE8),
     borderError: Color(0xFFEF5350),
-    borderFocusRing: Color(0xFF4FC3F7),
-    iconDefault: Color(0xFFC3CBD8),
-    iconMuted: Color(0xFF98A3B6),
-    iconBrand: Color(0xFF6FA8F5),
+    borderFocusRing: Color(0xFF1FA35C),
+    iconDefault: Color(0xFFC3CEDD),
+    iconMuted: Color(0xFF93A7C2),
+    iconBrand: Color(0xFF5B9BE8),
     successSubtle: Color(0xFF16321B),
-    successText: Color(0xFF7BCF80),
+    successText: Color(0xFF7FD38A),
     warning: Color(0xFFFFB74D),
     warningSubtle: Color(0xFF3A2A0E),
     warningText: Color(0xFFFFC97A),
     errorSubtle: Color(0xFF3B1616),
     errorText: Color(0xFFFF8A80),
-    info: Color(0xFF6FA8F5),
-    infoSubtle: Color(0xFF17263B),
+    info: Color(0xFF5B9BE8),
+    infoSubtle: Color(0xFF182C48),
     infoText: Color(0xFF8FBFFF),
     progress: Color(0xFFFF8A65),
     progressSubtle: Color(0xFF3A2015),
     progressText: Color(0xFFFFAB91),
-    disabledBg: Color(0xFF29323F),
-    disabledFg: Color(0xFF5A6577),
+    disabledBg: Color(0xFF1E3352),
+    disabledFg: Color(0xFF7F8CA0),
   );
 
   @override

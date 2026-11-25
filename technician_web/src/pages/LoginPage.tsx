@@ -47,7 +47,7 @@ export default function LoginPage({ notice }: { notice: AccessNotice | null }) {
   const shown = error ?? (notice ? noticeText(notice) : null);
 
   return (
-    <div className="app">
+    <div className="app login">
       <div className="scroll" style={{ display: 'flex', flexDirection: 'column' }}>
         <header className="hero" style={{ flex: 'none', minHeight: 320, padding: '40px 24px 76px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 8 }}>
           <img src="/og-logo.png" alt="Sudan ICT Marketplace" style={{ width: 96, height: 96, padding: 4, borderRadius: 22, objectFit: 'contain', background: '#fff', boxShadow: '0 8px 24px rgba(0,0,0,.25)' }} />

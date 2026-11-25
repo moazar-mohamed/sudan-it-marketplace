@@ -1227,7 +1227,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String orderTypeInstallation(String fee) {
-    return 'Product + Installation (+$fee SDG)';
+    return 'Product + Installation (+$fee)';
   }
 
   @override
@@ -1304,7 +1304,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pendingInstallationIncluded(String fee) {
-    return 'Included ($fee SDG)';
+    return 'Included ($fee)';
   }
 
   @override
@@ -3519,6 +3519,86 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notifOrderTechAssignedTitle => 'A technician is on your order';
+
+  @override
+  String notifOrderTechAssignedBody(String product) {
+    return 'A technician was assigned to your order \"$product\". You can message them from the order.';
+  }
+
+  @override
+  String get notifCompanyActivatedTitle => 'Your company is active';
+
+  @override
+  String notifCompanyActivatedBody(String product) {
+    return 'The platform activated \"$product\". Its products are now shown to customers.';
+  }
+
+  @override
+  String get notifCompanyDeactivatedTitle => 'Your company was suspended';
+
+  @override
+  String notifCompanyDeactivatedBody(String product) {
+    return 'The platform suspended \"$product\", so its products are not shown now. Contact the platform to learn why.';
+  }
+
+  @override
+  String get notifCompanyRejectedTitle => 'Your company was not accepted';
+
+  @override
+  String notifCompanyRejectedBody(String product) {
+    return 'The platform did not accept the registration of \"$product\". Contact the platform to learn why.';
+  }
+
+  @override
+  String get notifReviewHiddenTitle => 'A review was hidden';
+
+  @override
+  String notifReviewHiddenBody(String product) {
+    return 'The platform hid a review on \"$product\" for breaking the terms.';
+  }
+
+  @override
+  String get notifReviewShownTitle => 'A review is shown again';
+
+  @override
+  String notifReviewShownBody(String product) {
+    return 'The platform shows a review on \"$product\" again.';
+  }
+
+  @override
+  String get notifServiceHiddenTitle => 'A service was stopped';
+
+  @override
+  String notifServiceHiddenBody(String product) {
+    return 'The platform stopped the service \"$product\"; customers do not see it now.';
+  }
+
+  @override
+  String get notifServiceShownTitle => 'A service is back';
+
+  @override
+  String notifServiceShownBody(String product) {
+    return 'The service \"$product\" is available to customers again.';
+  }
+
+  @override
+  String get notifProductOfferEndedTitle => 'An offer was ended';
+
+  @override
+  String notifProductOfferEndedBody(String product) {
+    return 'The platform ended the offer on \"$product\"; it is back to its normal price.';
+  }
+
+  @override
+  String get notifServiceOfferEndedTitle => 'A service offer was ended';
+
+  @override
+  String notifServiceOfferEndedBody(String product) {
+    return 'The platform ended the offer on the service \"$product\"; it is back to its normal price.';
+  }
+
+  @override
   String get notifAccountConvertedTitle =>
       'Your account is now a company account';
 
@@ -3931,6 +4011,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tjChatYou => 'You';
 
   @override
+  String get tcTechnician => 'Technician';
+
+  @override
+  String tcTechnicianName(String name) {
+    return 'Technician: $name';
+  }
+
+  @override
+  String get tcChatWithTechnician => 'Message the technician';
+
+  @override
+  String get tcChatWithCustomer => 'Chat with the customer';
+
+  @override
+  String get tcChatCustomerTechnician => 'Customer and technician chat';
+
+  @override
+  String get tcChatNotice =>
+      'The company can read this conversation. Phone numbers are not shown here.';
+
+  @override
+  String get tcChatReadOnly =>
+      'Between the customer and your technician. You can read it only.';
+
+  @override
+  String get tcChatClosed =>
+      'This conversation closed when the order was completed or cancelled.';
+
+  @override
+  String get tcChatEmptyCompany =>
+      'The customer and the technician have not written yet.';
+
+  @override
   String get tjNoTechnicianAssigned =>
       'No technician is assigned to this order yet.';
 
@@ -4220,4 +4333,545 @@ class AppLocalizationsEn extends AppLocalizations {
   String usdPriceLabel(String usd, String rate) {
     return '$usd \$ at \$1 = $rate SDG';
   }
+
+  @override
+  String get navMyAccount => 'My account';
+
+  @override
+  String get profileMyCity => 'My city';
+
+  @override
+  String get profileCityNotSet => 'No city chosen yet';
+
+  @override
+  String get siteHeroTitleLine1 => 'All your tech';
+
+  @override
+  String get siteHeroTitleLine2 => 'in one place';
+
+  @override
+  String get siteHeroBody =>
+      'Products, companies and services in your city. Order directly and talk to the company.';
+
+  @override
+  String get siteQuickRouter => 'Router';
+
+  @override
+  String get siteQuickCameras => 'Cameras';
+
+  @override
+  String get siteQuickServer => 'Server';
+
+  @override
+  String get siteStatCompanies => 'Companies';
+
+  @override
+  String get siteStatItems => 'Products & services';
+
+  @override
+  String get siteStatCities => 'Cities';
+
+  @override
+  String get siteStatReviews => 'Customer reviews';
+
+  @override
+  String get siteMainCategories => 'Main categories';
+
+  @override
+  String get siteViewAll => 'View all →';
+
+  @override
+  String get sitePromoKicker => 'Services';
+
+  @override
+  String get sitePromoTitle => 'Request a technician for your needs';
+
+  @override
+  String get siteFeaturedOffers => 'Featured offers';
+
+  @override
+  String get siteNewestProducts => 'Newest products';
+
+  @override
+  String get siteNoProducts => 'No products yet';
+
+  @override
+  String get siteFeaturedServices => 'Featured services';
+
+  @override
+  String get siteTopCompanies => 'Top companies';
+
+  @override
+  String get siteNoCompanies => 'No companies yet';
+
+  @override
+  String get siteNew => 'New';
+
+  @override
+  String get siteDelivery => 'Delivery';
+
+  @override
+  String get siteInstallation => 'Installation';
+
+  @override
+  String get siteCurrencySdg => 'SDG';
+
+  @override
+  String siteItemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteReviewsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reviews',
+      one: '1 review',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteAndOtherCompanies(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: ' and $count other companies',
+      one: ' and 1 other company',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteStartsFrom => 'Starts from';
+
+  @override
+  String siteDiscount(int percent) {
+    return 'Discount $percent%';
+  }
+
+  @override
+  String get sitePriceOnRequest => 'Contact for the price';
+
+  @override
+  String get siteShopNow => 'Shop now';
+
+  @override
+  String get siteRequestService => 'Request service';
+
+  @override
+  String get siteEndsIn => 'Ends in';
+
+  @override
+  String siteDaysLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteFooterName => 'Sudan ICT Marketplace';
+
+  @override
+  String get siteFooterAbout =>
+      'Your trusted partner in the world of technology and telecoms';
+
+  @override
+  String get siteFooterStore => 'Store';
+
+  @override
+  String get siteFooterSupport => 'Support and companies';
+
+  @override
+  String get siteFooterTerms => 'Terms and conditions';
+
+  @override
+  String get siteFooterCompanyPortal => 'Company portal';
+
+  @override
+  String get siteRequestTechnician => 'Request a technician';
+
+  @override
+  String get siteSortNewest => 'Newest';
+
+  @override
+  String get siteSortPriceLow => 'Price: low to high';
+
+  @override
+  String get siteSortPriceHigh => 'Price: high to low';
+
+  @override
+  String get siteSortTopRated => 'Highest rated';
+
+  @override
+  String get siteSortMostReviewed => 'Most reviewed';
+
+  @override
+  String get siteSortName => 'Name';
+
+  @override
+  String get siteAllCategories => 'All categories';
+
+  @override
+  String get siteWholeCategory => 'Whole category';
+
+  @override
+  String siteWholeCategoryCount(int count) {
+    return 'Whole category ($count)';
+  }
+
+  @override
+  String siteCategoryWithCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String get siteFilterOffers => 'Offers';
+
+  @override
+  String get siteFilterInStock => 'In stock';
+
+  @override
+  String get siteFilterBrand => 'Brand';
+
+  @override
+  String get siteFilterCompany => 'Company';
+
+  @override
+  String get siteSort => 'Sort';
+
+  @override
+  String get siteSortColon => 'Sort:';
+
+  @override
+  String get siteClearAll => 'Clear all';
+
+  @override
+  String get siteClearFilters => 'Clear filters';
+
+  @override
+  String get siteShowMore => 'Show more';
+
+  @override
+  String siteServicesHeading(int count) {
+    return 'Services ($count)';
+  }
+
+  @override
+  String get siteNothingMatches => 'Nothing matches these filters.';
+
+  @override
+  String siteNoResultsHere(String query) {
+    return 'No results for “$query” here.';
+  }
+
+  @override
+  String siteSearchInCategory(String name) {
+    return 'Search in $name';
+  }
+
+  @override
+  String get siteSearchProductsServices => 'Search products and services';
+
+  @override
+  String get siteNoProductsInCategory =>
+      'There are no products in this category yet. Check back soon.';
+
+  @override
+  String get siteNoServicesInCategory =>
+      'There are no services in this category yet. Check back soon.';
+
+  @override
+  String get siteNothingYet => 'Nothing is listed here yet.';
+
+  @override
+  String get siteCategoryUnavailable => 'Category unavailable';
+
+  @override
+  String get siteCategoryUnavailableBody =>
+      'This category is no longer available. Choose another one.';
+
+  @override
+  String siteProductsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count products',
+      one: '1 product',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteServicesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count services',
+      one: '1 service',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String siteCompaniesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count companies',
+      one: '1 company',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteGridView => 'Grid view';
+
+  @override
+  String get siteListView => 'List view';
+
+  @override
+  String siteRemoveTag(String label) {
+    return 'Remove $label';
+  }
+
+  @override
+  String get siteAll => 'All';
+
+  @override
+  String get siteSearchCompany => 'Search for a company';
+
+  @override
+  String get siteNoCompaniesHere => 'No companies here yet.';
+
+  @override
+  String get siteBrowseAll => 'Browse products & services';
+
+  @override
+  String get siteFooterTechPortal => 'Technician portal';
+
+  @override
+  String get siteCompareAdd => 'Add to comparison';
+
+  @override
+  String get siteCompareRemove => 'Remove from comparison';
+
+  @override
+  String siteCompareFull(int count) {
+    return 'You can compare up to $count products at a time. Remove one first.';
+  }
+
+  @override
+  String get siteCompareTitle => 'Compare products';
+
+  @override
+  String get siteComparePickAnother => 'Pick another product';
+
+  @override
+  String get siteCompareNow => 'Compare now';
+
+  @override
+  String get siteCompareClear => 'Clear comparison';
+
+  @override
+  String get siteCompareEmptyTitle => 'Comparison';
+
+  @override
+  String get siteCompareEmptyMessage =>
+      'Pick at least two products with the compare button, then come back here.';
+
+  @override
+  String get siteCompareNote =>
+      'Green is the lowest price. Prices and stock are as they are in the shop now.';
+
+  @override
+  String get siteComparePrice => 'Price';
+
+  @override
+  String get siteCompareCompany => 'Company';
+
+  @override
+  String get siteCompareBrand => 'Brand';
+
+  @override
+  String get siteCompareCategory => 'Category';
+
+  @override
+  String get siteCompareRating => 'Rating';
+
+  @override
+  String get siteCompareStock => 'Availability';
+
+  @override
+  String get siteCompareDelivery => 'Delivery';
+
+  @override
+  String get siteCompareInstall => 'Installation';
+
+  @override
+  String get siteYes => 'Yes';
+
+  @override
+  String get siteNo => 'No';
+
+  @override
+  String get siteOutOfStockShort => 'Out of stock';
+
+  @override
+  String get siteRemove => 'Remove';
+
+  @override
+  String get siteShare => 'Share';
+
+  @override
+  String get siteLinkCopied => 'Link copied';
+
+  @override
+  String siteInstallNote(String price) {
+    return 'Installation price: $price. Installation is chosen during checkout.';
+  }
+
+  @override
+  String siteCompanyReplyFrom(String name) {
+    return 'Company reply · $name';
+  }
+
+  @override
+  String get siteViewOnMap => 'View on Map';
+
+  @override
+  String siteReviewsAll(int count) {
+    return 'Show all reviews ($count)';
+  }
+
+  @override
+  String siteProductPicture(int number) {
+    return 'Picture $number';
+  }
+
+  @override
+  String get siteProductGone => 'This product is no longer available';
+
+  @override
+  String get siteCustomer => 'Customer';
+
+  @override
+  String siteOrdersProducts(int count) {
+    return 'Products ($count)';
+  }
+
+  @override
+  String siteOrdersServices(int count) {
+    return 'Services ($count)';
+  }
+
+  @override
+  String get siteOrdersSearch => 'Search your orders';
+
+  @override
+  String get siteOrdersActive => 'Open';
+
+  @override
+  String get siteOrdersDone => 'Finished';
+
+  @override
+  String get siteOrdersNone => 'No orders here.';
+
+  @override
+  String siteRequestTitleNumber(String id) {
+    return 'Service request #$id';
+  }
+
+  @override
+  String siteCheckoutUnitLine(String price, int quantity) {
+    return 'Unit price: $price · Quantity: $quantity';
+  }
+
+  @override
+  String siteCheckoutSubtotal(String price) {
+    return 'Subtotal: $price';
+  }
+
+  @override
+  String siteCheckoutInstallNote(String price) {
+    return 'Installation by a certified technician is available for $price.';
+  }
+
+  @override
+  String siteCheckoutConfirm(String price) {
+    return 'Confirm order • $price';
+  }
+
+  @override
+  String siteCheckoutFrom(String name) {
+    return 'Order from $name';
+  }
+
+  @override
+  String get siteEditOrder => 'Edit order details';
+
+  @override
+  String get siteRequestCityPlace => 'City and location';
+
+  @override
+  String get siteChatsSearch => 'Search chats';
+
+  @override
+  String get siteChatsUnread => 'Unread';
+
+  @override
+  String get siteChatsNoneHere => 'No chats here.';
+
+  @override
+  String get siteChatReadByCompany => 'Read by the company';
+
+  @override
+  String get siteChatSent => 'Sent';
+
+  @override
+  String get siteTermsNone =>
+      'The terms and conditions have not been published yet.';
+
+  @override
+  String siteTermsVersion(int version) {
+    return 'Version $version';
+  }
+
+  @override
+  String siteTermsUpdated(String date) {
+    return 'Last updated: $date';
+  }
+
+  @override
+  String get siteTermsAgree => 'I agree to the';
+
+  @override
+  String get siteTermsRequired =>
+      'You must accept the terms and conditions to create an account.';
+
+  @override
+  String get siteTermsGateSub =>
+      'To continue, read the terms and conditions and accept them.';
+
+  @override
+  String get siteTermsGateCheck =>
+      'I have read the terms and conditions and I accept them';
+
+  @override
+  String get siteTermsGateAccept => 'I accept and continue';
+
+  @override
+  String get siteTermsGateFailed =>
+      'Could not save your acceptance. Check your connection and try again.';
 }

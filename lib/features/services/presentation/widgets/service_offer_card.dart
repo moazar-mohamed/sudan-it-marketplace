@@ -1,22 +1,26 @@
+import 'package:sudan_it_marketplace/features/auth/presentation/require_account.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/l10n_extension.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../../chats/presentation/widgets/contact_company_button.dart';
+import '../../../cities/presentation/city_tags.dart';
 import '../../../company_services/presentation/company_service_providers.dart';
+import '../../../companies/presentation/company_details_screen.dart';
+import '../../../customer_dashboard/presentation/site/site_cards.dart';
+import '../../../customer_dashboard/presentation/site/site_detail_parts.dart';
+import '../../../customer_dashboard/presentation/site/site_look.dart';
 import '../../../service_requests/presentation/service_request_form_screen.dart';
-import '../../../offers/presentation/offer_price.dart';
 import '../../../reviews/domain/review.dart';
-import '../../../reviews/presentation/review_widgets.dart';
 import '../../domain/entities/catalog_service.dart';
 
-/// A company that offers the service, with the company's own price (shown
-/// ONLY when the company set one — no placeholder otherwise) and note, and
-/// the actions to ask the company about it or request it.
-class ServiceOfferCard extends StatelessWidget {
+/// A company that offers the service (`.offer-card` on sictm.net): the
+/// company with its stars and city, its price (or «تواصل لمعرفة السعر»), its
+/// note and city label, then «تواصل» and «اطلب الخدمة».
+class ServiceOfferCard extends ConsumerWidget {
   const ServiceOfferCard({
     super.key,
     required this.service,
@@ -27,89 +31,92 @@ class ServiceOfferCard extends StatelessWidget {
   final ServiceOffer offer;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final colors = context.colors;
     final company = offer.company;
-    final price = offer.offer.price;
     final note = offer.offer.noteText;
-    final city = company.city?.trim() ?? '';
+    final city = siteCityText(context, company.city);
 
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.s16),
+    return SiteTile(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              AppImageTile(
-                imageUrl: company.logoUrl,
-                fallbackText: company.name.isNotEmpty ? company.name : 'C',
-                size: 44,
+          InkWell(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => CompanyDetailsScreen(company: company),
               ),
-              const SizedBox(width: AppSpacing.s12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      company.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bodyStrong,
-                    ),
-                    Row(
-                      children: [
-                        // The stars customers gave this company for
-                        // this service.
-                        RatingLine(
-                          ratingsKey: RatingStats.serviceKey(offer.offer.id),
-                          fallbackAverage: company.rating,
-                          fallbackCount: company.reviewCount,
-                          showCount: false,
-                        ),
-                        if (city.isNotEmpty) ...[
-                          const SizedBox(width: AppSpacing.s12),
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: AppSize.iconSm,
-                            color: context.colors.iconDefault,
-                          ),
-                          const SizedBox(width: AppSpacing.s2),
-                          Flexible(
-                            child: Text(
-                              city,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.caption
-                                  .copyWith(color: context.colors.textSecondary),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          // Only a price the company set is shown; nothing otherwise. A
-          // running offer shows its price, the struck-through normal price
-          // and its badge.
-          if (price != null) ...[
-            const SizedBox(height: AppSpacing.s8),
-            OfferPriceText(
-              pricing: offer.offer,
-              style: AppTextStyles.bodyStrong,
             ),
-          ],
+            child: Row(
+              children: [
+                SiteCompanyLogo(company: company),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        company.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bodyStrong.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          // The stars customers gave this company for this
+                          // service.
+                          SiteRatingLine(
+                            ratingKey: RatingStats.serviceKey(offer.offer.id),
+                            fallbackAverage: company.rating,
+                            fallbackCount: company.reviewCount,
+                            showCount: false,
+                          ),
+                          if (city.isNotEmpty)
+                            Text(
+                              ' · $city',
+                              style: AppTextStyles.caption.copyWith(
+                                fontSize: 13,
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // A running offer shows its price, the struck-through normal price;
+          // without a price the company is asked.
+          if (offer.offer.price != null)
+            SitePriceText(pricing: offer.offer)
+          else
+            Text(
+              l10n.sitePriceOnRequest,
+              style: AppTextStyles.bodyStrong.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: colors.textBrand,
+              ),
+            ),
           if (note != null) ...[
-            const SizedBox(height: AppSpacing.s8),
+            const SizedBox(height: 12),
             Text(
               note,
-              style: AppTextStyles.caption
-                  .copyWith(color: context.colors.textSecondary),
+              style: AppTextStyles.caption.copyWith(
+                fontSize: 13,
+                color: colors.textSecondary,
+              ),
             ),
           ],
-          const SizedBox(height: AppSpacing.s12),
+          CompanyCityTag(companyId: company.id, spaceAbove: 12),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -120,21 +127,23 @@ class ServiceOfferCard extends StatelessWidget {
                   serviceName: service.name,
                 ),
               ),
-              const SizedBox(width: AppSpacing.s12),
+              const SizedBox(width: 12),
               Expanded(
                 child: AppButton.primary(
-                  icon: Icons.send_outlined,
-                  label: context.l10n.serviceRequestAction,
+                  label: l10n.serviceRequestAction,
                   expand: true,
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => ServiceRequestFormScreen(
-                        service: service,
-                        offer: offer.offer,
-                        company: company,
+                  onPressed: () {
+                    if (!requireAccount(context, ref)) return;
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ServiceRequestFormScreen(
+                          service: service,
+                          offer: offer.offer,
+                          company: company,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
             ],

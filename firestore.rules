@@ -1979,6 +1979,12 @@ service cloud.firestore {
         && ((isCompanyAdminOf(order.companyId)
             && request.resource.data.type in
               ['payment_confirmed', 'out_for_delivery', 'order_completed', 'review_reply'])
+          // The customer learns a technician was sent (2026-11-18): only once
+          // the order really has one.
+          || (isCompanyAdminOf(order.companyId)
+            && request.resource.data.type == 'order_technician_assigned'
+            && order.get('technicianId', '') is string
+            && order.get('technicianId', '').size() > 0)
           || (isTechnician()
             && order.technicianId is string
             && order.technicianId.size() > 0
@@ -2172,6 +2178,43 @@ service cloud.firestore {
         && data.isRead == false
         && data.createdAt == request.time
         && adminProductNotificationMatchesProduct();
+    }
+
+    // Platform Admin tells a company about a decision on it (2026-11-18):
+    // the company activated, suspended or not accepted; a review on it hidden
+    // or shown again; a catalogue service it offers stopped or back; an offer
+    // on its product or service ended. Written by Platform Admin only, to an
+    // existing company, with no text of its own (the apps word it from the
+    // type and the name). It may name the review, product, service or company
+    // service it is about, so the apps can open it. Auto ids.
+    function isValidAdminCompanyNoticeCreate(notificationId) {
+      let data = request.resource.data;
+      return isSignedIn()
+        && isPlatformAdmin()
+        && data.keys().hasOnly(['id', 'recipientType', 'recipientId', 'type', 'productName', 'isRead', 'createdAt', 'senderId',
+          'reviewId', 'productId', 'serviceId', 'companyServiceId'])
+        && data.keys().hasAll(['id', 'recipientType', 'recipientId', 'type', 'productName', 'isRead', 'createdAt', 'senderId'])
+        && data.id == notificationId
+        && notificationId.size() <= 128
+        && data.senderId == request.auth.uid
+        && data.type in [
+          'company_activated', 'company_deactivated', 'company_rejected',
+          'review_hidden', 'review_shown',
+          'service_hidden', 'service_shown',
+          'product_offer_ended', 'service_offer_ended'
+        ]
+        && data.recipientType == 'company_admin'
+        && data.recipientId is string
+        && data.recipientId.size() > 0
+        && exists(/databases/$(database)/documents/companies/$(data.recipientId))
+        && data.productName is string
+        && data.productName.size() <= 200
+        && data.get('reviewId', '') is string
+        && data.get('productId', '') is string
+        && data.get('serviceId', '') is string
+        && data.get('companyServiceId', '') is string
+        && data.isRead == false
+        && data.createdAt == request.time;
     }
 
     function adminProductNotificationMatchesProduct() {
@@ -2731,6 +2774,7 @@ service cloud.firestore {
         || isValidAdminOrderNotificationCreate(notificationId)
         || isValidCompanyCancelNotificationCreate(notificationId)
         || isValidAdminProductNotificationCreate(notificationId)
+        || isValidAdminCompanyNoticeCreate(notificationId)
         || isValidAdminAccountNotificationCreate(notificationId)
         || isValidPlatformNotificationCreate(notificationId)
         || isSignedIn()

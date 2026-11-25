@@ -14,7 +14,6 @@ import 'package:sudan_it_marketplace/features/company_admin/presentation/product
 import 'package:sudan_it_marketplace/features/products/domain/entities/product.dart';
 import 'package:sudan_it_marketplace/features/products/domain/repositories/products_repository.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/products_providers.dart';
-import 'package:sudan_it_marketplace/features/products/presentation/widgets/product_card.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 
 const _en = Locale('en');
@@ -257,37 +256,4 @@ void main() {
     });
   });
 
-  group('product card category label', () {
-    Product product() => const Product(
-          id: 'p1',
-          name: 'Router',
-          categoryId: 'cat1',
-          stockCount: 5,
-        );
-
-    testWidgets('shows the category name when one is given', (tester) async {
-      await tester.pumpWidget(
-        _app(
-          Scaffold(
-            body: ProductCard(product: product(), categoryName: 'Electronics'),
-          ),
-          overrides: const [],
-        ),
-      );
-
-      expect(find.text('Electronics'), findsOneWidget);
-    });
-
-    testWidgets('shows nothing extra when no category name is given',
-        (tester) async {
-      await tester.pumpWidget(
-        _app(
-          Scaffold(body: ProductCard(product: product())),
-          overrides: const [],
-        ),
-      );
-
-      expect(find.text('Electronics'), findsNothing);
-    });
-  });
 }

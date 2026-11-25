@@ -14,12 +14,14 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     required String id,
     required String fullName,
     required String email,
+    int? termsVersion,
   }) async {
     try {
       await _remoteDataSource.createCustomerProfile(
         id: id,
         fullName: fullName,
         email: email,
+        termsVersion: termsVersion,
       );
     } on AuthException {
       rethrow;

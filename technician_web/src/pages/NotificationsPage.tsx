@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { markNoticeRead } from '../data/actions';
+import { deleteNotice, markNoticeRead } from '../data/actions';
 import { dayTime, sameDay } from '../data/format';
 import { chatUnread } from '../data/jobs';
 import { useTechData } from '../data/TechData';
@@ -9,6 +9,7 @@ import { t } from '../i18n';
 import { Icon, type IconName } from '../ui/Icon';
 import { BackButton } from '../ui/kit';
 import { PushCard } from '../ui/PushCard';
+import { useToast } from '../ui/toast';
 
 interface Item {
   key: string;
@@ -41,6 +42,7 @@ function wordsOf(n: Notice, placeOf: (orderId: string) => string): Pick<Item, 'i
 
 export default function NotificationsPage() {
   const { notices, chats, jobs } = useTechData();
+  const toast = useToast();
 
   const items = useMemo<Item[]>(() => {
     const byId = new Map(jobs.map((j) => [j.id, j]));
@@ -77,24 +79,50 @@ export default function NotificationsPage() {
   const older = items.filter((i) => !sameDay(i.at, now));
   const anyUnread = notices.some((n) => !n.isRead);
 
+  const remove = async (n: Notice) => {
+    if (!window.confirm(t('حذف هذا الإشعار؟ سيُحذف نهائياً.'))) return;
+    try {
+      await deleteNotice(n.id);
+    } catch {
+      toast(t('تعذّر حذف الإشعار. حاول مرة أخرى.'), 'err');
+    }
+  };
+
   const row = (i: Item) => (
-    <Link
+    <div
       key={i.key}
-      to={i.href}
       className="card"
-      onClick={() => i.notice && !i.notice.isRead && markNoticeRead(i.notice.id)}
-      style={{ padding: 12, display: 'flex', gap: 12, alignItems: 'flex-start', background: i.unread ? 'var(--unread)' : undefined }}
+      style={{ padding: 12, display: 'flex', gap: 8, alignItems: 'flex-start', background: i.unread ? 'var(--unread)' : undefined }}
     >
-      <span style={{ flex: 'none', width: 42, height: 42, borderRadius: 21, background: i.iconBg, color: i.iconFg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Icon name={i.icon} />
-      </span>
-      <span className="minw" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{ fontSize: 15, fontWeight: 800 }}>{i.title}</span>
-        {i.body && <span style={{ fontSize: 14, color: 'var(--body-2)', lineHeight: 1.5, overflowWrap: 'anywhere' }}>{i.body}</span>}
-        <span style={{ fontSize: 12, color: 'var(--muted)' }}>{dayTime(i.at)}</span>
-      </span>
-      {i.unread && <span aria-label={t('غير مقروء')} role="img" style={{ flex: 'none', width: 10, height: 10, borderRadius: 5, background: 'var(--action)', marginTop: 6 }} />}
-    </Link>
+      <Link
+        to={i.href}
+        className="minw"
+        onClick={() => i.notice && !i.notice.isRead && markNoticeRead(i.notice.id)}
+        style={{ flex: 1, display: 'flex', gap: 12, alignItems: 'flex-start', color: 'inherit', textDecoration: 'none' }}
+      >
+        <span style={{ flex: 'none', width: 42, height: 42, borderRadius: 21, background: i.iconBg, color: i.iconFg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name={i.icon} />
+        </span>
+        <span className="minw" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontSize: 15, fontWeight: 800 }}>{i.title}</span>
+          {i.body && <span style={{ fontSize: 14, color: 'var(--body-2)', lineHeight: 1.5, overflowWrap: 'anywhere' }}>{i.body}</span>}
+          <span style={{ fontSize: 12, color: 'var(--muted)' }}>{dayTime(i.at)}</span>
+        </span>
+        {i.unread && <span aria-label={t('غير مقروء')} role="img" style={{ flex: 'none', width: 10, height: 10, borderRadius: 5, background: 'var(--action)', marginTop: 6 }} />}
+      </Link>
+      {i.notice && (
+        <button
+          type="button"
+          className="ib"
+          aria-label={t('حذف الإشعار')}
+          title={t('حذف الإشعار')}
+          onClick={() => i.notice && void remove(i.notice)}
+          style={{ flex: 'none', color: 'var(--muted)', background: 'transparent', border: 0 }}
+        >
+          <Icon name="trash" />
+        </button>
+      )}
+    </div>
   );
 
   return (

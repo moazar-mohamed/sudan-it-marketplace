@@ -30,9 +30,9 @@ class HighlightedText extends StatelessWidget {
       return Text(text, style: style, maxLines: maxLines, overflow: overflow);
     }
     final colors = context.colors;
+    // The site's `mark`: a light green behind the matched words.
     final hit = TextStyle(
-      color: colors.textBrand,
-      backgroundColor: colors.brandPrimarySubtle,
+      backgroundColor: colors.action.withValues(alpha: 0.22),
       fontWeight: FontWeight.w700,
     );
     final spans = <TextSpan>[];

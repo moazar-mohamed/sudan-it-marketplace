@@ -15,6 +15,7 @@ class UserProfile {
     this.createdByCompany = false,
     this.language,
     this.cityId,
+    this.termsVersion,
   });
 
   final String id;
@@ -53,6 +54,10 @@ class UserProfile {
   /// companies that serve it are shown. Absent until the customer picks one.
   final String? cityId;
 
+  /// The version of the terms and conditions the person accepted, or null
+  /// when they never accepted any (or none were published when they joined).
+  final int? termsVersion;
+
   /// A company admin or technician on a temporary password must choose their
   /// own before using the app.
   bool get requiresPasswordChange =>
@@ -73,6 +78,7 @@ class UserProfile {
     bool? createdByCompany,
     String? language,
     String? cityId,
+    int? termsVersion,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -88,6 +94,7 @@ class UserProfile {
       createdByCompany: createdByCompany ?? this.createdByCompany,
       language: language ?? this.language,
       cityId: cityId ?? this.cityId,
+      termsVersion: termsVersion ?? this.termsVersion,
     );
   }
 }

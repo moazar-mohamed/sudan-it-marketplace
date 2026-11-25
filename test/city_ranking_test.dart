@@ -7,7 +7,7 @@ import 'package:sudan_it_marketplace/features/cities/presentation/city_tags.dart
 import 'package:sudan_it_marketplace/features/companies/domain/entities/company.dart';
 import 'package:sudan_it_marketplace/features/companies/presentation/companies_providers.dart';
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/home_company_view.dart';
-import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/home_product_view.dart';
+import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/site/site_browse.dart';
 import 'package:sudan_it_marketplace/features/products/domain/entities/product.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 
@@ -70,21 +70,22 @@ void main() {
     bool servesNear(Product p) => p.companyId == 'nearCo';
 
     test('newest order puts the products of the city first', () {
-      final ids = viewProducts(
+      // The products page of the app, as on sictm.net.
+      final ids = siteSortProducts(
         products,
-        sort: ProductSort.newest,
-        filters: const ProductFilters(),
-        servesCity: servesNear,
+        SiteProductSort.newest,
+        const {},
+        serves: servesNear,
       ).map((p) => p.id).toList();
       expect(ids, ['nearOld', 'farNew']);
     });
 
     test('an order the customer picked is kept as it is', () {
-      final ids = viewProducts(
+      final ids = siteSortProducts(
         products,
-        sort: ProductSort.priceLow,
-        filters: const ProductFilters(),
-        servesCity: servesNear,
+        SiteProductSort.priceLow,
+        const {},
+        serves: servesNear,
       ).map((p) => p.id).toList();
       // Equal prices keep the incoming order.
       expect(ids, ['farNew', 'nearOld']);

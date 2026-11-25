@@ -15,37 +15,53 @@ class MessageBubble extends StatelessWidget {
     required this.message,
     required this.isMine,
     required this.showSender,
+    this.mineLabel,
+    this.readByOther,
   });
 
   final ChatMessage message;
   final bool isMine;
   final bool showSender;
 
+  /// The name over an end-side message instead of "You" (a reader who is
+  /// not one of the two sides shows one side's name there).
+  final String? mineLabel;
+
+  /// On the viewer's own sent message: ✓ when sent, ✓✓ once the other side
+  /// has read it (as sictm.net shows «قرأتها الشركة»). Null shows no tick.
+  final bool? readByOther;
+
   @override
   Widget build(BuildContext context) {
     final background = isMine ? context.colors.primary : context.colors.bgMuted;
-    final foreground = isMine ? context.colors.onPrimary : context.colors.textPrimary;
-    final meta = isMine ? context.colors.onPrimary : context.colors.textSecondary;
+    final foreground = isMine
+        ? context.colors.onPrimary
+        : context.colors.textPrimary;
+    final meta = isMine
+        ? context.colors.onPrimary
+        : context.colors.textSecondary;
     final sender = isMine
-        ? context.l10n.chatYou
+        ? (mineLabel ?? context.l10n.chatYou)
         : (message.senderName.trim().isEmpty
-            ? context.l10n.chatCustomerFallback
-            : message.senderName.trim());
+              ? context.l10n.chatCustomerFallback
+              : message.senderName.trim());
     const radius = Radius.circular(AppRadius.md);
 
     return Padding(
       padding: EdgeInsets.only(top: showSender ? 10 : 3),
       child: Column(
-        crossAxisAlignment:
-            isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isMine
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           if (showSender)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               child: Text(
                 sender,
-                style: AppTextStyles.labelSmall
-                    .copyWith(color: context.colors.textSecondary),
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: context.colors.textSecondary,
+                ),
               ),
             ),
           ConstrainedBox(
@@ -82,10 +98,25 @@ class MessageBubble extends StatelessWidget {
                       ),
                       if (isMine && message.isPending) ...[
                         const SizedBox(width: 4),
-                        Icon(
-                          Icons.schedule,
-                          size: 12,
-                          color: meta,
+                        Icon(Icons.schedule, size: 12, color: meta),
+                      ] else if (isMine && readByOther != null) ...[
+                        const SizedBox(width: 6),
+                        Semantics(
+                          label: readByOther!
+                              ? context.l10n.siteChatReadByCompany
+                              : context.l10n.siteChatSent,
+                          child: ExcludeSemantics(
+                            child: Text(
+                              readByOther! ? '✓✓' : '✓',
+                              key: const ValueKey('message-tick'),
+                              style: AppTextStyles.labelSmall.copyWith(
+                                color: readByOther!
+                                    ? const Color(0xFF7BD3F2)
+                                    : meta,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ],

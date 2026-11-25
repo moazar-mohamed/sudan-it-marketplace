@@ -28,7 +28,6 @@ import 'package:sudan_it_marketplace/features/company_admin/presentation/widgets
 import 'package:sudan_it_marketplace/features/technician/presentation/widgets/technician_job_tile.dart';
 import 'package:sudan_it_marketplace/features/companies/domain/entities/company.dart';
 import 'package:sudan_it_marketplace/features/companies/presentation/companies_providers.dart';
-import 'package:sudan_it_marketplace/features/companies/presentation/widgets/company_card.dart';
 import 'package:sudan_it_marketplace/features/orders/domain/entities/order_entity.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/checkout_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/order_details_screen.dart';
@@ -38,11 +37,10 @@ import 'package:sudan_it_marketplace/features/orders/presentation/receipt_picker
 import 'package:sudan_it_marketplace/features/orders/domain/entities/checkout_order_draft.dart';
 import 'package:sudan_it_marketplace/features/orders/domain/entities/order_receipt.dart';
 import '../helpers/receipt_fakes.dart';
-import 'package:sudan_it_marketplace/features/orders/presentation/widgets/order_card.dart';
+import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/site/site_orders.dart';
 import 'package:sudan_it_marketplace/features/products/domain/entities/product.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/product_details_screen.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/products_providers.dart';
-import 'package:sudan_it_marketplace/features/products/presentation/widgets/product_card.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations_ar.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations_en.dart';
@@ -198,13 +196,7 @@ Widget _gallery() {
         const SizedBox(height: 16),
         AppQuantityStepper(value: 2, canDecrement: true, canIncrement: true, onDecrement: () {}, onIncrement: () {}),
         const SizedBox(height: 16),
-        const ProductCard(product: _priced, categoryName: 'Laptops'),
-        const SizedBox(height: 8),
-        const ProductCard(product: _unpriced),
-        const SizedBox(height: 8),
-        const CompanyCard(company: _company),
-        const SizedBox(height: 8),
-        OrderCard(order: _order),
+        SiteOrderCard(order: _order),
         const SizedBox(height: 8),
         CompanyOrderTile(order: _order, onTap: () {}),
         const SizedBox(height: 8),

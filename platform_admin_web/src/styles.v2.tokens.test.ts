@@ -59,10 +59,14 @@ const MODES: [string, string][] = [
 ];
 
 describe('v2 colour tokens', () => {
-  it('keeps the brand identity in both modes', () => {
+  // The customer site's colours (customer_web/src/styles.css) are the standard
+  // for every panel: navy (as the app keeps it in the dark), the green action.
+  it('takes the customer site colours in both modes', () => {
+    expect(tokenIn(lightChosen, 'color-brand-primary')).toBe('#063b73');
+    expect(tokenIn(darkChosen, 'color-brand-primary')).toBe('#063b73');
     for (const [, block] of MODES) {
-      expect(tokenIn(block, 'color-brand-primary')).toBe('#1565c0');
-      expect(tokenIn(block, 'color-brand-secondary')).toBe('#00a8e8');
+      expect(tokenIn(block, 'color-brand-secondary')).toBe('#1fa35c');
+      expect(tokenIn(block, 'color-action')).toBe('#1fa35c');
     }
   });
 

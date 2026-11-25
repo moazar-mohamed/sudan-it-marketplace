@@ -18,7 +18,7 @@ import 'package:sudan_it_marketplace/features/orders/presentation/order_labels.d
 import 'package:sudan_it_marketplace/features/orders/presentation/order_pending_verification_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/orders_controller.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/orders_providers.dart';
-import 'package:sudan_it_marketplace/features/orders/presentation/widgets/order_card.dart';
+import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/site/site_orders.dart';
 import 'package:sudan_it_marketplace/features/products/domain/entities/product.dart';
 import 'package:sudan_it_marketplace/features/products/domain/stock_reservation.dart';
 import 'package:sudan_it_marketplace/features/products/presentation/products_providers.dart';
@@ -238,11 +238,11 @@ void main() {
     });
 
     testWidgets('the order list says it waits for the company', (tester) async {
-      await tester.pumpWidget(_customerScreen(Scaffold(body: OrderCard(order: _order()))));
+      await tester.pumpWidget(_customerScreen(Scaffold(body: SiteOrderCard(order: _order()))));
       await tester.pumpAndSettle();
       expect(find.text(_en.orderAwaitingConfirmation), findsOneWidget);
 
-      await tester.pumpWidget(_customerScreen(Scaffold(body: OrderCard(order: _confirmed))));
+      await tester.pumpWidget(_customerScreen(Scaffold(body: SiteOrderCard(order: _confirmed))));
       await tester.pumpAndSettle();
       expect(find.text(_en.orderAwaitingConfirmation), findsNothing);
     });

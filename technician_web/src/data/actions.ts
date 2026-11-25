@@ -8,8 +8,8 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { pushJobChatMessage, pushToPhone } from './pushRelay';
-import { MESSAGE_MAX, NOTE_MAX, type Job, type OrderStatus } from './types';
+import { pushJobChatMessage, pushTechChatMessage, pushToPhone } from './pushRelay';
+import { MESSAGE_MAX, NOTE_MAX, type ChatKind, type Job, type OrderStatus } from './types';
 
 /*
  * Every write the technician makes, as the app makes it (TechnicianActions,
@@ -165,9 +165,58 @@ export async function sendJobMessage(job: Job, text: string, senderName: string,
   return result;
 }
 
+/**
+ * A message to the job's customer (customerTechChats/{orderId}), written with
+ * the conversation like the company one. The rules allow it only while the job
+ * is open; the company reads it, and no phone number goes in it.
+ */
+export async function sendCustomerMessage(job: Job, text: string, senderName: string, existing: boolean): Promise<WriteResult> {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.length > MESSAGE_MAX) throw Object.assign(new Error('invalid'), { code: 'invalid-argument' });
+  const chatRef = doc(db, 'customerTechChats', job.id);
+  const messageRef = doc(collection(chatRef, 'messages'));
+  const last = {
+    lastMessageId: messageRef.id,
+    lastMessageText: trimmed,
+    lastMessageAt: serverTimestamp(),
+    lastMessageSenderRole: 'technician',
+    updatedAt: serverTimestamp(),
+    technicianLastReadAt: serverTimestamp(),
+  };
+  const batch = writeBatch(db);
+  batch.set(messageRef, {
+    id: messageRef.id,
+    senderId: auth.currentUser?.uid ?? '',
+    senderRole: 'technician',
+    senderName: senderName.trim().slice(0, 200),
+    text: trimmed,
+    createdAt: serverTimestamp(),
+  });
+  if (existing) batch.update(chatRef, last);
+  else
+    batch.set(chatRef, {
+      id: job.id,
+      orderId: job.id,
+      companyId: job.companyId,
+      customerId: job.customerId,
+      productName: job.productName,
+      createdAt: serverTimestamp(),
+      ...last,
+    });
+  const result = await settle(batch.commit());
+  // The customer's phone or browser hears of it (best effort).
+  if (result === 'sent') void pushTechChatMessage(job.id, messageRef.id);
+  return result;
+}
+
 /** Best effort: a failure only leaves the unread mark on. */
-export function markChatRead(orderId: string): void {
-  updateDoc(doc(db, 'jobChats', orderId), { technicianLastReadAt: serverTimestamp() }).catch(() => undefined);
+export function markChatRead(orderId: string, kind: ChatKind = 'company'): void {
+  updateDoc(doc(db, kind === 'customer' ? 'customerTechChats' : 'jobChats', orderId), { technicianLastReadAt: serverTimestamp() }).catch(() => undefined);
+}
+
+/** Deletes a notification for good (the rules let only its recipient do it). */
+export function deleteNotice(id: string): Promise<WriteResult> {
+  return settle(deleteDoc(doc(db, 'notifications', id)));
 }
 
 export function markNoticeRead(id: string): void {

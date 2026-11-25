@@ -2,6 +2,9 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
+  query,
+  where,
   deleteField,
   increment,
   serverTimestamp,
@@ -47,7 +50,7 @@ import {
   secondaryAppProvisioner,
   type NewCompanyInput,
 } from './provisionCompany';
-import { orderCancelledNotices, productHiddenNotice } from './adminNotices';
+import { companyNotice, companyStatusNotice, orderCancelledNotices, productHiddenNotice, type AdminCompanyNotice } from './adminNotices';
 import { adminCancellationPlan } from './moderation';
 import { cleanUpdate, noticeData, type PlatformSettings } from './platformSettings';
 import { pushCityAnnouncement, pushToPhone } from './pushRelay';
@@ -60,6 +63,27 @@ import type { Category, Company, CompanyStatus, Report, ReportStatus, Review } f
  * independently reject anything wider, so a tampered client cannot use these
  * to change roles, ownership, prices, or order/payment data.
  */
+
+/**
+ * Stages the company notices in [batch] (auto ids, sent by the signed-in
+ * admin) and returns their ids, to push once the batch is stored.
+ */
+function stageCompanyNotices(batch: ReturnType<typeof writeBatch>, notices: (AdminCompanyNotice | null)[]): string[] {
+  const adminId = auth.currentUser?.uid;
+  if (!adminId) return [];
+  const ids: string[] = [];
+  for (const notice of notices) {
+    if (!notice) continue;
+    const ref = doc(collection(db, 'notifications'));
+    batch.set(ref, { id: ref.id, ...notice, isRead: false, createdAt: serverTimestamp(), senderId: adminId });
+    ids.push(ref.id);
+  }
+  return ids;
+}
+
+const pushAll = (ids: string[]) => {
+  for (const id of ids) void pushToPhone(id);
+};
 
 /**
  * Hides an abusive review from customers (or shows it again). A hidden review
@@ -88,7 +112,12 @@ export async function setReviewHidden(review: Review, hidden: boolean) {
     targetId: review.id,
     targetName: `${review.customerName} → ${review.companyName}`,
   });
+  // The company is told (the review is about it); the customer is not named.
+  const ids = stageCompanyNotices(batch, [
+    companyNotice(review.companyId, hidden ? 'review_hidden' : 'review_shown', review.targetName || review.companyName, { reviewId: review.id }),
+  ]);
   await batch.commit();
+  pushAll(ids);
 }
 
 export async function setCompanyStatus(companyId: string, status: CompanyStatus, name = '') {
@@ -101,7 +130,9 @@ export async function setCompanyStatus(companyId: string, status: CompanyStatus,
     targetName: name,
     detail: status,
   });
+  const ids = stageCompanyNotices(batch, [companyStatusNotice(companyId, status, name)]);
   await batch.commit();
+  pushAll(ids);
 }
 
 /**
@@ -653,6 +684,15 @@ export async function updateService(id: string, input: ServiceInput) {
 }
 
 export async function setServiceActive(id: string, isActive: boolean, name = '') {
+  // Every company that offers this catalogue service is told (best effort: a
+  // failed lookup only leaves the notices out).
+  let companyIds: string[] = [];
+  try {
+    const links = await getDocs(query(collection(db, 'company_services'), where('serviceId', '==', id)));
+    companyIds = [...new Set(links.docs.map((d) => String(d.data().companyId ?? '')).filter(Boolean))];
+  } catch {
+    companyIds = [];
+  }
   const batch = writeBatch(db);
   batch.update(doc(db, 'services', id), { isActive });
   stageAudit(batch, {
@@ -662,7 +702,13 @@ export async function setServiceActive(id: string, isActive: boolean, name = '')
     targetName: name,
     detail: isActive ? 'active' : 'inactive',
   });
+  // A batch holds 500 writes; the rules check each notice (one read each), so keep it well below.
+  const ids = stageCompanyNotices(
+    batch,
+    companyIds.slice(0, 15).map((companyId) => companyNotice(companyId, isActive ? 'service_shown' : 'service_hidden', name, { serviceId: id })),
+  );
   await batch.commit();
+  pushAll(ids);
 }
 
 /**
@@ -732,11 +778,21 @@ export async function setProductHidden(
 }
 
 /** Ends a product's running offer now: the price, the end time and the badge are cleared together. */
-export async function endProductOffer(product: { id: string; name: string }) {
+export async function endProductOffer(product: { id: string; name: string; companyId?: string }) {
+  let companyId = product.companyId ?? '';
+  if (!companyId) {
+    try {
+      companyId = String((await getDoc(doc(db, 'products', product.id))).data()?.companyId ?? '');
+    } catch {
+      companyId = '';
+    }
+  }
   const batch = writeBatch(db);
   batch.update(doc(db, 'products', product.id), { offerPrice: null, offerEndsAt: null, offerBadge: null });
   stageAudit(batch, { action: 'product.endOffer', targetType: 'product', targetId: product.id, targetName: product.name });
+  const ids = stageCompanyNotices(batch, [companyNotice(companyId, 'product_offer_ended', product.name, { productId: product.id })]);
   await batch.commit();
+  pushAll(ids);
 }
 
 /** The order cannot be cancelled any more: it left Processing (the company moved it) since the page loaded. */
@@ -803,7 +859,15 @@ export async function cancelOrderAsAdmin(orderId: string, reason: string) {
  * Ends the running offer on a company's service now (price, end time and badge
  * cleared together). The link's normal price and everything else stay as they are.
  */
-export async function endServiceOffer(link: { id: string }, label: string) {
+export async function endServiceOffer(link: { id: string; companyId?: string; serviceName?: string }, label: string) {
+  let companyId = link.companyId ?? '';
+  if (!companyId) {
+    try {
+      companyId = String((await getDoc(doc(db, 'company_services', link.id))).data()?.companyId ?? '');
+    } catch {
+      companyId = '';
+    }
+  }
   const batch = writeBatch(db);
   batch.update(doc(db, 'company_services', link.id), {
     offerPrice: null,
@@ -812,5 +876,9 @@ export async function endServiceOffer(link: { id: string }, label: string) {
     updatedAt: serverTimestamp(),
   });
   stageAudit(batch, { action: 'service.endOffer', targetType: 'service', targetId: link.id, targetName: label });
+  const ids = stageCompanyNotices(batch, [
+    companyNotice(companyId, 'service_offer_ended', link.serviceName || label.split(' — ')[0] || label, { companyServiceId: link.id }),
+  ]);
   await batch.commit();
+  pushAll(ids);
 }

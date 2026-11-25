@@ -5,10 +5,13 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../job_chat/domain/job_chat.dart';
 import '../../../job_chat/presentation/job_chat_screen.dart';
 import '../../../orders/domain/entities/order_entity.dart';
+import '../../../tech_chat/domain/tech_chat.dart';
+import '../../../tech_chat/presentation/tech_chat_screen.dart';
 import '../../../technician/presentation/widgets/technician_notes_section.dart';
 
 /// What the company sees of its technician's work on a job: the notes they
-/// left (the customer cannot see them) and a private conversation with them.
+/// left (the customer cannot see them), a private conversation with them, and
+/// (to read) their conversation with the customer.
 /// Shown only once a technician is assigned.
 class TechnicianJobExtras extends StatelessWidget {
   const TechnicianJobExtras({super.key, required this.order});
@@ -31,6 +34,13 @@ class TechnicianJobExtras extends StatelessWidget {
           technicianName: order.technicianName ?? '',
           productName: order.productName,
           label: context.l10n.tjChatWithTechnician,
+        ),
+        // What the customer and the technician say to each other: read only.
+        const SizedBox(height: AppSpacing.s8),
+        TechChatButton(
+          orderId: order.id,
+          viewer: TechChatViewer.company,
+          label: context.l10n.tcChatCustomerTechnician,
         ),
         // Empty (nothing shown) until the technician writes something.
         TechnicianNotesSection(order: order),

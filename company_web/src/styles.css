@@ -1,28 +1,32 @@
 /* لوحة الشركة — الأنماط (مأخوذة من لوحة التصميم المعتمدة) */
 *{box-sizing:border-box}
+/* الألوان من صفحة العميل (customer_web/src/styles.css) — هي المعيار لكل اللوحات */
 :root{
-  --brand:#1565C0;--brand-ink:#0F4C9A;--brand-tint:#E7F0FB;--cyan:#00A8E8;
-  --bg:#F3F5F8;--surface:#FFFFFF;--line:#E3E8EF;--line-strong:#C9D2DE;
-  --ink:#0F1B2D;--muted:#5B6778;
-  --ok:#14693A;--ok-bg:#E3F6EA;--warn:#8A5300;--warn-bg:#FFF1D1;
-  --bad:#A3201F;--bad-bg:#FDE8E8;--neutral:#3F4B5C;--neutral-bg:#EDF0F4;
-  --surface-2:#F7F9FB;--surface-3:#FAFBFD;--bad-line:#E4B3B2;--err-bg:#FFFAFA;--receipt-bg:#E9EDF2;--brand-dim:#9BBCE6;
-  --star:#B7791F;--ok-dot:#1E9E57;--warn-dot:#C47A00;--bad-solid:#A3201F;--ok-solid:#14693A;--bar-bg:#0F1B2D;--bar-fg:#fff;
-  --skel-a:#EEF1F5;--skel-b:#F7F9FB;
-  --r:14px;--shadow:0 1px 2px rgba(15,27,45,.05),0 6px 18px rgba(15,27,45,.05);
+  --brand:#063B73;--brand-ink:#063B73;--brand-tint:#E8F0FA;--cyan:#1FA35C;
+  --action:#1FA35C;--price:#1FA35C;--nav-bg:#063B73;
+  --bg:#F4F7FB;--surface:#FFFFFF;--line:#DDE5EF;--line-strong:#C9D3E0;
+  --ink:#12263F;--muted:#5D6F86;
+  --ok:#1B5E20;--ok-bg:#E8F5E9;--warn:#8A5100;--warn-bg:#FFF4E0;
+  --bad:#D32F2F;--bad-bg:#FDECEC;--neutral:#3F4B5C;--neutral-bg:#EEF3F9;
+  --surface-2:#EEF3F9;--surface-3:#F7F9FC;--bad-line:#F0B8B8;--err-bg:#FFFAFA;--receipt-bg:#EEF3F9;--brand-dim:#9BB6D6;
+  --star:#F59E0B;--ok-dot:#1FA35C;--warn-dot:#C47A00;--bad-solid:#D32F2F;--ok-solid:#1B5E20;--bar-bg:#063B73;--bar-fg:#fff;
+  --skel-a:#EEF3F9;--skel-b:#F7F9FC;
+  --r:18px;--shadow:0 1px 2px rgba(11,29,58,.06),0 8px 24px -12px rgba(11,29,58,.15);
 }
 /* الوضع الداكن: يضبطه theme.tsx (data-theme) قبل أول رسم */
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --brand:#2F78D0;--brand-ink:#8DBBF2;--brand-tint:#17304D;--cyan:#38BDF8;
-  --bg:#0E141C;--surface:#161E29;--line:#263241;--line-strong:#3A4A5E;
-  --ink:#E7ECF3;--muted:#97A3B4;
-  --ok:#4CC38A;--ok-bg:#12301F;--warn:#F0B454;--warn-bg:#35280E;
-  --bad:#F27A78;--bad-bg:#3A1717;--neutral:#B6C0CE;--neutral-bg:#222D3B;
-  --surface-2:#1B2531;--surface-3:#1A2430;--bad-line:#6B2C2B;--err-bg:#2A1717;--receipt-bg:#0B1118;--brand-dim:#2B4A72;
-  --star:#E4A93A;--ok-dot:#3FD08B;--warn-dot:#E0A030;--bad-solid:#C93C3A;--ok-solid:#1E8E55;--bar-bg:#2A3647;--bar-fg:#E7ECF3;
-  --skel-a:#1E2835;--skel-b:#263241;
-  --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.3);
+  --brand:#4A90E2;--brand-ink:#4A90E2;--brand-tint:#182C48;--cyan:#1FA35C;
+  --action:#1FA35C;--price:#1FA35C;--nav-bg:#063B73;
+  --bg:#0B1523;--surface:#13233A;--line:#25395A;--line-strong:#34507A;
+  --ink:#E6EEF9;--muted:#93A7C2;
+  --ok:#7FD38A;--ok-bg:rgba(46,125,50,.25);--warn:#FFB74D;--warn-bg:rgba(255,143,0,.18);
+  /* الأحمر الفاتح للقراءة على الخلفية الداكنة */
+  --bad:#F27A78;--bad-bg:#3A1717;--neutral:#B6C0CE;--neutral-bg:#182C48;
+  --surface-2:#182C48;--surface-3:#162842;--bad-line:#6B2C2B;--err-bg:#2A1717;--receipt-bg:#0B1523;--brand-dim:#2B4A72;
+  --star:#F59E0B;--ok-dot:#7FD38A;--warn-dot:#FFB74D;--bad-solid:#C93C3A;--ok-solid:#1FA35C;--bar-bg:#4A90E2;--bar-fg:#FFFFFF;
+  --skel-a:#182C48;--skel-b:#25395A;
+  --shadow:0 1px 2px rgba(0,0,0,.2),0 8px 24px -12px rgba(0,0,0,.45);
 }
 html,body{margin:0;min-height:100%}
 body{font-family:Cairo,system-ui,sans-serif;font-size:14px;line-height:1.6;color:var(--ink);background:var(--bg)}
@@ -287,3 +291,20 @@ textarea.inp{height:auto;padding:10px 12px;resize:vertical}
   .sticky-bar{padding:12px 16px}
   .pop{width:min(330px,calc(100vw - 48px))}
 }
+
+/* شكل صفحة العميل (sictm.net): الأزرار الرئيسية خضراء، والشريط العلوي كحلي */
+.btn.p{background:var(--action);border-color:var(--action);color:#fff;border-radius:14px}
+.btn.p:hover:not(:disabled){background:var(--action);filter:brightness(1.08)}
+.btn{border-radius:14px}
+.top{background:var(--nav-bg);border-bottom-color:transparent;color:#fff}
+.top .search{background:#fff;border-color:transparent;color:#5D6F86}
+.top .search input{color:#12263F}
+.top .search kbd{background:#EEF3F9;border-color:#DDE5EF;color:#5D6F86}
+.top .icon-btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);color:#fff}
+.top .icon-btn:hover{background:rgba(255,255,255,.18)}
+.top .user .sub{color:rgba(255,255,255,.72)}
+.top .av{background:var(--action);color:#fff}
+.nav a.on{background:var(--brand-tint);color:var(--brand-ink)}
+.msg.out{background:var(--brand)}
+.switch.on{background:var(--action)}
+.bars div,.prog i{background:var(--action)}

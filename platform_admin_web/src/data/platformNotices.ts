@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, doc, limit, onSnapshot, orderBy, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { collection, deleteDoc, doc, limit, onSnapshot, orderBy, query, updateDoc, where, writeBatch } from 'firebase/firestore';
 import type { DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -54,15 +54,15 @@ const newestFirst = (list: PlatformNotice[]) =>
  * answer. It reads only the newest [PLATFORM_NOTICES_SHOWN] (firestore.indexes.json
  * has the index); while that index is not ready it reads them all and keeps the newest.
  */
-export function usePlatformNotices(enabled = true): PlatformNotice[] | null {
+export function usePlatformNotices(enabled = true, max: number = PLATFORM_NOTICES_SHOWN): PlatformNotice[] | null {
   const [list, setList] = useState<PlatformNotice[] | null>(null);
   useEffect(() => {
     if (!enabled) return undefined;
     const base = [where('recipientType', '==', 'platform_admin'), where('recipientId', '==', 'platform')] as const;
     const read = (docs: { id: string; data: () => DocumentData }[]) =>
-      newestFirst(docs.map((d) => mapPlatformNotice(d.id, d.data())).filter((n): n is PlatformNotice => n !== null)).slice(0, PLATFORM_NOTICES_SHOWN);
+      newestFirst(docs.map((d) => mapPlatformNotice(d.id, d.data())).filter((n): n is PlatformNotice => n !== null)).slice(0, max);
     let stop = onSnapshot(
-      query(collection(db, 'notifications'), ...base, orderBy('createdAt', 'desc'), limit(PLATFORM_NOTICES_SHOWN)),
+      query(collection(db, 'notifications'), ...base, orderBy('createdAt', 'desc'), limit(max)),
       (snap) => setList(read(snap.docs)),
       () => {
         stop = onSnapshot(
@@ -73,7 +73,7 @@ export function usePlatformNotices(enabled = true): PlatformNotice[] | null {
       },
     );
     return () => stop();
-  }, [enabled]);
+  }, [enabled, max]);
   return list;
 }
 
@@ -86,3 +86,6 @@ export async function markPlatformNoticesRead(ids: string[]): Promise<void> {
     await batch.commit();
   }
 }
+
+/** Deletes an alert for good, for every admin (the rules let only its recipients do it). */
+export const deletePlatformNotice = (id: string): Promise<void> => deleteDoc(doc(db, 'notifications', id));

@@ -29,6 +29,13 @@ abstract class PushRelay {
     required String orderId,
     required String messageId,
   });
+
+  /// A message this user just sent in an order's customer-technician
+  /// conversation.
+  Future<void> techChatMessage({
+    required String orderId,
+    required String messageId,
+  });
 }
 
 /// Pushes switched off: nothing is sent.
@@ -49,6 +56,12 @@ class NoPushRelay implements PushRelay {
 
   @override
   Future<void> jobChatMessage({
+    required String orderId,
+    required String messageId,
+  }) async {}
+
+  @override
+  Future<void> techChatMessage({
     required String orderId,
     required String messageId,
   }) async {}
@@ -94,6 +107,13 @@ class HttpPushRelay implements PushRelay {
     required String messageId,
   }) =>
       _send({'jobChatId': orderId, 'messageId': messageId});
+
+  @override
+  Future<void> techChatMessage({
+    required String orderId,
+    required String messageId,
+  }) =>
+      _send({'techChatId': orderId, 'messageId': messageId});
 
   Future<void> _send(Map<String, String> body) async {
     try {

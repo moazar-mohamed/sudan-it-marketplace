@@ -14,6 +14,9 @@ import '../../../core/services/receipt_image_compressor.dart';
 import '../../../core/widgets/image_picker_strings.dart';
 import '../domain/entities/checkout_order_draft.dart';
 import '../domain/entities/order_receipt.dart';
+import '../../customer_dashboard/presentation/site/site_detail_parts.dart';
+import '../../customer_dashboard/presentation/site/site_look.dart';
+import '../../customer_dashboard/presentation/site/site_orders.dart';
 import 'receipt_picker.dart';
 import 'order_pending_verification_screen.dart';
 import 'orders_controller.dart';
@@ -39,12 +42,6 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
   bool _isSubmitting = false;
 
   String _formatSize(int bytes) => '${(bytes / 1024).round()} KB';
-
-  String _formatPrice(double price) {
-    final parts = price.toStringAsFixed(0).split('.');
-    final regExp = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    return parts[0].replaceAllMapped(regExp, (Match m) => '${m[1]},');
-  }
 
   void _copyToClipboard(String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
@@ -192,6 +189,7 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colors = context.colors;
     // The accounts live in their own document, which only signed-in
     // customers may read (never the public company document).
     final accountsAsync = ref.watch(
@@ -201,132 +199,158 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
         accountsAsync.asData?.value ?? const <PaymentAccount>[];
     // Until they have loaded, the accounts are unknown, not missing.
     final accountsLoading = paymentAccounts.isEmpty && accountsAsync.isLoading;
-    final margin = AppSpacing.screenMargin(MediaQuery.sizeOf(context).width);
+    final meta = AppTextStyles.caption.copyWith(
+      fontSize: 13,
+      color: colors.textSecondary,
+    );
+    Widget error(String text) => Text(
+      text,
+      style: AppTextStyles.body.copyWith(fontSize: 14, color: colors.errorText),
+    );
+
+    final blocks = <Widget>[
+      SitePageTitle(l10n.paymentTitle),
+
+      // 1. Amount to transfer (`.tile.amount`).
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: colors.bgSubtle,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: colors.borderDefault),
+        ),
+        child: Column(
+          children: [
+            Text(l10n.paymentAmountToTransfer, style: meta),
+            const SizedBox(height: 4),
+            Text(
+              sitePrice(context, widget.draft.totalAmount),
+              textAlign: TextAlign.center,
+              style: AppTextStyles.h1.copyWith(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: colors.price,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.paymentOrderCreatedAfter,
+              textAlign: TextAlign.center,
+              style: meta,
+            ),
+          ],
+        ),
+      ),
+
+      // 2. What to do outside the app.
+      SiteNote(
+        icon: Icons.inventory_2_outlined,
+        title: '',
+        message: l10n.paymentInstructions,
+      ),
+
+      // 3. The accounts of the order's own company.
+      Padding(
+        padding: const EdgeInsetsDirectional.only(start: 4, top: 8),
+        child: Text(
+          l10n.paymentAccounts,
+          style: AppTextStyles.bodyStrong.copyWith(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: colors.textSecondary,
+          ),
+        ),
+      ),
+      if (accountsLoading)
+        const AppLoadingState()
+      else if (paymentAccounts.isEmpty)
+        error(l10n.paymentNoAccountsForCompany)
+      else
+        for (final account in paymentAccounts)
+          _buildAccountCard(
+            context: context,
+            bankName: account.bankName,
+            accountName: account.accountName,
+            accountNumber: account.accountNumber,
+            phoneNumber: account.phoneNumber,
+          ),
+
+      // 4. Upload the receipt.
+      SiteTile(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SiteTileTitle(l10n.paymentUploadReceipt),
+            const SizedBox(height: 6),
+            SiteProse(l10n.paymentUploadHint),
+            const SizedBox(height: 12),
+            if (_receipt == null)
+              _buildUploadTrigger(context)
+            else
+              _buildReceiptPreview(context),
+          ],
+        ),
+      ),
+
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: colors.warningSubtle,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          l10n.paymentPendingNote,
+          style: AppTextStyles.body.copyWith(
+            fontSize: 14,
+            height: 1.7,
+            color: colors.warningText,
+          ),
+        ),
+      ),
+      if (_receiptMissing) error(l10n.paymentReceiptRequired),
+
+      // 5. Submit, or go back to change the order.
+      AppButton.primary(
+        label: _isSubmitting ? l10n.paymentSubmitting : l10n.paymentSubmit,
+        loading: _isSubmitting,
+        expand: true,
+        onPressed: paymentAccounts.isEmpty || _preparing
+            ? null
+            : _onSubmitReceipt,
+      ),
+      AppButton.outlined(
+        key: const ValueKey('payment-edit-order'),
+        label: l10n.siteEditOrder,
+        expand: true,
+        onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
+      ),
+    ];
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(title: Text(l10n.paymentTitle)),
+      appBar: AppBar(),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: EdgeInsets.fromLTRB(
-            margin,
-            AppSpacing.s16,
-            margin,
-            MediaQuery.viewInsetsOf(context).bottom + AppSpacing.s24,
+            16,
+            20,
+            16,
+            MediaQuery.viewInsetsOf(context).bottom + 48,
           ),
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: AppSize.readingMax),
+              constraints: const BoxConstraints(maxWidth: 680),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 1. Amount to transfer.
-                  AppCard(
-                    color: context.colors.brandPrimarySubtle,
-                    borderColor: context.colors.brandPrimarySubtleStrong,
-                    padding: const EdgeInsets.all(AppSpacing.s16),
-                    child: Column(
-                      children: [
-                        Text(
-                          l10n.paymentAmountToTransfer,
-                          style: AppTextStyles.bodyStrong.copyWith(
-                            color: context.colors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.s4),
-                        Text(
-                          '${_formatPrice(widget.draft.totalAmount)} SDG',
-                          style: AppTextStyles.stat.copyWith(
-                            color: context.colors.textBrand,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.s4),
-                        Text(
-                          l10n.paymentOrderCreatedAfter,
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.caption.copyWith(
-                            color: context.colors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s16),
-
-                  // 2. What to do outside the app.
-                  AppBanner(
-                    tone: AppTone.info,
-                    message: l10n.paymentInstructions,
-                  ),
-                  const SizedBox(height: AppSpacing.s20),
-
-                  // 3. The accounts of the order's own company.
-                  Text(l10n.paymentAccounts, style: AppTextStyles.h3),
-                  const SizedBox(height: AppSpacing.s8),
-                  if (accountsLoading)
-                    const AppLoadingState()
-                  else if (paymentAccounts.isEmpty)
-                    AppBanner(
-                      tone: AppTone.error,
-                      message: l10n.paymentNoAccountsForCompany,
-                    )
-                  else
-                    for (final account in paymentAccounts) ...[
-                      _buildAccountCard(
-                        context: context,
-                        bankName: account.bankName,
-                        accountName: account.accountName,
-                        accountNumber: account.accountNumber,
-                        phoneNumber: account.phoneNumber,
-                      ),
-                      const SizedBox(height: AppSpacing.s12),
-                    ],
-                  const SizedBox(height: AppSpacing.s12),
-
-                  // 4. Upload the receipt.
-                  Text(l10n.paymentUploadReceipt, style: AppTextStyles.h3),
-                  const SizedBox(height: AppSpacing.s4),
-                  Text(
-                    l10n.paymentUploadHint,
-                    style: AppTextStyles.caption.copyWith(
-                      color: context.colors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.s12),
-                  if (_receiptMissing) ...[
-                    AppBanner(
-                      tone: AppTone.error,
-                      message: l10n.paymentReceiptRequired,
-                    ),
-                    const SizedBox(height: AppSpacing.s12),
+                  for (var i = 0; i < blocks.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 16),
+                    blocks[i],
                   ],
-                  if (_receipt == null)
-                    _buildUploadTrigger(context)
-                  else
-                    _buildReceiptPreview(context),
-                  const SizedBox(height: AppSpacing.s16),
-
-                  AppBanner(
-                    tone: AppTone.warning,
-                    icon: Icons.access_time_rounded,
-                    message: l10n.paymentPendingNote,
-                  ),
-                  const SizedBox(height: AppSpacing.s24),
-
-                  // 5. Submit.
-                  AppButton.primary(
-                    label: _isSubmitting
-                        ? l10n.paymentSubmitting
-                        : l10n.paymentSubmit,
-                    icon: Icons.check_circle_outline,
-                    loading: _isSubmitting,
-                    expand: true,
-                    onPressed: paymentAccounts.isEmpty || _preparing
-                        ? null
-                        : _onSubmitReceipt,
-                  ),
                 ],
               ),
             ),
@@ -336,134 +360,121 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     );
   }
 
+  /// The dashed box of the site (`.upload`): a 2 px blue line, 18 px corners.
   Widget _buildUploadTrigger(BuildContext context) {
-    return AppCard(
-      onTap: _onPickReceipt,
-      borderColor: context.colors.borderFocus,
-      borderWidth: AppBorder.thick,
-      padding: const EdgeInsets.symmetric(
-        vertical: AppSpacing.s24,
-        horizontal: AppSpacing.s16,
+    final colors = context.colors;
+    return Material(
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: colors.textBrand, width: 2),
       ),
-      child: Column(
-        children: [
-          if (_preparing)
-            const AppSpinner(size: 32, strokeWidth: 3)
-          else
-            const AppIconTile(
-              icon: Icons.cloud_upload_outlined,
-              size: 52,
-              radius: AppRadius.full,
-            ),
-          const SizedBox(height: AppSpacing.s12),
-          if (_preparing)
-            Text(
-              context.l10n.receiptPreparing,
-              style: AppTextStyles.bodyStrong.copyWith(
-                color: context.colors.textBrand,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: _onPickReceipt,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_preparing) ...[
+                const AppSpinner(size: 28, strokeWidth: 3),
+                const SizedBox(height: 8),
+              ],
+              Text(
+                _preparing
+                    ? context.l10n.receiptPreparing
+                    : context.l10n.paymentTapToUpload,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyStrong.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colors.textBrand,
+                ),
               ),
-            )
-          else
-            Text(
-              context.l10n.paymentTapToUpload,
-              style: AppTextStyles.bodyStrong.copyWith(
-                color: context.colors.textBrand,
+              const SizedBox(height: 4),
+              Text(
+                context.l10n.paymentSupports,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 13,
+                  color: colors.textSecondary,
+                ),
               ),
-            ),
-          Text(
-            context.l10n.paymentSupports,
-            style: AppTextStyles.caption.copyWith(
-              color: context.colors.textSecondary,
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildReceiptPreview(BuildContext context) {
     final l10n = context.l10n;
-    return AppCard(
-      borderColor: context.colors.success,
-      padding: const EdgeInsets.all(AppSpacing.s12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.check_circle_rounded,
-                color: context.colors.success,
-                size: AppSize.iconMd,
-              ),
-              const SizedBox(width: AppSpacing.s6),
-              Expanded(
-                child: Text(
-                  l10n.paymentReceiptSelected,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodyStrong.copyWith(
-                    color: context.colors.successText,
-                  ),
+    final colors = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.paymentReceiptSelected,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodyStrong.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: colors.successText,
                 ),
               ),
-              TextButton.icon(
-                onPressed: _onRemoveReceipt,
-                icon: const Icon(Icons.delete_outline, size: AppSize.iconMd),
-                label: Text(l10n.commonRemove),
-                style: TextButton.styleFrom(
-                  foregroundColor: context.colors.errorText,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.s8),
-          // The receipt exactly as it will be stored with the order.
-          ClipRRect(
-            borderRadius: AppRadius.smAll,
-            child: ColoredBox(
-              color: context.colors.bgSubtle,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 260),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Image.memory(
-                    _receipt!.bytes,
-                    fit: BoxFit.contain,
-                    gaplessPlayback: true,
-                    key: const ValueKey('receipt-preview'),
-                  ),
+            ),
+            TextButton(
+              onPressed: _onRemoveReceipt,
+              child: Text(l10n.commonRemove),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // The receipt exactly as it will be stored with the order.
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: ColoredBox(
+            color: colors.bgSubtle,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 260),
+              child: SizedBox(
+                width: double.infinity,
+                child: Image.memory(
+                  _receipt!.bytes,
+                  fit: BoxFit.contain,
+                  gaplessPlayback: true,
+                  key: const ValueKey('receipt-preview'),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.s8),
-          Row(
-            children: [
-              Icon(
-                Icons.image_outlined,
-                size: AppSize.iconMd,
-                color: context.colors.iconDefault,
-              ),
-              const SizedBox(width: AppSpacing.s6),
-              Expanded(
-                child: Text(
-                  '${_receipt!.fileName} (${_formatSize(_receipt!.sizeBytes)})',
-                  style: AppTextStyles.caption.copyWith(
-                    color: context.colors.textSecondary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${_receipt!.fileName} (${_formatSize(_receipt!.sizeBytes)})',
+                textDirection: TextDirection.ltr,
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 13,
+                  color: colors.textSecondary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              TextButton(
-                onPressed: _preparing ? null : _onPickReceipt,
-                child: Text(l10n.paymentReplace),
-              ),
-            ],
-          ),
-        ],
-      ),
+            ),
+            TextButton(
+              onPressed: _preparing ? null : _onPickReceipt,
+              child: Text(l10n.paymentReplace),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -475,19 +486,17 @@ class _ManualPaymentScreenState extends ConsumerState<ManualPaymentScreen> {
     required String phoneNumber,
   }) {
     final l10n = context.l10n;
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.s16),
+    return SiteTile(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const AppIconTile(icon: Icons.account_balance_outlined, size: 36),
-              const SizedBox(width: AppSpacing.s12),
-              Expanded(child: Text(bankName, style: AppTextStyles.h3)),
-            ],
+          Text(
+            bankName,
+            style: AppTextStyles.bodyStrong.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          const SizedBox(height: AppSpacing.s8),
+          const SizedBox(height: 6),
           if (accountName.isNotEmpty)
             KeyValueRow(label: l10n.paymentAccountName, value: accountName),
           _copyableRow(

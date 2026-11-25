@@ -1,4 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_performance/firebase_performance.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +25,16 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Firebase Performance Monitoring: app start time and screen rendering
+  // (slow/frozen frames) go to the project's Firebase console. Only release builds
+  // report, so testing on a phone or emulator does not mix into the numbers.
+  try {
+    await FirebasePerformance.instance
+        .setPerformanceCollectionEnabled(kReleaseMode);
+  } catch (_) {
+    // Measuring is optional: the app runs the same without it.
+  }
 
   // The language chosen on this device. If storage is unavailable the app
   // still runs (in English) and simply does not remember the choice.

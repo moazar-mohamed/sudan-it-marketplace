@@ -13,7 +13,7 @@ import 'package:sudan_it_marketplace/features/orders/domain/repositories/orders_
 import 'package:sudan_it_marketplace/features/orders/presentation/order_details_screen.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/order_labels.dart';
 import 'package:sudan_it_marketplace/features/orders/presentation/orders_providers.dart';
-import 'package:sudan_it_marketplace/features/orders/presentation/widgets/order_card.dart';
+import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/site/site_orders.dart';
 import 'package:sudan_it_marketplace/features/technician/presentation/technician_format.dart';
 import 'package:sudan_it_marketplace/features/technicians/presentation/technicians_providers.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations_ar.dart';
@@ -288,7 +288,7 @@ void main() {
 
   group('the customer sees a cancelled order as cancelled', () {
     testWidgets('the order card says Cancelled, not Processing', (tester) async {
-      await tester.pumpWidget(_customerApp(Scaffold(body: OrderCard(order: _cancelled()))));
+      await tester.pumpWidget(_customerApp(Scaffold(body: SiteOrderCard(order: _cancelled()))));
       await tester.pumpAndSettle();
       expect(find.text('Cancelled'), findsOneWidget);
       expect(find.text('Processing'), findsNothing);

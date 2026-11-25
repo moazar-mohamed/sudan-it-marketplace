@@ -48,12 +48,14 @@ class AuthController extends Notifier<AuthState> {
     required String fullName,
     required String email,
     required String password,
+    int? termsVersion,
   }) async {
     try {
       final user = await _repository.signUpWithEmail(
         fullName: fullName,
         email: email,
         password: password,
+        termsVersion: termsVersion,
       );
       state = AuthAuthenticated(user);
     } on AuthException catch (error) {

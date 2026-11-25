@@ -79,11 +79,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty || _sending) return;
     setState(() => _sending = true);
-    final error = await ref.read(chatActionsProvider).send(
-          conversation: conversation,
-          role: widget.role,
-          text: text,
-        );
+    final error = await ref
+        .read(chatActionsProvider)
+        .send(conversation: conversation, role: widget.role, text: text);
     if (!mounted) return;
     setState(() => _sending = false);
     if (error != null) {
@@ -95,17 +93,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final conversationAsync = ref.watch(chatConversationProvider(widget.chatId));
+    final conversationAsync = ref.watch(
+      chatConversationProvider(widget.chatId),
+    );
     final conversation = conversationAsync.asData?.value;
 
     final isCustomer = widget.role == ChatParticipantRole.customer;
     final counterpart = conversation == null
         ? ''
         : isCustomer
-            ? conversation.companyName
-            : (conversation.customerName.trim().isEmpty
-                ? context.l10n.chatCustomerFallback
-                : conversation.customerName);
+        ? conversation.companyName
+        : (conversation.customerName.trim().isEmpty
+              ? context.l10n.chatCustomerFallback
+              : conversation.customerName);
 
     return Scaffold(
       appBar: AppBar(
@@ -138,7 +138,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         loading: () => const AppLoadingState(),
         error: (_, _) => AppErrorState(
           message: context.l10n.chatLoadFailed,
-          onRetry: () => ref.invalidate(chatConversationProvider(widget.chatId)),
+          onRetry: () =>
+              ref.invalidate(chatConversationProvider(widget.chatId)),
         ),
         data: (conversation) => conversation == null
             ? AppErrorState(message: context.l10n.chatNotFound)
@@ -179,8 +180,10 @@ class _DetailsButton extends StatelessWidget {
       if (!isCustomer) return const SizedBox.shrink();
       return Consumer(
         builder: (context, ref, _) {
-          final order =
-              ref.watch(orderStreamProvider(conversation.id)).asData?.value;
+          final order = ref
+              .watch(orderStreamProvider(conversation.id))
+              .asData
+              ?.value;
           if (order == null) return const SizedBox.shrink();
           return IconButton(
             tooltip: context.l10n.orderViewDetails,
@@ -227,8 +230,10 @@ class _StatusBar extends ConsumerWidget {
       );
     }
     if (conversation.isOrderChat) {
-      final order =
-          ref.watch(orderStreamProvider(conversation.id)).asData?.value;
+      final order = ref
+          .watch(orderStreamProvider(conversation.id))
+          .asData
+          ?.value;
       if (order == null) return const SizedBox.shrink();
       return _Bar(
         icon: Icons.local_shipping_outlined,
@@ -238,8 +243,10 @@ class _StatusBar extends ConsumerWidget {
         ),
       );
     }
-    final request =
-        ref.watch(serviceRequestStreamProvider(conversation.id)).asData?.value;
+    final request = ref
+        .watch(serviceRequestStreamProvider(conversation.id))
+        .asData
+        ?.value;
     if (request == null) return const SizedBox.shrink();
     return _Bar(
       icon: Icons.assignment_outlined,
@@ -271,7 +278,9 @@ class _Bar extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: AppTextStyles.captionStrong.copyWith(color: tone.foreground(context.colors)),
+              style: AppTextStyles.captionStrong.copyWith(
+                color: tone.foreground(context.colors),
+              ),
             ),
           ),
         ],
@@ -289,6 +298,14 @@ class _MessagesList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final messagesAsync = ref.watch(chatMessagesProvider(chatId));
+    // The customer sees when the company has read their messages (✓✓).
+    final companyReadAt = viewerRole == ChatParticipantRole.customer
+        ? ref
+              .watch(chatConversationProvider(chatId))
+              .asData
+              ?.value
+              ?.companyLastReadAt
+        : null;
     return messagesAsync.when(
       loading: () => const AppLoadingState(),
       error: (_, _) => AppErrorState(
@@ -316,13 +333,19 @@ class _MessagesList extends ConsumerWidget {
           itemCount: newestFirst.length,
           itemBuilder: (context, index) {
             final message = newestFirst[index];
-            final older =
-                index + 1 < newestFirst.length ? newestFirst[index + 1] : null;
+            final older = index + 1 < newestFirst.length
+                ? newestFirst[index + 1]
+                : null;
             return MessageBubble(
               message: message,
               isMine: message.senderRole == viewerRole,
               // The name is shown once per run of messages from one side.
-              showSender: older == null || older.senderRole != message.senderRole,
+              showSender:
+                  older == null || older.senderRole != message.senderRole,
+              readByOther: viewerRole == ChatParticipantRole.customer
+                  ? companyReadAt != null &&
+                        !companyReadAt.isBefore(message.createdAt)
+                  : null,
             );
           },
         );
@@ -370,12 +393,12 @@ class _Composer extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.s6),
           IconButton.filled(
-            style: IconButton.styleFrom(foregroundColor: context.colors.onPrimary),
+            style: IconButton.styleFrom(
+              foregroundColor: context.colors.onPrimary,
+            ),
             tooltip: context.l10n.chatSend,
             onPressed: sending ? null : onSend,
-            icon: sending
-                ? const AppSpinner()
-                : const Icon(Icons.send_rounded),
+            icon: sending ? const AppSpinner() : const Icon(Icons.send_rounded),
           ),
         ],
       ),

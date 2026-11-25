@@ -870,3 +870,18 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* The customer site's look (sictm.net): the main action is green; the
+   navy stays for the menu, links and focus. */
+:root[data-ui='v2'] .btn--primary,
+:root[data-ui='v2'] .ds-btn--primary {
+  background: var(--color-action);
+  border-color: var(--color-action);
+  color: #fff;
+}
+
+:root[data-ui='v2'] .btn--primary:hover:not(:disabled),
+:root[data-ui='v2'] .ds-btn--primary:hover:not(:disabled) {
+  background: var(--color-action-pressed);
+  border-color: var(--color-action-pressed);
+}

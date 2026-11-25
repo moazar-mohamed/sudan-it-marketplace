@@ -44,6 +44,12 @@ class _Relay implements PushRelay {
     required String orderId,
     required String messageId,
   }) async {}
+
+  @override
+  Future<void> techChatMessage({
+    required String orderId,
+    required String messageId,
+  }) async {}
 }
 
 class _Profile extends ProfileController {
@@ -202,7 +208,7 @@ void main() {
         expect(_kind(kind), findsOneWidget, reason: kind.key);
       }
       expect(_kind(PushCategory.platform), findsNothing);
-      expect(find.text('WHAT TO BE NOTIFIED ABOUT'), findsOneWidget);
+      expect(find.text('What to be notified about'), findsOneWidget);
       expect(find.text('Orders'), findsOneWidget);
       expect(find.text('New companies in my city'), findsOneWidget);
     });
@@ -265,7 +271,7 @@ void main() {
       await tester.pumpWidget(await _settings(UserRole.customer, _Store(), masterOn: false));
       await tester.pumpAndSettle();
       expect(_kind(PushCategory.orders), findsNothing);
-      expect(find.text('WHAT TO BE NOTIFIED ABOUT'), findsNothing);
+      expect(find.text('What to be notified about'), findsNothing);
     });
 
     testWidgets('read in Arabic', (tester) async {

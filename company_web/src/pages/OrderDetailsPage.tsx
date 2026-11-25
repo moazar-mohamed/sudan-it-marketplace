@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../auth/AuthProvider';
 import { useCompanyData } from '../data/CompanyData';
@@ -23,6 +23,8 @@ import { useTechnicians } from '../data/technicians';
 import type { CancelReason, Order } from '../data/types';
 import { db } from '../firebase';
 import { ChatPanel } from '../ui/ChatPanel';
+import { TechChatView } from '../ui/TechChatView';
+import { JobChatPanel } from '../ui/JobChatPanel';
 import { Icon } from '../ui/Icon';
 import {
   Banner,
@@ -72,6 +74,7 @@ function Details({ order }: { order: Order }) {
   const now = useNow();
   const cities = useCities();
   const technicians = useTechnicians(companyId);
+  const location = useLocation();
   const senderName = state.status === 'authorized' ? state.profile.fullName || t('الشركة') : t('الشركة');
 
   const awaiting = order.orderStatus === 'processing' && order.paymentStatus === 'pending_verification';
@@ -291,6 +294,8 @@ function Details({ order }: { order: Order }) {
           {order.installationSelected && order.orderStatus !== 'cancelled' && (
             <TechnicianCard order={order} technicians={technicians} />
           )}
+          {order.technicianId && <JobChatPanel order={order} senderName={senderName} startOpen={location.hash === '#technician-chat'} />}
+          {order.technicianId && <TechChatView order={order} />}
 
           <section className="card" aria-label={t('سجل الطلب')}>
             <div className="card-h"><h3>{t('سجل الطلب')}</h3></div>

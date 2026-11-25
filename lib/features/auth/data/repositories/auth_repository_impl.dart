@@ -45,6 +45,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String fullName,
     required String email,
     required String password,
+    int? termsVersion,
   }) {
     return _run(() async {
       final user = await _remoteDataSource.signUpWithEmail(
@@ -59,6 +60,7 @@ class AuthRepositoryImpl implements AuthRepository {
           id: user.id,
           fullName: fullName.trim(),
           email: accountEmail,
+          termsVersion: termsVersion,
         );
       } catch (error) {
         // The profile screen may already have created the profile for this

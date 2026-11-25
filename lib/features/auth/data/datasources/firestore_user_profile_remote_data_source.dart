@@ -20,6 +20,7 @@ class FirestoreUserProfileRemoteDataSource
     required String id,
     required String fullName,
     required String email,
+    int? termsVersion,
   }) async {
     try {
       final profile = UserProfileModel.customer(
@@ -30,17 +31,27 @@ class FirestoreUserProfileRemoteDataSource
       await _firestore.collection(_usersCollection).doc(id).set({
         ...profile.toFirestoreMap(),
         'createdAt': FieldValue.serverTimestamp(),
+        if (termsVersion != null) ...{
+          'termsVersion': termsVersion,
+          'termsAcceptedAt': FieldValue.serverTimestamp(),
+        },
       });
     } on AuthException {
       rethrow;
     } on FirebaseException catch (error) {
-      debugLog('FirestoreProfileDS', 'FirebaseException plugin=${error.plugin} code=${error.code} message=${error.message}');
+      debugLog(
+        'FirestoreProfileDS',
+        'FirebaseException plugin=${error.plugin} code=${error.code} message=${error.message}',
+      );
       throw AuthException(
         'Could not save your profile. Please try again.',
         code: error.code,
       );
     } catch (error, st) {
-      debugLog('FirestoreProfileDS', 'Unknown error type=${error.runtimeType} error=$error\n$st');
+      debugLog(
+        'FirestoreProfileDS',
+        'Unknown error type=${error.runtimeType} error=$error\n$st',
+      );
       throw const AuthException(
         'Could not save your profile. Please try again.',
         code: 'profile-create-failed',
@@ -58,13 +69,16 @@ class FirestoreUserProfileRemoteDataSource
       if (!doc.exists || doc.data() == null) return null;
       return UserProfileModel.fromFirestoreMap(doc.data()!, doc.id);
     } on FirebaseException catch (error) {
-      debugLog('FirestoreProfileDS', 'fetchProfile code=${error.code} message=${error.message}');
+      debugLog(
+        'FirestoreProfileDS',
+        'fetchProfile code=${error.code} message=${error.message}',
+      );
       throw AuthException(
         error.code == 'permission-denied'
             ? 'Could not load your profile: access was denied by the server. Make sure the latest Firestore rules are deployed.'
             : error.code == 'unavailable'
-                ? 'Could not load your profile. Check your internet connection and try again.'
-                : 'Could not load your profile. Please try again.',
+            ? 'Could not load your profile. Check your internet connection and try again.'
+            : 'Could not load your profile. Please try again.',
         code: error.code,
       );
     } catch (error, st) {
@@ -129,10 +143,7 @@ class FirestoreUserProfileRemoteDataSource
       if (photoUrl != null) {
         data['photoUrl'] = photoUrl;
       }
-      await _firestore
-          .collection(_usersCollection)
-          .doc(userId)
-          .update(data);
+      await _firestore.collection(_usersCollection).doc(userId).update(data);
     } on FirebaseException catch (error) {
       throw AuthException(
         'Could not update your profile. Please try again.',

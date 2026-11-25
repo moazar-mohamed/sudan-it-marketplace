@@ -6,7 +6,7 @@ import {
   sendPasswordResetEmail,
   signOut as signOutOf,
 } from 'firebase/auth';
-import { collection, doc, getDoc, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { auth, db, firebaseConfig } from '../firebase';
 import { mapReview } from './mappers';
@@ -87,7 +87,7 @@ export async function saveServiceCities(company: Company, cityIds: string[]): Pr
 
 // ── Technicians ────────────────────────────────────────────────────────────
 
-export type TechnicianProblem = 'email-in-use' | 'weak-password' | 'invalid-email' | 'failed';
+export type TechnicianProblem = 'email-in-use' | 'weak-password' | 'invalid-email' | 'has-open-jobs' | 'failed';
 
 export class TechnicianError extends Error {
   constructor(readonly problem: TechnicianProblem) {
@@ -166,6 +166,29 @@ export async function updateTechnician(t: Technician, changes: { fullName: strin
     isAvailable: t.isAvailable,
     updatedAt: serverTimestamp(),
   });
+}
+
+/**
+ * Removes a technician from the company. Refused while an order of the company
+ * is still open with them (reassign it first). Their past orders keep their
+ * name; without the record the app and the portal no longer let them in. The
+ * login itself stays (only a server can delete it), so their e-mail cannot be
+ * used for a new technician.
+ */
+export async function deleteTechnician(t: Technician): Promise<void> {
+  const snap = await getDocs(
+    query(collection(db, 'orders'), where('companyId', '==', t.companyId), where('technicianId', '==', t.id)),
+  );
+  const open = snap.docs.some((d) => {
+    const s = d.data().orderStatus;
+    return s !== 'completed' && s !== 'cancelled';
+  });
+  if (open) throw new TechnicianError('has-open-jobs');
+  try {
+    await deleteDoc(doc(db, 'technicians', t.id));
+  } catch {
+    throw new TechnicianError('failed');
+  }
 }
 
 export async function setTechnicianActive(t: Technician, active: boolean): Promise<void> {

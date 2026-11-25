@@ -55,6 +55,7 @@ function fakeGoogle() {
   const docs = new Map(); // "collection/id" -> fields (plain values)
   const idTokens = new Map(); // idToken -> uid
   const sent = []; // FCM messages
+  const topicOps = []; // [action, "/topics/x", token] from the Instance ID API
   const goneTokens = new Set();
   const json = (status, body) => new Response(JSON.stringify(body), { status });
   const prefix = `/v1/projects/${PROJECT}/databases/(default)/documents`;
@@ -70,6 +71,10 @@ function fakeGoogle() {
     if (url.host === 'identitytoolkit.googleapis.com') {
       const uid = idTokens.get(body.idToken);
       return uid ? json(200, { users: [{ localId: uid }] }) : json(400, { error: { message: 'INVALID_ID_TOKEN' } });
+    }
+    if (url.host === 'iid.googleapis.com') {
+      topicOps.push([url.pathname.split(':')[1], body.to, ...body.registration_tokens]);
+      return json(200, { results: [{}] });
     }
     if (url.host === 'fcm.googleapis.com') {
       const token = body.message.token;
@@ -130,7 +135,7 @@ function fakeGoogle() {
     return data ? json(200, { fields: toValue(data).mapValue.fields }) : json(404, {});
   }
 
-  return { fetch, docs, idTokens, sent, goneTokens };
+  return { fetch, docs, idTokens, sent, goneTokens, topicOps };
 }
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
@@ -181,6 +186,9 @@ beforeEach(async () => {
   put('jobChats/o1', { companyId: 'c1', technicianId: 't1', technicianName: 'Ali', productName: 'Router' });
   put('jobChats/o1/messages/jt1', { senderId: 'tech1u', senderRole: 'technician', senderName: 'Ali', text: 'Customer is not home', createdAt: minutesAgo(0) });
   put('jobChats/o1/messages/jc1', { senderId: 'ca1', senderRole: 'company', senderName: '', text: 'We will call them', createdAt: minutesAgo(0) });
+  put('customerTechChats/o1', { companyId: 'c1', customerId: 'cust1', productName: 'Router' });
+  put('customerTechChats/o1/messages/tc1', { senderId: 'cust1', senderRole: 'customer', senderName: 'Amna', text: 'When will you come?', createdAt: minutesAgo(0) });
+  put('customerTechChats/o1/messages/tt1', { senderId: 'tech1u', senderRole: 'technician', senderName: 'Ali', text: 'In one hour', createdAt: minutesAgo(0) });
   put('chats/chat1/messages/m2', { senderId: 'ca1', senderRole: 'company', text: 'Yes!', createdAt: minutesAgo(0) });
 });
 
@@ -478,7 +486,7 @@ describe('what the platform did', () => {
   });
 
   it('every one has words in both languages that name the product', () => {
-    for (const type of ['order_cancelled_by_admin', 'order_cancelled_by_admin_company', 'order_cancelled_by_company', 'product_hidden', 'product_shown', 'account_converted_to_company']) {
+    for (const type of ['order_cancelled_by_admin', 'order_cancelled_by_admin_company', 'order_cancelled_by_company', 'product_hidden', 'product_shown', 'account_converted_to_company', 'order_technician_assigned', 'company_activated', 'company_deactivated', 'company_rejected', 'review_hidden', 'review_shown', 'service_hidden', 'service_shown', 'product_offer_ended', 'service_offer_ended']) {
       for (const language of ['en', 'ar']) {
         const text = orderNotificationText({ type, productName: 'Router', title: 'stored' }, language);
         assert.ok(text.title && text.title !== 'stored', `${type}/${language}`);
@@ -878,5 +886,92 @@ describe('the browser part of every push', () => {
       assert.equal(message.webpush.notification.tag, 'chat_chat1');
       assert.equal(message.webpush.notification.renotify, true);
     }
+  });
+});
+
+describe('a conversation between the customer and the technician', () => {
+  it("reaches the customer when the technician wrote it, in the customer's language", async () => {
+    const r = await call({ techChatId: 'o1', messageId: 'tt1' }, 'token-tech1');
+    assert.equal(r.status, 200);
+    assert.deepEqual(google.sent.map((m) => m.token), ['phone-cust1']);
+    assert.equal(google.sent[0].notification.title, 'Ali · Router');
+    assert.equal(google.sent[0].notification.body, 'In one hour');
+    assert.equal(google.sent[0].data.type, 'customer_tech_chat_message');
+    assert.equal(google.sent[0].data.orderId, 'o1');
+    assert.equal(google.sent[0].data.role, 'customer');
+  });
+
+  it('reaches the technician the job has now when the customer wrote it, never the company', async () => {
+    const r = await call({ techChatId: 'o1', messageId: 'tc1' }, 'token-cust1');
+    assert.equal(r.status, 200);
+    assert.deepEqual(google.sent.map((m) => m.token), ['phone-tech1']);
+    assert.equal(google.sent[0].notification.title, 'Amna · Router');
+    assert.equal(google.sent[0].data.role, 'technician');
+  });
+
+  it('follows a reassignment', async () => {
+    google.docs.set('users/tech2u', { role: 'technician', companyId: 'c1', fcmTokens: ['phone-tech2'] });
+    google.docs.set('technicians/t2', { companyId: 'c1', uid: 'tech2u', email: 't2@x.test' });
+    google.docs.get('orders/o1').technicianId = 't2';
+    await call({ techChatId: 'o1', messageId: 'tc1' }, 'token-cust1');
+    assert.deepEqual(google.sent.map((m) => m.token), ['phone-tech2']);
+  });
+
+  it('is sent once, only for its writer, and only while fresh', async () => {
+    assert.equal((await call({ techChatId: 'o1', messageId: 'tc1' }, 'token-tech1')).status, 403);
+    assert.equal((await call({ techChatId: 'o1', messageId: 'tc1' }, 'token-ca1')).status, 403);
+    google.docs.get('customerTechChats/o1/messages/tc1').createdAt = minutesAgo(11);
+    assert.equal((await call({ techChatId: 'o1', messageId: 'tc1' })).status, 409);
+    google.docs.get('customerTechChats/o1/messages/tc1').createdAt = minutesAgo(0);
+    assert.equal((await call({ techChatId: 'o1', messageId: 'tc1' })).status, 200);
+    assert.equal((await call({ techChatId: 'o1', messageId: 'tc1' })).body.skipped, 'already_sent');
+  });
+
+  it('respects a switched-off chat kind', async () => {
+    google.docs.get('users/cust1').pushPrefs = { chat: false };
+    await call({ techChatId: 'o1', messageId: 'tt1' }, 'token-tech1');
+    assert.equal(google.sent.length, 0);
+  });
+
+  it('asks for one thing only', async () => {
+    assert.equal((await call({ techChatId: 'o1', messageId: 'tc1', jobChatId: 'o1' })).status, 400);
+    assert.equal((await call({ techChatId: 'o1' })).status, 400);
+  });
+});
+
+describe('a browser follows its city announcements', () => {
+  const WEB = 'web-token-cust1-abcdefghijklmnop';
+  beforeEach(() => {
+    const user = google.docs.get('users/cust1');
+    user.fcmTokens = ['phone-cust1', WEB];
+    user.cityId = 'khartoum';
+  });
+
+  it('is put in the topic of its city and language, once', async () => {
+    const first = await call({ webToken: WEB });
+    assert.equal(first.status, 200);
+    assert.deepEqual(first.body, { topic: 'city_khartoum_ar', changed: true });
+    assert.deepEqual(google.topicOps, [['batchAdd', '/topics/city_khartoum_ar', WEB]]);
+    assert.deepEqual((await call({ webToken: WEB })).body, { topic: 'city_khartoum_ar', changed: false });
+    assert.equal(google.topicOps.length, 1);
+  });
+
+  it('moves with the city, and leaves when the switch is off', async () => {
+    await call({ webToken: WEB });
+    google.docs.get('users/cust1').cityId = 'kassala';
+    await call({ webToken: WEB });
+    assert.deepEqual(google.topicOps.slice(1), [
+      ['batchRemove', '/topics/city_khartoum_ar', WEB],
+      ['batchAdd', '/topics/city_kassala_ar', WEB],
+    ]);
+    google.docs.get('users/cust1').pushPrefs = { cityAnnouncements: false };
+    assert.deepEqual((await call({ webToken: WEB })).body, { topic: null, changed: true });
+    assert.deepEqual(google.topicOps.at(-1), ['batchRemove', '/topics/city_kassala_ar', WEB]);
+  });
+
+  it('only for one of the caller\'s own addresses', async () => {
+    assert.equal((await call({ webToken: 'someone-elses-token-0123456789' })).status, 403);
+    assert.equal((await call({ webToken: 'bad token!' })).status, 400);
+    assert.equal(google.topicOps.length, 0);
   });
 });

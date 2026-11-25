@@ -18,6 +18,8 @@ interface TechDataValue {
   notices: Notice[];
   company: Company | null;
   chats: Record<string, JobChat | null>;
+  /** Each job's conversation with its customer (null before its first message). */
+  customerChats: Record<string, JobChat | null>;
   location: LocationState;
   askLocation: () => void;
   online: boolean;
@@ -49,6 +51,7 @@ export function TechDataProvider({ children }: { children: ReactNode }) {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
   const [chats, setChats] = useState<Record<string, JobChat | null>>({});
+  const [customerChats, setCustomerChats] = useState<Record<string, JobChat | null>>({});
   const [location, setLocation] = useState<LocationState>({ status: 'unknown' });
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
   const [syncedAt, setSyncedAt] = useState<Date | null>(null);
@@ -121,37 +124,15 @@ export function TechDataProvider({ children }: { children: ReactNode }) {
     );
   }, [profile.companyId]);
 
-  // One conversation per job, read by its id (the rules allow get, not list). Before its first message it does not exist.
+  // One conversation per job and side, read by its id (the rules allow get, not list). Before its first message it does not exist.
   const chatIds = useMemo(() => jobs.slice(0, 80).map((j) => j.id).join(','), [jobs]);
-  const chatSubs = useRef(new Map<string, () => void>());
-  useEffect(() => {
-    const wanted = new Set(chatIds ? chatIds.split(',') : []);
-    const subs = chatSubs.current;
-    for (const [id, stop] of subs) {
-      if (!wanted.has(id)) {
-        stop();
-        subs.delete(id);
-      }
-    }
-    for (const id of wanted) {
-      if (subs.has(id)) continue;
-      subs.set(
-        id,
-        onSnapshot(
-          doc(db, 'jobChats', id),
-          (snap) => setChats((now) => ({ ...now, [id]: snap.exists() ? mapChat(snap.id, snap.data()) : null })),
-          ignoreDenied(() => undefined),
-        ),
-      );
-    }
-  }, [chatIds]);
-  useEffect(() => {
-    const subs = chatSubs.current;
-    return () => {
-      for (const stop of subs.values()) stop();
-      subs.clear();
-    };
-  }, []);
+  useChatDocs('jobChats', chatIds, setChats);
+  // With the customer: only while the job is open, or once something was said (each listener is a read).
+  const customerChatIds = useMemo(
+    () => jobs.slice(0, 80).filter((j) => j.orderStatus !== 'completed' && j.orderStatus !== 'cancelled').map((j) => j.id).join(','),
+    [jobs],
+  );
+  useChatDocs('customerTechChats', customerChatIds, setCustomerChats);
 
   useEffect(() => {
     const on = () => setOnline(true);
@@ -216,7 +197,8 @@ export function TechDataProvider({ children }: { children: ReactNode }) {
   const value = useMemo<TechDataValue>(() => {
     const unreadNotices = notices.filter((n) => !n.isRead).length;
     const newJobIds = new Set(notices.filter((n) => !n.isRead && n.type === 'technician_assigned').map((n) => n.orderId));
-    const unreadChats = Object.values(chats).filter((c) => chatUnread(c)).length;
+    const unreadChats =
+      Object.values(chats).filter((c) => chatUnread(c)).length + Object.values(customerChats).filter((c) => chatUnread(c)).length;
     return {
       technician,
       technicianReady,
@@ -226,6 +208,7 @@ export function TechDataProvider({ children }: { children: ReactNode }) {
       notices,
       company,
       chats,
+      customerChats,
       location,
       askLocation,
       online,
@@ -235,9 +218,46 @@ export function TechDataProvider({ children }: { children: ReactNode }) {
       newJobIds,
       unreadChats,
     };
-  }, [technician, technicianReady, jobs, jobsReady, jobsError, notices, company, chats, location, askLocation, online, syncedAt]);
+  }, [technician, technicianReady, jobs, jobsReady, jobsError, notices, company, chats, customerChats, location, askLocation, online, syncedAt]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+/** Live listeners on [collectionName]/{id} for each id in [ids] (comma separated), kept in step as jobs come and go. */
+function useChatDocs(
+  collectionName: string,
+  ids: string,
+  setChats: (update: (now: Record<string, JobChat | null>) => Record<string, JobChat | null>) => void,
+) {
+  const subsRef = useRef(new Map<string, () => void>());
+  useEffect(() => {
+    const wanted = new Set(ids ? ids.split(',') : []);
+    const subs = subsRef.current;
+    for (const [id, stop] of subs) {
+      if (!wanted.has(id)) {
+        stop();
+        subs.delete(id);
+      }
+    }
+    for (const id of wanted) {
+      if (subs.has(id)) continue;
+      subs.set(
+        id,
+        onSnapshot(
+          doc(db, collectionName, id),
+          (snap) => setChats((now) => ({ ...now, [id]: snap.exists() ? mapChat(snap.id, snap.data()) : null })),
+          ignoreDenied(() => undefined),
+        ),
+      );
+    }
+  }, [collectionName, ids, setChats]);
+  useEffect(() => {
+    const subs = subsRef.current;
+    return () => {
+      for (const stop of subs.values()) stop();
+      subs.clear();
+    };
+  }, []);
 }
 
 export function useTechData(): TechDataValue {

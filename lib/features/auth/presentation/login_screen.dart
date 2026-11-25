@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
+import '../../customer_dashboard/presentation/site/site_auth.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -47,10 +48,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     setState(() => _isSubmitting = true);
     try {
-      await ref.read(authControllerProvider.notifier).signInWithEmail(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+      await ref
+          .read(authControllerProvider.notifier)
+          .signInWithEmail(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -74,19 +77,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _openRegister() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const RegisterScreen(),
-      ),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const RegisterScreen()));
   }
 
   void _openForgotPassword() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => ForgotPasswordScreen(
-          initialEmail: _emailController.text.trim(),
-        ),
+        builder: (_) =>
+            ForgotPasswordScreen(initialEmail: _emailController.text.trim()),
       ),
     );
   }
@@ -95,8 +94,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final authState = ref.watch(authControllerProvider);
-    final errorMessage =
-        authState is AuthError ? authErrorMessage(l10n, authState.code) : null;
+    final errorMessage = authState is AuthError
+        ? authErrorMessage(l10n, authState.code)
+        : null;
 
     return Scaffold(
       body: SafeArea(
@@ -105,33 +105,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 32,
+                ),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
                     child: Form(
                       key: _formKey,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                      // As sictm.net's sign-in page: one card with the
+                      // name, «تسجيل الدخول» and the form.
+                      child: SiteAuthCard(
+                        title: l10n.authLogin,
+                        subtitle: l10n.authWelcomeBack,
+                        footer: const Center(child: LanguageSelector()),
                         children: [
-                          const Center(child: LanguageSelector()),
-                          const SizedBox(height: 24),
-                          const Center(child: AppLogo()),
-                          const SizedBox(height: 16),
-                          Text(
-                            l10n.appName,
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.h1,
-                          ),
-                          const SizedBox(height: AppSpacing.s8),
-                          Text(
-                            l10n.authWelcomeBack,
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.bodyLarge
-                                .copyWith(color: context.colors.textSecondary),
-                          ),
-                          const SizedBox(height: AppSpacing.s32),
+                          const SizedBox(height: AppSpacing.s16),
                           AppTextField(
                             label: l10n.authEmail,
                             controller: _emailController,
@@ -172,8 +161,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Align(
                             alignment: AlignmentDirectional.centerEnd,
                             child: TextButton(
-                              onPressed:
-                                  _isSubmitting ? null : _openForgotPassword,
+                              onPressed: _isSubmitting
+                                  ? null
+                                  : _openForgotPassword,
                               child: Text(l10n.authForgotPassword),
                             ),
                           ),

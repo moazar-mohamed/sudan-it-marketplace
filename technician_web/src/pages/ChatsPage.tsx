@@ -4,7 +4,7 @@ import { shortWhen } from '../data/format';
 import { chatUnread, isOpenJob, shortId } from '../data/jobs';
 import { searchRanked } from '../data/searchRanking';
 import { useTechData } from '../data/TechData';
-import type { Job, JobChat } from '../data/types';
+import type { ChatKind, Job, JobChat } from '../data/types';
 import { t } from '../i18n';
 import { Icon } from '../ui/Icon';
 import { BellButton, OfflineStrip, SkeletonCards, StatusBadge } from '../ui/kit';
@@ -12,10 +12,11 @@ import { BellButton, OfflineStrip, SkeletonCards, StatusBadge } from '../ui/kit'
 interface Row {
   job: Job;
   chat: JobChat | null;
+  kind: ChatKind;
 }
 
 export default function ChatsPage() {
-  const { jobs, jobsReady, chats } = useTechData();
+  const { jobs, jobsReady, chats, customerChats } = useTechData();
   const [q, setQ] = useState('');
 
   const rows = useMemo<Row[]>(() => {
@@ -23,12 +24,15 @@ export default function ChatsPage() {
     const quiet: Row[] = [];
     for (const job of jobs) {
       const chat = chats[job.id] ?? null;
-      if (chat?.lastMessageAt) withChat.push({ job, chat });
-      else if (isOpenJob(job)) quiet.push({ job, chat: null });
+      if (chat?.lastMessageAt) withChat.push({ job, chat, kind: 'company' });
+      else if (isOpenJob(job)) quiet.push({ job, chat: null, kind: 'company' });
+      // A customer conversation shows once something was said in it.
+      const withCustomer = customerChats[job.id] ?? null;
+      if (withCustomer?.lastMessageAt) withChat.push({ job, chat: withCustomer, kind: 'customer' });
     }
     withChat.sort((a, b) => b.chat!.lastMessageAt!.getTime() - a.chat!.lastMessageAt!.getTime());
     return [...withChat, ...quiet];
-  }, [jobs, chats]);
+  }, [jobs, chats, customerChats]);
 
   const shown = useMemo(
     () =>
@@ -48,7 +52,7 @@ export default function ChatsPage() {
       <header className="bar">
         <div className="bar-title" style={{ paddingInlineStart: 4 }}>
           <h1 style={{ fontSize: 19 }}>{t('المحادثات')}</h1>
-          <p>{t('محادثة لكل مهمة، بينك وبين الشركة')}</p>
+          <p>{t('مع الشركة، ومع عملاء مهامك')}</p>
         </div>
         <BellButton />
       </header>
@@ -66,26 +70,26 @@ export default function ChatsPage() {
         ) : shown.length === 0 ? (
           <div className="card empty">{q.trim() ? t('لا توجد محادثة تطابق «{0}».', q.trim()) : t('لا محادثات بعد. افتح أي مهمة واضغط «محادثة» لتكتب للشركة.')}</div>
         ) : (
-          shown.map(({ job, chat }) => {
+          shown.map(({ job, chat, kind }) => {
             const unread = chatUnread(chat);
-            const last = chat?.lastMessageText
-              ? `${chat.lastMessageSenderRole === 'technician' ? t('أنت:') : t('الشركة:')} ${chat.lastMessageText}`
-              : t('لا رسائل بعد');
+            const withCustomer = kind === 'customer';
+            const who = chat?.lastMessageSenderRole === 'technician' ? t('أنت:') : withCustomer ? t('العميل:') : t('الشركة:');
+            const last = chat?.lastMessageText ? `${who} ${chat.lastMessageText}` : t('لا رسائل بعد');
             return (
               <Link
-                key={job.id}
-                to={`/chats/${job.id}`}
+                key={kind + job.id}
+                to={withCustomer ? `/jobs/${job.id}/customer` : `/chats/${job.id}`}
                 className="card"
                 style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, background: unread ? 'var(--unread)' : undefined }}
                 aria-label={unread ? `${job.productName}، ${t('رسالة جديدة')}` : undefined}
               >
-                <span style={{ flex: 'none', width: 48, height: 48, borderRadius: 24, background: '#063b73', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon name="building" />
+                <span style={{ flex: 'none', width: 48, height: 48, borderRadius: 24, background: withCustomer ? 'var(--soft)' : '#063b73', color: withCustomer ? 'var(--soft-ink)' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon name={withCustomer ? 'user' : 'building'} />
                 </span>
                 <span className="minw" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <span className="row" style={{ gap: 6 }}>
                     <span className="ell" style={{ fontSize: 15, fontWeight: 800 }}>
-                      {job.productName} · {job.customerName || t('عميل')}
+                      {withCustomer ? `${job.customerName || t('عميل')} · ${job.productName}` : `${job.productName} · ${job.customerName || t('عميل')}`}
                     </span>
                     {chat?.lastMessageAt && (
                       <span style={{ marginInlineStart: 'auto', flex: 'none', fontSize: 12, color: unread ? 'var(--action)' : 'var(--muted)', fontWeight: unread ? 700 : 400 }}>
@@ -104,6 +108,7 @@ export default function ChatsPage() {
                       #{shortId(job.id)}
                     </span>
                     <StatusBadge job={job} short />
+                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>{withCustomer ? t('مع العميل') : t('مع الشركة')}</span>
                   </span>
                 </span>
               </Link>

@@ -177,6 +177,7 @@ function JobDetails({ job }: { job: Job }) {
                 )}
               </>
             )}
+            <CustomerChatButton job={job} />
           </div>
         </section>
 
@@ -284,6 +285,19 @@ function JobDetails({ job }: { job: Job }) {
       )}
       {flow.sheet}
     </div>
+  );
+}
+
+/** Messages with the customer (they never see the technician's number); read only once the job is closed. */
+function CustomerChatButton({ job }: { job: Job }) {
+  const { customerChats } = useTechData();
+  const unread = chatUnread(customerChats[job.id]);
+  return (
+    <Link className="btn-line" to={'/jobs/' + job.id + '/customer'} style={{ position: 'relative' }} aria-label={unread ? t('محادثة العميل، رسالة جديدة') : undefined}>
+      <Icon name="chat" small />
+      {t('محادثة العميل')}
+      {unread && <span style={{ position: 'absolute', top: 10, insetInlineEnd: 12, width: 10, height: 10, borderRadius: 5, background: 'var(--action)' }} aria-hidden="true" />}
+    </Link>
   );
 }
 

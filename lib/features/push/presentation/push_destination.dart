@@ -99,6 +99,18 @@ PushDestination? pushDestination(Map<String, dynamic> data, UserProfile profile)
     };
   }
 
+  // A message in an order's customer-technician conversation: each side opens
+  // the order (the customer) or the job (the technician), where its button is.
+  if (text('type') == 'customer_tech_chat_message') {
+    final orderId = text('orderId');
+    if (orderId.isEmpty) return null;
+    return switch ((text('role'), profile.role)) {
+      ('customer', UserRole.customer) => CustomerOrderDestination(orderId),
+      ('technician', UserRole.technician) => TechnicianJobDestination(orderId),
+      _ => null,
+    };
+  }
+
   if (text('type') == 'usd_rate_reminder') {
     final own = profile.companyId?.trim() ?? '';
     return profile.role == UserRole.companyAdmin &&

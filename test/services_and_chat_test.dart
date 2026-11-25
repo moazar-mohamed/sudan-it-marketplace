@@ -3,10 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sudan_it_marketplace/core/widgets/app_widgets.dart';
 import 'package:sudan_it_marketplace/features/auth/domain/entities/user_profile.dart';
 import 'package:sudan_it_marketplace/features/auth/domain/entities/user_role.dart';
-import 'package:sudan_it_marketplace/features/categories/domain/entities/category.dart'
-    as catalog;
 import 'package:sudan_it_marketplace/features/categories/presentation/category_providers.dart';
 import 'package:sudan_it_marketplace/features/chats/domain/entities/chat_conversation.dart';
 import 'package:sudan_it_marketplace/features/chats/domain/entities/chat_message.dart';
@@ -20,8 +19,6 @@ import 'package:sudan_it_marketplace/features/company_services/data/models/compa
 import 'package:sudan_it_marketplace/features/company_services/domain/entities/company_service.dart';
 import 'package:sudan_it_marketplace/features/company_services/presentation/company_service_providers.dart';
 import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/profile_controller.dart';
-import 'package:sudan_it_marketplace/features/customer_dashboard/presentation/widgets/dashboard_home_tab.dart';
-import 'package:sudan_it_marketplace/features/products/presentation/products_providers.dart';
 import 'package:sudan_it_marketplace/features/service_requests/data/models/service_request_model.dart';
 import 'package:sudan_it_marketplace/features/service_requests/domain/entities/service_request.dart';
 import 'package:sudan_it_marketplace/features/service_requests/domain/repositories/service_requests_repository.dart';
@@ -29,7 +26,6 @@ import 'package:sudan_it_marketplace/features/service_requests/presentation/serv
 import 'package:sudan_it_marketplace/features/service_requests/presentation/service_request_providers.dart';
 import 'package:sudan_it_marketplace/features/services/domain/entities/catalog_service.dart';
 import 'package:sudan_it_marketplace/features/services/presentation/service_details_screen.dart';
-import 'package:sudan_it_marketplace/features/services/presentation/service_providers.dart';
 import 'package:sudan_it_marketplace/l10n/app_localizations.dart';
 
 const _en = Locale('en');
@@ -217,7 +213,7 @@ void main() {
           allCategoriesProvider.overrideWith((ref) => Stream.value(const [])),
         ];
 
-    testWidgets('a set price is shown; no price shows nothing at all',
+    testWidgets('a set price is shown; no price asks to contact, as the site',
         (tester) async {
       await tester.pumpWidget(_app(
         ServiceDetailsScreen(service: _service('svc1', 'Software Installation')),
@@ -228,15 +224,15 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text('Software Installation'), findsOneWidget);
+      // The path's last step and the page's title.
+      expect(find.text('Software Installation'), findsNWidgets(2));
       expect(find.text('Nile Tech'), findsOneWidget);
       expect(find.text('Blue Nile IT'), findsOneWidget);
       expect(find.text('15,000 SDG'), findsOneWidget);
-      // The unpriced offer shows no price, no zero and no placeholder.
+      // The unpriced offer shows no zero: «تواصل لمعرفة السعر», as on the site.
       expect(find.textContaining('SDG'), findsOneWidget);
       expect(find.text('0 SDG'), findsNothing);
-      expect(find.text('Price on request'), findsNothing);
-      expect(find.text('السعر عند التواصل'), findsNothing);
+      expect(find.text('Contact for the price'), findsOneWidget);
       expect(find.text('Request service'), findsNWidgets(2));
     });
 
@@ -283,74 +279,6 @@ void main() {
     });
   });
 
-  group('home services tab', () {
-    List homeOverrides() => [
-          firestoreProductsStreamProvider
-              .overrideWith((ref) => Stream.value(const [])),
-          firestoreCompaniesStreamProvider
-              .overrideWith((ref) => Stream.value(const [])),
-          activeServicesProvider(null).overrideWith(
-            (ref) => Stream.value([
-              _service('svc1', 'Software Installation'),
-              _service('svc2', 'Network Setup'),
-              _service('svc3', 'Old Service', categoryId: 'retired'),
-            ]),
-          ),
-          allCategoriesProvider.overrideWith(
-            (ref) => Stream.value([
-              catalog.Category(
-                id: 'cat1',
-                name: 'IT',
-                description: '',
-                iconName: '',
-                isActive: true,
-                createdAt: _created,
-              ),
-              catalog.Category(
-                id: 'retired',
-                name: 'Retired',
-                description: '',
-                iconName: '',
-                isActive: false,
-                createdAt: _created,
-              ),
-            ]),
-          ),
-        ];
-
-    testWidgets('Products | Services | Companies, with the active services',
-        (tester) async {
-      await tester.pumpWidget(_app(
-        const Scaffold(body: DashboardHomeTab()),
-        overrides: homeOverrides(),
-      ));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Products'), findsOneWidget);
-      expect(find.text('Services'), findsOneWidget);
-      expect(find.text('Companies'), findsOneWidget);
-
-      await tester.tap(find.text('Services'));
-      await tester.pumpAndSettle();
-      expect(find.text('Software Installation'), findsOneWidget);
-      expect(find.text('Network Setup'), findsOneWidget);
-      // A service of a deactivated category is not offered to customers.
-      expect(find.text('Old Service'), findsNothing);
-    });
-
-    testWidgets('the tabs are translated in Arabic', (tester) async {
-      await tester.pumpWidget(_app(
-        const Scaffold(body: DashboardHomeTab()),
-        locale: _ar,
-        overrides: homeOverrides(),
-      ));
-      await tester.pumpAndSettle();
-      expect(find.text('الخدمات'), findsOneWidget);
-      await tester.tap(find.text('الخدمات'));
-      await tester.pumpAndSettle();
-      expect(find.text('Software Installation'), findsOneWidget);
-    });
-  });
 
   group('company service price is optional', () {
     test('no price, a zero or a negative value mean "no price"', () {
@@ -486,7 +414,8 @@ void main() {
       expect(find.text('Nile Tech'), findsOneWidget);
       expect(find.text('Software Installation'), findsOneWidget);
       expect(find.text('Hello'), findsOneWidget);
-      expect(find.bySemanticsLabel(RegExp('Unread')), findsOneWidget);
+      // The dot on the conversation (the «Unread» filter chip says it too).
+      expect(find.byType(AppUnreadDot), findsOneWidget);
       semantics.dispose();
 
       final container = ProviderScope.containerOf(
