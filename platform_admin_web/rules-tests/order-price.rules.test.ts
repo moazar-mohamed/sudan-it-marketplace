@@ -160,7 +160,7 @@ function orderFor(
     deliveryFee,
     totalAmount: productSubtotal + installationFee + deliveryFee,
     deliveryAddress: pickup ? 'Pickup: Company 1 shop' : 'Street',
-    contactPhone: '0911111111',
+    contactPhone: '+249911111111',
     deliveryMethod: pickup ? 'pickup' : 'delivery',
     customerName: 'Customer',
     paymentStatus: 'pending_verification',

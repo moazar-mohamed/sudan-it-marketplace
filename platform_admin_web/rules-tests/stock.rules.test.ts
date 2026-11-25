@@ -139,7 +139,7 @@ const newOrder = (
   deliveryFee: 15000,
   totalAmount: 100 * quantity + 15000,
   deliveryAddress: 'Customer street',
-  contactPhone: '0911111111',
+  contactPhone: '+249911111111',
   deliveryMethod: 'delivery',
   customerName: 'Customer',
   paymentStatus: 'pending_verification',

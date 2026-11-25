@@ -359,12 +359,17 @@ describe('every text of a new order has a length limit', () => {
   it.each([
     ['customerName', 120],
     ['deliveryAddress', 500],
-    ['contactPhone', 30],
     ['receiptFileName', 100],
   ])('%s: %i characters is accepted, one more and 900,000 are refused', async (field, max) => {
     await assertSucceeds(place(order('s1', { [field]: text(max) })));
     await refusedOnlyFor(order('s2', { [field]: text(max + 1) }), order('s2', { [field]: text(max) }));
     await refusedOnlyFor(order('s3', { [field]: text(900000) }), order('s3'));
+  });
+
+  it('contactPhone: a plus and 15 digits is accepted, 16 digits and 900,000 characters are refused', async () => {
+    await assertSucceeds(place(order('s12', { contactPhone: '+123456789012345' })));
+    await refusedOnlyFor(order('s13', { contactPhone: '+1234567890123456' }), order('s13'));
+    await refusedOnlyFor(order('s14', { contactPhone: `+${text(900000, '9')}` }), order('s14'));
   });
 
   it('the limit counts characters, not bytes: 500 Arabic letters fit, 501 do not', async () => {
@@ -409,7 +414,7 @@ describe('every text of a new order has a length limit', () => {
           productName: text(200, 'N'),
           customerName: text(120),
           deliveryAddress: text(500),
-          contactPhone: text(30, '9'),
+          contactPhone: '+123456789012345',
           receiptFileName: text(100),
         }),
       ),

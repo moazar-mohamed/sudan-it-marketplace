@@ -148,7 +148,7 @@ const orderFor = (
   deliveryFee: DELIVERY_FEE,
   totalAmount: 100 * quantity + DELIVERY_FEE,
   deliveryAddress: 'Street',
-  contactPhone: '0911111111',
+  contactPhone: '+249911111111',
   deliveryMethod: 'delivery',
   customerName: 'Customer',
   paymentStatus: 'pending_verification',

@@ -201,7 +201,7 @@ describe('ordering and confirming a payment never change the category', () => {
     deliveryFee: 15000,
     totalAmount: 100 + 15000,
     deliveryAddress: 'Street',
-    contactPhone: '1',
+    contactPhone: '+249911111111',
     deliveryMethod: 'delivery',
     customerName: 'C',
     paymentStatus: 'pending_verification',

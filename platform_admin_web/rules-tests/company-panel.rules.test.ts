@@ -266,7 +266,7 @@ describe('cancelling an order with a note, and the refund mark', () => {
     deliveryFee: DELIVERY_FEE,
     totalAmount: 100 + DELIVERY_FEE,
     deliveryAddress: 'Street',
-    contactPhone: '0911111111',
+    contactPhone: '+249911111111',
     deliveryMethod: 'delivery',
     customerName: 'Customer',
     paymentStatus: 'pending_verification',
@@ -348,7 +348,7 @@ describe('telling the customer the company cancelled their order', () => {
   const order = (id: string, extra: Data = {}): Data => ({
     id, customerId: 'cust1', companyId: 'c1', companyName: 'Alpha Tech', productId: 'old', productName: 'Router', quantity: 1,
     unitPrice: 100, productSubtotal: 100, installationSelected: false, installationFee: 0, deliveryFee: DELIVERY_FEE,
-    totalAmount: 100 + DELIVERY_FEE, deliveryAddress: 'Street', contactPhone: '0911111111', deliveryMethod: 'delivery',
+    totalAmount: 100 + DELIVERY_FEE, deliveryAddress: 'Street', contactPhone: '+249911111111', deliveryMethod: 'delivery',
     customerName: 'Customer', paymentStatus: 'pending_verification', orderStatus: 'processing', receiptFileName: 'receipt.jpg',
     stockReserved: false, createdAt: new Date(), updatedAt: new Date(), ...extra,
   });
