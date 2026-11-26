@@ -1,9 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { EmptyState, ErrorState, Skeleton } from '../components/Bits';
 import { BusyLabel } from '../components/BusyLabel';
 import { Icon, PATHS } from '../components/Icon';
+import { JumpToLatest, useJumpToLatest } from '../components/JumpToLatest';
 import { PageTitle } from '../components/PageTitle';
 import { useAccount } from '../data/DataProvider';
 import { formatDate, formatDateTime } from '../data/format';
@@ -18,12 +19,23 @@ const timeOf = (d: Date): string => formatDateTime(d).split(' ').slice(1).join('
 function Messages({ orderId, technicianName, open }: { orderId: string; technicianName: string; open: boolean }) {
   const { messages, loaded, failed } = useTechChatMessages(orderId);
   const box = useRef<HTMLDivElement>(null);
+  const nearBottom = useRef(true);
+  const items = useMemo(() => messages.map((m) => ({ id: m.id, mine: m.senderRole === 'customer' })), [messages]);
+  const jumper = useJumpToLatest(box, items);
 
-  // The newest message stays in view.
+  // The newest message stays in view while the reader is at it (or wrote it);
+  // someone reading older ones stays where they are and gets the jump button.
   useLayoutEffect(() => {
     const el = box.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages]);
+    if (el && (nearBottom.current || items[items.length - 1]?.mine)) el.scrollTop = el.scrollHeight;
+  }, [items]);
+
+  function onScroll() {
+    const el = box.current;
+    if (!el) return;
+    nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    jumper.onScroll();
+  }
 
   if (failed) return <div className="chat-messages"><ErrorState /></div>;
   if (!loaded) return <div className="chat-messages"><Skeleton height={200} /></div>;
@@ -37,7 +49,7 @@ function Messages({ orderId, technicianName, open }: { orderId: string; technici
 
   let day = '';
   return (
-    <div className="chat-messages" ref={box} role="log" aria-label={t('الرسائل')}>
+    <div className="chat-messages" ref={box} onScroll={onScroll} role="log" aria-label={t('الرسائل')}>
       {messages.map((m) => {
         const thisDay = formatDate(m.createdAt);
         const newDay = thisDay !== day;
@@ -57,6 +69,7 @@ function Messages({ orderId, technicianName, open }: { orderId: string; technici
           </div>
         );
       })}
+      <JumpToLatest show={jumper.show} unseen={jumper.unseen} onJump={jumper.jump} />
     </div>
   );
 }

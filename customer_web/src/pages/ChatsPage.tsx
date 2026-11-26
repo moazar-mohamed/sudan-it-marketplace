@@ -3,6 +3,7 @@ import type { KeyboardEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { EmptyState, ErrorState, Skeleton } from '../components/Bits';
 import { Icon, PATHS } from '../components/Icon';
+import { JumpToLatest, useJumpToLatest } from '../components/JumpToLatest';
 import {
   activityAt,
   ChatRefused,
@@ -138,6 +139,8 @@ function Messages({ conversation }: { conversation: Conversation }) {
   const box = useRef<HTMLDivElement>(null);
   const before = useRef({ height: 0, last: '' });
   const nearBottom = useRef(true);
+  const items = useMemo(() => messages.map((m) => ({ id: m.id, mine: m.senderRole === 'customer' })), [messages]);
+  const jumper = useJumpToLatest(box, items);
 
   // Older messages keep the reader where they are; a new one follows them down.
   useLayoutEffect(() => {
@@ -159,6 +162,7 @@ function Messages({ conversation }: { conversation: Conversation }) {
     const el = box.current;
     if (!el) return;
     nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    jumper.onScroll();
     if (el.scrollTop < 160 && hasOlder) loadOlder();
   }
 
@@ -181,6 +185,7 @@ function Messages({ conversation }: { conversation: Conversation }) {
           </div>
         );
       })}
+      <JumpToLatest show={jumper.show} unseen={jumper.unseen} onJump={jumper.jump} />
     </div>
   );
 }

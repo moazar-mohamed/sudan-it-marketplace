@@ -747,4 +747,7 @@ export const EN: Record<string, string> = {
   "ماذا تبيعون أو تقدمون من خدمات؟": "What do you sell, or which services do you offer?",
   "للشركات": "For companies",
   "هل أنت شركة تقنية؟": "Are you a tech company?",
+  "العودة إلى أعلى الصفحة": "Back to the top",
+  "الانتقال إلى آخر الرسائل": "Go to the latest messages",
+  "{0} رسائل جديدة — الانتقال إلى آخر الرسائل": "{0} new messages — go to the latest",
 };
