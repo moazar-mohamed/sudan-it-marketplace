@@ -47,7 +47,7 @@ describe('getting ready before a click', () => {
   });
 
   it('every section it warms is one the stores know', () => {
-    const known = ['companies', 'customers', 'admins', 'reports', 'products', 'categories', 'services', 'companyServices', 'serviceRequests', 'reviews', 'auditLog'];
+    const known = ['companyApplications', 'companies', 'customers', 'admins', 'reports', 'products', 'categories', 'services', 'companyServices', 'serviceRequests', 'reviews', 'auditLog'];
     for (const names of Object.values(SECTION_STORES)) for (const n of names) expect(known).toContain(n);
   });
 

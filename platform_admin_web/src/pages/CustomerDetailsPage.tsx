@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AdminNotes } from '../components/AdminNotes';
 import { CustomerEditModal, useToggleCustomerActive } from '../components/CustomerActions';
 import { CustomerConvertModal } from '../components/CustomerConvertModal';
@@ -9,7 +9,8 @@ import { Card, DataGate, EmptyState, KeyValue, PageHeader, Text } from '../compo
 import { ActionGroup } from '../components/v2';
 import { cityNames, useCities } from '../data/cities';
 import { isOpenOrderStatus, isOpenRequestStatus } from '../data/convertCustomer';
-import { useCustomers, useServiceRequests } from '../data/hooks';
+import { decideApplication } from '../data/companyApplications';
+import { useCompanyApplications, useCustomers, useServiceRequests } from '../data/hooks';
 import { useOrdersOf } from '../data/orderHooks';
 import { displayPhone } from '../data/phone';
 import { useI18n } from '../i18n/I18nProvider';
@@ -41,6 +42,14 @@ export function CustomerDetails({ id, header }: { id: string; header?: (actions:
   const [converting, setConverting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
+  // Opened from a join request (?apply=1): the convert form starts from what the company sent.
+  const [params] = useSearchParams();
+  const applications = useCompanyApplications();
+  const [applyClosed, setApplyClosed] = useState(false);
+  const application =
+    params.get('apply') === '1' && !applyClosed
+      ? applications.data.find((a) => a.id === id && a.status === 'pending')
+      : undefined;
 
   const customer = customers.data.find((c) => c.id === id);
   const history = orders.orders;
@@ -84,6 +93,23 @@ export function CustomerDetails({ id, header }: { id: string; header?: (actions:
       {editing && customer && <CustomerEditModal customer={customer} onClose={() => setEditing(false)} />}
       {converting && customer && (
         <CustomerConvertModal customer={customer} openOrders={openOrders} openRequests={openRequests} onClose={() => setConverting(false)} />
+      )}
+      {!converting && customer && application && (
+        <CustomerConvertModal
+          customer={customer}
+          openOrders={openOrders}
+          openRequests={openRequests}
+          initial={{
+            name: application.companyName,
+            description: application.about,
+            city: cityNames([application.cityId], locale),
+            serviceCityIds: application.cityId ? [application.cityId] : [],
+            phone: application.phone || customer.phone,
+            registrationNumber: application.registrationNumber,
+          }}
+          onConverted={() => decideApplication(application, 'approved').catch(() => undefined)}
+          onClose={() => setApplyClosed(true)}
+        />
       )}
       {deleting && customer && (
         <CustomerDeleteModal

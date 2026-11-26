@@ -27,11 +27,17 @@ export function CustomerConvertModal({
   openOrders,
   openRequests,
   onClose,
+  initial,
+  onConverted,
 }: {
   customer: Customer;
   openOrders: Order[];
   openRequests: ServiceRequest[];
   onClose: () => void;
+  /** Values to start from (a company's join request). */
+  initial?: Partial<ConvertCompanyInput>;
+  /** Runs after the account was converted (marks the join request approved). */
+  onConverted?: () => Promise<unknown>;
 }) {
   const { t } = useI18n();
   const confirm = useConfirm();
@@ -49,6 +55,7 @@ export function CustomerConvertModal({
     logo: NO_IMAGE,
     registrationNumber: '',
     registrationDocument: null,
+    ...initial,
   });
   const [showError, setShowError] = useState(false);
   const [picking, setPicking] = useState(false);
@@ -85,7 +92,10 @@ export function CustomerConvertModal({
       () => convertCustomerToCompany(customer, form),
       t('customer.convert.done', { name: who }),
     );
-    if (done) onClose();
+    if (done) {
+      await onConverted?.();
+      onClose();
+    }
   };
 
   if (openOrders.length > 0 || openRequests.length > 0) {
@@ -124,6 +134,7 @@ export function CustomerConvertModal({
     <Modal title={t('customer.convert.title')} onClose={onClose} wide>
       <form onSubmit={onSubmit} noValidate className="form-sections">
         <p className="note">{t('customer.convert.intro')}</p>
+        {initial && <p className="note">{t('applications.fromRequest')}</p>}
         <section className="form-card">
           <h3 className="form-card__title">{t('companies.section.basic')}</h3>
           <ImagePickerField

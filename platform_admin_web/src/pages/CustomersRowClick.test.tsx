@@ -10,6 +10,7 @@ import { CustomersPage } from './CustomersPage';
 const mock = vi.hoisted(() => ({ customers: [] as unknown[], toggled: [] as string[], edited: [] as string[] }));
 
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useCustomers: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.customers as never[] }),
 }));
 vi.mock('../data/orderHooks', () => ({ useCustomerOrderCounts: () => new Map([['u1', 3]]) }));

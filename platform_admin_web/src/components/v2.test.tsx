@@ -29,7 +29,7 @@ describe('SectionTabs', () => {
   });
 
   it('shows nothing on a page whose section has no parts, or on no section at all', () => {
-    inRouter('/companies', <SectionTabs />);
+    inRouter('/customers', <SectionTabs />);
     expect(screen.queryByRole('navigation')).toBeNull();
     cleanup();
     inRouter('/design-system', <SectionTabs />);

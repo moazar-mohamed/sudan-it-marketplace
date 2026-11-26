@@ -14,6 +14,7 @@ export function useCompanies() {
 export const useCustomers = () => useStore(stores.customers);
 export const useReports = () => useStore(stores.reports);
 export const useNewReports = () => useStore(stores.newReports);
+export const useCompanyApplications = () => useStore(stores.companyApplications);
 /** The admins who are in use: the ones in the trash are left out. */
 export function useAdmins() {
   const state = useStore(stores.admins);

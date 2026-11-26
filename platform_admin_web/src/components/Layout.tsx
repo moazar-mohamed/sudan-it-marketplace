@@ -2,7 +2,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { attentionCounts, sumCounts } from '../data/attention';
-import { useNewReports } from '../data/hooks';
+import { useCompanyApplications, useNewReports } from '../data/hooks';
 import { prefetchAllPages, prefetchPath } from '../data/prefetch';
 import { useCitiesSync } from '../data/useCitiesSync';
 import { DashboardProvider } from '../data/DashboardProvider';
@@ -112,6 +112,7 @@ function Shell() {
 
   // How many records each section has that need attention (see the dashboard).
   const newReports = newReportsNow;
+  const applications = useCompanyApplications();
   const found = snapshot ? attentionCounts(snapshot) : null;
   const badges: Record<string, number | null | undefined> = found
     ? {
@@ -123,6 +124,9 @@ function Shell() {
     : {};
   // New reports are counted on their own: a short live list of only the ones nobody has started on.
   if (newReports.status === 'ready' && newReports.data.length > 0) badges['/reports'] = newReports.data.length;
+  // Join requests still waiting for a decision.
+  const waitingApplications = applications.data.filter((a) => a.status === 'pending').length;
+  if (applications.status === 'ready' && waitingApplications > 0) badges['/applications'] = waitingApplications;
 
   // Something in the menu that is not in the bottom bar is "current" under More.
   const currentSection = sectionOfPath(pathname);

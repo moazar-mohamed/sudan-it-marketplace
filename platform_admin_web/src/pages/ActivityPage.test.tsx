@@ -11,6 +11,7 @@ type Status = 'loading' | 'ready' | 'error';
 const mock = vi.hoisted(() => ({ log: { status: 'ready', data: [] } as { status: Status; data: unknown[] } }));
 
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useAuditLog: () => ({ error: null, retry: () => undefined, ...mock.log }),
 }));
 

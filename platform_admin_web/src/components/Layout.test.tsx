@@ -24,6 +24,7 @@ vi.mock('../data/platformNotices', () => ({ usePlatformNotices: () => [], markPl
 // A pressed browser push and this browser's push address are tested on their own.
 vi.mock('../data/webPush', () => ({ listenForPushOpens: () => () => undefined, refreshPush: async () => undefined }));
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useNewReports: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.newReports }),
 }));
 vi.mock('../i18n/useChangeLanguage', () => ({ useChangeLanguage: () => () => undefined }));

@@ -22,6 +22,7 @@ vi.mock('../data/platformNotices', () => ({
   platformNoticeTarget: (n: { type: string }) => (n.type === 'new_report' ? '/reports' : '/reviews?attention=low'),
 }));
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useNewReports: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.newReports }),
 }));
 vi.mock('../data/useDashboard', () => ({
