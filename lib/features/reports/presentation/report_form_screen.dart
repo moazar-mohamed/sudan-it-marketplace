@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/l10n_extension.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/app_widgets.dart';
+import '../../customer_dashboard/presentation/site/site_detail_parts.dart';
+import '../../customer_dashboard/presentation/site/site_look.dart';
+import '../../customer_dashboard/presentation/site/site_orders.dart';
 import '../domain/report.dart';
 import 'report_labels.dart';
 import 'reports_providers.dart';
@@ -60,35 +62,46 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colors = context.colors;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.reportFormTitle)),
-      body: Form(
-        key: _formKey,
-        child: AppCenteredList(
+    // Laid out as sictm.net's «الإبلاغ عن مشكلة» (`pages/ReportsPages.tsx`).
+    final blocks = <Widget>[
+      SitePageTitle(l10n.reportFormTitle),
+      SiteTile(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               l10n.reportIntro,
-              style: AppTextStyles.body.copyWith(color: colors.textSecondary),
+              style: AppTextStyles.body.copyWith(
+                height: 1.6,
+                color: colors.textSecondary,
+              ),
             ),
-            const SizedBox(height: AppSpacing.s16),
-            Text(l10n.reportReasonLabel, style: AppTextStyles.bodyStrong),
-            const SizedBox(height: AppSpacing.s8),
+            const SizedBox(height: 16),
+            SiteTileTitle(l10n.reportReasonLabel),
+            const SizedBox(height: 10),
             Wrap(
-              spacing: AppSpacing.s8,
-              runSpacing: AppSpacing.s8,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 for (final reason in ReportReason.values)
-                  ChoiceChip(
+                  SiteChip(
                     key: ValueKey('report-reason-${reason.value}'),
-                    label: Text(reportReasonLabel(context, reason)),
+                    label: reportReasonLabel(context, reason),
                     selected: _reason == reason,
-                    onSelected: _submitting
-                        ? null
-                        : (_) => setState(() => _reason = reason),
+                    small: true,
+                    onTap: () {
+                      if (!_submitting) setState(() => _reason = reason);
+                    },
                   ),
               ],
             ),
-            const SizedBox(height: AppSpacing.s16),
+          ],
+        ),
+      ),
+      SiteTile(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             AppTextField(
               key: const ValueKey('report-subject'),
               label: l10n.reportSubjectLabel,
@@ -100,7 +113,7 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
                   ? l10n.reportSubjectRequired
                   : null,
             ),
-            const SizedBox(height: AppSpacing.s12),
+            const SizedBox(height: 12),
             AppTextField(
               key: const ValueKey('report-details'),
               label: l10n.reportDetailsLabel,
@@ -114,7 +127,7 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
                   ? l10n.reportDetailsRequired
                   : null,
             ),
-            const SizedBox(height: AppSpacing.s12),
+            const SizedBox(height: 12),
             AppTextField(
               key: const ValueKey('report-order'),
               label: l10n.reportOrderLabel,
@@ -123,13 +136,37 @@ class _ReportFormScreenState extends ConsumerState<ReportFormScreen> {
               optional: true,
               textInputAction: TextInputAction.done,
             ),
-            const SizedBox(height: AppSpacing.s24),
-            AppButton.primary(
-              key: const ValueKey('report-submit'),
-              label: l10n.reportSubmit,
-              loading: _submitting,
-              expand: true,
-              onPressed: _submit,
+          ],
+        ),
+      ),
+      AppButton.primary(
+        key: const ValueKey('report-submit'),
+        label: l10n.reportSubmit,
+        loading: _submitting,
+        expand: true,
+        onPressed: _submit,
+      ),
+    ];
+    return Scaffold(
+      appBar: AppBar(),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 48),
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < blocks.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 16),
+                      blocks[i],
+                    ],
+                  ],
+                ),
+              ),
             ),
           ],
         ),
