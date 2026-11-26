@@ -24,6 +24,7 @@ import '../../products/presentation/product_details_screen.dart';
 import '../../services/presentation/service_details_screen.dart';
 import 'marketplace_search.dart';
 import 'recent_searches.dart';
+import '../../../core/widgets/back_to_top.dart';
 
 /// The customer's search: recent searches and categories while empty,
 /// suggestions while typing, and after a search every matching product,
@@ -178,7 +179,7 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
               onOpen: _openSuggestion,
               onCategory: _openCategory,
             )
-          : _ResultsView(
+          : BackToTop(child: _ResultsView(
               query: submitted,
               scope: _scope,
               onScope: (scope) => setState(() => _scope = scope),
@@ -188,7 +189,7 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
               inStockOnly: _inStockOnly,
               onSort: (sort) => setState(() => _sort = sort),
               onInStockOnly: (value) => setState(() => _inStockOnly = value),
-            ),
+            )),
     );
   }
 }

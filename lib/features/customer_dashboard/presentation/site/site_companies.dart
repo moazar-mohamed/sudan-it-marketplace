@@ -23,6 +23,7 @@ import '../widgets/home_service_view.dart';
 import 'site_browse.dart';
 import 'site_cards.dart';
 import 'site_look.dart';
+import '../../../../core/widgets/back_to_top.dart';
 
 /// How the site orders companies (`CompanySort`).
 enum SiteCompanySort { topRated, mostReviewed, name }
@@ -158,7 +159,7 @@ class _SiteCompaniesPageState extends ConsumerState<SiteCompaniesPage> {
       SiteCompanySort.name => l10n.siteSortName,
     };
 
-    return ListView(
+    return BackToTop(child: ListView(
       key: const ValueKey('site-companies'),
       primary: false,
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
@@ -277,6 +278,6 @@ class _SiteCompaniesPageState extends ConsumerState<SiteCompaniesPage> {
             ),
           ],
       ],
-    );
+    ));
   }
 }

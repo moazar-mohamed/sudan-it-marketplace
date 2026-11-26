@@ -25,6 +25,7 @@ import '../category_counts_provider.dart';
 import '../widgets/home_service_view.dart';
 import 'site_cards.dart';
 import 'site_look.dart';
+import '../../../../core/widgets/back_to_top.dart';
 
 /// Which tab of the site's browse page: products or services.
 enum SiteBrowseKind { products, services }
@@ -815,7 +816,7 @@ class _Page extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return BackToTop(child: ListView(
       primary: false,
       padding: const EdgeInsets.only(top: 20, bottom: 32),
       children: [
@@ -829,7 +830,7 @@ class _Page extends StatelessWidget {
           ),
         ),
       ],
-    );
+    ));
   }
 }
 

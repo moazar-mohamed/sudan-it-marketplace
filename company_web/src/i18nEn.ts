@@ -962,4 +962,6 @@ export const EN: Record<string, string> = {
   "تواصل معنا عبر واتساب لتسجيل شركتك": "Contact us on WhatsApp to register your company",
   "العودة إلى sictm.net": "Back to sictm.net",
   "مرحباً، أريد تسجيل شركتي في سوق السودان للتقنية (sictm.net).": "Hello, I'd like to register my company on Sudan ICT Marketplace (sictm.net).",
+  "الانتقال إلى آخر الرسائل": "Go to the latest messages",
+  "{0} رسائل جديدة — الانتقال إلى آخر الرسائل": "{0} new messages — go to the latest",
 };

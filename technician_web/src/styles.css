@@ -355,3 +355,11 @@ a.card { display: block; }
 .check span { font-size: 15px; font-weight: 600; line-height: 1.5; }
 .meter { flex: 1; height: 8px; border-radius: 4px; background: var(--soft); overflow: hidden; }
 .meter span { display: block; height: 8px; background: var(--action); border-radius: 4px; transition: width 0.2s; }
+
+/* Jump to the latest messages: pinned to the bottom of the message list, taking no room. */
+.jump-latest-anchor { position: sticky; bottom: 0; height: 0; margin-top: -8px; align-self: stretch; z-index: 2; }
+.jump-latest { position: absolute; inset-inline-end: 0; bottom: 6px; width: 44px; height: 44px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--brand); box-shadow: 0 8px 22px rgba(11, 29, 58, 0.22); display: grid; place-items: center; cursor: pointer; opacity: 0; transform: translateY(12px) scale(0.85); pointer-events: none; transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.jump-latest.on { opacity: 1; transform: none; pointer-events: auto; }
+.jump-latest:focus-visible { outline: 3px solid var(--action); outline-offset: 3px; }
+.jump-count { position: absolute; top: -6px; inset-inline-start: -6px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--action); color: #fff; font-size: 12px; font-weight: 800; line-height: 22px; text-align: center; box-shadow: 0 0 0 2px var(--surface); }
+@media (prefers-reduced-motion: reduce) { .jump-latest { transition: none; } }

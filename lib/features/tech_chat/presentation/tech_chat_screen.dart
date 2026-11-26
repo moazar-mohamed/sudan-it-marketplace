@@ -19,6 +19,7 @@ import '../../orders/domain/entities/order_entity.dart';
 import '../../orders/presentation/orders_providers.dart';
 import '../domain/tech_chat.dart';
 import 'tech_chat_providers.dart';
+import '../../../core/widgets/jump_to_latest.dart';
 
 /// True while the customer and the technician may still write (the rules
 /// close the conversation once the order is completed or cancelled).
@@ -202,7 +203,7 @@ class _TechChatScreenState extends ConsumerState<TechChatScreen> {
                   );
                 }
                 final newestFirst = messages.reversed.toList();
-                return ListView.builder(
+                return JumpToLatest(items: [for (final m in messages) (id: m.id, mine: writes && m.senderRole == widget.viewer.role)], child: ListView.builder(
                   reverse: true,
                   padding: const EdgeInsets.all(AppSpacing.s12),
                   itemCount: newestFirst.length,
@@ -239,7 +240,7 @@ class _TechChatScreenState extends ConsumerState<TechChatScreen> {
                           older.senderRole != message.senderRole,
                     );
                   },
-                );
+                ));
               },
             ),
           ),

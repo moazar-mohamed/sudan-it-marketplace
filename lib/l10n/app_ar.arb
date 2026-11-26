@@ -1530,5 +1530,8 @@
   "siteTermsGateSub": "للمتابعة، اقرأ الشروط والأحكام ووافق عليها.",
   "siteTermsGateCheck": "قرأت الشروط والأحكام وأوافق عليها",
   "siteTermsGateAccept": "أوافق وأتابع",
-  "siteTermsGateFailed": "تعذر حفظ موافقتك. تحقق من اتصالك وحاول مرة أخرى."
+  "siteTermsGateFailed": "تعذر حفظ موافقتك. تحقق من اتصالك وحاول مرة أخرى.",
+  "backToTop": "العودة إلى أعلى الصفحة",
+  "jumpToLatest": "الانتقال إلى آخر الرسائل",
+  "jumpToLatestNew": "{count} رسائل جديدة، الانتقال إلى آخر الرسائل"
 }

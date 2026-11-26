@@ -18,6 +18,7 @@ import 'chat_actions.dart';
 import 'chat_format.dart';
 import 'chat_providers.dart';
 import 'widgets/message_bubble.dart';
+import '../../../core/widgets/jump_to_latest.dart';
 
 /// The realtime text conversation of one service request, order or question
 /// asked before ordering, seen by the customer or by the company ([role]).
@@ -322,7 +323,7 @@ class _MessagesList extends ConsumerWidget {
         }
         // Newest at the bottom; the list is reversed so it opens there.
         final newestFirst = messages.reversed.toList();
-        return ListView.builder(
+        return JumpToLatest(items: [for (final m in messages) (id: m.id, mine: m.senderRole == viewerRole)], child: ListView.builder(
           reverse: true,
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.s12,
@@ -348,7 +349,7 @@ class _MessagesList extends ConsumerWidget {
                   : null,
             );
           },
-        );
+        ));
       },
     );
   }

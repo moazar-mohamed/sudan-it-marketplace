@@ -17,6 +17,7 @@ import '../domain/entities/company.dart';
 import '../../../core/localization/l10n_extension.dart';
 import '../../reviews/domain/review.dart';
 import '../../reviews/presentation/reviews_providers.dart';
+import '../../../core/widgets/back_to_top.dart';
 
 /// A company's page as on sictm.net (`pages/CompanyPage.tsx`): a tile with
 /// the logo, the name, the stars, the address, the phone, «عرض على الخريطة»
@@ -62,7 +63,7 @@ class CompanyDetailsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(),
-      body: SingleChildScrollView(
+      body: BackToTop(child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 48),
         child: Center(
           child: ConstrainedBox(
@@ -186,7 +187,7 @@ class CompanyDetailsScreen extends ConsumerWidget {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 }

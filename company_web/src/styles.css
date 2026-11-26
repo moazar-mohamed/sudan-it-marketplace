@@ -308,3 +308,12 @@ textarea.inp{height:auto;padding:10px 12px;resize:vertical}
 .msg.out{background:var(--brand)}
 .switch.on{background:var(--action)}
 .bars div,.prog i{background:var(--action)}
+
+/* Jump to the latest messages: pinned to the bottom of the message box, taking no room. */
+.msgs { position: relative; }
+.jump-latest-anchor { position: sticky; bottom: 0; height: 0; margin-top: -10px; align-self: stretch; z-index: 2; }
+.jump-latest { position: absolute; inset-inline-end: 0; bottom: 6px; width: 40px; height: 40px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--brand); box-shadow: 0 8px 22px rgba(6, 24, 51, 0.2); display: grid; place-items: center; cursor: pointer; opacity: 0; transform: translateY(12px) scale(0.85); pointer-events: none; transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.jump-latest.on { opacity: 1; transform: none; pointer-events: auto; }
+.jump-latest:focus-visible { outline: 3px solid var(--action); outline-offset: 3px; }
+.jump-count { position: absolute; top: -6px; inset-inline-start: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--action); color: #fff; font-size: 11px; font-weight: 800; line-height: 20px; text-align: center; box-shadow: 0 0 0 2px var(--surface); }
+@media (prefers-reduced-motion: reduce) { .jump-latest { transition: none; } }
