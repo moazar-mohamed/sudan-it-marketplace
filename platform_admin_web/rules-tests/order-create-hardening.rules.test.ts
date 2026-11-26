@@ -442,8 +442,17 @@ describe('the texts written later have limits too', () => {
     await assertSucceeds(attach({ receiptFileName: text(100), updatedAt: serverTimestamp() }));
   });
 
-  it('a technician name of 120 characters is accepted, 121 refused', async () => {
+  it('the technician name is the one on their record (ORD-8), up to 120 characters', async () => {
+    await assertFails(assign({ technicianId: 't1', technicianName: 'Someone Else' }));
     await assertFails(assign({ technicianId: 't1', technicianName: text(121) }));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'technicians/t1'), { fullName: text(121) });
+    });
+    // Even the record's own name is refused past 120 characters.
+    await assertFails(assign({ technicianId: 't1', technicianName: text(121) }));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'technicians/t1'), { fullName: text(120) });
+    });
     await assertSucceeds(assign({ technicianId: 't1', technicianName: text(120) }));
   });
 

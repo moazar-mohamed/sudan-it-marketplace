@@ -1287,7 +1287,11 @@ service cloud.firestore {
         // order and must currently be active, even if a tampered client
         // sends a different technicianId.
         && assignedTechnician(request.resource.data.technicianId).companyId == resource.data.companyId
-        && assignedTechnician(request.resource.data.technicianId).isActive == true;
+        && assignedTechnician(request.resource.data.technicianId).isActive == true
+        // The name the customer reads on the order is the technician's own,
+        // as their record holds it when they are assigned (ORD-8).
+        && request.resource.data.technicianName
+          == assignedTechnician(request.resource.data.technicianId).get('fullName', '');
     }
 
     // Company admins may only move an order forward through
