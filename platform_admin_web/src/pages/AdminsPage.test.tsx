@@ -15,6 +15,7 @@ vi.mock('../auth/AuthProvider', () => ({
   useAuth: () => ({ state: { status: 'authorized', profile: { uid: 'me', fullName: 'Mona', email: 'm@x.test' } } }),
 }));
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useAdmins: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.admins as never[] }),
 }));
 vi.mock('../data/actions', () => ({

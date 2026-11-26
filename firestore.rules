@@ -2700,6 +2700,81 @@ service cloud.firestore {
         && data.updatedAt == request.time;
     }
 
+    // A company asks to join the platform (company_applications/{uid}). The
+    // person sends it from their own verified customer account, one request
+    // per account (the id is their uid). Platform Admin reviews it: approving
+    // means turning that same account into the company's admin
+    // (isPlatformAdminCustomerToCompanyAdmin), then marking the request
+    // approved; rejecting gives a reason the sender reads. After a rejection
+    // the sender may correct and send it again.
+    function isValidCompanyApplicationData(applicationId) {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['id', 'applicantId', 'applicantEmail', 'companyName', 'contactName',
+          'phone', 'cityId', 'registrationNumber', 'about', 'status', 'decisionNote', 'createdAt', 'updatedAt'])
+        && data.keys().hasAll(['id', 'applicantId', 'applicantEmail', 'companyName', 'contactName',
+          'phone', 'cityId', 'registrationNumber', 'about', 'status', 'decisionNote', 'createdAt', 'updatedAt'])
+        && applicationId == request.auth.uid
+        && data.id == applicationId
+        && data.applicantId == request.auth.uid
+        && data.applicantEmail == request.auth.token.email
+        && data.companyName is string
+        && data.companyName.trim().size() >= 2
+        && data.companyName.size() <= 120
+        && data.contactName is string
+        && data.contactName.trim().size() > 0
+        && data.contactName.size() <= 120
+        && data.phone is string
+        && data.phone.matches('[+][0-9]{7,15}')
+        && data.cityId is string
+        && data.cityId in validCityIds()
+        && data.registrationNumber is string
+        && data.registrationNumber.trim().size() > 0
+        && data.registrationNumber.size() <= 60
+        && data.about is string
+        && data.about.size() <= 500
+        && data.status == 'pending'
+        && data.decisionNote == ''
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    function isPlatformAdminApplicationDecision() {
+      let data = request.resource.data;
+      return isPlatformAdmin()
+        && resource.data.status == 'pending'
+        && data.diff(resource.data).affectedKeys().hasOnly(['status', 'decisionNote', 'decidedAt', 'updatedAt'])
+        && data.status in ['approved', 'rejected']
+        && data.decisionNote is string
+        && data.decisionNote.size() <= 500
+        // A rejection always says why, so the sender knows what to correct.
+        && (data.status == 'approved' || data.decisionNote.trim().size() > 0)
+        && data.decidedAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    match /company_applications/{applicationId} {
+      // The sender reads their own (also before it exists, by its id), and
+      // Platform Admin reads them all.
+      allow get: if isSignedIn()
+        && (applicationId == request.auth.uid || isPlatformAdmin());
+      allow list: if isPlatformAdmin();
+
+      allow create: if isSignedIn()
+        && isActiveCustomer()
+        && request.auth.token.email_verified == true
+        && isValidCompanyApplicationData(applicationId);
+
+      allow update: if isSignedIn()
+        && ((isActiveCustomer()
+            && request.auth.token.email_verified == true
+            && resource.data.applicantId == request.auth.uid
+            && resource.data.status == 'rejected'
+            && isValidCompanyApplicationData(applicationId))
+          || isPlatformAdminApplicationDecision());
+
+      allow delete: if false;
+    }
+
     match /reports/{reportId} {
       allow get, list: if isPlatformAdmin()
         || (isSignedIn() && resource.data.reporterId == request.auth.uid);

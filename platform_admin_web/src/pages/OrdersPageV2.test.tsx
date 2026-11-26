@@ -12,6 +12,7 @@ import { OrdersPage } from './OrdersPage';
 const mock = vi.hoisted(() => ({ paged: null as unknown }));
 
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useCompanies: () => ({
     status: 'ready',
     error: null,

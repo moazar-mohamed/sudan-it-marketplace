@@ -12,6 +12,7 @@ import { ReportsPage } from './ReportsPage';
 const mock = vi.hoisted(() => ({ reports: [] as unknown[] }));
 
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useReports: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.reports as never[] }),
 }));
 vi.mock('../data/actions', () => ({ setReportStatus: vi.fn() }));

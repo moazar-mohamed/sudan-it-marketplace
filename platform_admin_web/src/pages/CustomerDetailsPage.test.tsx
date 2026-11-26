@@ -17,6 +17,7 @@ const mock = vi.hoisted(() => ({
 const ready = (data: unknown[]) => ({ status: 'ready', error: null, retry: () => undefined, data: data as never[] });
 
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useCustomers: () => ready(mock.customers),
   useServiceRequests: () => ready(mock.requests),
 }));

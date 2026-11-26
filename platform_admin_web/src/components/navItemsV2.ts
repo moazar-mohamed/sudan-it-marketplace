@@ -35,7 +35,17 @@ export const NAV_V2_MAIN: NavV2Section[] = [
       { to: '/service-requests', key: 'nav.serviceRequests' },
     ],
   },
-  { id: 'companies', to: '/companies', key: 'nav.companies', icon: 'companies', match: ['/companies'] },
+  {
+    id: 'companies',
+    to: '/companies',
+    key: 'nav.companies',
+    icon: 'companies',
+    match: ['/companies', '/applications'],
+    children: [
+      { to: '/companies', key: 'nav.companies' },
+      { to: '/applications', key: 'nav.applications' },
+    ],
+  },
   {
     id: 'catalog',
     to: '/products',

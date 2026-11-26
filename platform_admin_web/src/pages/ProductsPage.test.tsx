@@ -12,6 +12,7 @@ import { ProductsPage } from './ProductsPage';
 const mock = vi.hoisted(() => ({ products: [] as unknown[] }));
 
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useProducts: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.products as never[] }),
 }));
 vi.mock('../data/actions', () => ({ setProductHidden: vi.fn(), endProductOffer: vi.fn() }));

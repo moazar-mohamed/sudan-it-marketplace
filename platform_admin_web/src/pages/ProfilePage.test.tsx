@@ -25,6 +25,7 @@ vi.mock('../firebase', () => ({
   auth: { currentUser: { metadata: { creationTime: '2026-01-05T10:00:00Z', lastSignInTime: '2026-10-03T08:00:00Z' } } },
 }));
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useAdmins: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.admins as never[] }),
 }));
 vi.mock('../auth/changePassword', async (original) => ({

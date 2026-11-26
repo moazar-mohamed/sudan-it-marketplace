@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { resetOrderCaches } from './orderQueries';
+import { mapCompanyApplication, type CompanyApplication } from './companyApplications';
 import {
   mapAuditEntry,
   mapCategory,
@@ -142,6 +143,8 @@ export const stores = {
     mapPlatformAdmin,
     newestFirst,
   ),
+  // Companies asking to join, for the Join requests page and its badge (a short list).
+  companyApplications: new LiveCollection<CompanyApplication>(() => collection(db, 'company_applications'), mapCompanyApplication, newestFirst),
   // Every report, for the Reports page.
   reports: new LiveCollection<Report>(() => collection(db, 'reports'), mapReport, newestFirst),
   // Only the ones nobody has started on: the sidebar badge (a handful of documents).

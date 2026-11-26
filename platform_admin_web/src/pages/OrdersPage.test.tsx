@@ -24,6 +24,7 @@ const mock = vi.hoisted(() => ({
 }));
 
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useCompanies: () => ({ status: 'ready', error: null, retry: () => undefined, data: [mapCompany('c1', { name: 'Nile Co' }), mapCompany('c2', { name: 'Blue Co' })] }),
 }));
 vi.mock('../data/orderHooks', () => ({

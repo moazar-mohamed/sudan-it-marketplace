@@ -21,6 +21,7 @@ vi.mock('../auth/AuthProvider', () => ({
 const category = (id: string, nameEn: string, parentId: string | null, sortOrder: number): Category =>
   ({ id, name: nameEn, nameAr: nameEn, nameEn, parentId, ancestorIds: [], deletionPending: false, sortOrder, description: '', iconName: '', isActive: true }) as unknown as Category;
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useCategories: () => ({
     status: 'ready',
     error: null,

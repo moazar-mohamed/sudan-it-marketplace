@@ -10,6 +10,7 @@ import { ServiceRequestsPage } from './ServiceRequestsPage';
 const mock = vi.hoisted(() => ({ requests: [] as unknown[] }));
 
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useServiceRequests: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.requests as never[] }),
 }));
 vi.mock('../data/useNow', () => ({ useNow: () => Date.now() }));

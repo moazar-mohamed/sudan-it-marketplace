@@ -31,6 +31,7 @@ const ProductDetailsPage = page(() => import('./pages/ProductDetailsPage'), 'Pro
 const ProductsPage = page(() => import('./pages/ProductsPage'), 'ProductsPage');
 const ProfilePage = page(() => import('./pages/ProfilePage'), 'ProfilePage');
 const ReportsPage = page(() => import('./pages/ReportsPage'), 'ReportsPage');
+const CompanyApplicationsPage = page(() => import('./pages/CompanyApplicationsPage'), 'CompanyApplicationsPage');
 const ReviewsPage = page(() => import('./pages/ReviewsPage'), 'ReviewsPage');
 const TrashPage = page(() => import('./pages/TrashPage'), 'TrashPage');
 const NotificationsPage = page(() => import('./pages/NotificationsPage'), 'NotificationsPage');
@@ -72,6 +73,7 @@ export function App() {
         <Route path="service-requests/:id" element={<ServiceRequestDetailsPage />} />
         <Route path="offers" element={<OffersPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="applications" element={<CompanyApplicationsPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="cities" element={<CitiesPage />} />
         <Route path="terms" element={<TermsPage />} />

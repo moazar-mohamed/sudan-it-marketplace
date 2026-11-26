@@ -11,6 +11,7 @@ import { ReviewsPage } from './ReviewsPage';
 const mock = vi.hoisted(() => ({ reviews: [] as unknown[] }));
 
 vi.mock('../data/hooks', () => ({
+  useCompanyApplications: () => ({ status: 'ready', error: null, retry: () => undefined, data: [] }),
   useReviews: () => ({ status: 'ready', error: null, retry: () => undefined, data: mock.reviews }),
 }));
 vi.mock('../data/actions', () => ({ setReviewHidden: vi.fn().mockResolvedValue(undefined) }));
