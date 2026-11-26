@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -11,6 +11,7 @@ import { useJob, useTechData } from '../data/TechData';
 import { MESSAGE_MAX, type ChatKind, type ChatMessage, type JobChat } from '../data/types';
 import { t } from '../i18n';
 import { Icon } from '../ui/Icon';
+import { JumpToLatest, useChatScroll } from '../ui/JumpToLatest';
 import { BackButton, Loading, OfflineStrip, StatusBadge } from '../ui/kit';
 import { useToast } from '../ui/toast';
 
@@ -72,10 +73,8 @@ export default function ChatPage({ kind = 'company' }: { kind?: ChatKind }) {
     if (id && exists && lastFromOther) markChatRead(id, kind);
   }, [id, exists, lastAt, lastFromOther, kind]);
 
-  useLayoutEffect(() => {
-    const el = listRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages?.length]);
+  const items = useMemo(() => (messages ?? []).map((m) => ({ id: m.id, mine: m.senderRole === 'technician' })), [messages]);
+  const scroll = useChatScroll(listRef, items);
 
   const send = async (value: string) => {
     if (!job || !value.trim()) return;
@@ -145,7 +144,7 @@ export default function ChatPage({ kind = 'company' }: { kind?: ChatKind }) {
         </span>
         <StatusBadge job={job} short />
       </Link>
-      <main ref={listRef} aria-label={t('الرسائل')} aria-live="polite" className="scroll" style={{ padding: '14px 14px 8px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <main ref={listRef} onScroll={scroll.onScroll} aria-label={t('الرسائل')} aria-live="polite" className="scroll" style={{ padding: '14px 14px 8px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <p style={{ alignSelf: 'center', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--muted)', background: 'var(--surface)', borderRadius: 999, padding: '4px 12px' }}>
           <Icon name={forCustomer ? 'info' : 'lock'} small />
           {forCustomer ? t('الشركة تطّلع على هذه المحادثة، ولا تظهر فيها أرقام الهواتف') : t('بينك وبين الشركة فقط، العميل لا يراها')}
@@ -178,6 +177,7 @@ export default function ChatPage({ kind = 'company' }: { kind?: ChatKind }) {
             </div>
           );
         })}
+        <JumpToLatest show={scroll.show} unseen={scroll.unseen} onJump={scroll.jump} />
       </main>
       {!writable && (
         <div className="strip soft" style={{ flex: 'none', margin: 0, borderRadius: 0 }}>

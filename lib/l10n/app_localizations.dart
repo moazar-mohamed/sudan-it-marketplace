@@ -8339,6 +8339,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not save your acceptance. Check your connection and try again.'**
   String get siteTermsGateFailed;
+
+  /// No description provided for @backToTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the top'**
+  String get backToTop;
+
+  /// No description provided for @jumpToLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to the latest messages'**
+  String get jumpToLatest;
+
+  /// No description provided for @jumpToLatestNew.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} new messages, go to the latest'**
+  String jumpToLatestNew(int count);
 }
 
 class _AppLocalizationsDelegate

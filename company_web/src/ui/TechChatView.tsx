@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { collection, doc, limitToLast, onSnapshot, orderBy, query, type DocumentData } from 'firebase/firestore';
 import { dayTime } from '../data/format';
 import type { Order } from '../data/types';
 import { db } from '../firebase';
 import { t } from '../i18n';
+import { JumpToLatest, useChatScroll } from './JumpToLatest';
 import { Chip, Spinner } from './kit';
 
 interface Line {
@@ -35,6 +36,9 @@ export function TechChatView({ order }: { order: Order }) {
   const [last, setLast] = useState<{ text: string; at: Date | null; fromTechnician: boolean } | null | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [lines, setLines] = useState<Line[] | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const items = useMemo(() => (lines ?? []).map((m) => ({ id: m.id, mine: false })), [lines]);
+  const scroll = useChatScroll(box, items);
 
   useEffect(
     () =>
@@ -81,7 +85,7 @@ export function TechChatView({ order }: { order: Order }) {
               </p>
             )}
             {open && (
-              <div className="msgs" aria-live="polite">
+              <div className="msgs" ref={box} onScroll={scroll.onScroll} aria-live="polite">
                 {lines === null && <Spinner />}
                 {lines?.map((m) => (
                   <div key={m.id} className={`msg ${m.fromTechnician ? 'out' : 'in'}`}>
@@ -89,6 +93,7 @@ export function TechChatView({ order }: { order: Order }) {
                     {m.text}
                   </div>
                 ))}
+                <JumpToLatest show={scroll.show} unseen={scroll.unseen} onJump={scroll.jump} />
               </div>
             )}
             <button type="button" className="btn sm" onClick={() => setOpen(!open)}>

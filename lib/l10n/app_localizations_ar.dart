@@ -4877,4 +4877,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get siteTermsGateFailed =>
       'تعذر حفظ موافقتك. تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get backToTop => 'العودة إلى أعلى الصفحة';
+
+  @override
+  String get jumpToLatest => 'الانتقال إلى آخر الرسائل';
+
+  @override
+  String jumpToLatestNew(int count) {
+    return '$count رسائل جديدة، الانتقال إلى آخر الرسائل';
+  }
 }

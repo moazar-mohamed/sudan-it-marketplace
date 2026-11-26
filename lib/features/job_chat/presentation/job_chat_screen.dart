@@ -17,6 +17,7 @@ import '../../chats/presentation/chat_providers.dart';
 import '../../chats/presentation/widgets/message_bubble.dart';
 import '../domain/job_chat.dart';
 import 'job_chat_providers.dart';
+import '../../../core/widgets/jump_to_latest.dart';
 
 /// The conversation between a job's technician and its company. The customer
 /// never sees it. [role] says which side the viewer speaks for.
@@ -185,7 +186,7 @@ class _JobChatScreenState extends ConsumerState<JobChatScreen> {
                   );
                 }
                 final newestFirst = messages.reversed.toList();
-                return ListView.builder(
+                return JumpToLatest(items: [for (final m in messages) (id: m.id, mine: m.senderRole == widget.role)], child: ListView.builder(
                   reverse: true,
                   padding: const EdgeInsets.all(AppSpacing.s12),
                   itemCount: newestFirst.length,
@@ -215,7 +216,7 @@ class _JobChatScreenState extends ConsumerState<JobChatScreen> {
                           older.senderRole != message.senderRole,
                     );
                   },
-                );
+                ));
               },
             ),
           ),

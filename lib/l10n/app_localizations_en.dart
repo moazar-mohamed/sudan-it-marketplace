@@ -4874,4 +4874,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get siteTermsGateFailed =>
       'Could not save your acceptance. Check your connection and try again.';
+
+  @override
+  String get backToTop => 'Back to the top';
+
+  @override
+  String get jumpToLatest => 'Go to the latest messages';
+
+  @override
+  String jumpToLatestNew(int count) {
+    return '$count new messages, go to the latest';
+  }
 }

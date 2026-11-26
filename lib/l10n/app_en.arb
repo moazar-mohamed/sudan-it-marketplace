@@ -2439,5 +2439,13 @@
   "siteTermsGateSub": "To continue, read the terms and conditions and accept them.",
   "siteTermsGateCheck": "I have read the terms and conditions and I accept them",
   "siteTermsGateAccept": "I accept and continue",
-  "siteTermsGateFailed": "Could not save your acceptance. Check your connection and try again."
+  "siteTermsGateFailed": "Could not save your acceptance. Check your connection and try again.",
+  "backToTop": "Back to the top",
+  "jumpToLatest": "Go to the latest messages",
+  "jumpToLatestNew": "{count} new messages, go to the latest",
+  "@jumpToLatestNew": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
 }

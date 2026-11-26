@@ -347,4 +347,6 @@ export const EN: Record<string, string> = {
   'تفعيل إشعارات المتصفح': 'Turn on browser notifications',
   'فعّل الإشعارات على موبايلك': 'Turn on notifications on your phone',
   'تصلك حتى والصفحة مغلقة: مهمة جديدة، تأكيد دفع، رسالة': 'They reach you even with the page closed: a new job, a payment confirmation, a message',
+  "الانتقال إلى آخر الرسائل": "Go to the latest messages",
+  "{0} رسائل جديدة — الانتقال إلى آخر الرسائل": "{0} new messages — go to the latest",
 };

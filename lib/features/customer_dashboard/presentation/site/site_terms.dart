@@ -10,6 +10,7 @@ import 'site_auth.dart';
 import 'site_detail_parts.dart';
 import 'site_look.dart';
 import 'site_orders.dart';
+import '../../../../core/widgets/back_to_top.dart';
 
 /// The terms and conditions Platform Admin published (platform_settings/terms),
 /// as sictm.net reads them (`data/terms.ts`).
@@ -87,7 +88,7 @@ class SiteTermsPage extends ConsumerWidget {
     final language = Localizations.localeOf(context).languageCode;
     return Scaffold(
       appBar: AppBar(),
-      body: ListView(
+      body: BackToTop(child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 48),
         children: [
           SitePageTitle(l10n.siteFooterTerms),
@@ -126,7 +127,7 @@ class SiteTermsPage extends ConsumerWidget {
               ),
             ),
         ],
-      ),
+      )),
     );
   }
 }

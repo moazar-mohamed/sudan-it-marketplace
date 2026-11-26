@@ -28,6 +28,7 @@ import '../../usage/presentation/usage_providers.dart';
 import '../../../core/localization/l10n_extension.dart';
 import '../../reviews/domain/review.dart';
 import '../../reviews/presentation/reviews_providers.dart';
+import '../../../core/widgets/back_to_top.dart';
 
 /// A product's page, laid out as sictm.net's (`pages/ProductPage.tsx` on a
 /// phone): the path, the pictures, stock, name and heart, stars, compare and
@@ -295,7 +296,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(),
-      body: SingleChildScrollView(
+      body: BackToTop(child: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         child: Center(
@@ -375,7 +376,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             ),
           ),
         ),
-      ),
+      )),
       // The buy box stays at the bottom of the screen (`.buy-box` on a phone).
       bottomNavigationBar: SafeArea(
         top: false,

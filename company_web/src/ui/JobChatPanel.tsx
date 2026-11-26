@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { jobChatUnread, markJobChatRead, sendJobChatMessage, useJobChatHead, useJobChatLines } from '../data/jobChat';
 import { dayTime } from '../data/format';
 import type { Order } from '../data/types';
 import { t } from '../i18n';
+import { JumpToLatest, useChatScroll } from './JumpToLatest';
 import { Chip, Spinner } from './kit';
 import { useToast } from './toast';
 
@@ -22,7 +23,8 @@ export function JobChatPanel({ order, senderName, startOpen = false }: { order: 
   const box = useRef<HTMLDivElement>(null);
   const closed = order.orderStatus === 'completed' || order.orderStatus === 'cancelled';
 
-  useEffect(() => { box.current?.scrollTo({ top: box.current.scrollHeight }); }, [lines?.length]);
+  const items = useMemo(() => (lines ?? []).map((m) => ({ id: m.id, mine: m.fromCompany })), [lines]);
+  const scroll = useChatScroll(box, items);
   // Having it open is reading it: a message that arrives meanwhile is read too.
   useEffect(() => { if (open && head && jobChatUnread(head)) markJobChatRead(order.id); }, [open, head, order.id]);
 
@@ -62,7 +64,7 @@ export function JobChatPanel({ order, senderName, startOpen = false }: { order: 
               </p>
             )}
             {open && (
-              <div className="msgs" ref={box} aria-live="polite">
+              <div className="msgs" ref={box} onScroll={scroll.onScroll} aria-live="polite">
                 {lines === null && <Spinner />}
                 {lines?.length === 0 && <p className="muted">{t('لا رسائل بعد.')}</p>}
                 {lines?.map((m) => (
@@ -71,6 +73,7 @@ export function JobChatPanel({ order, senderName, startOpen = false }: { order: 
                     {m.text}
                   </div>
                 ))}
+                <JumpToLatest show={scroll.show} unseen={scroll.unseen} onJump={scroll.jump} />
               </div>
             )}
             {head && (

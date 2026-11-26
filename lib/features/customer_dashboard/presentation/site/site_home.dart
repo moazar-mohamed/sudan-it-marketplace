@@ -29,6 +29,7 @@ import 'site_cards.dart';
 import 'site_hero_offers.dart';
 import 'site_look.dart';
 import 'site_terms.dart';
+import '../../../../core/widgets/back_to_top.dart';
 
 /// Where the home's links lead in the shell: the pages of the top strip.
 class SiteHomeLinks {
@@ -184,7 +185,7 @@ class SiteHomePage extends ConsumerWidget {
       child: child,
     );
 
-    return ListView(
+    return BackToTop(child: ListView(
       key: const ValueKey('site-home'),
       primary: false,
       padding: const EdgeInsets.only(top: 20),
@@ -299,7 +300,7 @@ class SiteHomePage extends ConsumerWidget {
         gap,
         SiteFooter(links: links),
       ],
-    );
+    ));
   }
 }
 

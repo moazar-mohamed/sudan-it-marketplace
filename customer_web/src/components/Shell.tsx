@@ -5,6 +5,7 @@ import { useCatalog } from '../data/DataProvider';
 import { loginPath } from '../data/nextPath';
 import { showCountInTitle } from '../data/titleCount';
 import { listenForPushOpens, refreshPush, syncCityTopic } from '../data/webPush';
+import { BackToTop } from './BackToTop';
 import { CompareBar } from './Compare';
 import { Icon, PATHS } from './Icon';
 import { LanguageButton } from './LanguageSwitch';
@@ -145,6 +146,7 @@ export function Shell() {
     <div className="page">
       <PageBoundary key={pathname}><Outlet /></PageBoundary>
       <CompareBar />
+      <BackToTop />
       {uid && <NoticeToast />}
       {open && <Suspense fallback={null}><CommandPalette onClose={close} /></Suspense>}
     </div>
