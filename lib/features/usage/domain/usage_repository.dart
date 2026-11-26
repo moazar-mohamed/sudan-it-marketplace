@@ -9,6 +9,11 @@ abstract class UsageRepository {
     required String role,
   });
 
-  /// A customer opened this product: one is added to its running count.
-  Future<void> recordProductView(String productId);
+  /// A customer opened this product: one is added to its running count,
+  /// together with that customer's marker for it. The rules count a customer
+  /// at most once per product in any 24 hours, and refuse a repeat.
+  Future<void> recordProductView({
+    required String productId,
+    required String userId,
+  });
 }

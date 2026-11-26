@@ -25,10 +25,16 @@ class _FakeUsage implements UsageRepository {
   }
 
   @override
-  Future<void> recordProductView(String productId) async {
+  Future<void> recordProductView({
+    required String productId,
+    required String userId,
+  }) async {
     if (failWith != null) throw failWith!;
     views.add(productId);
+    viewers.add(userId);
   }
+
+  final viewers = <String>[];
 }
 
 class _FakeProfile extends ProfileController {
@@ -153,6 +159,21 @@ void main() {
       usage.failWith = null;
       await tracker.productViewed('p1', now: DateTime(2026, 10, 4));
       expect(usage.views, ['p1']);
+    });
+
+    test('the view is recorded in the customer\'s own name', () async {
+      final (_, usage, tracker) = await _setup(_person(UserRole.customer));
+      await tracker.productViewed('p1', now: DateTime(2026, 10, 4));
+      expect(usage.viewers, ['u1']);
+    });
+
+    test('"already counted today" (refused by the rules) is not retried all day', () async {
+      final (_, usage, tracker) = await _setup(_person(UserRole.customer));
+      usage.failWith = FirebaseException(plugin: 'cloud_firestore', code: 'permission-denied');
+      await tracker.productViewed('p1', now: DateTime(2026, 10, 4));
+      usage.failWith = null;
+      await tracker.productViewed('p1', now: DateTime(2026, 10, 4));
+      expect(usage.views, isEmpty);
     });
 
     test('an empty product id is ignored', () async {

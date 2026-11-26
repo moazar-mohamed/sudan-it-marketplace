@@ -39,7 +39,7 @@ export function ProductPage() {
 
   const isCustomer = profile?.role === 'customer';
   useEffect(() => {
-    if (listed && isCustomer) void recordProductView(listed.id);
+    if (listed && isCustomer && profile) void recordProductView(listed.id, profile.id);
   }, [listed?.id, isCustomer]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (error) return <main className="stack"><ErrorState /></main>;
