@@ -76,7 +76,15 @@ class UsageTracker {
           ? stored.substring(separator + 1).split(',').where((id) => id.isNotEmpty).toSet()
           : <String>{};
       if (seen.contains(productId)) return;
-      await _ref.read(usageRepositoryProvider).recordProductView(productId);
+      try {
+        await _ref
+            .read(usageRepositoryProvider)
+            .recordProductView(productId: productId, userId: profile.id);
+      } on FirebaseException catch (error) {
+        // "permission-denied" here means this customer's view of it was
+        // already counted in the last 24 hours: nothing to retry today.
+        if (error.code != 'permission-denied') rethrow;
+      }
       seen.add(productId);
       await prefs?.setString(_viewsKey, '$day|${seen.join(',')}');
     } catch (_) {}

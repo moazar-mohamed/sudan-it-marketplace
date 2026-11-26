@@ -2763,7 +2763,45 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Only customers' views count, and only of a product that exists.
+    // A customer's view of a product counts at most once in any 24 hours.
+    // Each customer has one marker per product, product_views/{productId}_{uid},
+    // holding the server time of their last counted view. The marker is
+    // written (created, or moved on once 24 hours have passed) in the same
+    // write as the count goes up, and the count only goes up with it, so
+    // repeating the request adds nothing.
+    function isProductViewMarkerWrite(viewId) {
+      let data = request.resource.data;
+      return callerRoleIn(['customer'])
+        && data.keys().hasOnly(['productId', 'userId', 'lastAt'])
+        && data.keys().hasAll(['productId', 'userId', 'lastAt'])
+        && data.userId == request.auth.uid
+        && data.productId is string
+        && viewId == data.productId + '_' + request.auth.uid
+        && data.lastAt == request.time;
+    }
+
+    // The marker of this customer for this product was moved to now in this
+    // very write: the one way a view is counted.
+    function viewMarkedNow(productId) {
+      let marker = /databases/$(database)/documents/product_views/$(productId + '_' + request.auth.uid);
+      return existsAfter(marker)
+        && getAfter(marker).data.lastAt == request.time;
+    }
+
+    match /product_views/{viewId} {
+      // A customer may look at their own marker; nobody lists them.
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isProductViewMarkerWrite(viewId)
+        && exists(/databases/$(database)/documents/products/$(request.resource.data.productId));
+      allow update: if isProductViewMarkerWrite(viewId)
+        && resource.data.userId == request.auth.uid
+        && resource.data.productId == request.resource.data.productId
+        && request.time > resource.data.lastAt + duration.value(24, 'h');
+      allow delete: if false;
+    }
+
+    // Only customers' views count, and only of a product that exists, once
+    // per customer per product in any 24 hours (product_views above).
     match /product_stats/{productId} {
       allow get, list: if isPlatformAdmin();
 
@@ -2771,12 +2809,14 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['views', 'updatedAt'])
         && request.resource.data.views == 1
         && request.resource.data.updatedAt == request.time
-        && exists(/databases/$(database)/documents/products/$(productId));
+        && exists(/databases/$(database)/documents/products/$(productId))
+        && viewMarkedNow(productId);
 
       allow update: if callerRoleIn(['customer'])
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views', 'updatedAt'])
         && request.resource.data.views == resource.data.views + 1
-        && request.resource.data.updatedAt == request.time;
+        && request.resource.data.updatedAt == request.time
+        && viewMarkedNow(productId);
 
       allow delete: if false;
     }

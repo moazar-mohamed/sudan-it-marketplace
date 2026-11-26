@@ -12,8 +12,8 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { collection, deleteDoc, doc, getDoc, getDocs, increment, query, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
-import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
+import { collection, deleteDoc, doc, getDoc, getDocs, increment, query, serverTimestamp, setDoc, Timestamp, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 let env: RulesTestEnvironment;
 
@@ -104,30 +104,105 @@ describe('a day of use', () => {
 });
 
 describe('product views', () => {
-  const view = (uid: string, productId = 'p1') =>
-    setDoc(doc(as(uid), 'product_stats', productId), { views: increment(1), updatedAt: serverTimestamp() }, { merge: true });
+  /** What the app and the site send: the customer's marker and the count, in one write. */
+  const view = (uid: string, productId = 'p1') => {
+    const db = as(uid);
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'product_views', `${productId}_${uid}`), {
+      productId,
+      userId: uid,
+      lastAt: serverTimestamp(),
+    });
+    batch.set(doc(db, 'product_stats', productId), { views: increment(1), updatedAt: serverTimestamp() }, { merge: true });
+    return batch.commit();
+  };
+  const markedAt = (uid: string, hoursAgo: number, productId = 'p1') =>
+    put(`product_views/${productId}_${uid}`, {
+      productId,
+      userId: uid,
+      lastAt: Timestamp.fromMillis(Date.now() - hoursAgo * 3600 * 1000),
+    });
+  const views = async () => {
+    let n: unknown;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      n = (await getDoc(doc(ctx.firestore(), 'product_stats/p1'))).data()?.views;
+    });
+    return n;
+  };
 
-  it('a customer adds the first view, then one more at a time', async () => {
+  it('each customer adds one view', async () => {
     await assertSucceeds(view('cust1'));
     await assertSucceeds(view('cust2'));
+    expect(await views()).toBe(2);
+  });
+
+  it('the same customer counts once in 24 hours, however often they ask', async () => {
     await assertSucceeds(view('cust1'));
+    for (let i = 0; i < 3; i++) await assertFails(view('cust1'));
+    expect(await views()).toBe(1);
+  });
+
+  it('a view 23 hours after the last one is refused, 25 hours after counts', async () => {
+    await put('product_stats/p1', { views: 5, updatedAt: new Date() });
+    await markedAt('cust1', 23);
+    await assertFails(view('cust1'));
+    await markedAt('cust1', 25);
+    await assertSucceeds(view('cust1'));
+    expect(await views()).toBe(6);
+  });
+
+  it('the count never goes up without the marker moving in the same write', async () => {
+    await assertFails(
+      setDoc(doc(as('cust1'), 'product_stats', 'p1'), { views: increment(1), updatedAt: serverTimestamp() }, { merge: true }),
+    );
+    await put('product_stats/p1', { views: 5, updatedAt: new Date() });
+    await assertFails(updateDoc(doc(as('cust1'), 'product_stats', 'p1'), { views: increment(1), updatedAt: serverTimestamp() }));
+  });
+
+  it("a marker is the customer's own, for one product, stamped with the server's time", async () => {
+    const mark = (uid: string, data: Record<string, unknown>, id = `p1_${uid}`) =>
+      setDoc(doc(as(uid), 'product_views', id), data);
+    await assertFails(mark('cust1', { productId: 'p1', userId: 'cust2', lastAt: serverTimestamp() }));
+    await assertFails(mark('cust1', { productId: 'p1', userId: 'cust1', lastAt: serverTimestamp() }, 'p1_cust2'));
+    await assertFails(mark('cust1', { productId: 'p1', userId: 'cust1', lastAt: new Date() }));
+    await assertFails(mark('cust1', { productId: 'p1', userId: 'cust1', lastAt: serverTimestamp(), extra: 1 }));
+    await assertFails(mark('cust1', { productId: 'no-such-product', userId: 'cust1', lastAt: serverTimestamp() }, 'no-such-product_cust1'));
   });
 
   it('never more than one at a time, and nothing else changes', async () => {
     await put('product_stats/p1', { views: 5, updatedAt: new Date() });
-    await assertFails(updateDoc(doc(as('cust1'), 'product_stats', 'p1'), { views: increment(10), updatedAt: serverTimestamp() }));
-    await assertFails(updateDoc(doc(as('cust1'), 'product_stats', 'p1'), { views: 1, updatedAt: serverTimestamp() }));
-    await assertFails(updateDoc(doc(as('cust1'), 'product_stats', 'p1'), { views: increment(1), updatedAt: serverTimestamp(), note: 'x' }));
-    await assertFails(updateDoc(doc(as('cust1'), 'product_stats', 'p1'), { views: increment(1) }));
+    const db = as('cust1');
+    const send = (stats: Record<string, unknown>) => {
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'product_views', 'p1_cust1'), { productId: 'p1', userId: 'cust1', lastAt: serverTimestamp() });
+      batch.update(doc(db, 'product_stats', 'p1'), stats);
+      return batch.commit();
+    };
+    await assertFails(send({ views: increment(10), updatedAt: serverTimestamp() }));
+    await assertFails(send({ views: 1, updatedAt: serverTimestamp() }));
+    await assertFails(send({ views: increment(1), updatedAt: serverTimestamp(), note: 'x' }));
+    await assertFails(send({ views: increment(1) }));
   });
 
   it('a new count starts at one, for a product that exists', async () => {
-    await assertFails(setDoc(doc(as('cust1'), 'product_stats', 'p1'), { views: 50, updatedAt: serverTimestamp() }));
+    const db = as('cust1');
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'product_views', 'p1_cust1'), { productId: 'p1', userId: 'cust1', lastAt: serverTimestamp() });
+    batch.set(doc(db, 'product_stats', 'p1'), { views: 50, updatedAt: serverTimestamp() });
+    await assertFails(batch.commit());
     await assertFails(view('cust1', 'no-such-product'));
   });
 
   it('only a customer counts: not a company, a technician, a Platform Admin or a deactivated account', async () => {
     for (const uid of ['ca1', 'tech1', 'pa', 'cust_off']) await assertFails(view(uid));
+  });
+
+  it('a customer reads only their own marker; nobody lists or deletes markers', async () => {
+    await assertSucceeds(view('cust1'));
+    await assertSucceeds(getDoc(doc(as('cust1'), 'product_views', 'p1_cust1')));
+    await assertFails(getDoc(doc(as('cust2'), 'product_views', 'p1_cust1')));
+    await assertFails(getDocs(collection(as('cust1'), 'product_views')));
+    await assertFails(deleteDoc(doc(as('cust1'), 'product_views', 'p1_cust1')));
   });
 
   it('nobody deletes a count; only Platform Admin reads them, best first', async () => {

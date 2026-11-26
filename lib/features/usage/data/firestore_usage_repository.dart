@@ -29,14 +29,27 @@ class FirestoreUsageRepository implements UsageRepository {
   }
 
   @override
-  Future<void> recordProductView(String productId) {
-    // Creates the count at 1, or adds one to it.
-    return _firestore.collection('product_stats').doc(productId).set(
-      {
-        'views': FieldValue.increment(1),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+  Future<void> recordProductView({
+    required String productId,
+    required String userId,
+  }) {
+    // The customer's marker for this product moves to now and the count goes
+    // up by one, in one write: the rules accept the pair at most once in any
+    // 24 hours (product_views/{productId}_{uid}).
+    final batch = _firestore.batch()
+      ..set(_firestore.collection('product_views').doc('${productId}_$userId'), {
+        'productId': productId,
+        'userId': userId,
+        'lastAt': FieldValue.serverTimestamp(),
+      })
+      ..set(
+        _firestore.collection('product_stats').doc(productId),
+        {
+          'views': FieldValue.increment(1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    return batch.commit();
   }
 }
