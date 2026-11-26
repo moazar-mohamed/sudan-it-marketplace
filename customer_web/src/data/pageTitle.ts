@@ -3,11 +3,14 @@ import { t } from '../i18n';
 
 const COUNT = /^\(\d+\+?\)\s*/;
 
-/** "Page | سوق السودان للتقنية"; the site's name alone for the home page (no [page]). */
+/**
+ * "Page | سوق السودان للتقنية"; for the home page (no [page]) the site's name
+ * with the SICTM brand, so a Google search for "SICTM" finds it.
+ */
 export function pageTitle(page: string | null | undefined): string {
   const site = t('سوق السودان للتقنية');
   const name = page?.trim();
-  return name ? `${name} | ${site}` : site;
+  return name ? `${name} | ${site}` : `${site} | SICTM`;
 }
 
 /** [title] with the "(3) " waiting-count of [current] kept in front. */

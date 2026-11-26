@@ -148,7 +148,8 @@ footer{border-top:1px solid var(--line);padding:20px 0;color:var(--muted);font-s
 
 function layout({ siteUrl, path, title, description, image, type = 'website', body, ld = [] }) {
   const url = `${siteUrl}${path}`;
-  const pageTitle = title === SITE_NAME ? title : `${title} | ${SITE_NAME}`;
+  // The brand SICTM sits in the catalog home's title so a search for it finds the site.
+  const pageTitle = title === SITE_NAME ? `${title} | SICTM` : `${title} | ${SITE_NAME}`;
   const img = image || `${siteUrl}/og-logo.png`;
   return `<!doctype html>
 <html lang="ar" dir="rtl">
@@ -256,7 +257,7 @@ export function renderSite(data, { siteUrl, now = new Date() }) {
 ${topCategories.length ? `<h2>التصنيفات</h2><ul class="chips">${topCategories.map((c) => `<li><a href="${categoryPath(c.id)}">${esc(categoryName(c))}</a></li>`).join('')}</ul>` : ''}
 ${products.length ? `<h2>أحدث المنتجات</h2>${gridHtml(products.slice(0, HOME_PRODUCTS))}` : '<p class="lead">لا منتجات معروضة الآن.</p>'}
 ${shownCompanies.length ? `<h2>الشركات</h2><ul class="chips">${shownCompanies.map((c) => `<li><a href="${companyPath(c.id)}">${esc(c.name)}</a></li>`).join('')}</ul>` : ''}`,
-    ld: [{ '@context': 'https://schema.org', '@type': 'WebSite', name: SITE_NAME, url: `${base}/catalog/`, inLanguage: 'ar' }],
+    ld: [{ '@context': 'https://schema.org', '@type': 'WebSite', name: 'SICTM', alternateName: [SITE_NAME, 'sictm.net'], url: `${base}/catalog/`, inLanguage: 'ar' }],
   }), '1.0');
 
   // Categories

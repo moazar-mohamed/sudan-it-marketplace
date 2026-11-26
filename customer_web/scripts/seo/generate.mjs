@@ -73,8 +73,17 @@ async function serviceAccountToken(file) {
 
 /** The Firebase CLI's own login, through its library (nothing is read from its files here). */
 async function firebaseCliToken() {
-  const root = execSync('npm root -g', { encoding: 'utf8' }).trim();
+  // `npm --prefix customer_web run` sets npm_config_prefix, which would make
+  // `npm root -g` answer customer_web/node_modules instead of the global folder.
+  const env = { ...process.env };
+  for (const key of Object.keys(env)) if (key.toLowerCase() === 'npm_config_prefix') delete env[key];
+  const root = execSync('npm root -g', { encoding: 'utf8', env }).trim();
   const require = createRequire(join(root, 'firebase-tools', 'package.json'));
+  // The account `firebase login` saved, handed to the CLI's own sign-in step
+  // the way its commands do, then a token for this run.
+  const account = require('./lib/auth').getGlobalDefaultAccount();
+  if (!account) throw new Error('No Firebase CLI login found: run "firebase login" first.');
+  await require('./lib/requireAuth').requireAuth({ user: account.user, tokens: account.tokens });
   return require('./lib/apiv2').getAccessToken();
 }
 
