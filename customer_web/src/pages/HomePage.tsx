@@ -200,6 +200,15 @@ export function HomePage() {
           </div>
         )}
       </section>
+
+      <Link to="/join-company" className="promo">
+        <span className="promo-icon"><Icon d={PATHS.building} size={26} /></span>
+        <span className="grow">
+          <span className="promo-kicker">{t('للشركات')}</span>
+          <span className="promo-title">{t('هل أنت شركة تقنية؟')} {t('سجّل شركتك')}</span>
+        </span>
+        <span className="icon-btn promo-go"><Icon d={PATHS.arrow} /></span>
+      </Link>
     </main>
   );
 }

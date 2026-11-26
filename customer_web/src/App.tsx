@@ -19,6 +19,7 @@ const ComparePage = lazy(() => import('./pages/ComparePage').then((m) => ({ defa
 const CompaniesPage = lazy(() => import('./pages/CompaniesPage').then((m) => ({ default: m.CompaniesPage })));
 const CompanyPage = lazy(() => import('./pages/CompanyPage').then((m) => ({ default: m.CompanyPage })));
 const FavoritesPage = lazy(() => import('./pages/FavoritesPage').then((m) => ({ default: m.FavoritesPage })));
+const JoinCompanyPage = lazy(() => import('./pages/JoinCompanyPage').then((m) => ({ default: m.JoinCompanyPage })));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
 const OrderDetailsPage = lazy(() => import('./pages/OrderDetailsPage').then((m) => ({ default: m.OrderDetailsPage })));
@@ -67,6 +68,7 @@ function SiteRoutes() {
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="reports" element={<MyReportsPage />} />
             <Route path="reports/new" element={<ReportFormPage />} />
+            <Route path="join-company" element={<JoinCompanyPage />} />
             <Route path="checkout/:id" element={<CheckoutPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="orders/:id" element={<OrderDetailsPage />} />
