@@ -55,12 +55,12 @@ final companyChatsStreamProvider =
 });
 
 final chatConversationProvider =
-    StreamProvider.family<ChatConversation?, String>((ref, chatId) {
+    StreamProvider.autoDispose.family<ChatConversation?, String>((ref, chatId) {
   return ref.watch(chatsRepositoryProvider).watchConversation(chatId);
 });
 
 final chatMessagesProvider =
-    StreamProvider.family<List<ChatMessage>, String>((ref, chatId) {
+    StreamProvider.autoDispose.family<List<ChatMessage>, String>((ref, chatId) {
   return ref.watch(chatsRepositoryProvider).watchMessages(chatId);
 });
 

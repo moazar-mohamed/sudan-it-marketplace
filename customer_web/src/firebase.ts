@@ -1,5 +1,4 @@
 import { initializeApp } from 'firebase/app';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { connectAuthEmulator, getAuth, signOut } from 'firebase/auth';
 import {
   clearIndexedDbPersistence,
@@ -38,12 +37,22 @@ export const app = initializeApp(firebaseConfig);
 // reCAPTCHA Enterprise key serves all four sites (one Firebase web app). An empty
 // key keeps it off. Firebase only refuses requests without a valid token once
 // enforcement is switched on in the console; until then it only counts them.
+// reCAPTCHA is the heaviest file the site loads (~350 KB), so it starts once the
+// page has shown, in its own file. (Before switching enforcement on, start it
+// earlier again: requests sent before it is ready carry no token.)
 export const APP_CHECK_SITE_KEY = '6LcLHzIuAAAAAJGYMd2ijEwwff5CTba6XjrlQHaP';
 if (APP_CHECK_SITE_KEY && import.meta.env.PROD && !import.meta.env.VITE_EMULATOR && typeof window !== 'undefined') {
-  initializeAppCheck(app, {
-    provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
-    isTokenAutoRefreshEnabled: true,
-  });
+  const start = () =>
+    void import('firebase/app-check')
+      .then(({ initializeAppCheck, ReCaptchaEnterpriseProvider }) =>
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+          isTokenAutoRefreshEnabled: true,
+        }),
+      )
+      .catch(() => undefined);
+  if (document.readyState === 'complete') setTimeout(start, 1500);
+  else window.addEventListener('load', () => setTimeout(start, 1500), { once: true });
 }
 
 // Firebase Performance Monitoring: page load, paint and request timings of real

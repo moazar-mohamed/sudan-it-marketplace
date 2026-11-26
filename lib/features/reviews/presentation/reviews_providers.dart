@@ -31,13 +31,13 @@ final ratingStatsProvider = Provider.family<RatingStats?, String>((ref, key) {
 });
 
 /// The review of one order or service request (null until rated).
-final reviewProvider = StreamProvider.family<Review?, String>((ref, id) {
+final reviewProvider = StreamProvider.autoDispose.family<Review?, String>((ref, id) {
   return ref.watch(reviewsRepositoryProvider).watchReview(id);
 });
 
 /// Visible reviews of one product or company service.
 final targetReviewsProvider =
-    StreamProvider.family<List<Review>, String>((ref, targetId) {
+    StreamProvider.autoDispose.family<List<Review>, String>((ref, targetId) {
   return ref.watch(reviewsRepositoryProvider).watchTargetReviews(targetId);
 });
 

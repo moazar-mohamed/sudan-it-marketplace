@@ -855,3 +855,12 @@ body:has(.compare-bar) .to-top { bottom: calc(96px + env(safe-area-inset-bottom,
 .jump-latest:focus-visible { outline: 3px solid var(--action); outline-offset: 3px; }
 .jump-count { position: absolute; top: -6px; inset-inline-start: -6px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--action); color: #fff; font-size: 12px; font-weight: 800; line-height: 22px; text-align: center; box-shadow: 0 0 0 2px var(--surface); }
 @media (prefers-reduced-motion: reduce) { .to-top, .jump-latest, .to-top-ring .fill { transition: none; } }
+
+/* The header and sign-in logos sit in a <picture> (WebP with a PNG fallback); it adds no box of its own. */
+picture:has(> img.brand-logo), .brand-mark picture { display: contents; }
+
+/* While the home page loads, the parts that fill in later already take their final size. */
+.cat-placeholder, .stat-band-loading > div, .hero-chips-loading .chip { background: linear-gradient(90deg, var(--surface-2), var(--line), var(--surface-2)); background-size: 200% 100%; animation: sk 1.2s infinite; color: transparent; pointer-events: none; }
+.cat-placeholder .cat-ico { background: transparent; }
+.hero-chips-loading .chip { min-width: 72px; border-color: transparent; }
+@media (prefers-reduced-motion: reduce) { .cat-placeholder, .stat-band-loading > div, .hero-chips-loading .chip { animation: none; } }

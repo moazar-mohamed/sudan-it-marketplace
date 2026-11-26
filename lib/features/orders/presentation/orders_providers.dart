@@ -33,7 +33,7 @@ final orderReceiptProvider =
 /// One order by id, live - for a screen that only needs a single order (its
 /// own conversation, for instance) rather than a whole list.
 final orderStreamProvider =
-    StreamProvider.family<OrderEntity?, String>((ref, orderId) {
+    StreamProvider.autoDispose.family<OrderEntity?, String>((ref, orderId) {
   if (orderId.isEmpty) {
     return Stream.value(null);
   }

@@ -16,7 +16,7 @@ export function AuthCard({ title, subtitle, back, children }: { title: string; s
       <div className="login-card">
         <PageTitle title={title} />
         <div className="brand" style={{ fontSize: 20 }}>
-          <span className="brand-mark brand-logo"><img src="/icon-192.png" alt="" width="44" height="44" /></span>
+          <span className="brand-mark brand-logo"><picture><source srcSet="/logo-88.webp" type="image/webp" /><img src="/logo-88.png" alt="" width="44" height="44" /></picture></span>
           {t('سوق السودان للتقنية')}
         </div>
         <h1 className="auth-title">{title}</h1>

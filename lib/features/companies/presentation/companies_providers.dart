@@ -119,20 +119,20 @@ final companyServesMyCityProvider = Provider.family<bool, String>((
 });
 
 final companyStreamProvider =
-    StreamProvider.family<Company?, String>((ref, companyId) {
+    StreamProvider.autoDispose.family<Company?, String>((ref, companyId) {
   return ref.watch(companiesRepositoryProvider).watchCompany(companyId);
 });
 
 /// The bank accounts a customer pays [companyId] into (their own document,
 /// never public).
 final companyPaymentAccountsProvider =
-    StreamProvider.family<List<PaymentAccount>, String>((ref, companyId) {
+    StreamProvider.autoDispose.family<List<PaymentAccount>, String>((ref, companyId) {
   return ref.watch(companiesRepositoryProvider).watchPaymentAccounts(companyId);
 });
 
 /// The company's email: only its own admin and Platform Admin can read it.
 final companyEmailProvider =
-    StreamProvider.family<String?, String>((ref, companyId) {
+    StreamProvider.autoDispose.family<String?, String>((ref, companyId) {
   return ref.watch(companiesRepositoryProvider).watchCompanyEmail(companyId);
 });
 

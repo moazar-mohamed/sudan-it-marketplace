@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/localization/locale_controller.dart';
+import '../../auth/data/profile_cache.dart';
 import '../../auth/domain/entities/user_profile.dart';
 import '../../auth/domain/exceptions/auth_exception.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -63,16 +64,36 @@ class ProfileController extends AsyncNotifier<UserProfile?> {
         ? (firebaseUser?.displayName ?? '')
         : '';
 
-    final profile = await repo.fetchOrCreateCustomerProfile(
-      userId: userId,
-      fullName: accountName,
-      email: accountEmail,
+    UserProfile? withEmail(UserProfile? profile) =>
+        profile != null && profile.email.isEmpty && accountEmail.isNotEmpty
+        ? profile.copyWith(email: accountEmail)
+        : profile;
+    Future<UserProfile?> fromServer() async => withEmail(
+      await repo.fetchOrCreateCustomerProfile(
+        userId: userId,
+        fullName: accountName,
+        email: accountEmail,
+      ),
     );
-    if (profile != null && profile.email.isEmpty && accountEmail.isNotEmpty) {
-      return profile.copyWith(email: accountEmail);
+
+    // The profile this phone saved last time opens the app at once (waiting for
+    // the server took about two and a half seconds); the server's copy replaces
+    // it as soon as it arrives. A first sign-in has nothing saved and waits.
+    final generation = ++_generation;
+    final cached = await ref.read(cachedProfileReaderProvider)(userId);
+    if (cached != null) {
+      fromServer().then((fresh) {
+        if (generation == _generation && ref.mounted) {
+          state = AsyncData(fresh);
+        }
+      }, onError: (Object _) {});
+      return withEmail(cached);
     }
-    return profile;
+    return fromServer();
   }
+
+  /// Which build is current, so a server answer for an older one is dropped.
+  int _generation = 0;
 
   /// Returns null on success, or an error message string.
   Future<String?> updateProfile({

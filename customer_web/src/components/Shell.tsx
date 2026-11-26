@@ -100,7 +100,7 @@ export function Shell() {
       <header className="nav">
       <div className="nav-inner">
         <NavLink to="/" className="brand" aria-label="Sudan ICT Marketplace">
-          <img className="brand-logo" src="/og-logo.png" alt="" width="44" height="44" />
+          <picture><source srcSet="/logo-88.webp" type="image/webp" /><img className="brand-logo" src="/logo-88.png" alt="" width="44" height="44" /></picture>
           <span className="brand-name">
             <span className="brand-title">Sudan ICT Marketplace</span>
             <small>{t('سوق التقنية والاتصالات في السودان')}</small>

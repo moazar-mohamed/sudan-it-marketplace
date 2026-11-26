@@ -55,7 +55,7 @@ final companyPendingServiceRequestsCountProvider =
 });
 
 final serviceRequestStreamProvider =
-    StreamProvider.family<ServiceRequest?, String>((ref, requestId) {
+    StreamProvider.autoDispose.family<ServiceRequest?, String>((ref, requestId) {
   return ref
       .watch(serviceRequestsRepositoryProvider)
       .watchServiceRequest(requestId);

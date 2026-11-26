@@ -9,7 +9,7 @@ final technicianNotesStoreProvider = Provider<TechnicianNotesStore>((ref) {
 
 /// The notes a technician left on one job, newest first.
 final technicianNotesProvider =
-    StreamProvider.family<List<TechnicianNote>, String>((ref, orderId) {
+    StreamProvider.autoDispose.family<List<TechnicianNote>, String>((ref, orderId) {
   if (orderId.isEmpty) return Stream.value(const []);
   return ref.watch(technicianNotesStoreProvider).watch(orderId);
 });

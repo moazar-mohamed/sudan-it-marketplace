@@ -36,7 +36,7 @@ final allActiveCompanyServicesProvider =
 });
 
 final companiesOfferingServiceProvider =
-    StreamProvider.family<List<CompanyService>, String>((ref, serviceId) {
+    StreamProvider.autoDispose.family<List<CompanyService>, String>((ref, serviceId) {
       return ref
           .watch(companyServiceRepositoryProvider)
           .watchCompaniesOfferingService(serviceId);
