@@ -5,13 +5,11 @@ import { authErrorText, noticeText, useAuth, type AccessNotice } from '../auth/A
 import { Banner, Spinner } from '../ui/kit';
 import { t } from '../i18n';
 
-/** The platform's WhatsApp line, for companies that don't have an account yet. */
-const SUPPORT_WHATSAPP = '249118424422';
-const SUPPORT_WHATSAPP_SHOWN = '+249 118 424 422';
 const MAIN_SITE = 'https://sictm.net';
+/** A company without an account sends a join request on the customer site (the request is kept and reaches Platform Admin). */
+const JOIN_FORM = 'https://sictm.net/join-company';
 
-const WHATSAPP_PATH =
-  'M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.4-.3z';
+const STORE_PATH = 'M3 9l1.5-5h15L21 9 M3 9v11h18V9 M3 9h18 M9 20v-6h6v6';
 
 export function LoginPage({ notice }: { notice: AccessNotice | null }) {
   const { signIn } = useAuth();
@@ -78,16 +76,11 @@ export function LoginPage({ notice }: { notice: AccessNotice | null }) {
         <button type="button" className="linkbtn" onClick={() => void reset()}>{t('نسيت كلمة المرور')}</button>
         <div className="login-alt">
           <p>{t('لا تملك حساب شركة؟')}</p>
-          <a
-            className="login-wa"
-            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(t('مرحباً، أريد تسجيل شركتي في سوق السودان للتقنية (sictm.net).'))}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d={WHATSAPP_PATH} fill="currentColor" /></svg>
-            {t('تواصل معنا عبر واتساب لتسجيل شركتك')}
-            <span dir="ltr">{SUPPORT_WHATSAPP_SHOWN}</span>
+          <a className="login-join" href={JOIN_FORM} target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d={STORE_PATH} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            {t('سجّل شركتك في سوق السودان للتقنية')}
           </a>
+          <p className="login-join-hint">{t('أرسل طلب انضمام، ويراجعه فريق المنصة ويتواصل معك.')}</p>
           <a className="login-back" href={MAIN_SITE}>{t('العودة إلى sictm.net')}</a>
         </div>
       </form>

@@ -964,4 +964,9 @@ export const EN: Record<string, string> = {
   "مرحباً، أريد تسجيل شركتي في سوق السودان للتقنية (sictm.net).": "Hello, I'd like to register my company on Sudan ICT Marketplace (sictm.net).",
   "الانتقال إلى آخر الرسائل": "Go to the latest messages",
   "{0} رسائل جديدة — الانتقال إلى آخر الرسائل": "{0} new messages — go to the latest",
+  "سوق السودان للتقنية": "Sudan ICT Marketplace",
+  "لا تملك حساب شركة؟": "Don't have a company account?",
+  "العودة إلى sictm.net": "Back to sictm.net",
+  "سجّل شركتك في سوق السودان للتقنية": "Register your company on Sudan ICT Marketplace",
+  "أرسل طلب انضمام، ويراجعه فريق المنصة ويتواصل معك.": "Send a join request; the platform team reviews it and contacts you.",
 };
